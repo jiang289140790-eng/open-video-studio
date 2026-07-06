@@ -6,6 +6,7 @@ const webRoot = resolve(__dirname, "apps", "web");
 
 export default defineConfig({
   root: webRoot,
+  base: "./",
   plugins: [react()],
   build: {
     outDir: resolve(__dirname, "dist-web"),
