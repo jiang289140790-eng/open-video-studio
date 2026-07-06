@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | OVSB-001 |
-| Version | 0.4.0 |
+| Version | 0.5.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | DOC-STD-001, ID-REG-001, TASK-001, TASK-DONE-STD-001, REF-001, DOC-LIFE-001, OWNERS-001, KNOW-001, CHANGELOG-001 |
@@ -36,6 +36,68 @@ The platform will be documented as a set of coordinated domains:
 - Analytics: event taxonomy, funnels, metrics, dashboards, and experimentation.
 - Security: threat model, privacy, compliance, secrets, abuse prevention, and access control.
 - Roadmap: phases, milestones, decision records, and sequencing.
+
+## Current Production Stack
+
+- Frontend: React, Vite, and the current MVP static product surface under `apps/web/`.
+- Backend foundation: TypeScript service layer with Supabase connection foundation.
+- Database target: Supabase PostgreSQL.
+- Storage target: Supabase Storage.
+- Authentication target: Supabase Auth.
+- Current AI execution: local fake/stub worker foundations.
+- Future AI providers: ComfyUI, OpenAI, Gemini, Fal.ai, RunPod, and local API adapters.
+
+## Local Setup
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the Vite development server:
+
+```bash
+npm run dev
+```
+
+Build the TypeScript services and Vite frontend:
+
+```bash
+npm run build
+```
+
+Run the full test suite:
+
+```bash
+npm run test
+```
+
+Verify Supabase configuration:
+
+```bash
+npm run verify:supabase
+```
+
+## Environment Variables
+
+Copy `.env.local.example` to `.env.local` and fill in values from the existing Supabase project. Never commit `.env.local` or any real secret.
+
+Required for live Supabase verification:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_STORAGE_BUCKET`
+
+Optional server-only key:
+
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+Future AI provider keys are intentionally empty until provider integrations are enabled.
+
+## GitHub Readiness
+
+This repository is initialized with Git, MIT license, Git-friendly ignores, line-ending rules, environment templates, and production build/test scripts. Generated output, local data, dependencies, and secrets are ignored.
 
 ## Rules
 
@@ -98,6 +160,7 @@ Agents must not create product code without documented requirements. If document
 - Do not call production-impacting work ready until testing, deployment, observability, security, recovery, and cost impact are addressed.
 - Keep paths portable and Git-friendly.
 - Keep document ownership and lifecycle status current.
+- Never commit API keys, Supabase service role keys, local `.env` files, generated builds, local SQLite files, or private exports.
 
 ## Acceptance Criteria
 

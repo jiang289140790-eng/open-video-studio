@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DB-BIBLE-001 |
-| Version | 1.6.0 |
+| Version | 1.7.0 |
 | Status | Active |
 | Owner | Data Architecture Lead |
 | Dependencies | PB-008, PB-010, SEC-INDEX-001, ANALYTICS-INDEX-001 |
@@ -50,7 +50,9 @@ Define the permanent database architecture source of truth for Open Video Studio
 
 ## Current Implementation
 
-Phase 1 uses a local SQLite schema at `src/db/schema.sql` for development and automated tests. This is an implementation foundation recorded in `ADR-002`, not a final production database decision.
+Phase 1 uses a local SQLite schema at `src/db/schema.sql` for development and automated tests. This is an implementation foundation recorded in `ADR-002`.
+
+The production database target is Supabase PostgreSQL. The repository includes environment-based Supabase client creation and a live verification script. Exact PostgreSQL migrations are not generated yet and must be created before replacing the local SQLite test schema in production workflows.
 
 `ADR-004` extends the local schema for the one-user product workflow with characters, generation jobs, images, videos, orders, and share links. Production database selection, migration policy, backup, restore, RTO, RPO, and storage growth controls remain future architecture work.
 

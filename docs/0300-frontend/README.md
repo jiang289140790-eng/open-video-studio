@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | FE-INDEX-001 |
-| Version | 0.5.0 |
+| Version | 0.6.0 |
 | Status | Active |
 | Owner | Frontend Lead |
 | Dependencies | OVSB-001, DOC-STD-001, UX-INDEX-001, API-INDEX-001, FE-BIBLE-001 |
@@ -38,7 +38,9 @@ Own client application architecture, routing, state management, editor surfaces,
 
 ## Current Implementation
 
-The MVP frontend is implemented as framework-free static routes under `apps/web/`. `ADR-003` records the first reconstruction; `MVP-S3-000` records the product surface direction correction from internal workflow style to premium AI creation platform style.
+The MVP frontend is implemented under `apps/web/`. `ADR-003` records the first reconstruction; `MVP-S3-000` records the product surface direction correction from internal workflow style to premium AI creation platform style.
+
+The repository now includes React, Vite, and a production app shell at `apps/web/app-shell.html`. Existing static MVP pages remain available while the frontend migrates safely into React.
 
 - `apps/web/index.html` implements the current homepage surface for `PAGE-HOME-001`.
 - `apps/web/gallery.html` implements the Explore / Gallery surface for `PAGE-GALLERY-001`.
@@ -48,7 +50,7 @@ The MVP frontend is implemented as framework-free static routes under `apps/web/
 - `apps/web/signin.html` implements the current sign in / account entry for `PAGE-AUTH-001`.
 - `apps/web/characters.html`, `apps/web/assets.html`, `apps/web/history.html`, and `apps/web/share.html` implement MVP product surfaces derived from existing character, asset, generation history, and share requirements.
 
-This is an MVP surface, not the final frontend architecture. Future framework selection, routing, API integration, analytics instrumentation, and production deployment remain future work.
+This is an MVP surface, not the final frontend architecture. Vite production build is available through `npm run build:web`; API integration, analytics instrumentation, and production deployment remain future work.
 
 ## Acceptance Criteria
 

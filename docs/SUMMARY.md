@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.21.0 |
+| Version | 0.22.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -197,6 +197,13 @@ Provide the navigation map for the Open Video Studio knowledge base.
 ## Project History
 
 - [CHANGELOG-001 Changelog](../CHANGELOG.md)
+
+## Production Setup
+
+- Root [README](../README.md) documents GitHub-ready setup, React/Vite build scripts, Supabase environment variables, and verification commands.
+- [Frontend Domain](0300-frontend/README.md) documents the current React/Vite app shell and static MVP surface.
+- [Backend Architecture Bible](0400-backend/000-backend-architecture-bible.md) documents the Supabase connection foundation.
+- [Database Bible](0500-database/README.md) documents Supabase PostgreSQL as the production target.
 
 ## Reviews
 

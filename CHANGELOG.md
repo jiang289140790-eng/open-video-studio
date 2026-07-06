@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.12.1 |
+| Version | 0.13.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,11 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Added
 
+- Initialized Git repository and committed the stable MVP baseline.
+- Added React, Vite, and a production app shell while preserving the existing MVP product pages.
+- Added Supabase environment loading, client creation, connection status checks, and verification script.
+- Added `.env.example`, `.env.local.example`, MIT `LICENSE`, and production-safe Git ignore rules.
+- Added Supabase configuration tests for environment loading, placeholder detection, and missing-config failure behavior.
 - Added premium AI creation platform MVP surface across Home, Explore/Gallery, Generate Studio, Characters, Assets, Dashboard, History, Pricing, Sign in/Account, and Share pages.
 - Added expanded product navigation for Explore, Generate, Characters, Assets, Pricing, Dashboard, History, Credits, and Account.
 - Added static frontend tests for required pages, required navigation, conversion CTAs, gallery sections, dashboard sections, and premium AI SaaS positioning.
@@ -83,6 +88,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Changed
 
+- Updated root README with production stack, local setup, Supabase environment variables, GitHub readiness, and verification commands.
+- Updated Frontend, Backend, Authentication, Storage, Database, and Summary documentation for React/Vite and Supabase production-readiness.
 - Replaced non-ASCII password placeholder characters in the static sign in page with ASCII-safe text to prevent mojibake in Windows/browser/tooling contexts.
 - Rebuilt the MVP visual direction from a plain internal workflow style to a dark, gradient-friendly, gallery-first creator platform style.
 - Redesigned Homepage, Gallery, Generate, and Pricing surfaces with visual-first layouts and creator-focused CTAs.
@@ -114,6 +121,10 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran `npm install` to install React, Vite, Supabase, and React type dependencies.
+- Ran `npm run build` after React/Vite/Supabase setup.
+- Ran `npm run test` after React/Vite/Supabase setup; 23 tests passed.
+- Ran `npm run verify:supabase`; verification correctly reported missing Supabase environment variables instead of pretending to connect.
 - Added and ran a static frontend encoding safety test to block non-ASCII/mojibake markers in product surface files.
 - Ran the TypeScript build and full Node test suite after the encoding fix; 20 tests passed.
 - Ran the TypeScript build and full Node test suite after the product UI direction correction; 19 tests passed.

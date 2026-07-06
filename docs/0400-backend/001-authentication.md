@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | BE-ARCH-AUTH-001 |
-| Version | 1.1.0 |
+| Version | 1.2.0 |
 | Status | Active |
 | Owner | Backend Lead / Security Lead |
 | Dependencies | API-AUTH-001, DB-USERS-001, DB-AUDIT-LOGS-001, SEC-INDEX-001 |
@@ -24,7 +24,9 @@ Define backend architecture for identity, sessions, authentication verification,
 
 Authentication should be a platform boundary responsible for validating identity, issuing or verifying session context, and attaching actor metadata to downstream requests. It should integrate with future identity providers without exposing provider-specific details to product services.
 
-Phase 1 implements a local authentication service with password hashing, session token hashing, account status checks, user lookup, and audit logging. This is not yet a production identity provider architecture.
+Phase 1 implements a local authentication service with password hashing, session token hashing, account status checks, user lookup, and audit logging. The production target is Supabase Auth, configured through `SUPABASE_URL` and `SUPABASE_ANON_KEY`.
+
+The repository now includes a Supabase client foundation and environment validation. Live authentication verification requires the existing Supabase project credentials in `.env.local`.
 
 ## Responsibilities
 

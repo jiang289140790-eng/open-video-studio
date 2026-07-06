@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | BE-ARCH-BIBLE-001 |
-| Version | 1.4.0 |
+| Version | 1.5.0 |
 | Status | Active |
 | Owner | Backend Lead |
 | Dependencies | PB-010, API-BIBLE-001, DB-BIBLE-001, SEC-INDEX-001, DEVOPS-INDEX-001 |
@@ -35,7 +35,9 @@ The backend should be a modular service-oriented platform with clear boundaries 
 
 Phase 1 starts with a TypeScript Node.js backend core, documented in `ADR-002`. The current implementation includes service modules for authentication, users, credits, storage, and audit logging. `ADR-004` adds the product workflow foundation. `ADR-005` adds the provider-independent AI Engine foundation with local queue, worker, provider registry, storage abstraction, and cost tracking.
 
-The current implementation intentionally does not include HTTP routes, a web framework, production queues, production deployment infrastructure, live AI providers, or payment provider integration yet.
+The current implementation includes a local MVP HTTP API and a Supabase connection foundation for production Auth, PostgreSQL Database, and Storage configuration. Supabase credentials are loaded only from environment variables and are never hardcoded.
+
+The current implementation intentionally does not include production queues, production deployment infrastructure, live AI providers, or payment provider integration yet.
 
 `REVIEW-PROVIDER-PLUGIN-001` and proposed `ADR-006` define the next provider plugin refactoring plan. This plan is documentation-only until approved.
 

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | BE-ARCH-STORAGE-001 |
-| Version | 1.2.0 |
+| Version | 1.3.0 |
 | Status | Active |
 | Owner | Backend Lead / Media Platform Lead |
 | Dependencies | DB-MEDIA-ASSETS-001, DB-IMAGES-001, DB-VIDEOS-001, SEC-INDEX-001 |
@@ -26,7 +26,7 @@ Storage should use object storage or equivalent durable media storage for binary
 
 Phase 1 implements a local filesystem storage adapter plus media asset metadata records. This validates storage boundaries locally and is not a production media storage decision.
 
-`ADR-005` adds an AI-specific storage adapter interface with local implementation and future placeholders for Cloudflare R2, S3, and Supabase Storage. This is an abstraction foundation, not a production object storage decision.
+`ADR-005` adds an AI-specific storage adapter interface with local implementation and future placeholders for Cloudflare R2, S3, and Supabase Storage. The production target is now Supabase Storage, configured through `SUPABASE_STORAGE_BUCKET` and verified by `npm run verify:supabase`.
 
 ## Responsibilities
 
