@@ -1,0 +1,80 @@
+# Authentication API
+
+| Field | Value |
+|---|---|
+| ID | API-AUTH-001 |
+| Unique ID | API-AUTH-001 |
+| Version | 1.1.0 |
+| Status | Active |
+| Owner | API Platform Lead / Security Lead |
+| Dependencies | DB-USERS-001, SEC-INDEX-001 |
+| Referenced By | API-BIBLE-001, API-ADMIN-001, API-CREDITS-001, API-GEN-IMAGE-001, API-GEN-VIDEO-001 |
+| Cross References | DB-USERS-001, SEC-INDEX-001, DB-AUDIT-LOGS-001 |
+
+## Purpose
+
+Define the API surface for user authentication, session state, token handling, identity verification, and future enterprise identity flows.
+
+## Requirements
+
+- Establish trusted actor context for protected APIs.
+- Avoid exposing credential secrets through product API responses.
+- Audit security-sensitive authentication events.
+
+## Business Logic
+
+Authentication proves identity and establishes the actor context used by all protected APIs. The system must support secure login, logout, session refresh, account state checks, and future SSO without exposing sensitive credential handling in product APIs.
+
+## Authentication
+
+Public authentication actions may accept unauthenticated requests. Protected session actions require a valid session or token. High-risk actions may require recent authentication or additional verification.
+
+## Permissions
+
+Unauthenticated users may request login or signup flows. Authenticated users may inspect their own session. Admin identity operations require elevated permissions and audit logging.
+
+## Request
+
+Conceptual request inputs may include login identifier, verification credential or provider assertion, session token, device context, redirect intent, and optional invitation context.
+
+## Response
+
+Responses may include authentication status, user reference, session metadata, required next step, account status, supported workspace context, and safe client-facing expiration metadata.
+
+## Error Codes
+
+- `AUTH_INVALID_CREDENTIALS`
+- `AUTH_SESSION_EXPIRED`
+- `AUTH_ACCOUNT_DISABLED`
+- `AUTH_VERIFICATION_REQUIRED`
+- `AUTH_RATE_LIMITED`
+- `AUTH_PROVIDER_UNAVAILABLE`
+
+## Rate Limit
+
+Strict limits apply to login, signup, verification, token refresh, and passwordless requests. Limits should consider IP, account identifier, device fingerprint, and abuse signals.
+
+## Dependencies
+
+Depends on `DB-USERS-001`, future identity provider architecture, security policy, audit logging, and session storage.
+
+## Future Expansion
+
+Support SSO, SCIM, MFA, passkeys, enterprise domain verification, service accounts, API keys, and session risk scoring.
+
+## Acceptance Criteria
+
+- Protected APIs can consistently identify the actor.
+- Sensitive authentication events can be audited without exposing secrets.
+
+## Current Implementation
+
+MVP Sprint 1 exposes local HTTP routes for signup, login, and current user through `createMvpApiServer`. Authentication uses the existing `AuthService` bearer token session foundation.
+
+## Future Plan
+
+Create dedicated security and identity architecture before implementation.
+
+## AI Context
+
+Do not design authentication as simple username/password storage. Treat identity as security-critical platform infrastructure.

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pricing | Open Video Studio</title>
+    <meta name="description" content="Buy credits and choose creator-friendly AI video generation plans for Open Video Studio.">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
+      <nav class="topnav" aria-label="Primary navigation"><a href="./gallery.html">Explore</a><a href="./generate.html">Generate</a><a href="./characters.html">Characters</a><a href="./assets.html">Assets</a><a href="./pricing.html" aria-current="page">Pricing</a></nav>
+      <nav class="accountnav" aria-label="Account navigation"><a href="./dashboard.html">Dashboard</a><a href="./history.html">History</a><a href="./pricing.html" aria-current="page">Credits</a><a href="./signin.html">Account</a></nav>
+      <a class="btn primary" href="./signin.html">Start free</a>
+    </header>
+    <main class="app-surface">
+      <section class="page-hero compact center"><p class="eyebrow">Pricing / Credits</p><h1>Creator plans for image and video generation.</h1><p class="lead">Keep costs visible before each generation. Buy credits, upgrade when volume grows, and keep every result reusable.</p><label>Billing <select class="select" data-interval><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></label></section>
+      <section class="pricing-grid">
+        <article class="plan-card"><span class="badge">Starter</span><h2>Creator</h2><p>For individual creators testing repeatable AI workflows.</p><div class="price"><span data-monthly="$19" data-yearly="$15">$19</span><em>/mo</em></div><ul><li>600 monthly credits</li><li>Images and video previews</li><li>Personal assets</li></ul><a class="btn glass full" href="./signin.html">Start Starter</a></article>
+        <article class="plan-card featured"><span class="badge success">Popular</span><h2>Studio</h2><p>For creators producing campaigns and reusable characters.</p><div class="price"><span data-monthly="$59" data-yearly="$49">$59</span><em>/mo</em></div><ul><li>2,400 monthly credits</li><li>Character library</li><li>Priority generation queue</li></ul><a class="btn primary full" href="./signin.html">Choose Studio</a></article>
+        <article class="plan-card"><span class="badge">Scale</span><h2>Pro</h2><p>For larger content operations that need more generation room.</p><div class="price"><span data-monthly="$149" data-yearly="$129">$149</span><em>/mo</em></div><ul><li>8,000 monthly credits</li><li>Advanced history</li><li>Share management</li></ul><a class="btn glass full" href="./signin.html">Go Pro</a></article>
+      </section>
+      <section class="faq">
+        <details open><summary>Can I buy more credits?</summary><p>Yes. The MVP includes a local purchase path through the Credits API; this page reserves the product entry.</p></details>
+        <details><summary>What consumes credits?</summary><p>Image, video, character, upscale, and edit operations are expected to consume credits.</p></details>
+        <details><summary>Can I keep my assets?</summary><p>Yes. Generated outputs flow into Assets and History for reuse.</p></details>
+      </section>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>

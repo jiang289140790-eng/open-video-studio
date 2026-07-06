@@ -1,0 +1,380 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  display_name TEXT NOT NULL,
+  avatar_url TEXT,
+  account_status TEXT NOT NULL DEFAULT 'active',
+  role TEXT NOT NULL DEFAULT 'user',
+  locale TEXT NOT NULL DEFAULT 'en',
+  timezone TEXT NOT NULL DEFAULT 'UTC',
+  onboarding_state TEXT NOT NULL DEFAULT 'not_started',
+  last_active_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  deleted_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_status ON users(account_status);
+CREATE INDEX IF NOT EXISTS idx_users_last_active ON users(last_active_at);
+
+CREATE TABLE IF NOT EXISTS sessions (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  token_hash TEXT NOT NULL UNIQUE,
+  expires_at TEXT NOT NULL,
+  revoked_at TEXT,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
+
+CREATE TABLE IF NOT EXISTS workspaces (
+  id TEXT PRIMARY KEY,
+  owner_user_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  status TEXT NOT NULL DEFAULT 'active',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  archived_at TEXT,
+  FOREIGN KEY (owner_user_id) REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_workspaces_owner ON workspaces(owner_user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_workspaces_status ON workspaces(status);
+
+CREATE TABLE IF NOT EXISTS workspace_members (
+  id TEXT PRIMARY KEY,
+  workspace_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  role TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'active',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  removed_at TEXT,
+  UNIQUE(workspace_id, user_id),
+  FOREIGN KEY (workspace_id) REFERENCES workspaces(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_workspace_members_workspace ON workspace_members(workspace_id, status);
+CREATE INDEX IF NOT EXISTS idx_workspace_members_user ON workspace_members(user_id, status);
+
+CREATE TABLE IF NOT EXISTS projects (
+  id TEXT PRIMARY KEY,
+  workspace_id TEXT NOT NULL,
+  owner_user_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'active',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  archived_at TEXT,
+  FOREIGN KEY (workspace_id) REFERENCES workspaces(id),
+  FOREIGN KEY (owner_user_id) REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_projects_workspace_time ON projects(workspace_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_projects_owner ON projects(owner_user_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status);
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id TEXT PRIMARY KEY,
+  actor_type TEXT NOT NULL,
+  actor_id TEXT,
+  action TEXT NOT NULL,
+  target_type TEXT NOT NULL,
+  target_id TEXT,
+  outcome TEXT NOT NULL,
+  risk_classification TEXT NOT NULL DEFAULT 'low',
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_actor ON audit_logs(actor_type, actor_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_target ON audit_logs(target_type, target_id);
+CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_logs(action, created_at);
+
+CREATE TABLE IF NOT EXISTS credit_transactions (
+  id TEXT PRIMARY KEY,
+  account_id TEXT NOT NULL,
+  user_id TEXT,
+  source_type TEXT NOT NULL,
+  source_id TEXT,
+  amount INTEGER NOT NULL,
+  balance_impact INTEGER NOT NULL,
+  operation_category TEXT NOT NULL,
+  expires_at TEXT,
+  status TEXT NOT NULL DEFAULT 'posted',
+  reason TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_credit_account_time ON credit_transactions(account_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_credit_user_time ON credit_transactions(user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_credit_source ON credit_transactions(source_type, source_id);
+CREATE INDEX IF NOT EXISTS idx_credit_operation ON credit_transactions(operation_category);
+CREATE INDEX IF NOT EXISTS idx_credit_expiration ON credit_transactions(expires_at);
+
+CREATE TABLE IF NOT EXISTS media_assets (
+  id TEXT PRIMARY KEY,
+  owner_user_id TEXT NOT NULL,
+  project_id TEXT,
+  character_id TEXT,
+  generation_job_id TEXT,
+  asset_type TEXT NOT NULL,
+  source_type TEXT NOT NULL,
+  storage_key TEXT NOT NULL UNIQUE,
+  preview_storage_key TEXT,
+  display_name TEXT NOT NULL,
+  tags_json TEXT NOT NULL DEFAULT '[]',
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  is_favorite INTEGER NOT NULL DEFAULT 0,
+  processing_status TEXT NOT NULL DEFAULT 'ready',
+  rights_status TEXT NOT NULL DEFAULT 'unknown',
+  moderation_status TEXT NOT NULL DEFAULT 'pending',
+  visibility_status TEXT NOT NULL DEFAULT 'private',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  archived_at TEXT,
+  deleted_at TEXT,
+  FOREIGN KEY (owner_user_id) REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_media_owner_time ON media_assets(owner_user_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_media_project ON media_assets(project_id);
+CREATE INDEX IF NOT EXISTS idx_media_character ON media_assets(character_id);
+CREATE INDEX IF NOT EXISTS idx_media_generation_job ON media_assets(generation_job_id);
+CREATE INDEX IF NOT EXISTS idx_media_type ON media_assets(asset_type);
+CREATE INDEX IF NOT EXISTS idx_media_processing ON media_assets(processing_status);
+CREATE INDEX IF NOT EXISTS idx_media_rights ON media_assets(rights_status);
+CREATE INDEX IF NOT EXISTS idx_media_moderation ON media_assets(moderation_status);
+CREATE INDEX IF NOT EXISTS idx_media_visibility ON media_assets(visibility_status);
+CREATE INDEX IF NOT EXISTS idx_media_favorite ON media_assets(is_favorite);
+
+CREATE TABLE IF NOT EXISTS characters (
+  id TEXT PRIMARY KEY,
+  owner_user_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  character_type TEXT NOT NULL DEFAULT 'persona',
+  reference_asset_id TEXT,
+  cover_asset_id TEXT,
+  tags_json TEXT NOT NULL DEFAULT '[]',
+  memory_json TEXT NOT NULL DEFAULT '{}',
+  consistency_status TEXT NOT NULL DEFAULT 'draft',
+  prompt_seed TEXT NOT NULL DEFAULT '',
+  rights_status TEXT NOT NULL DEFAULT 'unknown',
+  safety_status TEXT NOT NULL DEFAULT 'pending',
+  visibility_status TEXT NOT NULL DEFAULT 'private',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  archived_at TEXT,
+  FOREIGN KEY (owner_user_id) REFERENCES users(id),
+  FOREIGN KEY (reference_asset_id) REFERENCES media_assets(id),
+  FOREIGN KEY (cover_asset_id) REFERENCES media_assets(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_characters_owner_name ON characters(owner_user_id, name);
+CREATE INDEX IF NOT EXISTS idx_characters_type ON characters(character_type);
+CREATE INDEX IF NOT EXISTS idx_characters_rights ON characters(rights_status);
+CREATE INDEX IF NOT EXISTS idx_characters_safety ON characters(safety_status);
+
+CREATE TABLE IF NOT EXISTS generation_jobs (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  media_type TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'queued',
+  project_id TEXT,
+  prompt TEXT NOT NULL,
+  provider TEXT NOT NULL DEFAULT 'local_api',
+  model TEXT NOT NULL DEFAULT 'local-stub-v0',
+  aspect_ratio TEXT NOT NULL,
+  resolution TEXT,
+  duration_seconds INTEGER,
+  source_asset_id TEXT,
+  character_id TEXT,
+  result_asset_id TEXT,
+  credit_transaction_id TEXT,
+  cost_credits INTEGER NOT NULL,
+  estimated_cost_cents INTEGER NOT NULL DEFAULT 0,
+  progress INTEGER NOT NULL DEFAULT 0,
+  safety_status TEXT NOT NULL DEFAULT 'pending_review',
+  error_code TEXT,
+  error_message TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  completed_at TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (project_id) REFERENCES projects(id),
+  FOREIGN KEY (source_asset_id) REFERENCES media_assets(id),
+  FOREIGN KEY (character_id) REFERENCES characters(id),
+  FOREIGN KEY (result_asset_id) REFERENCES media_assets(id),
+  FOREIGN KEY (credit_transaction_id) REFERENCES credit_transactions(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_generation_jobs_user_time ON generation_jobs(user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_generation_jobs_project ON generation_jobs(project_id);
+CREATE INDEX IF NOT EXISTS idx_generation_jobs_character ON generation_jobs(character_id);
+CREATE INDEX IF NOT EXISTS idx_generation_jobs_status ON generation_jobs(status);
+CREATE INDEX IF NOT EXISTS idx_generation_jobs_media_type ON generation_jobs(media_type);
+CREATE INDEX IF NOT EXISTS idx_generation_jobs_provider_model ON generation_jobs(provider, model);
+CREATE INDEX IF NOT EXISTS idx_generation_jobs_result ON generation_jobs(result_asset_id);
+
+CREATE TABLE IF NOT EXISTS images (
+  id TEXT PRIMARY KEY,
+  owner_user_id TEXT NOT NULL,
+  project_id TEXT,
+  media_asset_id TEXT NOT NULL UNIQUE,
+  generation_job_id TEXT,
+  character_id TEXT,
+  prompt TEXT NOT NULL DEFAULT '',
+  source_type TEXT NOT NULL,
+  width INTEGER,
+  height INTEGER,
+  format TEXT,
+  moderation_status TEXT NOT NULL DEFAULT 'pending',
+  rights_status TEXT NOT NULL DEFAULT 'unknown',
+  visibility_status TEXT NOT NULL DEFAULT 'private',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  deleted_at TEXT,
+  FOREIGN KEY (owner_user_id) REFERENCES users(id),
+  FOREIGN KEY (project_id) REFERENCES projects(id),
+  FOREIGN KEY (media_asset_id) REFERENCES media_assets(id),
+  FOREIGN KEY (generation_job_id) REFERENCES generation_jobs(id),
+  FOREIGN KEY (character_id) REFERENCES characters(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_images_owner_time ON images(owner_user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_images_job ON images(generation_job_id);
+CREATE INDEX IF NOT EXISTS idx_images_moderation ON images(moderation_status);
+
+CREATE TABLE IF NOT EXISTS videos (
+  id TEXT PRIMARY KEY,
+  owner_user_id TEXT NOT NULL,
+  project_id TEXT,
+  media_asset_id TEXT NOT NULL UNIQUE,
+  generation_job_id TEXT,
+  character_id TEXT,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'draft',
+  duration_seconds INTEGER,
+  aspect_ratio TEXT NOT NULL,
+  generation_source TEXT NOT NULL DEFAULT 'ai_generation',
+  review_status TEXT NOT NULL DEFAULT 'pending',
+  export_status TEXT NOT NULL DEFAULT 'not_started',
+  visibility_status TEXT NOT NULL DEFAULT 'private',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  deleted_at TEXT,
+  FOREIGN KEY (owner_user_id) REFERENCES users(id),
+  FOREIGN KEY (project_id) REFERENCES projects(id),
+  FOREIGN KEY (media_asset_id) REFERENCES media_assets(id),
+  FOREIGN KEY (generation_job_id) REFERENCES generation_jobs(id),
+  FOREIGN KEY (character_id) REFERENCES characters(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_videos_owner_time ON videos(owner_user_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_videos_job ON videos(generation_job_id);
+CREATE INDEX IF NOT EXISTS idx_videos_status ON videos(status);
+CREATE INDEX IF NOT EXISTS idx_videos_review ON videos(review_status);
+
+CREATE TABLE IF NOT EXISTS orders (
+  id TEXT PRIMARY KEY,
+  account_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  provider_reference TEXT,
+  order_type TEXT NOT NULL,
+  status TEXT NOT NULL,
+  currency TEXT NOT NULL,
+  amount_cents INTEGER NOT NULL,
+  credits_granted INTEGER NOT NULL DEFAULT 0,
+  credit_transaction_id TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  completed_at TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (credit_transaction_id) REFERENCES credit_transactions(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_orders_account_time ON orders(account_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+CREATE INDEX IF NOT EXISTS idx_orders_provider ON orders(provider_reference);
+
+CREATE TABLE IF NOT EXISTS share_links (
+  id TEXT PRIMARY KEY,
+  owner_user_id TEXT NOT NULL,
+  media_asset_id TEXT NOT NULL,
+  token TEXT NOT NULL UNIQUE,
+  visibility_status TEXT NOT NULL DEFAULT 'active',
+  created_at TEXT NOT NULL,
+  revoked_at TEXT,
+  FOREIGN KEY (owner_user_id) REFERENCES users(id),
+  FOREIGN KEY (media_asset_id) REFERENCES media_assets(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_share_links_owner ON share_links(owner_user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_share_links_asset ON share_links(media_asset_id);
+
+CREATE TABLE IF NOT EXISTS ai_jobs (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  generation_job_id TEXT,
+  provider TEXT NOT NULL,
+  model TEXT NOT NULL,
+  operation TEXT NOT NULL,
+  status TEXT NOT NULL,
+  input_json TEXT NOT NULL DEFAULT '{}',
+  output_json TEXT NOT NULL DEFAULT '{}',
+  error_code TEXT,
+  error_message TEXT,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  max_attempts INTEGER NOT NULL DEFAULT 3,
+  fallback_provider TEXT,
+  credits INTEGER NOT NULL DEFAULT 0,
+  estimated_cost_cents INTEGER NOT NULL DEFAULT 0,
+  duration_ms INTEGER,
+  resolution TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  started_at TEXT,
+  completed_at TEXT,
+  cancelled_at TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (generation_job_id) REFERENCES generation_jobs(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_jobs_user_time ON ai_jobs(user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_ai_jobs_status ON ai_jobs(status);
+CREATE INDEX IF NOT EXISTS idx_ai_jobs_provider_model ON ai_jobs(provider, model);
+CREATE INDEX IF NOT EXISTS idx_ai_jobs_generation_job ON ai_jobs(generation_job_id);
+
+CREATE TABLE IF NOT EXISTS ai_cost_records (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  ai_job_id TEXT NOT NULL,
+  generation_job_id TEXT,
+  provider TEXT NOT NULL,
+  model TEXT NOT NULL,
+  operation TEXT NOT NULL,
+  credits INTEGER NOT NULL,
+  estimated_cost_cents INTEGER NOT NULL,
+  duration_ms INTEGER,
+  resolution TEXT,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (ai_job_id) REFERENCES ai_jobs(id),
+  FOREIGN KEY (generation_job_id) REFERENCES generation_jobs(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_cost_user_time ON ai_cost_records(user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_ai_cost_job ON ai_cost_records(ai_job_id);
+CREATE INDEX IF NOT EXISTS idx_ai_cost_provider_model ON ai_cost_records(provider, model);

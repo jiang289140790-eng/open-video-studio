@@ -1,0 +1,54 @@
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor state
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+
+# Local environment
+.env
+.env.*
+!.env.example
+!.env.local.example
+!.env.test.example
+
+# Dependencies and generated output
+node_modules/
+dist/
+build/
+coverage/
+.turbo/
+.next/
+out/
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
+.cache/
+
+# Secrets and private exports
+*.pem
+*.key
+*.p12
+*.pfx
+private/
+secrets/
+
+# Local app data
+.data/
+*.sqlite
+*.sqlite3
+*.db
+
+# Package manager and deploy metadata
+.vercel/
+.netlify/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

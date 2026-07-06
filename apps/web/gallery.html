@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Explore Gallery | Open Video Studio</title>
+    <meta name="description" content="Explore trending AI images, videos, characters, prompts, and reusable creative assets in Open Video Studio.">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
+      <nav class="topnav" aria-label="Primary navigation">
+        <a href="./gallery.html" aria-current="page">Explore</a>
+        <a href="./generate.html">Generate</a>
+        <a href="./characters.html">Characters</a>
+        <a href="./assets.html">Assets</a>
+        <a href="./pricing.html">Pricing</a>
+      </nav>
+      <nav class="accountnav" aria-label="Account navigation">
+        <a href="./dashboard.html">Dashboard</a>
+        <a href="./history.html">History</a>
+        <a href="./pricing.html">Credits</a>
+        <a href="./signin.html">Account</a>
+      </nav>
+      <a class="btn primary" href="./generate.html">Create</a>
+    </header>
+
+    <main class="app-surface">
+      <section class="page-hero compact">
+        <p class="eyebrow">Explore / Gallery</p>
+        <h1>Discover AI scenes, characters, and prompts worth remixing.</h1>
+        <p class="lead">The gallery is the emotional front door: trending outputs, reusable references, and creator actions in one visual-first surface.</p>
+      </section>
+
+      <section class="studio-toolbar" aria-label="Gallery controls">
+        <input class="search" data-gallery-filter type="search" placeholder="Search cinematic, fashion, product, character">
+        <div class="chip-row" aria-label="Category filters">
+          <button class="chip active">Trending</button>
+          <button class="chip">New</button>
+          <button class="chip">Images</button>
+          <button class="chip">Videos</button>
+          <button class="chip">Characters</button>
+          <button class="chip">Saved</button>
+        </div>
+      </section>
+
+      <section class="gallery-tabs" aria-label="Image and video tabs">
+        <button class="tab active">Image feed</button>
+        <button class="tab">Video feed</button>
+        <button class="tab">Character worlds</button>
+      </section>
+
+      <section class="masonry-gallery" aria-label="Masonry AI gallery">
+        <article class="gallery-item tall art-1" data-asset><div><span>Trending video</span><h3>Neon launch film</h3><p>Prompt: cinematic product reveal, blue violet light</p><div class="card-actions"><button>Generate Similar</button><button>Copy Prompt</button><button>Share</button><button>Save</button></div></div></article>
+        <article class="gallery-item art-6" data-asset><div><span>Image</span><h3>Editorial portrait</h3><p>Character: Mira</p><div class="card-actions"><button>Like</button><button>Save</button></div></div></article>
+        <article class="gallery-item wide art-9" data-asset><div><span>Storyboard</span><h3>Social launch set</h3><p>8 frames, reusable references</p><div class="card-actions"><button>Generate Similar</button><button>Copy Prompt</button></div></div></article>
+        <article class="gallery-item art-8" data-asset><div><span>Product</span><h3>Macro bottle shot</h3><p>Model: local-image-v0</p><div class="card-actions"><button>Share</button><button>Save</button></div></div></article>
+        <article class="gallery-item tall art-7" data-asset><div><span>Video</span><h3>Vertical teaser</h3><p>9:16, 24 credits</p><div class="card-actions"><button>Generate Similar</button><button>Share</button></div></div></article>
+        <article class="gallery-item art-12" data-asset><div><span>Character</span><h3>Nova scene test</h3><p>Consistency 95%</p><div class="card-actions"><button>Open Character</button><button>Save</button></div></div></article>
+        <article class="gallery-item art-10" data-asset><div><span>Reference</span><h3>Lighting board</h3><p>Saved to assets</p><div class="card-actions"><button>Use in Generate</button></div></div></article>
+      </section>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>

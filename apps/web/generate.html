@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Generate Studio | Open Video Studio</title>
+    <meta name="description" content="Generate AI images and videos with characters, styles, reference assets, prompt enhancement, credit estimates, and live preview.">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
+      <nav class="topnav" aria-label="Primary navigation">
+        <a href="./gallery.html">Explore</a>
+        <a href="./generate.html" aria-current="page">Generate</a>
+        <a href="./characters.html">Characters</a>
+        <a href="./assets.html">Assets</a>
+        <a href="./pricing.html">Pricing</a>
+      </nav>
+      <nav class="accountnav" aria-label="Account navigation">
+        <a href="./dashboard.html">Dashboard</a>
+        <a href="./history.html">History</a>
+        <a href="./pricing.html">Credits</a>
+        <a href="./signin.html">Account</a>
+      </nav>
+      <a class="btn primary" href="./pricing.html">840 credits</a>
+    </header>
+
+    <main class="studio-shell">
+      <section class="studio-panel control-panel">
+        <p class="eyebrow">Generate Studio</p>
+        <h1>Direct your next AI scene.</h1>
+
+        <div class="mode-grid" aria-label="Mode cards">
+          <button class="mode-card active" data-mode="image"><span>Image</span><strong>Concept frame</strong><em>8 credits</em></button>
+          <button class="mode-card" data-mode="video"><span>Video</span><strong>Motion scene</strong><em>24 credits</em></button>
+          <button class="mode-card"><span>Character</span><strong>Profile seed</strong><em>12 credits</em></button>
+        </div>
+
+        <label class="studio-field">Prompt
+          <textarea class="textarea hero-textarea">A cinematic product launch scene with a consistent presenter, electric blue lighting, reflective floor, smooth camera motion, and premium AI SaaS mood.</textarea>
+        </label>
+        <button class="btn glass" data-enhance type="button">Enhance prompt</button>
+
+        <div class="selector-grid">
+          <label class="studio-field">Character selector
+            <select class="select"><option>Mira - Studio Presenter</option><option>Atlas - Product Host</option><option>Nova - Creator Avatar</option></select>
+          </label>
+          <label class="studio-field">Style selector
+            <select class="select"><option>Cinematic violet</option><option>Editorial clean</option><option>Runway motion</option><option>Anime neon</option></select>
+          </label>
+        </div>
+
+        <label class="upload-zone">Reference asset upload
+          <input type="file" aria-label="Upload reference asset">
+          <span>Drop image, video still, prompt, or reference board</span>
+        </label>
+      </section>
+
+      <section class="studio-panel preview-panel">
+        <div class="preview-head">
+          <div><p class="eyebrow">Live preview</p><h2>Scene preview</h2></div>
+          <span class="credit-pill" data-credit-cost>8 credits</span>
+        </div>
+        <div class="creative-preview art-13">
+          <span class="play-dot"></span>
+          <strong data-mode-label>Image generation</strong>
+        </div>
+        <div class="sticky-generate">
+          <div><strong>Ready to generate</strong><p>Output saves to Assets and History.</p></div>
+          <button class="btn primary" data-generate type="button">Generate</button>
+        </div>
+        <div class="recent-results" data-queue>
+          <h2>Recent results</h2>
+          <article class="result-row"><span class="thumb art-3"></span><div><strong>Launch hero frame</strong><p>Completed - shared once</p></div><a href="./share.html">Share</a></article>
+          <article class="result-row"><span class="thumb art-7"></span><div><strong>Vertical teaser</strong><p>Queued - 24 credits</p></div><a href="./history.html">History</a></article>
+        </div>
+      </section>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>
