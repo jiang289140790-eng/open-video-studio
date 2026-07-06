@@ -1,4 +1,11 @@
 export { createMigratedDatabase, migrate, openDatabase } from "./db/database.js";
+export { loadEnvironment, loadLocalEnvironment } from "./config/environment.js";
+export {
+  createSupabaseBrowserClient,
+  createSupabaseServerClient,
+  getSupabaseConnectionStatus,
+  verifySupabaseConnection,
+} from "./supabase/supabaseClient.js";
 export { createMvpApiServer } from "./api/mvpServer.js";
 export { AuthService } from "./auth/authService.js";
 export { UserRepository } from "./users/userRepository.js";
