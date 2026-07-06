@@ -4,12 +4,24 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc -p tsconfig.json && vite build",
+    "build:server": "tsc -p tsconfig.json",
+    "build:web": "vite build",
     "test": "npm run build && node --test dist/tests/**/*.test.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@types/node": "^24.0.10",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
     "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.110.0",
+    "@vitejs/plugin-react": "^6.0.3",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "vite": "^8.1.3"
   }
 }
