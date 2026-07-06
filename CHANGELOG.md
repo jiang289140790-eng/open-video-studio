@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.14.0 |
+| Version | 0.14.1 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -89,6 +89,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Changed
 
+- Fixed Vite asset base path for GitHub Pages subpath deployment so production CSS and JavaScript load under `/open-video-studio/`.
 - Updated root README with production stack, local setup, Supabase environment variables, GitHub readiness, and verification commands.
 - Updated Frontend, Backend, Authentication, Storage, Database, and Summary documentation for React/Vite and Supabase production-readiness.
 - Replaced non-ASCII password placeholder characters in the static sign in page with ASCII-safe text to prevent mojibake in Windows/browser/tooling contexts.
@@ -122,6 +123,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Confirmed local Vite build now emits relative asset URLs and reran the full test suite; 23 tests passed.
 - Ran local production build and full test suite before deploying GitHub Pages workflow.
 - Ran `npm install` to install React, Vite, Supabase, and React type dependencies.
 - Ran `npm run build` after React/Vite/Supabase setup.
