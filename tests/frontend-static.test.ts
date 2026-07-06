@@ -65,7 +65,9 @@ describe("MVP static frontend", () => {
   it("preserves premium AI SaaS positioning over internal-tool language", () => {
     const combined = requiredPages.map(readPage).join("\n");
     assert.ok(combined.includes("premium AI creation platform"));
-    assert.ok(combined.includes("Masonry gallery preview"));
+    assert.ok(combined.includes("Explore what you can create"));
+    assert.ok(combined.includes("Create AI videos with consistent characters"));
+    assert.ok(combined.includes("Start generating free"));
     assert.ok(combined.includes("Generate Studio"));
     assert.ok(combined.includes("Character selector"));
     assert.equal(combined.includes("PAGE-003"), false);

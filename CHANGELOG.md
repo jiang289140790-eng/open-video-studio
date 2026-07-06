@@ -89,6 +89,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Changed
 
+- Optimized the live homepage hero for conversion with a shorter headline, clearer subheadline, stronger CTAs, benefit signals, improved generated-output preview, and an expanded creation gallery preview.
+- Updated static frontend validation to assert the new homepage conversion copy and CTA direction.
 - Fixed Vite asset base path for GitHub Pages subpath deployment so production CSS and JavaScript load under `/open-video-studio/`.
 - Updated root README with production stack, local setup, Supabase environment variables, GitHub readiness, and verification commands.
 - Updated Frontend, Backend, Authentication, Storage, Database, and Summary documentation for React/Vite and Supabase production-readiness.
@@ -123,6 +125,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran local production build and full test suite after the homepage conversion optimization; 23 tests passed.
 - Confirmed local Vite build now emits relative asset URLs and reran the full test suite; 23 tests passed.
 - Ran local production build and full test suite before deploying GitHub Pages workflow.
 - Ran `npm install` to install React, Vite, Supabase, and React type dependencies.
