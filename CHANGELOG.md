@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.13.0 |
+| Version | 0.14.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Added
 
+- Added GitHub Pages deployment workflow for the `production-mvp` branch using `npm ci`, `npm run build`, and `dist-web` artifact deployment.
 - Initialized Git repository and committed the stable MVP baseline.
 - Added React, Vite, and a production app shell while preserving the existing MVP product pages.
 - Added Supabase environment loading, client creation, connection status checks, and verification script.
@@ -121,6 +122,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran local production build and full test suite before deploying GitHub Pages workflow.
 - Ran `npm install` to install React, Vite, Supabase, and React type dependencies.
 - Ran `npm run build` after React/Vite/Supabase setup.
 - Ran `npm run test` after React/Vite/Supabase setup; 23 tests passed.
