@@ -49,7 +49,13 @@ const defaultState = {
   ],
   shares: [
     { id: "share_teaser", token: "demo-share", assetId: "asset_teaser", title: "Vertical teaser" }
-  ]
+  ],
+  rewards: {
+    checkInDay: 0,
+    lastCheckInDate: "",
+    referralCopies: 0,
+    taskClaims: []
+  }
 };
 
 function loadState() {
@@ -73,6 +79,13 @@ state.characters = state.characters.map((character) => ({
   memory: `${character.role || "创意角色"}，保持视觉和提示词一致。`,
   ...character
 }));
+state.rewards = {
+  checkInDay: 0,
+  lastCheckInDate: "",
+  referralCopies: 0,
+  taskClaims: [],
+  ...(state.rewards || {})
+};
 let selectedCharacterId = state.characters[0]?.id || "";
 
 injectTopNavigation();
@@ -362,6 +375,7 @@ function renderState(current) {
   renderHistory(current);
   renderCreations(current);
   renderDashboard(current);
+  renderReferral(current);
   renderShare(current);
 }
 
@@ -553,6 +567,10 @@ function openUnlockModal(nextUrl = "./generate.html") {
 function openCheckInModal() {
   document.querySelector(".checkin-overlay")?.remove();
   const signedIn = Boolean(state.user);
+  const today = new Date().toISOString().slice(0, 10);
+  const alreadyChecked = state.rewards.lastCheckInDate === today;
+  const day = Math.min(state.rewards.checkInDay || 0, 6);
+  const rewards = [5, 6, 12, 6, 8, 8, 20];
   const overlay = document.createElement("section");
   overlay.className = "checkin-overlay";
   overlay.setAttribute("role", "dialog");
@@ -562,15 +580,15 @@ function openCheckInModal() {
     <div class="checkin-modal">
       <button class="checkin-close" type="button" aria-label="关闭">×</button>
       <div class="checkin-gift" aria-hidden="true">🎁</div>
-      <h2>${signedIn ? "今日签到奖励已准备好" : "登录即可立即获得 10 免费积分"}</h2>
+      <h2>${signedIn ? alreadyChecked ? "今日签到已完成" : "今日签到奖励已准备好" : "登录即可立即获得免费积分"}</h2>
       <p>连续签到 7 天最多可获得 <strong>65 积分</strong></p>
       <div class="checkin-status">
-        <span>Day ${signedIn ? "1" : "0"} of 7</span>
+        <span>Day ${signedIn ? String(day + 1) : "0"} of 7</span>
         <span><b data-credit-balance>${state.credits}</b></span>
       </div>
       <div class="checkin-days">
-        ${[5, 6, 12, 6, 8, 8, 20].map((value, index) => `
-          <article class="${index === 0 ? "active" : ""}">
+        ${rewards.map((value, index) => `
+          <article class="${index < day || alreadyChecked && index === day ? "claimed" : index === day ? "active" : ""}">
             ${index === 2 ? "<i>2x</i>" : ""}
             ${index === 6 ? "<i>3x</i>" : ""}
             <strong>+${value}</strong>
@@ -578,7 +596,7 @@ function openCheckInModal() {
           </article>
         `).join("")}
       </div>
-      <button class="btn primary full checkin-action" type="button">${signedIn ? "领取今日签到积分" : "登录开始签到"}</button>
+      <button class="btn primary full checkin-action" type="button">${signedIn ? alreadyChecked ? "今天已领取" : `领取 +${rewards[day]} 积分` : "登录开始签到"}</button>
     </div>
   `;
   document.body.append(overlay);
@@ -591,9 +609,18 @@ function openCheckInModal() {
       window.location.href = "./signin.html";
       return;
     }
-    state.credits += 10;
+    if (state.rewards.lastCheckInDate === today) {
+      overlay.querySelector(".checkin-action").textContent = "今天已领取";
+      return;
+    }
+    const currentDay = Math.min(state.rewards.checkInDay || 0, 6);
+    const reward = rewards[currentDay];
+    state.credits += reward;
+    state.rewards.checkInDay = currentDay === 6 ? 0 : currentDay + 1;
+    state.rewards.lastCheckInDate = today;
     saveState(state);
-    overlay.querySelector(".checkin-action").textContent = "已领取 10 积分";
+    renderReferral(state);
+    overlay.querySelector(".checkin-action").textContent = `已领取 ${reward} 积分`;
   });
 }
 
@@ -664,10 +691,28 @@ document.querySelector("[data-copy-referral]")?.addEventListener("click", async 
   const link = document.querySelector("[data-referral-link]")?.value || "https://openvideostudio.app/?ref=creator-demo";
   try {
     await navigator.clipboard?.writeText(link);
+    state.rewards.referralCopies = (state.rewards.referralCopies || 0) + 1;
+    saveState(state);
     button.textContent = "已复制";
   } catch {
     button.textContent = "复制链接";
   }
+});
+
+document.querySelectorAll("[data-claim-task]").forEach((button) => {
+  button.addEventListener("click", () => {
+    ensureUser("email");
+    const task = button.dataset.claimTask || "task";
+    if (state.rewards.taskClaims.includes(task)) {
+      button.textContent = "已领取";
+      return;
+    }
+    const credits = Number(button.dataset.taskCredits || "0");
+    state.credits += credits;
+    state.rewards.taskClaims.push(task);
+    saveState(state);
+    button.textContent = `已领取 ${credits} 积分`;
+  });
 });
 
 if (document.body.classList.contains("pricing-page") || document.querySelector(".pricing-page")) {
@@ -980,6 +1025,83 @@ function renderDashboard(current) {
   if (stats.jobs) stats.jobs.textContent = String(current.history.length);
   if (stats.assets) stats.assets.textContent = String(current.assets.length);
   if (stats.shares) stats.shares.textContent = String(current.shares.length);
+
+  const recent = document.querySelector("[data-dashboard-recent]");
+  if (recent) {
+    recent.innerHTML = current.history.slice(0, 4).map((job) => `
+      <article class="dashboard-row">
+        <span class="thumb ${job.type === "video" ? "art-7" : "art-3"}"></span>
+        <div><strong>${escapeHtml(job.title)}</strong><p>${job.status === "completed" ? "已完成" : escapeHtml(job.status)} · ${job.credits} 积分</p></div>
+        <button type="button" data-retry-job="${job.id}">重试</button>
+      </article>
+    `).join("");
+  }
+
+  const characters = document.querySelector("[data-dashboard-characters]");
+  if (characters) {
+    characters.innerHTML = current.characters.slice(0, 4).map((character, index) => `
+      <article class="dashboard-row">
+        <span class="thumb ${["art-2", "art-11", "art-12"][index % 3]}"></span>
+        <div><strong>${escapeHtml(character.name)}</strong><p>${escapeHtml(character.role)} · ${character.score}%</p></div>
+        <button type="button" data-use-character="${character.id}">使用</button>
+      </article>
+    `).join("");
+  }
+
+  const shareList = document.querySelector("[data-dashboard-shares-list]");
+  if (shareList) {
+    shareList.innerHTML = current.shares.slice(0, 4).map((share) => `
+      <article class="dashboard-row">
+        <span class="thumb art-9"></span>
+        <div><strong>${escapeHtml(share.title || "分享作品")}</strong><p>公开链接</p></div>
+        <a href="./share.html?token=${encodeURIComponent(share.token)}">打开</a>
+      </article>
+    `).join("");
+  }
+}
+
+function renderReferral(current) {
+  const stateCard = document.querySelector("[data-referral-state]");
+  if (stateCard) {
+    stateCard.innerHTML = current.user ? `
+      <span>已登录</span>
+      <h2>${escapeHtml(current.user.name)} 的奖励中心</h2>
+      <p>当前可用积分：<strong data-credit-balance>${current.credits}</strong>。继续签到、复制推荐链接或完成创作任务来获得更多积分。</p>
+      <a class="btn primary full" href="./dashboard.html">打开控制台</a>
+    ` : `
+      <span>需要登录</span>
+      <h2>登录后查看你的推荐仪表板</h2>
+      <p>登录后可以复制专属推荐链接、查看奖励进度，并领取完成任务后的免费积分。</p>
+      <a class="btn primary full" href="./signin.html">登录开始</a>
+    `;
+  }
+
+  const progress = document.querySelector("[data-referral-progress]");
+  if (progress) {
+    const checkDay = state.rewards.lastCheckInDate ? state.rewards.checkInDay || 1 : 0;
+    progress.innerHTML = `
+      <span>签到进度 <b>${checkDay}/7</b></span>
+      <span>推荐链接复制 <b>${current.rewards.referralCopies || 0}</b></span>
+      <span>已领任务 <b>${current.rewards.taskClaims.length}</b></span>
+    `;
+  }
+
+  document.querySelectorAll("[data-reward-task]").forEach((card) => {
+    const task = card.dataset.rewardTask;
+    const claimed =
+      (task === "checkin" && Boolean(current.rewards.lastCheckInDate)) ||
+      (task === "first-generation" && current.history.length > 0) ||
+      (task === "share" && current.shares.length > 0) ||
+      current.rewards.taskClaims.includes(task);
+    card.classList.toggle("claimed", claimed);
+  });
+
+  document.querySelectorAll("[data-claim-task]").forEach((button) => {
+    const task = button.dataset.claimTask || "";
+    if (current.rewards.taskClaims.includes(task)) {
+      button.textContent = "已领取";
+    }
+  });
 }
 
 function renderShare(current) {

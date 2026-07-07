@@ -732,6 +732,37 @@ body.tool-layout .tool-card {
 .dashboard-grid .wide { grid-column: span 2; }
 .dashboard-sections { margin-bottom: 20px; }
 .dashboard-sections strong { display: block; margin: 8px 0; font-size: 2.4rem; }
+.dashboard-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+.dashboard-row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 16px;
+  padding: 10px;
+  background: rgba(255,255,255,0.05);
+}
+.dashboard-row strong {
+  color: #fff;
+}
+.dashboard-row p {
+  color: #aeb5c6;
+}
+.dashboard-row button,
+.dashboard-row a {
+  min-height: 36px;
+  border: 1px solid rgba(255,98,187,0.28);
+  border-radius: 999px;
+  padding: 0 12px;
+  background: rgba(255,98,187,0.10);
+  color: #fff;
+  font-weight: 850;
+}
 
 .plan-card { display: grid; gap: 16px; padding: 24px; }
 .tool-grid {
@@ -1662,6 +1693,23 @@ body.tool-layout .site-footer {
   background: rgba(255,255,255,0.06);
   color: #fff;
 }
+.referral-progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+.referral-progress span {
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.06);
+  color: #d8dbe6;
+  font-weight: 850;
+}
+.referral-progress b {
+  color: #ff72c8;
+}
 .free-coin-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1676,6 +1724,20 @@ body.tool-layout .site-footer {
   border-radius: 16px;
   padding: 20px;
   background: #181818;
+}
+.free-coin-grid article.claimed {
+  border-color: rgba(52,211,153,0.42);
+  background: linear-gradient(135deg, rgba(52,211,153,0.10), #181818);
+}
+.free-coin-grid article.claimed::after {
+  content: "已完成";
+  justify-self: start;
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: rgba(52,211,153,0.16);
+  color: #bbf7d0;
+  font-size: 0.78rem;
+  font-weight: 900;
 }
 .free-coin-grid span {
   color: #ff72c8;

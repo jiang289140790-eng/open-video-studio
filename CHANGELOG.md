@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.34.0 |
+| Version | 0.35.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,17 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Added
+
+- Upgraded Free Coins into a dynamic reward center with signed-in state, check-in progress, referral-copy tracking, claimed task state, and task reward claiming without connecting payment or real referral APIs.
+- Upgraded Dashboard panels to render recent generations, saved characters, and share links from the local product state.
+- Added static coverage for reward center and dashboard state hooks.
+
+### Validation
+
+- Ran production build and full test suite after the rewards and dashboard update; 35 tests passed.
+- Checked local HTML links after the update.
 
 ### Added
 

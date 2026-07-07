@@ -24,7 +24,7 @@
             <a class="btn glass" href="./signin.html">登录开始</a>
           </div>
         </div>
-        <aside class="login-required-card">
+        <aside class="login-required-card" data-referral-state>
           <span>需要登录</span>
           <h2>登录后查看你的推荐仪表板</h2>
           <p>登录后可以复制专属推荐链接、查看奖励进度，并领取完成任务后的免费积分。</p>
@@ -40,29 +40,30 @@
             <span>你的推荐链接</span>
             <input value="https://openvideostudio.app/?ref=creator-demo" readonly data-referral-link>
           </label>
+          <div class="referral-progress" data-referral-progress></div>
         </div>
         <button class="btn glass" type="button" data-copy-referral>复制链接</button>
       </section>
       <section class="free-coin-grid">
-        <article>
+        <article data-reward-task="checkin">
           <span>01</span>
           <h3>每日签到</h3>
           <p>连续签到 7 天最多可获得 65 积分。</p>
           <button class="btn primary daily-check" type="button">打开签到</button>
         </article>
-        <article>
+        <article data-reward-task="referral">
           <span>02</span>
           <h3>推荐好友</h3>
           <p>每位有效新用户可获得 20 积分。</p>
-          <button class="btn glass" type="button" data-buy-credits="20">领取演示奖励</button>
+          <button class="btn glass" type="button" data-claim-task="referral" data-task-credits="20">领取演示奖励</button>
         </article>
-        <article>
+        <article data-reward-task="first-generation">
           <span>03</span>
           <h3>首次生成图片</h3>
           <p>完成第一张 AI 图片后获得新手任务奖励。</p>
           <a class="btn glass" href="./generate.html">去生成</a>
         </article>
-        <article>
+        <article data-reward-task="share">
           <span>04</span>
           <h3>分享作品</h3>
           <p>公开分享一个资产链接，获得额外奖励。</p>

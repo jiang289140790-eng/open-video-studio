@@ -118,7 +118,15 @@ describe("MVP static frontend", () => {
       "data-character-card",
       "data-use-character",
       "data-copy-character",
-      "ovs_selected_character"
+      "ovs_selected_character",
+      "data-referral-state",
+      "data-referral-progress",
+      "data-reward-task",
+      "data-claim-task",
+      "renderReferral",
+      "data-dashboard-recent",
+      "data-dashboard-characters",
+      "data-dashboard-shares-list"
     ]) {
       assert.ok(combined.includes(hook), `MVP hook should exist: ${hook}`);
     }
@@ -256,6 +264,29 @@ describe("MVP static frontend", () => {
       "selectedCharacterId"
     ]) {
       assert.ok(`${characters}\n${appScript}\n${styles}`.includes(expected), `character center should include ${expected}`);
+    }
+  });
+
+  it("contains dynamic rewards and dashboard centers", () => {
+    const referral = readPage("referral.html");
+    const dashboard = readPage("dashboard.html");
+    const appScript = readPage("app.js");
+    const styles = readPage("styles.css");
+    for (const expected of [
+      "data-referral-state",
+      "data-referral-progress",
+      "data-reward-task",
+      "data-claim-task",
+      "renderReferral",
+      "lastCheckInDate",
+      "referralCopies",
+      "data-dashboard-recent",
+      "data-dashboard-characters",
+      "data-dashboard-shares-list",
+      "dashboard-row",
+      "referral-progress"
+    ]) {
+      assert.ok(`${referral}\n${dashboard}\n${appScript}\n${styles}`.includes(expected), `reward/dashboard center should include ${expected}`);
     }
   });
 
