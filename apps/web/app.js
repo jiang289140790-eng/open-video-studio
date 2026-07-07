@@ -71,6 +71,7 @@ const state = loadState();
 injectTopNavigation();
 injectAppShell();
 injectToolWorkbench();
+injectFloatingDock();
 injectGlobalFooter();
 hydrateAuthSession();
 
@@ -239,6 +240,19 @@ function injectGlobalFooter() {
         <p>版权所有 © 2026</p>
       </div>
     </footer>
+  `);
+}
+
+function injectFloatingDock() {
+  if (document.querySelector(".floating-dock") || document.body.classList.contains("share-body")) return;
+  document.body.insertAdjacentHTML("beforeend", `
+    <aside class="floating-dock" aria-label="Quick actions">
+      <button class="floating-action daily-check" type="button" aria-label="每日签到"><span>🎁</span></button>
+      <a class="floating-action" href="./referral.html" aria-label="免费硬币"><span>币</span></a>
+      <button class="floating-action" type="button" data-support-widget aria-label="帮助"><span>?</span></button>
+      <button class="floating-avatar" type="button" data-support-widget aria-label="客服头像"><span>OVS</span></button>
+      <button class="floating-action to-top" type="button" data-scroll-top aria-label="返回顶部"><span>↑</span></button>
+    </aside>
   `);
 }
 
@@ -424,8 +438,47 @@ document.addEventListener("click", async (event) => {
       return;
     }
     runToolDemoGeneration();
+    return;
+  }
+  const supportButton = event.target.closest("[data-support-widget]");
+  if (supportButton) {
+    openSupportWidget();
+    return;
+  }
+  const scrollTopButton = event.target.closest("[data-scroll-top]");
+  if (scrollTopButton) {
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 });
+
+function openSupportWidget() {
+  document.querySelector(".support-overlay")?.remove();
+  const overlay = document.createElement("section");
+  overlay.className = "support-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", "帮助中心");
+  overlay.innerHTML = `
+    <div class="support-card">
+      <button class="checkin-close" type="button" aria-label="关闭">×</button>
+      <span class="support-avatar">OVS</span>
+      <h2>需要帮助？</h2>
+      <p>这里是 Open Video Studio 的快速帮助入口。真实客服系统接入前，先提供常用路径。</p>
+      <div class="support-links">
+        <a href="./image-editor.html">打开图片工具</a>
+        <a href="./image-to-video.html">打开视频工具</a>
+        <a href="./pricing.html">查看积分套餐</a>
+        <a href="./referral.html">领取免费硬币</a>
+        <a href="mailto:support@openvideostudio.app">联系支持</a>
+      </div>
+    </div>
+  `;
+  document.body.append(overlay);
+  overlay.querySelector(".checkin-close")?.addEventListener("click", () => overlay.remove());
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) overlay.remove();
+  });
+}
 
 function runToolDemoGeneration() {
   const status = document.querySelector("[data-tool-demo-status]");

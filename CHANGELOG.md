@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.30.0 |
+| Version | 0.31.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Added
+
+- Added a target-site-style floating quick action dock with daily check-in, free coins, support/help, assistant avatar, and back-to-top actions.
+- Added a frontend-only support widget with links to image tools, video tools, credit plans, free coins, and support email.
+- Added responsive floating dock behavior for mobile screens.
+
+### Validation
+
+- Ran production build and full test suite after the floating quick action update; 32 tests passed.
 
 ### Added
 

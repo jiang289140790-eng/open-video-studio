@@ -95,7 +95,10 @@ describe("MVP static frontend", () => {
       "data-logout",
       "data-tool-workbench",
       "data-tool-demo-generate",
-      "data-template-prompt"
+      "data-template-prompt",
+      "floating-dock",
+      "data-support-widget",
+      "data-scroll-top"
     ]) {
       assert.ok(combined.includes(hook), `MVP hook should exist: ${hook}`);
     }
@@ -178,6 +181,23 @@ describe("MVP static frontend", () => {
       "已保存到资产库和生成历史"
     ]) {
       assert.ok(`${appScript}\n${styles}`.includes(expected), `tool workbench should include ${expected}`);
+    }
+  });
+
+  it("contains target-site-style floating quick actions", () => {
+    const appScript = readPage("app.js");
+    const styles = readPage("styles.css");
+    for (const expected of [
+      "injectFloatingDock",
+      "floating-dock",
+      "floating-avatar",
+      "data-support-widget",
+      "openSupportWidget",
+      "support-overlay",
+      "领取免费硬币",
+      "data-scroll-top"
+    ]) {
+      assert.ok(`${appScript}\n${styles}`.includes(expected), `floating quick actions should include ${expected}`);
     }
   });
 
