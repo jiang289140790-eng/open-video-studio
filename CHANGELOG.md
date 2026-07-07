@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.25.0 |
+| Version | 0.26.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Added
+
+- Added target-site-style route coverage for AI Effects, Image Editor, Face Swap, Outfit Studio, Pose Generator, Nano Banana, Image Combiner, Blog, Terms, Privacy, and Cookie pages.
+- Expanded the app shell side rail and global footer to link to the new tool and footer pages.
+- Added Vite build entries so the new static pages are included in GitHub Pages deployment output.
+
+### Validation
+
+- Ran production build, full test suite, and local HTML link target check after expanding the page map; 27 tests passed.
 
 ### Changed
 

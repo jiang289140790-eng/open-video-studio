@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.32.0 |
+| Version | 0.33.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -30,6 +30,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 - The account page now supports Google, X, Telegram, and Discord entry points; GitHub and Apple have been removed from the MVP login surface.
 - The Daily Check-in navigation action now opens a reusable modal with signed-out login guidance, signed-in credit claiming, and a seven-day reward calendar.
 - The Purchase Credits and Free Coins pages now use the target-style credit commerce flow: highlighted credit packs, limited-time 2x credit modal, payment method choices, login-required referral rewards, and copyable referral links.
+- The public page map now includes target-style tool routes for AI Effects, Image Editor, Face Swap, Outfit Studio, Pose Generator, Nano Banana, Image Combiner, Blog, Terms, Privacy, and Cookie, with Vite build entries for deployment.
 - Browser authentication now calls Supabase Auth when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are configured; missing configuration is surfaced to the user instead of creating fake accounts.
 
 ## Knowledge Base Map

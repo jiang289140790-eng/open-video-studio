@@ -18,6 +18,17 @@ const requiredPages = [
   "pricing.html",
   "referral.html",
   "my-creations.html",
+  "image-editor.html",
+  "face-swap.html",
+  "outfit-studio.html",
+  "pose-generator.html",
+  "nano-banana.html",
+  "image-combiner.html",
+  "ai-effects.html",
+  "blog.html",
+  "terms.html",
+  "privacy.html",
+  "cookie.html",
   "signin.html",
   "share.html"
 ];
@@ -80,6 +91,26 @@ describe("MVP static frontend", () => {
       "daily-check"
     ]) {
       assert.ok(combined.includes(hook), `MVP hook should exist: ${hook}`);
+    }
+  });
+
+  it("contains target-site-style tool and footer page routes", () => {
+    const combined = [...requiredPages.map(readPage), readPage("app.js")].join("\n");
+    for (const page of [
+      "image-editor.html",
+      "face-swap.html",
+      "outfit-studio.html",
+      "pose-generator.html",
+      "nano-banana.html",
+      "image-combiner.html",
+      "ai-effects.html",
+      "blog.html",
+      "terms.html",
+      "privacy.html",
+      "cookie.html"
+    ]) {
+      assert.ok(existsSync(join(webRoot, page)), `${page} should exist`);
+      assert.ok(combined.includes(page), `${page} should be linked from the product surface`);
     }
   });
 

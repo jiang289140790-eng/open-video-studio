@@ -12,7 +12,18 @@ const APP_SHELL_PAGES = new Set([
   "dashboard.html",
   "pricing.html",
   "referral.html",
-  "my-creations.html"
+  "my-creations.html",
+  "image-editor.html",
+  "face-swap.html",
+  "outfit-studio.html",
+  "pose-generator.html",
+  "nano-banana.html",
+  "image-combiner.html",
+  "ai-effects.html",
+  "blog.html",
+  "terms.html",
+  "privacy.html",
+  "cookie.html"
 ]);
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
@@ -71,7 +82,14 @@ function injectAppShell() {
       <nav class="rail-nav">
         <a href="./app.html" class="rail-active">首页</a>
         <a href="./gallery.html">热门作品</a>
+        <a href="./ai-effects.html">AI 特效 <em>HOT</em></a>
         <span>AI 图像</span>
+        <a href="./image-editor.html">图片编辑器</a>
+        <a href="./face-swap.html">AI 换脸</a>
+        <a href="./outfit-studio.html">造型工作室</a>
+        <a href="./pose-generator.html">姿势生成器</a>
+        <a href="./nano-banana.html">Nano Banana</a>
+        <a href="./image-combiner.html">图像组合器</a>
         <a href="./generate.html">图片生成器</a>
         <a href="./characters.html">角色生成器</a>
         <a href="./assets.html">资产库</a>
@@ -93,17 +111,19 @@ function injectGlobalFooter() {
     <footer class="site-footer app-footer" aria-label="Footer navigation">
       <div class="footer-top-links">
         <a href="./app.html">首页</a>
-        <a href="./generate.html">图片编辑器</a>
+        <a href="./image-editor.html">图片编辑器</a>
+        <a href="./ai-effects.html">AI 特效</a>
         <a href="./image-to-video.html">AI 视频</a>
         <a href="./gallery.html">作品探索</a>
       </div>
       <div>
         <h3>图像工具</h3>
-        <a href="./generate.html">图片生成器</a>
-        <a href="./characters.html">角色生成器</a>
-        <a href="./assets.html">资产库</a>
-        <a href="./gallery.html">作品探索</a>
-        <a href="./generate.html">图像组合器</a>
+        <a href="./image-editor.html">图片编辑器</a>
+        <a href="./face-swap.html">AI 换脸</a>
+        <a href="./outfit-studio.html">造型工作室</a>
+        <a href="./pose-generator.html">姿势生成器</a>
+        <a href="./nano-banana.html">Nano Banana</a>
+        <a href="./image-combiner.html">图像组合器</a>
       </div>
       <div>
         <h3>视频工具</h3>
@@ -112,11 +132,13 @@ function injectGlobalFooter() {
         <a href="./my-creations.html">我的创作</a>
       </div>
       <div>
-        <h3>关于我们</h3>
+        <h3>About Us</h3>
+        <a href="./blog.html">Blog</a>
         <a href="./pricing.html">价格</a>
         <a href="./referral.html">推荐</a>
-        <a href="./signin.html">登录</a>
-        <a href="./index.html">首页</a>
+        <a href="./terms.html">Terms</a>
+        <a href="./privacy.html">Privacy</a>
+        <a href="./cookie.html">Cookie</a>
       </div>
       <div>
         <p>支持：support@openvideostudio.app</p>
