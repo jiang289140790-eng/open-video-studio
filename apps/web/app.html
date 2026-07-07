@@ -1,26 +1,114 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AI Tools | Open Video Studio</title>
-    <meta name="description" content="Open Video Studio AI tools for image generation, image to video, character creation, reusable assets, and prompt workflows.">
+    <title>AI 工具 | Open Video Studio</title>
+    <meta name="description" content="Open Video Studio AI 工具中心，包含图片生成、图片转视频、角色生成、资产库和我的创作。">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
-      <nav class="topnav" aria-label="Primary navigation"><a href="./app.html" aria-current="page">Tools</a><a href="./gallery.html">Explore</a><a href="./generate.html">Generate</a><a href="./characters.html">Characters</a><a href="./pricing.html">Buy credits</a></nav>
-      <nav class="accountnav" aria-label="Account navigation"><a href="./referral.html">Free credits</a><a href="./my-creations.html">My creations</a><a href="./signin.html">Login</a></nav>
+      <nav class="topnav" aria-label="Primary navigation">
+        <a href="./generate.html">图像工具</a>
+        <a href="./image-to-video.html">视频工具</a>
+        <a href="./pricing.html">购买积分</a>
+        <a href="./referral.html">免费硬币</a>
+        <a href="./my-creations.html">我的创作</a>
+      </nav>
+      <nav class="accountnav" aria-label="Account navigation">
+        <a class="daily-check" href="./referral.html">Daily Check-in</a>
+        <a href="./signin.html">登录</a>
+      </nav>
     </header>
-    <main class="app-surface">
-      <section class="page-hero compact"><p class="eyebrow">AI Tools</p><h1>Choose a creation tool and start from the outcome.</h1><p class="lead">A mature AI creation product should route users directly into useful tools, not make them decode the platform first.</p></section>
-      <section class="tool-grid">
-        <article class="tool-card art-3"><span>Image tool</span><h2>AI Image Generator</h2><p>Create reusable concept frames and campaign visuals.</p><a class="btn primary" href="./generate.html">Open image tool</a></article>
-        <article class="tool-card art-7"><span>Video tool</span><h2>Image to Video</h2><p>Animate a reference image into a short social-ready scene.</p><a class="btn primary" href="./image-to-video.html">Open video tool</a></article>
-        <article class="tool-card art-2"><span>Character tool</span><h2>Character Builder</h2><p>Create reusable characters with tags, memory, and consistency signals.</p><a class="btn primary" href="./characters.html">Create character</a></article>
-        <article class="tool-card art-9"><span>Library</span><h2>My Creations</h2><p>Review every generated output, share link, prompt, and reusable asset.</p><a class="btn primary" href="./my-creations.html">Open creations</a></article>
+
+    <main class="app-surface tool-home">
+      <section class="app-hero-grid" aria-label="Featured tools">
+        <a class="feature-banner banner-image" href="./generate.html">
+          <span>AI Image</span>
+          <strong>角色海报生成</strong>
+        </a>
+        <a class="feature-banner banner-video" href="./image-to-video.html">
+          <span>AI Video</span>
+          <strong>图片转视频</strong>
+        </a>
       </section>
+
+      <section class="quick-tool-row" aria-label="Quick tools">
+        <a class="quick-tool-card" href="./generate.html"><span>图像编辑</span><strong>图片生成器</strong><i>↗</i></a>
+        <a class="quick-tool-card" href="./characters.html"><span>角色</span><strong>角色一致性</strong><i>↗</i></a>
+        <a class="quick-tool-card" href="./gallery.html"><span>灵感</span><strong>作品探索</strong><i>↗</i></a>
+        <a class="quick-tool-card" href="./image-to-video.html"><span>视频</span><strong>图像转视频</strong><i>↗</i></a>
+        <a class="quick-tool-card" href="./assets.html"><span>资产</span><strong>资产库</strong><i>↗</i></a>
+      </section>
+
+      <section class="tool-section">
+        <div class="tool-section-head">
+          <h1>图片编辑器</h1>
+          <a href="./generate.html">View More</a>
+        </div>
+        <div class="card-carousel">
+          <a class="tool-poster art-3" href="./generate.html"><strong>Product Poster</strong><span>商业海报</span></a>
+          <a class="tool-poster art-2" href="./generate.html"><strong>AI Portrait</strong><span>角色肖像</span></a>
+          <a class="tool-poster art-11" href="./generate.html"><strong>Fashion Look</strong><span>造型预览</span></a>
+          <a class="tool-poster art-10" href="./generate.html"><strong>Scene Remix</strong><span>场景重绘</span></a>
+          <a class="tool-poster art-8" href="./generate.html"><strong>Ad Creative</strong><span>广告素材</span></a>
+          <a class="tool-poster art-5" href="./generate.html"><strong>Concept Art</strong><span>概念设计</span></a>
+        </div>
+      </section>
+
+      <section class="tool-section">
+        <div class="tool-section-head">
+          <h2>AI 角色生成器 <small>(12+)</small></h2>
+          <a href="./characters.html">View More</a>
+        </div>
+        <div class="card-carousel compact">
+          <a class="tool-poster art-12" href="./characters.html"><strong>Studio Host</strong><span>视频主持人</span></a>
+          <a class="tool-poster art-7" href="./characters.html"><strong>Brand Avatar</strong><span>品牌角色</span></a>
+          <a class="tool-poster art-4" href="./characters.html"><strong>Campaign Cast</strong><span>系列角色</span></a>
+          <a class="tool-poster art-6" href="./characters.html"><strong>Creator Twin</strong><span>创作者形象</span></a>
+          <a class="tool-poster art-9" href="./characters.html"><strong>Product Guide</strong><span>产品讲解</span></a>
+        </div>
+      </section>
+
+      <section class="tool-section">
+        <div class="tool-section-head">
+          <h2>视频工具</h2>
+          <a href="./image-to-video.html">View More</a>
+        </div>
+        <div class="card-carousel video-row">
+          <a class="tool-poster art-7 locked" href="./image-to-video.html"><strong>Image to Video</strong><span>图片转视频</span></a>
+          <a class="tool-poster art-1 locked" href="./image-to-video.html"><strong>Product Teaser</strong><span>产品短片</span></a>
+          <a class="tool-poster art-13 locked" href="./image-to-video.html"><strong>Social Reel</strong><span>社媒视频</span></a>
+          <a class="tool-poster art-4 locked" href="./history.html"><strong>My Creations</strong><span>生成历史</span></a>
+        </div>
+      </section>
+
+      <footer class="app-footer">
+        <div>
+          <h3>图像工具</h3>
+          <a href="./generate.html">图片生成器</a>
+          <a href="./characters.html">角色生成器</a>
+          <a href="./assets.html">资产库</a>
+        </div>
+        <div>
+          <h3>视频工具</h3>
+          <a href="./image-to-video.html">图片转视频</a>
+          <a href="./history.html">我的创作</a>
+        </div>
+        <div>
+          <h3>About Us</h3>
+          <a href="./pricing.html">价格</a>
+          <a href="./referral.html">推荐</a>
+          <a href="./gallery.html">Gallery</a>
+        </div>
+        <div>
+          <p>Support: support@openvideostudio.app</p>
+          <p>Business: business@openvideostudio.app</p>
+          <p>版权所有 © 2026</p>
+        </div>
+      </footer>
     </main>
     <script type="module" src="./app.js"></script>
   </body>

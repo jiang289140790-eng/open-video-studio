@@ -64,19 +64,21 @@ function injectAppShell() {
   document.body.classList.add("tool-layout");
   document.body.insertAdjacentHTML("afterbegin", `
     <aside class="side-rail" aria-label="Product tools">
-      <a class="rail-brand" href="./index.html"><span>ovs</span><strong>Open Video Studio</strong></a>
+      <a class="rail-brand" href="./index.html"><span>ovs.ai</span><strong>Open Video Studio</strong></a>
       <nav class="rail-nav">
-        <a href="./app.html">Home</a>
-        <a href="./generate.html">AI Image Generator</a>
-        <a href="./image-to-video.html">Image to Video</a>
-        <a href="./characters.html">Character Builder</a>
-        <a href="./gallery.html">Explore Gallery</a>
-        <a href="./assets.html">Asset Library</a>
-        <a href="./history.html">My Creations</a>
+        <a href="./app.html" class="rail-active">首页</a>
+        <a href="./gallery.html">热门作品</a>
+        <span>AI 图像</span>
+        <a href="./generate.html">图片生成器</a>
+        <a href="./characters.html">角色生成器</a>
+        <a href="./assets.html">资产库</a>
+        <span>AI 视频</span>
+        <a href="./image-to-video.html">图片转视频</a>
+        <a href="./history.html">我的创作</a>
       </nav>
       <div class="rail-actions">
-        <a href="./referral.html">Refer friends</a>
-        <a class="rail-upgrade" href="./pricing.html">Upgrade credits</a>
+        <a href="./referral.html">推荐好友</a>
+        <a class="rail-upgrade" href="./pricing.html">立即升级</a>
       </div>
     </aside>
   `);

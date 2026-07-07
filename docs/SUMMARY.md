@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.25.0 |
+| Version | 0.26.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -22,6 +22,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 ## Current Implementation Notes
 
 - MVP product pages now use a target-style app shell with a left tool rail and dark creator-tool navigation.
+- `apps/web/app.html` now serves as the primary AI tool homepage with featured tools, quick actions, categorized rows, and footer links modeled after mature tool-directory UX.
 - Browser authentication now calls Supabase Auth when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are configured; missing configuration is surfaced to the user instead of creating fake accounts.
 
 ## Knowledge Base Map

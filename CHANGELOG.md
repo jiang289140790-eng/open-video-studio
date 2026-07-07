@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.17.0 |
+| Version | 0.18.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Changed
+
+- Rebuilt `apps/web/app.html` into a target-style AI tool homepage with a fixed left navigation rail, compact top navigation, two large featured tool banners, quick tool cards, categorized horizontal tool rows, and footer link groups.
+- Updated the product shell color direction toward the referenced black / charcoal / pink tool-site style while keeping Open Video Studio-safe AI creation categories.
+- Updated frontend static encoding coverage to allow intentional UTF-8 Chinese interface text while still blocking mojibake markers.
+
+### Validation
+
+- Ran production build and full test suite after the tool homepage rebuild; 26 tests passed.
 
 ### Added
 

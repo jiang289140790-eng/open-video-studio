@@ -101,7 +101,7 @@ describe("MVP static frontend", () => {
     assert.ok(combined.includes("Start generating free"));
     assert.ok(combined.includes("Generate Studio"));
     assert.ok(combined.includes("Character selector"));
-    assert.ok(combined.includes("AI Image Generator"));
+    assert.ok(combined.includes("图片生成器"));
     const appScript = readPage("app.js");
     assert.ok(appScript.includes("side-rail"));
     assert.ok(appScript.includes("VITE_SUPABASE_URL"));
@@ -110,11 +110,10 @@ describe("MVP static frontend", () => {
     assert.equal(combined.includes("Fake worker"), false);
   });
 
-  it("keeps static product files ASCII-safe to avoid encoding mojibake", () => {
+  it("keeps static product files UTF-8-safe to avoid encoding mojibake", () => {
     const staticFiles = [...requiredPages, "styles.css", "app.js"];
     for (const file of staticFiles) {
       const content = readPage(file);
-      assert.equal(/[^\x00-\x7F]/.test(content), false, `${file} should not contain non-ASCII text`);
       assert.equal(/鈥|⑩|€|�|Â|Ã/.test(content), false, `${file} should not contain mojibake markers`);
     }
   });
