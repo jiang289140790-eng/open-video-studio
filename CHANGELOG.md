@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.49.0 |
+| Version | 0.50.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Added
 
+- Added static `/zh/.../` route aliases for target-style Chinese URL patterns, including app, image tools, video tools, pricing, free coins, my creations, blog, terms, privacy, and cookie.
+- Added a shared `public/zh/redirect.js` helper that preserves query strings and hashes when forwarding localized route aliases to canonical static pages.
 - Added canonical `image-tools.html` and `video-tools.html` category pages so the top navigation now opens target-style tool category surfaces before users choose a specific tool.
 - Updated top navigation dropdowns, left rail, footer links, Vite build inputs, and static tests to include the image/video category route layer.
 - Added `free-coins.html` as the canonical target-style Free Coins page while preserving `referral.html` as a compatibility route.

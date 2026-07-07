@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 
 const webRoot = join(process.cwd(), "apps", "web");
+const publicRoot = join(webRoot, "public");
 
 const requiredPages = [
   "index.html",
@@ -203,6 +204,33 @@ describe("MVP static frontend", () => {
       "查看历史"
     ]) {
       assert.ok(`${imageTools}\n${videoTools}\n${appScript}\n${viteConfig}`.includes(expected), `tool category pages should include ${expected}`);
+    }
+  });
+
+  it("contains target-site-style zh route aliases", () => {
+    const zhAliases = [
+      ["zh/app/index.html", "../../app.html"],
+      ["zh/image-tools/index.html", "../../image-tools.html"],
+      ["zh/video-tools/index.html", "../../video-tools.html"],
+      ["zh/pricing/index.html", "../../pricing.html"],
+      ["zh/free-coins/index.html", "../../free-coins.html"],
+      ["zh/my-creations/index.html", "../../my-creations.html"],
+      ["zh/blog/index.html", "../../blog.html"],
+      ["zh/terms/index.html", "../../terms.html"],
+      ["zh/privacy/index.html", "../../privacy.html"],
+      ["zh/cookie/index.html", "../../cookie.html"]
+    ];
+    const redirectScript = readFileSync(join(publicRoot, "zh", "redirect.js"), "utf8");
+    assert.ok(redirectScript.includes("window.location.replace"));
+    assert.ok(redirectScript.includes("window.location.search"));
+    assert.ok(redirectScript.includes("window.location.hash"));
+    for (const [alias, target] of zhAliases) {
+      const aliasPath = join(publicRoot, alias);
+      assert.equal(existsSync(aliasPath), true, `${alias} should exist`);
+      const html = readFileSync(aliasPath, "utf8");
+      assert.ok(html.includes('lang="zh-CN"'), `${alias} should declare Chinese language`);
+      assert.ok(html.includes(target), `${alias} should redirect to ${target}`);
+      assert.ok(html.includes("../redirect.js"), `${alias} should use shared zh redirect script`);
     }
   });
 

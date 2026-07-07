@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.56.0 |
+| Version | 0.57.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -22,6 +22,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 ## Current Implementation Notes
 
 - MVP product pages now use a target-style app shell with a left tool rail and dark creator-tool navigation.
+- Static `/zh/.../` route aliases now mirror the referenced site's Chinese URL shape and redirect into the canonical Open Video Studio pages while preserving query strings and hashes.
 - `apps/web/image-tools.html` and `apps/web/video-tools.html` now provide target-style category landing pages for the top navigation before users enter a specific tool.
 - `apps/web/free-coins.html` is now the canonical Free Coins entry, matching the target-style top navigation while `apps/web/referral.html` remains available as a compatibility route.
 - `apps/web/app.html` now serves as the primary AI tool homepage with featured tools, quick actions, categorized rows, and footer links modeled after mature tool-directory UX.
