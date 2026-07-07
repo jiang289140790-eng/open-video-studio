@@ -189,27 +189,29 @@ function renderAccountNavigation(current) {
 function injectAppShell() {
   const page = window.location.pathname.split("/").pop() || "index.html";
   if (!APP_SHELL_PAGES.has(page) || document.querySelector(".side-rail")) return;
+  const active = (target) => page === target ? " rail-active" : "";
   document.body.classList.add("tool-layout");
   document.body.insertAdjacentHTML("afterbegin", `
     <aside class="side-rail" aria-label="Product tools">
       <a class="rail-brand" href="./index.html"><span>ovs.ai</span><strong>Open Video Studio</strong></a>
       <nav class="rail-nav">
-        <a href="./app.html" class="rail-active">首页</a>
-        <a href="./gallery.html">热门作品</a>
-        <a href="./ai-effects.html">AI 特效 <em>HOT</em></a>
+        <a href="./app.html" class="${active("app.html")}">首页</a>
+        <a href="./gallery.html" class="${active("gallery.html")}">热门作品</a>
+        <a href="./ai-effects.html" class="${active("ai-effects.html")}">AI 特效 <em>HOT</em></a>
         <span>AI 图像</span>
-        <a href="./image-editor.html">图片编辑器</a>
-        <a href="./face-swap.html">AI 换脸</a>
-        <a href="./outfit-studio.html">造型工作室</a>
-        <a href="./pose-generator.html">姿势生成器</a>
-        <a href="./nano-banana.html">Nano Banana</a>
-        <a href="./image-combiner.html">图像组合器</a>
-        <a href="./generate.html">图片生成器</a>
-        <a href="./characters.html">角色生成器</a>
-        <a href="./assets.html">资产库</a>
+        <a href="./image-editor.html" class="${active("image-editor.html")}">图片编辑器</a>
+        <a href="./face-swap.html" class="${active("face-swap.html")}">AI 换脸</a>
+        <a href="./outfit-studio.html" class="${active("outfit-studio.html")}">造型工作室</a>
+        <a href="./pose-generator.html" class="${active("pose-generator.html")}">姿势生成器</a>
+        <a href="./nano-banana.html" class="${active("nano-banana.html")}">Nano Banana</a>
+        <a href="./image-combiner.html" class="${active("image-combiner.html")}">图像组合器</a>
+        <a href="./generate.html" class="${active("generate.html")}">图片生成器</a>
+        <a href="./characters.html" class="${active("characters.html")}">角色生成器</a>
+        <a href="./assets.html" class="${active("assets.html")}">资产库</a>
         <span>AI 视频</span>
-        <a href="./image-to-video.html">图片转视频</a>
-        <a href="./history.html">我的创作</a>
+        <a href="./image-to-video.html" class="${active("image-to-video.html")}">图片转视频</a>
+        <a href="./my-creations.html" class="${active("my-creations.html")}">我的创作</a>
+        <a href="./history.html" class="${active("history.html")}">生成历史</a>
       </nav>
       <div class="rail-actions">
         <a href="./referral.html">推荐好友</a>

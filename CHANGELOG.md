@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.36.0 |
+| Version | 0.37.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,17 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Added
+
+- Made the app side rail page-aware so the current tool/page is highlighted instead of always marking Home active.
+- Corrected the side rail My Creations and Generation History routes and improved mobile rail group headings.
+- Added static coverage for page-aware side rail navigation.
+
+### Validation
+
+- Ran production build and full test suite after the side rail navigation update; 37 tests passed.
+- Checked local HTML links after the update.
 
 ### Added
 

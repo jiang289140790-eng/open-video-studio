@@ -2420,6 +2420,9 @@ body.tool-layout .site-footer {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     overflow-x: auto;
   }
+  .rail-nav span {
+    grid-column: 1 / -1;
+  }
   .rail-actions { display: none; }
   .app-hero-grid { grid-template-columns: 1fr; }
   .quick-tool-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -2458,6 +2461,7 @@ body.tool-layout .site-footer {
   .social-auth-grid { grid-template-columns: 1fr; }
   .auth-submit-grid { grid-template-columns: 1fr; }
   .rail-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rail-nav span { grid-column: 1 / -1; }
   .quick-tool-row, .app-footer { grid-template-columns: 1fr; }
   .credit-shop-shell { padding: 18px; }
   .credit-shop-panel h1 { text-align: left; }

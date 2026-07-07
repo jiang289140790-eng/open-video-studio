@@ -176,6 +176,14 @@ describe("MVP static frontend", () => {
     }
   });
 
+  it("uses page-aware side rail active navigation", () => {
+    const appScript = readPage("app.js");
+    assert.ok(appScript.includes("const active = (target) => page === target"));
+    assert.ok(appScript.includes("my-creations.html"));
+    assert.ok(appScript.includes("生成历史"));
+    assert.equal(appScript.includes('href="./app.html" class="rail-active"'), false);
+  });
+
   it("contains signed-in account navigation state", () => {
     const appScript = readPage("app.js");
     const styles = readPage("styles.css");
