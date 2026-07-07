@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | PAGE-AUTH-001 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Active |
 | Owner | Frontend Lead / Security Lead |
 | Dependencies | API-AUTH-001, DB-USERS-001, SEC-INDEX-001, DS-012 |
@@ -81,6 +81,11 @@ Authentication pages may be crawlable only if useful for brand navigation, but s
 - Users can authenticate or recover gracefully.
 - Error states are secure and helpful.
 - Session success routes users to the correct destination.
+- MVP account entry offers Google, GitHub, Discord, Apple, and email options.
+
+## Current Implementation
+
+`apps/web/signin.html` now presents social authentication options for Google, GitHub, Discord, and Apple before the email fallback. The page also communicates starter credits and routes users toward credits/referral growth paths without copying third-party page content.
 
 ## Future Plan
 

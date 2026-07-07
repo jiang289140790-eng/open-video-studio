@@ -25,6 +25,15 @@ test("Supabase MVP backend loop signs up, grants credits, generates, stores, lis
   assert.equal(login.user.id, user.id);
   assert.equal(login.accessToken, "test-access-token");
 
+  for (const provider of ["google", "github", "discord", "apple"] as const) {
+    const oauth = await backend.createOAuthSignInUrl({
+      provider,
+      redirectTo: "https://example.com/auth/callback",
+    });
+    assert.equal(oauth.provider, provider);
+    assert.equal(oauth.url, `https://auth.example.com/${provider}`);
+  }
+
   const job = await backend.createGenerationJob({
     userId: user.id,
     mediaType: "image",
@@ -94,6 +103,10 @@ class FakeSupabaseClient {
         error: null,
       };
     },
+    signInWithOAuth: async (input: { provider: string; options?: { redirectTo?: string } }) => ({
+      data: { url: `https://auth.example.com/${input.provider}` },
+      error: null,
+    }),
   };
 
   readonly storage = {

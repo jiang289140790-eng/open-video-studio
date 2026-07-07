@@ -47,6 +47,15 @@ describe("MVP static frontend", () => {
     }
   });
 
+  it("offers social authentication options on the account page", () => {
+    const signin = readPage("signin.html");
+    for (const provider of ["Google", "GitHub", "Discord", "Apple"]) {
+      assert.ok(signin.includes(`Continue with ${provider}`), `signin should include ${provider}`);
+    }
+    assert.ok(signin.includes("40 starter credits"));
+    assert.ok(signin.includes("Continue with email"));
+  });
+
   it("contains visual-first gallery and dashboard sections", () => {
     const gallery = readPage("gallery.html");
     const dashboard = readPage("dashboard.html");

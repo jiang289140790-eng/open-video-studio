@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.15.0 |
+| Version | 0.15.1 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Added
 
+- Added Supabase OAuth URL support for Google, GitHub, Discord, and Apple sign-in.
+- Added social authentication options to the account page, with email fallback, starter-credit messaging, and credits/referral navigation.
 - Added MVP Backend Loop Supabase adapter for Auth signup/login, profile sync, starter credits, generation jobs, Fake Worker completion, Supabase Storage output paths, asset records, gallery reads, history reads, and share links.
 - Added Supabase MVP schema and RLS policy file at `src/supabase/mvp-schema.sql`.
 - Added starter credits constant and automatic starter credit grant on signup.
@@ -93,6 +95,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Changed
 
+- Updated authentication frontend, API, and sprint documentation after reviewing Hifun-style auth and growth patterns without copying third-party page content.
 - Updated local API and workflow tests to account for starter credits on signup.
 - Updated backend, database, API, summary, and MVP sprint backlog documentation for the MVP Backend Loop.
 - Optimized the live homepage hero for conversion with a shorter headline, clearer subheadline, stronger CTAs, benefit signals, improved generated-output preview, and an expanded creation gallery preview.
@@ -131,6 +134,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran production build and full test suite after social auth entry and OAuth URL support; 24 tests passed.
 - Ran TypeScript typecheck, production build, and full test suite after the MVP Backend Loop; 24 tests passed.
 - Ran local production build and full test suite after the homepage conversion optimization; 23 tests passed.
 - Confirmed local Vite build now emits relative asset URLs and reran the full test suite; 23 tests passed.

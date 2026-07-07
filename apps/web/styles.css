@@ -406,6 +406,62 @@ h3 { font-size: 1.05rem; }
 .auth-art { min-height: 620px; display: flex; flex-direction: column; justify-content: end; padding: 32px; }
 .auth-card { display: grid; gap: 14px; }
 .auth-card label { display: grid; gap: 7px; color: var(--muted); font-weight: 800; }
+.social-auth-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.social-auth-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 0 14px;
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+  font-weight: 850;
+}
+.social-auth-btn span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.14);
+  color: #e0f2fe;
+  font-size: 0.72rem;
+}
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--soft);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.auth-benefits {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.auth-benefits span {
+  border: 1px solid rgba(56,189,248,0.28);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(56,189,248,0.09);
+  color: #dbeafe;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
 
 .share-body { background: #050510; }
 .share-page { grid-template-columns: 1.25fr 0.75fr; min-height: 100vh; align-items: center; padding: 40px 0; }
@@ -452,6 +508,7 @@ h3 { font-size: 1.05rem; }
   .showcase-card.tall { grid-row: auto; }
   .section-head, .pricing-preview, .final-cta, .preview-head, .sticky-generate, .result-row, .history-row, .library-card { align-items: stretch; flex-direction: column; }
   .pricing-grid, .character-strip, .quote-grid, .usecase-grid, .step-grid, .metric-grid, .character-grid, .selector-grid, .mode-grid, .creation-grid { grid-template-columns: 1fr; }
+  .social-auth-grid { grid-template-columns: 1fr; }
   .masonry-preview, .masonry-gallery { columns: 1; }
   .creative-preview { min-height: 320px; }
   .share-frame { min-height: 420px; }

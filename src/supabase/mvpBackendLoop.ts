@@ -6,6 +6,7 @@ import { nowIso } from "../shared/time.js";
 import { STARTER_CREDITS } from "../credits/starterCredits.js";
 
 export type SupabaseGenerationMediaType = "image" | "video";
+export type SupabaseOAuthProvider = "google" | "github" | "discord" | "apple";
 
 export interface SupabaseBackendLoopOptions {
   storageBucket: string;
@@ -69,6 +70,23 @@ export class SupabaseMvpBackendLoop {
         email: auth.data.user.email,
         displayName: String(auth.data.user.user_metadata?.display_name ?? auth.data.user.email),
       },
+    };
+  }
+
+  async createOAuthSignInUrl(input: {
+    provider: SupabaseOAuthProvider;
+    redirectTo?: string;
+  }): Promise<{ provider: SupabaseOAuthProvider; url: string }> {
+    const auth = await this.client.auth.signInWithOAuth({
+      provider: input.provider,
+      options: input.redirectTo ? { redirectTo: input.redirectTo } : undefined,
+    });
+    if (auth.error || !auth.data.url) {
+      throw new AppError("SUPABASE_OAUTH_URL_FAILED", auth.error?.message ?? "Supabase OAuth URL creation failed.", 502);
+    }
+    return {
+      provider: input.provider,
+      url: auth.data.url,
     };
   }
 
@@ -386,4 +404,3 @@ function estimateCredits(mediaType: SupabaseGenerationMediaType, durationSeconds
   }
   return Math.max(24, Math.ceil((durationSeconds ?? 8) / 4) * 12);
 }
-

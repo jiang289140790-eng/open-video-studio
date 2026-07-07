@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.5.0 |
+| Version | 1.6.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -140,9 +140,10 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 ### MVP-S3-001 Auth UI And Session State
 
 - Priority: P0.
+- Status: In Progress.
 - Estimated Time: 1 day.
 - Dependencies: Sprint 1, API-AUTH-001, PAGE-AUTH-001.
-- Acceptance Criteria: user can sign up, sign in, see authenticated header state, and access protected product pages with a persisted local MVP session.
+- Acceptance Criteria: user can sign up/sign in with email or social OAuth entry points, see authenticated header state, and access protected product pages with a persisted local MVP session.
 - Related Documents: API-AUTH-001, PAGE-AUTH-001, DB-USERS-001.
 
 ### MVP-S3-002 Connected Generate Flow
