@@ -127,7 +127,7 @@ function injectTopNavigation() {
   }
   if (accountnav && !accountnav.querySelector(".language-menu")) {
     accountnav.innerHTML = `
-      <a class="daily-check" href="./referral.html">每日签到</a>
+      <a class="daily-check" href="./referral.html">🎁 每日签到</a>
       <div class="language-menu">
         <button class="language-trigger" type="button" aria-label="切换语言">文A</button>
         <div class="language-dropdown">
@@ -161,7 +161,7 @@ function renderAccountNavigation(current) {
   if (!accountnav) return;
   if (!current.user) {
     accountnav.innerHTML = `
-      <a class="daily-check" href="./referral.html">每日签到</a>
+      <a class="daily-check" href="./referral.html">🎁 每日签到</a>
       ${languageMenuMarkup()}
       <a href="./signin.html" data-auth-modal>登录</a>
     `;
@@ -169,7 +169,7 @@ function renderAccountNavigation(current) {
   }
   const initial = (current.user.name || "创作者").trim().charAt(0).toUpperCase();
   accountnav.innerHTML = `
-    <a class="daily-check" href="./referral.html">每日签到</a>
+    <a class="daily-check" href="./referral.html">🎁 每日签到</a>
     <a class="account-credit" href="./pricing.html"><span data-credit-balance>${current.credits}</span> 积分</a>
     ${languageMenuMarkup()}
     <div class="account-menu">
@@ -725,7 +725,7 @@ function openCheckInModal() {
     <div class="checkin-modal">
       <button class="checkin-close" type="button" aria-label="关闭">×</button>
       <div class="checkin-gift" aria-hidden="true">🎁</div>
-      <h2>${signedIn ? alreadyChecked ? "今日签到已完成" : "今日签到奖励已准备好" : "登录即可立即获得免费积分"}</h2>
+      <h2>${signedIn ? alreadyChecked ? "今日签到已完成" : "今日签到奖励已准备好" : "登录即可立即获得 10 免费积分"}</h2>
       <p>连续签到 7 天最多可获得 <strong>65 积分</strong></p>
       <div class="checkin-status">
         <span>Day ${signedIn ? String(day + 1) : "0"} of 7</span>
@@ -741,7 +741,7 @@ function openCheckInModal() {
           </article>
         `).join("")}
       </div>
-      <button class="btn primary full checkin-action" type="button">${signedIn ? alreadyChecked ? "今天已领取" : `领取 +${rewards[day]} 积分` : "登录开始签到"}</button>
+      <button class="btn primary full checkin-action" type="button">${signedIn ? alreadyChecked ? "今天已领取" : `领取 +${rewards[day]} 积分` : "登录开始签到 →"}</button>
     </div>
   `;
   document.body.append(overlay);
@@ -751,7 +751,8 @@ function openCheckInModal() {
   });
   overlay.querySelector(".checkin-action")?.addEventListener("click", () => {
     if (!state.user) {
-      window.location.href = "./signin.html";
+      overlay.remove();
+      openAuthModal("./referral.html");
       return;
     }
     if (state.rewards.lastCheckInDate === today) {

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.47.0 |
+| Version | 0.48.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -29,6 +29,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 - [REVIEW-TARGET-FEATURE-MAP-001](reviews/target-site-feature-map.md) maps the referenced site into feature modules, page structure, and Open Video Studio implementation parity.
 - The account page now supports Google, X, Telegram, and Discord entry points; GitHub and Apple have been removed from the MVP login surface.
 - The Daily Check-in navigation action now opens a reusable modal with signed-out login guidance, signed-in credit claiming, and a seven-day reward calendar.
+- Daily Check-in now keeps signed-out users in-place and opens the global social-login modal from the reward dialog, matching a target-style conversion loop.
 - The Purchase Credits and Free Coins pages now use the target-style credit commerce flow: highlighted credit packs, limited-time 2x credit modal, payment method choices, login-required referral rewards, and copyable referral links.
 - The public page map now includes target-style tool routes for AI Effects, Image Editor, Face Swap, Outfit Studio, Pose Generator, Nano Banana, Image Combiner, Blog, Terms, Privacy, and Cookie, with Vite build entries for deployment.
 - The shared top navigation now uses target-style Image Tools and Video Tools dropdowns plus a frontend language selector, keeping tool discovery consistent across pages.

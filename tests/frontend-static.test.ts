@@ -136,6 +136,7 @@ describe("MVP static frontend", () => {
       "data-checkout-method",
       "data-confirm-checkout",
       "data-checkout-promo",
+      "登录开始签到 →",
       "data-auth-modal",
       "openAuthModal",
       "data-modal-auth-provider",
@@ -373,6 +374,8 @@ describe("MVP static frontend", () => {
       "Day 7",
       "data-referral-progress",
       "openCheckInModal",
+      "登录即可立即获得 10 免费积分",
+      "登录开始签到 →",
       "inline-calendar"
     ]) {
       assert.ok(`${referral}\n${appScript}\n${styles}`.includes(expected), `free coins page should include ${expected}`);
