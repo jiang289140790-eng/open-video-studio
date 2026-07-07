@@ -487,24 +487,42 @@ describe("MVP static frontend", () => {
     const appScript = readPage("app.js");
     const styles = readPage("styles.css");
     const viteConfig = readFileSync(join(process.cwd(), "vite.config.ts"), "utf8");
+    const adminFunction = readFileSync(join(process.cwd(), "supabase", "functions", "admin", "index.ts"), "utf8");
     for (const expected of [
       "data-oauth-readiness",
       "getOAuthReadiness",
       "I18N_MESSAGES",
       "translateStaticText",
       "data-admin-oauth",
-      "data-admin-moderation",
+      "data-admin-page",
+      "data-admin-access",
+      "data-admin-users",
+      "data-admin-credit-form",
+      "data-admin-assets",
+      "data-admin-jobs",
+      "data-admin-shares",
+      "data-admin-audit",
       "data-admin-orders",
       "data-admin-health",
       "renderAdmin",
+      "loadAdminConsole",
+      "invokeAdmin",
+      "adjust-credits",
+      "review-asset",
+      "revoke-share-link",
+      "audit_logs",
       "orders",
       "moderation",
       "admin.html",
       "admin-status-grid",
       "oauth-readiness-panel"
     ]) {
-      assert.ok(`${admin}\n${signin}\n${appScript}\n${styles}\n${viteConfig}`.includes(expected), `production-readiness surface should include ${expected}`);
+      assert.ok(`${admin}\n${signin}\n${appScript}\n${styles}\n${viteConfig}\n${adminFunction}`.includes(expected), `production-readiness surface should include ${expected}`);
     }
+    assert.ok(admin.includes("管理后台"));
+    assert.ok(admin.includes("运营管理后台"));
+    assert.ok(admin.includes("用户管理"));
+    assert.equal(admin.includes("绠＄悊"), false);
   });
 
   it("ships local original preview assets instead of only CSS placeholders", () => {

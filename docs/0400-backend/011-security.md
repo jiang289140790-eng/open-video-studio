@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | BE-ARCH-SECURITY-001 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Active |
 | Owner | Security Lead / Backend Lead |
 | Dependencies | SEC-INDEX-001, API-AUTH-001, DB-AUDIT-LOGS-001, BE-ARCH-AUTH-001 |
@@ -32,6 +32,10 @@ Security should be embedded across backend boundaries: authentication establishe
 - Manage secrets and provider credentials safely.
 - Support audit logging and incident response.
 - Define abuse prevention and rate limiting expectations.
+
+## Current Implementation
+
+MVP Admin operations are gated by `profiles.role`. The browser may use only the Supabase anon key. High-risk operations route through the Supabase `admin` Edge Function, which must use server-side Supabase secrets and write `audit_logs` entries for credit adjustment, order state changes, content review, and share revocation.
 
 ## Dependencies
 

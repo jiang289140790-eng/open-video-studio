@@ -4,52 +4,128 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>管理后台 | Open Video Studio</title>
-    <meta name="description" content="Open Video Studio 管理后台，用于查看社交登录配置、内容审核、订单履约、风控和系统健康状态。">
+    <meta name="description" content="Open Video Studio 管理后台，用于管理用户、积分、订单、内容审核、生成任务、分享链接和系统配置。">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./zh/app/"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
-      <nav class="topnav" aria-label="Primary navigation"><a href="./zh/app/generate/">图像工具</a><a href="./zh/app/image-to-video/">视频工具</a><a href="./zh/pricing/">购买积分</a><a href="./zh/free-coins/">免费硬币</a><a href="./zh/my-creations/">我的创作</a></nav>
-      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./zh/free-coins/">每日签到</a><a href="./zh/login/">登录</a></nav>
+      <nav class="topnav" aria-label="Primary navigation">
+        <a href="./zh/app/generate/">图像工具</a>
+        <a href="./zh/app/image-to-video/">视频工具</a>
+        <a href="./zh/pricing/">购买积分</a>
+        <a href="./zh/free-coins/">免费硬币</a>
+        <a href="./zh/my-creations/">我的创作</a>
+      </nav>
+      <nav class="accountnav" aria-label="Account navigation">
+        <a class="daily-check" href="./zh/free-coins/">每日签到</a>
+        <a href="./zh/login/">登录</a>
+      </nav>
       <a class="btn primary" href="./zh/dashboard/">返回控制台</a>
     </header>
 
-    <main class="app-surface admin-page">
-      <section class="page-hero compact">
-        <p class="eyebrow">Admin</p>
-        <h1>运营控制中心</h1>
-        <p class="lead">集中查看登录配置、内容审核、订单履约、风控状态和系统健康。MVP 阶段先使用本地状态和 Supabase 配置检测，不接真实支付或审核供应商。</p>
+    <main class="app-surface admin-page" data-admin-page>
+      <section class="page-hero compact admin-hero">
+        <div>
+          <p class="eyebrow">Admin Console</p>
+          <h1>运营管理后台</h1>
+          <p class="lead">管理真实用户、积分、订单、生成内容、分享链接和系统状态。所有敏感操作都必须通过安全后台接口执行并写入审计日志。</p>
+        </div>
+        <div class="admin-hero-actions">
+          <button class="btn primary" type="button" data-admin-refresh>刷新后台数据</button>
+          <a class="btn glass" href="./zh/login/">切换账号</a>
+        </div>
       </section>
 
-      <section class="admin-status-grid">
-        <article><span>登录配置</span><strong data-admin-oauth-count>0/4</strong><p>Google、X、Telegram、Discord</p></article>
-        <article><span>待审核</span><strong data-admin-moderation-count>0</strong><p>生成资产与分享链接</p></article>
-        <article><span>订单履约</span><strong data-admin-order-count>0</strong><p>待确认与已到账订单</p></article>
-        <article><span>系统健康</span><strong data-admin-health>演示</strong><p>Fake Worker / Supabase / Storage</p></article>
+      <section class="admin-access-panel" data-admin-access>
+        <span class="status-dot blocked"></span>
+        <div>
+          <strong>正在检查管理员权限</strong>
+          <p>需要登录，并且 Supabase `profiles.role` 必须是 `admin` 或 `operator`。</p>
+        </div>
       </section>
 
-      <section class="admin-grid">
+      <section class="admin-status-grid" data-admin-summary>
+        <article><span>用户</span><strong data-admin-summary-users>0</strong><p>注册账户总数</p></article>
+        <article><span>资产</span><strong data-admin-summary-assets>0</strong><p><b data-admin-summary-pending>0</b> 个待审核</p></article>
+        <article><span>生成任务</span><strong data-admin-summary-jobs>0</strong><p><b data-admin-summary-failed>0</b> 个失败</p></article>
+        <article><span>积分消耗</span><strong data-admin-summary-credits>0</strong><p>已消耗积分</p></article>
+      </section>
+
+      <section class="admin-grid wide">
         <article class="panel">
-          <h2>社交登录配置</h2>
-          <div class="admin-list" data-admin-oauth></div>
+          <div class="panel-heading">
+            <div><p class="eyebrow">Users</p><h2>用户管理</h2></div>
+            <span data-admin-role>未验证</span>
+          </div>
+          <div class="admin-list" data-admin-users></div>
         </article>
+
         <article class="panel">
-          <h2>内容审核队列</h2>
-          <div class="admin-list" data-admin-moderation></div>
+          <div class="panel-heading">
+            <div><p class="eyebrow">Credits</p><h2>积分管理</h2></div>
+            <span>Admin only</span>
+          </div>
+          <form class="admin-action-form" data-admin-credit-form>
+            <label><span>用户 ID</span><input name="userId" placeholder="auth user uuid" required></label>
+            <label><span>积分变化</span><input name="amount" type="number" placeholder="100 或 -20" required></label>
+            <label><span>操作原因</span><input name="reason" placeholder="例如：订单补发 / 风控扣减" required></label>
+            <button class="btn primary" type="submit">提交积分调整</button>
+          </form>
+          <div class="admin-list" data-admin-credits></div>
         </article>
+
         <article class="panel">
-          <h2>订单履约</h2>
+          <div class="panel-heading">
+            <div><p class="eyebrow">Orders</p><h2>订单履约</h2></div>
+            <span data-admin-summary-orders>0</span>
+          </div>
           <div class="admin-list" data-admin-orders></div>
         </article>
+
         <article class="panel">
-          <h2>风控规则</h2>
-          <div class="admin-rule-list">
-            <div><strong>公开分享</strong><p>公开前必须确认资产来源、可见性和审核状态。</p></div>
-            <div><strong>积分扣减</strong><p>生成任务创建时先锁定积分，失败后回补。</p></div>
-            <div><strong>支付履约</strong><p>真实支付接入后只接受服务端 Webhook 发放积分。</p></div>
-            <div><strong>账号安全</strong><p>社交登录回调必须使用 Supabase 授权域名和 HTTPS。</p></div>
+          <div class="panel-heading">
+            <div><p class="eyebrow">Moderation</p><h2>内容审核</h2></div>
+            <span data-admin-moderation-count>0</span>
           </div>
+          <div class="admin-list" data-admin-assets></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Jobs</p><h2>生成任务</h2></div>
+            <span>Fake Worker</span>
+          </div>
+          <div class="admin-list" data-admin-jobs></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Share</p><h2>分享链接</h2></div>
+            <span data-admin-summary-shares>0</span>
+          </div>
+          <div class="admin-list" data-admin-shares></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">System</p><h2>系统配置</h2></div>
+            <span data-admin-health>检查中</span>
+          </div>
+          <div class="admin-list" data-admin-oauth></div>
+          <div class="admin-rule-list">
+            <div><strong>Supabase</strong><p data-admin-supabase-status>等待检测</p></div>
+            <div><strong>Storage</strong><p>生产 Bucket：open-video-studio-assets</p></div>
+            <div><strong>Worker</strong><p>当前仍使用 Fake Worker，不连接真实 AI 模型。</p></div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Audit</p><h2>审计日志</h2></div>
+            <span>Admin only</span>
+          </div>
+          <div class="admin-list" data-admin-audit></div>
         </article>
       </section>
     </main>

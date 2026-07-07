@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DB-BIBLE-001 |
-| Version | 1.7.0 |
+| Version | 1.8.0 |
 | Status | Active |
 | Owner | Data Architecture Lead |
 | Dependencies | PB-008, PB-010, SEC-INDEX-001, ANALYTICS-INDEX-001 |
@@ -61,6 +61,8 @@ The production database target is Supabase PostgreSQL. The repository includes e
 `REVIEW-PROVIDER-PLUGIN-001` and proposed `ADR-006` require future model registry, provider configuration, feature flags, and provider package refactors to preserve database ownership boundaries.
 
 `ADR-007` adds local workspace, workspace member, project, and permission foundation tables for Platform Architecture V2 Sprint 1.
+
+MVP Admin implementation extends `src/supabase/mvp-schema.sql` with Supabase PostgreSQL tables for `audit_logs`, `orders`, `characters`, `images`, and `videos`, plus role-aware RLS policies. Admin operations use `profiles.role` for `admin` and `operator` access and must preserve auditability for high-risk writes.
 
 ## Acceptance Criteria
 

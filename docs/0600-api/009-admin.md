@@ -4,7 +4,7 @@
 |---|---|
 | ID | API-ADMIN-001 |
 | Unique ID | API-ADMIN-001 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Active |
 | Owner | Platform Admin Lead / Security Lead |
 | Dependencies | API-AUTH-001, DB-USERS-001, DB-AUDIT-LOGS-001, SEC-INDEX-001 |
@@ -36,6 +36,22 @@ Permissions must be role-specific and least-privilege. Workspace admins, interna
 ## Request
 
 Conceptual request inputs may include target object type, target object reference, action, reason, scope, admin note, idempotency key, and optional approval reference.
+
+MVP implementation uses one Supabase Edge Function named `admin` with an `action` field:
+
+- `dashboard-summary`
+- `list-users`
+- `list-orders`
+- `list-assets`
+- `list-generation-jobs`
+- `list-share-links`
+- `list-audit-logs`
+- `adjust-credits`
+- `update-order-status`
+- `review-asset`
+- `revoke-share-link`
+
+Sensitive write actions require a non-empty `reason`.
 
 ## Response
 
@@ -70,6 +86,10 @@ Support admin console APIs, approval workflows, break-glass access, enterprise a
 ## Future Plan
 
 Define role-based access control and admin audit taxonomy before implementation.
+
+## Current Implementation
+
+`SupabaseAdminBackend` and the Supabase `admin` Edge Function implement the MVP operations console. `profiles.role = 'operator'` can read operational data and review non-archival content. `profiles.role = 'admin'` can perform high-risk writes such as credit adjustment, order status update, audit reads, and share revocation. The browser never receives a service role key.
 
 ## AI Context
 

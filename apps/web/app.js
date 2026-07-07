@@ -143,6 +143,9 @@ state.orders = Array.isArray(state.orders) ? state.orders : [...defaultState.ord
 let selectedCharacterId = state.characters[0]?.id || "";
 let toolHomeFilter = "all";
 let toolHomeSearch = "";
+let adminLoaded = false;
+let adminLoading = false;
+let adminData = null;
 
 injectTopNavigation();
 injectAppShell();
@@ -776,6 +779,51 @@ document.querySelectorAll("[data-telegram-auth]").forEach((button) => {
 });
 
 document.addEventListener("click", async (event) => {
+  const adminRefresh = event.target.closest("[data-admin-refresh]");
+  if (adminRefresh) {
+    event.preventDefault();
+    adminLoaded = false;
+    adminData = null;
+    await loadAdminConsole();
+    return;
+  }
+  const adminCopyUser = event.target.closest("[data-admin-copy-user]");
+  if (adminCopyUser) {
+    event.preventDefault();
+    await navigator.clipboard?.writeText(adminCopyUser.dataset.adminCopyUser || "");
+    adminCopyUser.textContent = "已复制";
+    return;
+  }
+  const adminOrder = event.target.closest("[data-admin-order]");
+  if (adminOrder) {
+    event.preventDefault();
+    await runAdminAction(adminOrder, "update-order-status", {
+      orderId: adminOrder.dataset.adminOrder,
+      status: adminOrder.dataset.status || "fulfilled",
+      reason: "后台确认订单履约"
+    });
+    return;
+  }
+  const adminReviewAsset = event.target.closest("[data-admin-review-asset]");
+  if (adminReviewAsset) {
+    event.preventDefault();
+    await runAdminAction(adminReviewAsset, "review-asset", {
+      assetId: adminReviewAsset.dataset.adminReviewAsset,
+      moderationStatus: adminReviewAsset.dataset.status || "approved",
+      visibilityStatus: "public",
+      reason: "后台内容审核通过"
+    });
+    return;
+  }
+  const adminRevokeShare = event.target.closest("[data-admin-revoke-share]");
+  if (adminRevokeShare) {
+    event.preventDefault();
+    await runAdminAction(adminRevokeShare, "revoke-share-link", {
+      shareId: adminRevokeShare.dataset.adminRevokeShare,
+      reason: "后台撤销公开分享"
+    });
+    return;
+  }
   const carouselButton = event.target.closest("[data-carousel-scroll]");
   if (carouselButton) {
     event.preventDefault();
@@ -882,6 +930,40 @@ document.addEventListener("click", async (event) => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 });
+
+document.addEventListener("submit", async (event) => {
+  const creditForm = event.target.closest("[data-admin-credit-form]");
+  if (!creditForm) return;
+  event.preventDefault();
+  const formData = new FormData(creditForm);
+  const button = creditForm.querySelector("button[type='submit']");
+  await runAdminAction(button, "adjust-credits", {
+    userId: String(formData.get("userId") || "").trim(),
+    amount: Number(formData.get("amount")),
+    reason: String(formData.get("reason") || "").trim()
+  });
+  creditForm.reset();
+});
+
+async function runAdminAction(button, action, body) {
+  if (!supabase) {
+    showSiteToast("Supabase 未配置，无法执行后台操作");
+    return;
+  }
+  const original = button?.textContent || "提交";
+  if (button) button.textContent = "处理中...";
+  try {
+    await invokeAdmin(action, body);
+    adminLoaded = false;
+    adminData = null;
+    await loadAdminConsole();
+    showSiteToast("后台操作已完成，并已写入审计日志");
+  } catch (error) {
+    showSiteToast(error.message || "后台操作失败");
+  } finally {
+    if (button) button.textContent = original;
+  }
+}
 
 function openSupportWidget() {
   document.querySelector(".support-overlay")?.remove();
@@ -1598,58 +1680,225 @@ function renderDashboard(current) {
 }
 
 function renderAdmin(current) {
-  const oauthItems = getOAuthReadiness().map((item) => ({
-    ...item,
-    detail: item.ready ? "前端可发起真实授权" : item.action
-  }));
+  if (!document.querySelector("[data-admin-page]")) return;
+  renderAdminConfiguration();
+  if (!supabase) {
+    setAdminAccess("blocked", "Supabase 未配置", "请先配置 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY。后台不会使用本地演示数据冒充真实数据。");
+    fillAdminEmptyState();
+    return;
+  }
+  if (!current.user) {
+    setAdminAccess("blocked", "需要登录", "请先登录管理员账号。账号的 profiles.role 必须是 admin 或 operator。", "./zh/login/");
+    fillAdminEmptyState();
+    return;
+  }
+  if (!adminLoaded && !adminLoading) {
+    loadAdminConsole();
+  }
+  if (!adminData) {
+    setAdminAccess("blocked", "正在加载后台数据", "正在通过 Supabase 安全函数读取真实运营数据。");
+    fillAdminEmptyState();
+    return;
+  }
+  const actor = adminData.actor || {};
+  setAdminAccess("ready", `已验证：${escapeHtml(actor.displayName || actor.email || "管理员")}`, `当前角色：${actor.role === "admin" ? "管理员" : "运营人员"}。敏感写操作会写入审计日志。`);
+  const role = document.querySelector("[data-admin-role]");
+  if (role) role.textContent = actor.role === "admin" ? "Admin" : "Operator";
+
+  const summary = adminData.summary || {};
+  setText("[data-admin-summary-users]", summary.users ?? 0);
+  setText("[data-admin-summary-assets]", summary.assets ?? 0);
+  setText("[data-admin-summary-pending]", summary.pendingAssets ?? 0);
+  setText("[data-admin-summary-jobs]", summary.generationJobs ?? 0);
+  setText("[data-admin-summary-failed]", summary.failedJobs ?? 0);
+  setText("[data-admin-summary-credits]", summary.creditsConsumed ?? 0);
+  setText("[data-admin-summary-orders]", summary.orders ?? 0);
+  setText("[data-admin-summary-shares]", summary.activeShares ?? 0);
+  setText("[data-admin-moderation-count]", summary.pendingAssets ?? 0);
+  setText("[data-admin-health]", "已连接");
+  setText("[data-admin-supabase-status]", "Supabase 已配置。后台数据来自安全函数，不从浏览器暴露 service key。");
+
+  renderAdminUsers(adminData.users || []);
+  renderAdminCredits(adminData.users || []);
+  renderAdminOrders(adminData.orders || [], actor);
+  renderAdminAssets(adminData.assets || [], actor);
+  renderAdminJobs(adminData.jobs || []);
+  renderAdminShares(adminData.shares || [], actor);
+  renderAdminAudit(adminData.auditLogs || [], actor);
+}
+
+function renderAdminConfiguration() {
+  const oauthItems = getOAuthReadiness().map((item) => ({ ...item, detail: item.ready ? "前端可发起真实授权" : item.action }));
   const oauthList = document.querySelector("[data-admin-oauth]");
-  if (oauthList) {
-    oauthList.innerHTML = oauthItems.map((item) => `
-      <article class="admin-row">
-        <span class="status-dot ${item.ready ? "ready" : "blocked"}"></span>
-        <div><strong>${item.name}</strong><p>${escapeHtml(item.detail)}</p></div>
-        <em>${item.ready ? "可用" : "待配置"}</em>
-      </article>
-    `).join("");
-  }
-  const oauthCount = document.querySelector("[data-admin-oauth-count]");
-  if (oauthCount) oauthCount.textContent = `${oauthItems.filter((item) => item.ready).length}/4`;
+  if (!oauthList) return;
+  oauthList.innerHTML = oauthItems.map((item) => `
+    <article class="admin-row">
+      <span class="status-dot ${item.ready ? "ready" : "blocked"}"></span>
+      <div><strong>${item.name}</strong><p>${escapeHtml(item.detail)}</p></div>
+      <em>${item.ready ? "可用" : "待配置"}</em>
+    </article>
+  `).join("");
+}
 
-  const moderationItems = current.assets.map((asset) => ({
-    id: asset.id,
-    title: asset.title,
-    type: asset.type,
-    status: asset.moderation || (asset.visibility === "public" ? "review" : "approved"),
-    reason: asset.visibility === "public" ? "公开资产需要人工抽检" : "私有资产低风险"
-  }));
-  const moderationList = document.querySelector("[data-admin-moderation]");
-  if (moderationList) {
-    moderationList.innerHTML = moderationItems.map((item) => `
-      <article class="admin-row">
-        <span class="thumb ${item.type === "video" ? "art-7" : "art-3"}"></span>
-        <div><strong>${escapeHtml(item.title)}</strong><p>${escapeHtml(item.reason)}</p></div>
-        <em>${item.status === "approved" ? "已通过" : "待审核"}</em>
-      </article>
-    `).join("");
-  }
-  const moderationCount = document.querySelector("[data-admin-moderation-count]");
-  if (moderationCount) moderationCount.textContent = String(moderationItems.filter((item) => item.status !== "approved").length);
+function fillAdminEmptyState() {
+  const placeholders = [
+    "[data-admin-users]",
+    "[data-admin-credits]",
+    "[data-admin-orders]",
+    "[data-admin-assets]",
+    "[data-admin-jobs]",
+    "[data-admin-shares]",
+    "[data-admin-audit]"
+  ];
+  placeholders.forEach((selector) => {
+    const target = document.querySelector(selector);
+    if (target) target.innerHTML = `<article class="admin-row muted-row"><div><strong>暂无真实后台数据</strong><p>完成登录、角色配置和 Supabase Function 部署后这里会显示生产数据。</p></div></article>`;
+  });
+}
 
-  const orderList = document.querySelector("[data-admin-orders]");
-  if (orderList) {
-    orderList.innerHTML = (current.orders || []).map((order) => `
-      <article class="admin-row">
-        <span class="status-dot ${order.status === "fulfilled" ? "ready" : "blocked"}"></span>
-        <div><strong>${escapeHtml(order.planName)} · ${order.credits} 积分</strong><p>${escapeHtml(order.method)} · ${escapeHtml(order.price)} · ${escapeHtml(order.createdAt || "today")}</p></div>
-        <em>${order.status === "fulfilled" ? "已到账" : "待处理"}</em>
-      </article>
-    `).join("");
-  }
-  const orderCount = document.querySelector("[data-admin-order-count]");
-  if (orderCount) orderCount.textContent = String((current.orders || []).length);
+function setAdminAccess(tone, title, message, href = "") {
+  const target = document.querySelector("[data-admin-access]");
+  if (!target) return;
+  target.innerHTML = `
+    <span class="status-dot ${tone === "ready" ? "ready" : "blocked"}"></span>
+    <div><strong>${title}</strong><p>${message}</p></div>
+    ${href ? `<a class="btn primary" href="${href}">去登录</a>` : ""}
+  `;
+}
 
-  const health = document.querySelector("[data-admin-health]");
-  if (health) health.textContent = supabase ? "已配置" : "演示";
+async function loadAdminConsole() {
+  if (!document.querySelector("[data-admin-page]") || !supabase || adminLoading) return;
+  adminLoading = true;
+  try {
+    const [summary, users, orders, assets, jobs, shares, audit] = await Promise.all([
+      invokeAdmin("dashboard-summary"),
+      invokeAdmin("list-users"),
+      invokeAdmin("list-orders"),
+      invokeAdmin("list-assets"),
+      invokeAdmin("list-generation-jobs"),
+      invokeAdmin("list-share-links"),
+      invokeAdmin("list-audit-logs").catch((error) => ({ auditLogs: [], auditError: error.message }))
+    ]);
+    adminData = {
+      actor: summary.actor || users.actor || orders.actor || assets.actor || jobs.actor,
+      summary: summary.summary,
+      users: users.users || [],
+      orders: orders.orders || [],
+      assets: assets.assets || [],
+      jobs: jobs.jobs || [],
+      shares: shares.shares || [],
+      auditLogs: audit.auditLogs || [],
+      auditError: audit.auditError
+    };
+    adminLoaded = true;
+  } catch (error) {
+    adminLoaded = false;
+    adminData = null;
+    setAdminAccess("blocked", "后台安全函数不可用", `${error.message || "请部署 Supabase Edge Function：admin。"}`);
+  } finally {
+    adminLoading = false;
+    renderAdmin(state);
+  }
+}
+
+async function invokeAdmin(action, body = {}) {
+  const { data, error } = await supabase.functions.invoke("admin", { body: { action, ...body } });
+  if (error) throw new Error(error.message || "后台函数调用失败");
+  if (data?.error) throw new Error(data.error.message || data.error.code || "后台函数返回错误");
+  return data || {};
+}
+
+function renderAdminUsers(users) {
+  const target = document.querySelector("[data-admin-users]");
+  if (!target) return;
+  target.innerHTML = users.length ? users.slice(0, 8).map((user) => `
+    <article class="admin-row">
+      <span class="status-dot ${user.account_status === "active" ? "ready" : "blocked"}"></span>
+      <div><strong>${escapeHtml(user.display_name || user.email)}</strong><p>${escapeHtml(user.email)} · ${escapeHtml(user.role || "user")} · ${Number(user.credit_balance || 0)} 积分</p></div>
+      <button type="button" data-admin-copy-user="${escapeHtml(user.id)}">复制 ID</button>
+    </article>
+  `).join("") : `<article class="admin-row"><div><strong>暂无用户</strong><p>真实注册用户会显示在这里。</p></div></article>`;
+}
+
+function renderAdminCredits(users) {
+  const target = document.querySelector("[data-admin-credits]");
+  if (!target) return;
+  target.innerHTML = users.slice(0, 5).map((user) => `
+    <article class="admin-row">
+      <span class="status-dot ready"></span>
+      <div><strong>${escapeHtml(user.display_name || user.email)}</strong><p>当前余额 ${Number(user.credit_balance || 0)} 积分</p></div>
+      <em>${escapeHtml(user.role || "user")}</em>
+    </article>
+  `).join("") || `<article class="admin-row"><div><strong>等待积分流水</strong><p>用户注册、生成和后台调整都会进入这里。</p></div></article>`;
+}
+
+function renderAdminOrders(orders, actor) {
+  const target = document.querySelector("[data-admin-orders]");
+  if (!target) return;
+  target.innerHTML = orders.length ? orders.slice(0, 8).map((order) => `
+    <article class="admin-row">
+      <span class="status-dot ${order.status === "fulfilled" ? "ready" : "blocked"}"></span>
+      <div><strong>${escapeHtml(order.order_type || "credit_purchase")} · ${Number(order.credits_granted || 0)} 积分</strong><p>${escapeHtml(order.currency || "USD")} ${(Number(order.amount_cents || 0) / 100).toFixed(2)} · ${escapeHtml(order.status)}</p></div>
+      ${actor.role === "admin" ? `<button type="button" data-admin-order="${escapeHtml(order.id)}" data-status="fulfilled">标记到账</button>` : `<em>只读</em>`}
+    </article>
+  `).join("") : `<article class="admin-row"><div><strong>暂无订单</strong><p>真实订单和演示订单会在这里汇总。</p></div></article>`;
+}
+
+function renderAdminAssets(assets, actor) {
+  const target = document.querySelector("[data-admin-assets]");
+  if (!target) return;
+  target.innerHTML = assets.length ? assets.slice(0, 10).map((asset) => `
+    <article class="admin-row">
+      <span class="thumb ${asset.asset_type === "video" ? "art-7" : "art-3"}"></span>
+      <div><strong>${escapeHtml(asset.display_name)}</strong><p>${escapeHtml(asset.asset_type)} · ${escapeHtml(asset.visibility_status)} · ${escapeHtml(asset.moderation_status)}</p></div>
+      <button type="button" data-admin-review-asset="${escapeHtml(asset.id)}" data-status="approved">通过</button>
+    </article>
+  `).join("") : `<article class="admin-row"><div><strong>暂无资产</strong><p>用户生成结果会进入审核列表。</p></div></article>`;
+}
+
+function renderAdminJobs(jobs) {
+  const target = document.querySelector("[data-admin-jobs]");
+  if (!target) return;
+  target.innerHTML = jobs.length ? jobs.slice(0, 8).map((job) => `
+    <article class="admin-row">
+      <span class="status-dot ${job.status === "completed" ? "ready" : job.status === "failed" ? "blocked" : ""}"></span>
+      <div><strong>${escapeHtml(job.media_type)} · ${escapeHtml(job.model)}</strong><p>${escapeHtml(job.status)} · ${Number(job.cost_credits || 0)} 积分 · ${escapeHtml(job.provider)}</p></div>
+      <em>${Number(job.progress || 0)}%</em>
+    </article>
+  `).join("") : `<article class="admin-row"><div><strong>暂无生成任务</strong><p>Fake Worker 生成任务会显示状态、成本和失败原因。</p></div></article>`;
+}
+
+function renderAdminShares(shares, actor) {
+  const target = document.querySelector("[data-admin-shares]");
+  if (!target) return;
+  target.innerHTML = shares.length ? shares.slice(0, 8).map((share) => `
+    <article class="admin-row">
+      <span class="status-dot ${share.visibility_status === "active" ? "ready" : "blocked"}"></span>
+      <div><strong>${escapeHtml(share.token || share.id)}</strong><p>${escapeHtml(share.visibility_status)} · ${escapeHtml(share.media_asset_id || "")}</p></div>
+      ${actor.role === "admin" ? `<button type="button" data-admin-revoke-share="${escapeHtml(share.id)}">撤销</button>` : `<em>只读</em>`}
+    </article>
+  `).join("") : `<article class="admin-row"><div><strong>暂无分享链接</strong><p>公开分享会在这里显示并支持撤销。</p></div></article>`;
+}
+
+function renderAdminAudit(logs, actor) {
+  const target = document.querySelector("[data-admin-audit]");
+  if (!target) return;
+  if (actor.role !== "admin") {
+    target.innerHTML = `<article class="admin-row"><div><strong>仅管理员可查看审计日志</strong><p>operator 角色不能读取高风险操作记录。</p></div></article>`;
+    return;
+  }
+  target.innerHTML = logs.length ? logs.slice(0, 10).map((log) => `
+    <article class="admin-row">
+      <span class="status-dot ready"></span>
+      <div><strong>${escapeHtml(log.action)}</strong><p>${escapeHtml(log.target_type)} · ${escapeHtml(log.target_id)} · ${escapeHtml(log.created_at)}</p></div>
+      <em>${escapeHtml(log.outcome)}</em>
+    </article>
+  `).join("") : `<article class="admin-row"><div><strong>暂无审计日志</strong><p>后台写操作完成后会自动留下记录。</p></div></article>`;
+}
+
+function setText(selector, value) {
+  const target = document.querySelector(selector);
+  if (target) target.textContent = String(value);
 }
 
 function renderReferral(current) {

@@ -8,6 +8,8 @@ export {
 } from "./supabase/supabaseClient.js";
 export { SupabaseMvpBackendLoop } from "./supabase/mvpBackendLoop.js";
 export type { SupabaseBackendUser, SupabaseGenerationMediaType, SupabaseGenerationResult, SupabaseOAuthProvider } from "./supabase/mvpBackendLoop.js";
+export { SupabaseAdminBackend } from "./supabase/adminBackend.js";
+export type { AdminActor, AdminDashboardSummary, AdminRole } from "./supabase/adminBackend.js";
 export { createMvpApiServer } from "./api/mvpServer.js";
 export { AuthService } from "./auth/authService.js";
 export { UserRepository } from "./users/userRepository.js";
