@@ -94,6 +94,7 @@ injectToolWorkbench();
 injectToolDiscovery();
 injectFloatingDock();
 injectGlobalFooter();
+applyStoredLanguage();
 hydrateAuthSession();
 
 function injectTopNavigation() {
@@ -128,32 +129,54 @@ function injectTopNavigation() {
   if (accountnav && !accountnav.querySelector(".language-menu")) {
     accountnav.innerHTML = `
       <a class="daily-check" href="./referral.html">🎁 每日签到</a>
-      <div class="language-menu">
-        <button class="language-trigger" type="button" aria-label="切换语言">文A</button>
-        <div class="language-dropdown">
-          <button type="button" data-language="zh-CN">简体中文</button>
-          <button type="button" data-language="en">English</button>
-          <button type="button" data-language="ja">日本語</button>
-          <button type="button" data-language="ko">한국어</button>
-        </div>
-      </div>
+      ${languageMenuMarkup()}
       <a href="./signin.html" data-auth-modal>登录</a>
     `;
   }
 }
 
 function languageMenuMarkup() {
+  const locale = getStoredLanguage();
   return `
     <div class="language-menu">
-      <button class="language-trigger" type="button" aria-label="切换语言">文A</button>
+      <button class="language-trigger" type="button" aria-label="切换语言">${languageTriggerLabel(locale)}</button>
       <div class="language-dropdown">
-        <button type="button" data-language="zh-CN">简体中文</button>
-        <button type="button" data-language="en">English</button>
-        <button type="button" data-language="ja">日本語</button>
-        <button type="button" data-language="ko">한국어</button>
+        <button type="button" data-language="zh-CN" aria-pressed="${locale === "zh-CN"}">简体中文</button>
+        <button type="button" data-language="en" aria-pressed="${locale === "en"}">English</button>
+        <button type="button" data-language="ja" aria-pressed="${locale === "ja"}">日本語</button>
+        <button type="button" data-language="ko" aria-pressed="${locale === "ko"}">한국어</button>
       </div>
     </div>
   `;
+}
+
+function getStoredLanguage() {
+  return localStorage.getItem("ovs_language") || "zh-CN";
+}
+
+function languageTriggerLabel(locale) {
+  return ({ "zh-CN": "文A", en: "EN", ja: "JA", ko: "KO" })[locale] || "文A";
+}
+
+function applyStoredLanguage() {
+  const locale = getStoredLanguage();
+  document.documentElement.lang = locale;
+  document.querySelectorAll(".language-trigger").forEach((trigger) => {
+    trigger.textContent = languageTriggerLabel(locale);
+  });
+  document.querySelectorAll("[data-language]").forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.dataset.language === locale));
+  });
+}
+
+function showSiteToast(message) {
+  document.querySelector(".site-toast")?.remove();
+  const toast = document.createElement("div");
+  toast.className = "site-toast";
+  toast.setAttribute("role", "status");
+  toast.textContent = message;
+  document.body.append(toast);
+  window.setTimeout(() => toast.remove(), 2200);
 }
 
 function renderAccountNavigation(current) {
@@ -525,9 +548,10 @@ document.addEventListener("click", async (event) => {
   const languageButton = event.target.closest("[data-language]");
   if (languageButton) {
     const label = languageButton.textContent.trim();
-    localStorage.setItem("ovs_language", languageButton.dataset.language || "zh-CN");
-    const trigger = document.querySelector(".language-trigger");
-    if (trigger) trigger.textContent = label === "简体中文" ? "文A" : label.slice(0, 2);
+    const locale = languageButton.dataset.language || "zh-CN";
+    localStorage.setItem("ovs_language", locale);
+    applyStoredLanguage();
+    showSiteToast(locale === "zh-CN" ? "已切换为简体中文" : `${label} 界面翻译准备中，当前保留中文内容。`);
     return;
   }
   const logoutButton = event.target.closest("[data-logout]");
