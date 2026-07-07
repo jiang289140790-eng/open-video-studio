@@ -1199,17 +1199,21 @@ body.tool-layout .site-footer {
   gap: 12px;
   margin: 10px 0 4px;
 }
-.unlock-auth-list a {
+.unlock-auth-list a,
+.unlock-auth-list button {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 12px;
   min-height: 52px;
+  border: 0;
   border-radius: 7px;
   padding: 0 18px;
   background: #fff;
   color: #191919;
   font-weight: 900;
+  text-align: left;
+  cursor: pointer;
 }
 .unlock-auth-list b {
   font-size: 1.35rem;
@@ -2334,6 +2338,7 @@ body.tool-layout .site-footer {
   align-items: center;
   gap: 12px;
   min-height: 54px;
+  border: 0;
   border-radius: 6px;
   padding: 0 18px;
   background: #fff;
@@ -2341,6 +2346,7 @@ body.tool-layout .site-footer {
   font-size: 1.05rem;
   font-weight: 880;
   text-align: left;
+  cursor: pointer;
 }
 .modal-auth-btn b {
   font-size: 1.45rem;
@@ -2372,6 +2378,19 @@ body.tool-layout .site-footer {
 .login-modal-card .auth-message {
   margin-bottom: 16px;
   text-align: left;
+}
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 145;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0,0,0,0.74);
+  backdrop-filter: blur(8px);
+}
+.auth-popup-card {
+  box-shadow: 0 28px 90px rgba(0,0,0,0.62);
 }
 .auth-benefits span {
   border: 1px solid rgba(56,189,248,0.28);

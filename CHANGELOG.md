@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.37.0 |
+| Version | 0.38.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,17 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Added
+
+- Added a global target-site-style login modal for top navigation sign-in, using Google, X, Telegram, and Discord entry points.
+- Routed locked tool login choices through the same dynamic social-login flow instead of sending users to a separate page first.
+- Added static coverage for the global auth modal and social login hooks.
+
+### Validation
+
+- Ran production build and full test suite after the global auth modal update; 38 tests passed.
+- Checked local HTML links after the update.
 
 ### Added
 

@@ -136,7 +136,7 @@ function injectTopNavigation() {
           <button type="button" data-language="ko">한국어</button>
         </div>
       </div>
-      <a href="./signin.html">登录</a>
+      <a href="./signin.html" data-auth-modal>登录</a>
     `;
   }
 }
@@ -162,7 +162,7 @@ function renderAccountNavigation(current) {
     accountnav.innerHTML = `
       <a class="daily-check" href="./referral.html">每日签到</a>
       ${languageMenuMarkup()}
-      <a href="./signin.html">登录</a>
+      <a href="./signin.html" data-auth-modal>登录</a>
     `;
     return;
   }
@@ -428,6 +428,20 @@ document.querySelectorAll("[data-telegram-auth]").forEach((button) => {
 });
 
 document.addEventListener("click", async (event) => {
+  const authModalLink = event.target.closest("[data-auth-modal]");
+  if (authModalLink) {
+    event.preventDefault();
+    openAuthModal(authModalLink.getAttribute("href") || "./dashboard.html");
+    return;
+  }
+
+  const modalAuthButton = event.target.closest("[data-modal-auth-provider]");
+  if (modalAuthButton) {
+    event.preventDefault();
+    await startSocialAuth(modalAuthButton.dataset.modalAuthProvider || "google", modalAuthButton.dataset.nextUrl || "./dashboard.html");
+    return;
+  }
+
   const dailyCheck = event.target.closest(".daily-check");
   if (dailyCheck) {
     event.preventDefault();
@@ -504,6 +518,60 @@ function openSupportWidget() {
   });
 }
 
+function openAuthModal(nextUrl = "./dashboard.html") {
+  document.querySelector(".auth-overlay")?.remove();
+  const overlay = document.createElement("section");
+  overlay.className = "auth-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", "登录 Open Video Studio");
+  overlay.innerHTML = `
+    <div class="login-modal-card auth-popup-card">
+      <button class="checkin-close" type="button" aria-label="关闭">×</button>
+      <h1>登录到 Open Video Studio</h1>
+      <p class="muted">使用社交账号继续创作。登录后可以保存作品、领取免费积分、购买积分并管理分享链接。</p>
+      <div class="modal-auth-list">
+        <button class="modal-auth-btn" type="button" data-modal-auth-provider="google" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot google-dot">G</span>使用 Google 登录 <b>→</b></button>
+        <button class="modal-auth-btn" type="button" data-modal-auth-provider="twitter" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot x-dot">X</span>使用 X 登录 <b>→</b></button>
+        <button class="modal-auth-btn" type="button" data-modal-auth-provider="telegram" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot tg-dot">TG</span>使用 Telegram 登录 <b>→</b></button>
+        <button class="modal-auth-btn" type="button" data-modal-auth-provider="discord" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot dc-dot">DC</span>使用 Discord 登录 <b>→</b></button>
+      </div>
+      <p class="auth-message" data-auth-message>配置 Supabase OAuth 后，Google / X / Discord 会进行真实登录；Telegram 需要配置 Bot 和回调校验。</p>
+      <p class="login-terms">继续即表示你同意我们的 <a href="./terms.html">服务条款</a> 和 <a href="./privacy.html">隐私政策</a>。</p>
+    </div>
+  `;
+  document.body.append(overlay);
+  overlay.querySelector(".checkin-close")?.addEventListener("click", () => overlay.remove());
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) overlay.remove();
+  });
+}
+
+async function startSocialAuth(provider, nextUrl = "./dashboard.html") {
+  const message = document.querySelector(".auth-overlay [data-auth-message]") || document.querySelector("[data-auth-message]");
+  const setMessage = (text, tone = "error") => {
+    if (!message) return;
+    message.textContent = text;
+    message.dataset.tone = tone;
+  };
+  if (provider === "telegram") {
+    if (!telegramBotUsername || !telegramAuthUrl) {
+      setMessage("Telegram 登录需要先配置 VITE_TELEGRAM_BOT_USERNAME 和 VITE_TELEGRAM_AUTH_URL。");
+      return;
+    }
+    setMessage("请使用独立登录页完成 Telegram Widget 授权。", "success");
+    window.location.href = "./signin.html";
+    return;
+  }
+  if (!supabase) {
+    setMessage("Supabase 尚未配置。添加 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY 后即可启用真实社交登录。");
+    return;
+  }
+  const redirectTo = new URL(nextUrl, window.location.href).href;
+  const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } });
+  if (error) setMessage(error.message);
+}
+
 function runToolDemoGeneration() {
   const status = document.querySelector("[data-tool-demo-status]");
   const preview = document.querySelector("[data-tool-demo-preview]");
@@ -551,11 +619,12 @@ function openUnlockModal(nextUrl = "./generate.html") {
       <h2>登录后解锁此工具</h2>
       <p>保存生成结果、复用资产、管理积分，并继续打开这个创作工具。</p>
       <div class="unlock-auth-list">
-        <a href="./signin.html?next=${encodeURIComponent(nextUrl)}" data-unlock-auth="google"><span class="provider-dot google-dot">G</span>使用 Google 登录 <b>→</b></a>
-        <a href="./signin.html?next=${encodeURIComponent(nextUrl)}" data-unlock-auth="twitter"><span class="provider-dot x-dot">X</span>使用 X 登录 <b>→</b></a>
-        <a href="./signin.html?next=${encodeURIComponent(nextUrl)}" data-unlock-auth="telegram"><span class="provider-dot tg-dot">TG</span>使用 Telegram 登录 <b>→</b></a>
-        <a href="./signin.html?next=${encodeURIComponent(nextUrl)}" data-unlock-auth="discord"><span class="provider-dot dc-dot">DC</span>使用 Discord 登录 <b>→</b></a>
+        <button type="button" data-unlock-auth="google" data-modal-auth-provider="google" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot google-dot">G</span>使用 Google 登录 <b>→</b></button>
+        <button type="button" data-unlock-auth="twitter" data-modal-auth-provider="twitter" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot x-dot">X</span>使用 X 登录 <b>→</b></button>
+        <button type="button" data-unlock-auth="telegram" data-modal-auth-provider="telegram" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot tg-dot">TG</span>使用 Telegram 登录 <b>→</b></button>
+        <button type="button" data-unlock-auth="discord" data-modal-auth-provider="discord" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot dc-dot">DC</span>使用 Discord 登录 <b>→</b></button>
       </div>
+      <p class="auth-message" data-auth-message>选择一个账号继续。真实登录需要先配置 Supabase OAuth。</p>
       <a class="btn primary full" href="./pricing.html">查看积分套餐</a>
     </div>
   `;

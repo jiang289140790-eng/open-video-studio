@@ -131,7 +131,12 @@ describe("MVP static frontend", () => {
       "checkout-overlay",
       "data-checkout-method",
       "data-confirm-checkout",
-      "data-checkout-promo"
+      "data-checkout-promo",
+      "data-auth-modal",
+      "openAuthModal",
+      "data-modal-auth-provider",
+      "startSocialAuth",
+      "auth-overlay"
     ]) {
       assert.ok(combined.includes(hook), `MVP hook should exist: ${hook}`);
     }
@@ -197,6 +202,25 @@ describe("MVP static frontend", () => {
       "免费硬币"
     ]) {
       assert.ok(`${appScript}\n${styles}`.includes(expected), `account navigation should include ${expected}`);
+    }
+  });
+
+  it("contains target-site-style global auth modal", () => {
+    const appScript = readPage("app.js");
+    const styles = readPage("styles.css");
+    for (const expected of [
+      "data-auth-modal",
+      "openAuthModal",
+      "auth-overlay",
+      "data-modal-auth-provider=\"google\"",
+      "data-modal-auth-provider=\"twitter\"",
+      "data-modal-auth-provider=\"telegram\"",
+      "data-modal-auth-provider=\"discord\"",
+      "startSocialAuth",
+      "使用 Google 登录",
+      "使用 Discord 登录"
+    ]) {
+      assert.ok(`${appScript}\n${styles}`.includes(expected), `global auth modal should include ${expected}`);
     }
   });
 
