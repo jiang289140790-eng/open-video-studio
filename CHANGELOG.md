@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.52.0 |
+| Version | 0.53.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Added
 
+- Added localized account, login, gallery, dashboard, assets, history, and share route aliases, then routed primary account and creation-flow links through those `/zh/.../` paths.
 - Updated primary tool discovery, category, navigation, footer, modal, and conversion links to use target-style `/zh/.../` and `/zh/app/.../` click routes instead of exposing `.html` file URLs.
 - Added `/zh/app/.../` tool route aliases for the primary image, character, effect, and video tool pages to better match target-style localized tool URLs.
 - Added static `/zh/.../` route aliases for target-style Chinese URL patterns, including app, image tools, video tools, pricing, free coins, my creations, blog, terms, privacy, and cookie.

@@ -134,7 +134,7 @@ function injectTopNavigation() {
         <div class="nav-dropdown compact-dropdown">
           <a href="./zh/video-tools/"><strong>全部视频工具</strong><small>浏览图片转视频、短片和创作管理入口</small></a>
           <a href="./zh/app/image-to-video/"><strong>图片转视频</strong><small>把静态资产转成短视频</small></a>
-          <a href="./history.html"><strong>生成历史</strong><small>查看任务、成本和输出</small></a>
+          <a href="./zh/history/"><strong>生成历史</strong><small>查看任务、成本和输出</small></a>
           <a href="./zh/my-creations/"><strong>我的创作</strong><small>管理生成作品</small></a>
         </div>
       </div>
@@ -147,7 +147,7 @@ function injectTopNavigation() {
     accountnav.innerHTML = `
       <a class="daily-check" href="./zh/free-coins/">🎁 每日签到</a>
       ${languageMenuMarkup()}
-      <a href="./signin.html" data-auth-modal>登录</a>
+      <a href="./zh/login/" data-auth-modal>登录</a>
     `;
   }
 }
@@ -308,7 +308,7 @@ function renderAccountNavigation(current) {
     accountnav.innerHTML = `
       <a class="daily-check" href="./zh/free-coins/">🎁 每日签到</a>
       ${languageMenuMarkup()}
-      <a href="./signin.html" data-auth-modal>登录</a>
+      <a href="./zh/login/" data-auth-modal>登录</a>
     `;
     return;
   }
@@ -320,10 +320,10 @@ function renderAccountNavigation(current) {
     <div class="account-menu">
       <button class="account-trigger" type="button" aria-expanded="false"><span>${initial}</span><b data-user-name>${current.user.name}</b></button>
       <div class="account-dropdown">
-        <a href="./dashboard.html">控制台</a>
+        <a href="./zh/dashboard/">控制台</a>
         <a href="./zh/my-creations/">我的创作</a>
-        <a href="./history.html">生成历史</a>
-        <a href="./assets.html">资产库</a>
+        <a href="./zh/history/">生成历史</a>
+        <a href="./zh/assets/">资产库</a>
         <a href="./zh/free-coins/">免费硬币</a>
         <a href="./zh/pricing/">购买积分</a>
         <button type="button" data-logout>退出登录</button>
@@ -342,7 +342,7 @@ function injectAppShell() {
       <a class="rail-brand" href="./index.html"><span>ovs.ai</span><strong>Open Video Studio</strong></a>
       <nav class="rail-nav">
         <a href="./app.html" class="${active("app.html")}">首页</a>
-        <a href="./gallery.html" class="${active("gallery.html")}">热门作品</a>
+        <a href="./zh/gallery/" class="${active("gallery.html")}">热门作品</a>
         <a href="./zh/app/ai-effects/" class="${active("ai-effects.html")}">AI 特效 <em>HOT</em></a>
         <span>AI 图像</span>
         <a href="./zh/image-tools/" class="${active("image-tools.html")}">全部图像工具</a>
@@ -354,12 +354,12 @@ function injectAppShell() {
         <a href="./zh/app/image-combiner/" class="${active("image-combiner.html")}">图像组合器</a>
         <a href="./zh/app/generate/" class="${active("generate.html")}">图片生成器</a>
         <a href="./zh/app/characters/" class="${active("characters.html")}">角色生成器</a>
-        <a href="./assets.html" class="${active("assets.html")}">资产库</a>
+        <a href="./zh/assets/" class="${active("assets.html")}">资产库</a>
         <span>AI 视频</span>
         <a href="./zh/video-tools/" class="${active("video-tools.html")}">全部视频工具</a>
         <a href="./zh/app/image-to-video/" class="${active("image-to-video.html")}">图片转视频</a>
         <a href="./zh/my-creations/" class="${active("my-creations.html")}">我的创作</a>
-        <a href="./history.html" class="${active("history.html")}">生成历史</a>
+        <a href="./zh/history/" class="${active("history.html")}">生成历史</a>
       </nav>
       <div class="rail-actions">
         <a href="./zh/free-coins/">推荐好友</a>
@@ -378,7 +378,7 @@ function injectGlobalFooter() {
         <a href="./zh/image-tools/">图像工具</a>
         <a href="./zh/app/ai-effects/">AI 特效</a>
         <a href="./zh/video-tools/">AI 视频</a>
-        <a href="./gallery.html">作品探索</a>
+        <a href="./zh/gallery/">作品探索</a>
       </div>
       <div>
         <h3>图像工具</h3>
@@ -394,7 +394,7 @@ function injectGlobalFooter() {
         <h3>视频工具</h3>
         <a href="./zh/video-tools/">全部视频工具</a>
         <a href="./zh/app/image-to-video/">图片转视频</a>
-        <a href="./history.html">生成历史</a>
+        <a href="./zh/history/">生成历史</a>
         <a href="./zh/my-creations/">我的创作</a>
       </div>
       <div>
@@ -544,7 +544,7 @@ function injectToolDiscovery() {
         <p class="muted">登录后可同步角色、素材库、历史记录、分享链接和积分余额。</p>
       </div>
       <div class="tool-conversion-actions">
-        <a class="btn primary" href="./signin.html" data-auth-modal>登录继续</a>
+        <a class="btn primary" href="./zh/login/" data-auth-modal>登录继续</a>
         <a class="btn glass" href="./zh/free-coins/">领取免费硬币</a>
       </div>
     </section>
@@ -637,7 +637,7 @@ function renderProtectedPageGate(current) {
         <p>这些页面会保存你的生成结果、历史记录、分享链接和资产库。当前展示的是本地演示数据，登录后可进入真实账户流程。</p>
       </div>
       <div class="protected-gate-actions">
-        <a class="btn primary" href="./signin.html" data-auth-modal>登录 / 注册</a>
+        <a class="btn primary" href="./zh/login/" data-auth-modal>登录 / 注册</a>
         <a class="btn glass" href="./app.html">先浏览工具</a>
       </div>
     </section>
@@ -661,7 +661,7 @@ document.querySelectorAll("[data-auth-provider]").forEach((button) => {
     }
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: new URL("./dashboard.html", window.location.href).href }
+      options: { redirectTo: new URL("./zh/dashboard/", window.location.href).href }
     });
     if (error) showAuthMessage(error.message, "error");
   });
@@ -739,14 +739,14 @@ document.addEventListener("click", async (event) => {
   const authModalLink = event.target.closest("[data-auth-modal]");
   if (authModalLink) {
     event.preventDefault();
-    openAuthModal(authModalLink.getAttribute("href") || "./dashboard.html");
+    openAuthModal(authModalLink.getAttribute("href") || "./zh/dashboard/");
     return;
   }
 
   const modalAuthButton = event.target.closest("[data-modal-auth-provider]");
   if (modalAuthButton) {
     event.preventDefault();
-    await startSocialAuth(modalAuthButton.dataset.modalAuthProvider || "google", modalAuthButton.dataset.nextUrl || "./dashboard.html");
+    await startSocialAuth(modalAuthButton.dataset.modalAuthProvider || "google", modalAuthButton.dataset.nextUrl || "./zh/dashboard/");
     return;
   }
 
@@ -827,7 +827,7 @@ function openSupportWidget() {
   });
 }
 
-function openAuthModal(nextUrl = "./dashboard.html") {
+function openAuthModal(nextUrl = "./zh/dashboard/") {
   document.querySelector(".auth-overlay")?.remove();
   const overlay = document.createElement("section");
   overlay.className = "auth-overlay";
@@ -856,7 +856,7 @@ function openAuthModal(nextUrl = "./dashboard.html") {
   });
 }
 
-async function startSocialAuth(provider, nextUrl = "./dashboard.html") {
+async function startSocialAuth(provider, nextUrl = "./zh/dashboard/") {
   const message = document.querySelector(".auth-overlay [data-auth-message]") || document.querySelector("[data-auth-message]");
   const setMessage = (text, tone = "error") => {
     if (!message) return;
@@ -869,7 +869,7 @@ async function startSocialAuth(provider, nextUrl = "./dashboard.html") {
       return;
     }
     setMessage("请使用独立登录页完成 Telegram Widget 授权。", "success");
-    window.location.href = "./signin.html";
+    window.location.href = "./zh/login/";
     return;
   }
   if (!supabase) {
@@ -903,7 +903,7 @@ function runToolDemoGeneration() {
     preview.classList.add("art-3");
   }
   if (status) {
-    status.innerHTML = `<strong>已生成演示结果</strong><span>消耗 ${cost} 积分，已保存到资产库和生成历史。</span><a href="./assets.html">查看资产</a>`;
+    status.innerHTML = `<strong>已生成演示结果</strong><span>消耗 ${cost} 积分，已保存到资产库和生成历史。</span><a href="./zh/assets/">查看资产</a>`;
   }
 }
 
@@ -1040,7 +1040,7 @@ document.querySelectorAll("[data-email-auth]").forEach((button) => {
       saveState(state);
     }
     showAuthMessage(mode === "signup" ? "账户已创建。如开启邮箱验证，请检查邮件。" : "登录成功。", "success");
-    window.location.href = "./dashboard.html";
+    window.location.href = "./zh/dashboard/";
   });
 });
 
@@ -1180,7 +1180,7 @@ function openCheckoutModal({ credits, planName, price, promo = "" }) {
       <p class="checkout-note">${signedIn ? "这是演示结账：不会调用真实支付接口，确认后积分会进入本地余额。" : "登录后可同步账户积分。当前演示模式会先创建本地创作者账户。"}</p>
       <div class="checkout-actions">
         <button class="btn primary full" type="button" data-confirm-checkout>确认并发放演示积分</button>
-        <a class="btn glass full" href="./signin.html">登录账户</a>
+        <a class="btn glass full" href="./zh/login/">登录账户</a>
       </div>
     </div>
   `;
@@ -1204,7 +1204,7 @@ function openCheckoutModal({ credits, planName, price, promo = "" }) {
     overlay.querySelector("[data-confirm-checkout]").textContent = `已到账 ${credits} 积分`;
     overlay.querySelector(".checkout-note").textContent = "演示积分已进入余额。真实支付 API 接入前不会产生扣款。";
     window.setTimeout(() => {
-      window.location.href = "./dashboard.html";
+      window.location.href = "./zh/dashboard/";
     }, 650);
   });
 }
@@ -1258,7 +1258,7 @@ if (generateButton && queueTarget) {
     state.assets.unshift(asset);
     state.history.unshift(job);
     saveState(state);
-    queueTarget.prepend(statusRow(`${title}已完成`, "已保存到资产库和生成历史。", "./assets.html", "打开作品"));
+    queueTarget.prepend(statusRow(`${title}已完成`, "已保存到资产库和生成历史。", "./zh/assets/", "打开作品"));
   });
 }
 
@@ -1450,7 +1450,7 @@ function createShare(assetId) {
   const share = { id: `share_${Date.now()}`, token: `share-${Date.now()}`, assetId: asset.id, title: asset.title };
   state.shares.unshift(share);
   saveState(state);
-  window.location.href = `./share.html?token=${share.token}`;
+  window.location.href = `./zh/share/?token=${share.token}`;
 }
 
 function renderDashboard(current) {
@@ -1493,7 +1493,7 @@ function renderDashboard(current) {
       <article class="dashboard-row">
         <span class="thumb art-9"></span>
         <div><strong>${escapeHtml(share.title || "分享作品")}</strong><p>公开链接</p></div>
-        <a href="./share.html?token=${encodeURIComponent(share.token)}">打开</a>
+        <a href="./zh/share/?token=${encodeURIComponent(share.token)}">打开</a>
       </article>
     `).join("");
   }
@@ -1506,12 +1506,12 @@ function renderReferral(current) {
       <span>已登录</span>
       <h2>${escapeHtml(current.user.name)} 的奖励中心</h2>
       <p>当前可用积分：<strong data-credit-balance>${current.credits}</strong>。继续签到、复制推荐链接或完成创作任务来获得更多积分。</p>
-      <a class="btn primary full" href="./dashboard.html">打开控制台</a>
+      <a class="btn primary full" href="./zh/dashboard/">打开控制台</a>
     ` : `
       <span>需要登录</span>
       <h2>登录后查看你的推荐仪表板</h2>
       <p>登录后可以复制专属推荐链接、查看奖励进度，并领取完成任务后的免费积分。</p>
-      <a class="btn primary full" href="./signin.html">登录开始</a>
+      <a class="btn primary full" href="./zh/login/">登录开始</a>
     `;
   }
 
@@ -1805,4 +1805,5 @@ if (selectedCharacterName) {
 }
 
 renderState(state);
+
 

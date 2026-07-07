@@ -215,6 +215,13 @@ describe("MVP static frontend", () => {
       ["zh/pricing/index.html", "../../pricing.html"],
       ["zh/free-coins/index.html", "../../free-coins.html"],
       ["zh/my-creations/index.html", "../../my-creations.html"],
+      ["zh/login/index.html", "../../signin.html"],
+      ["zh/account/index.html", "../../dashboard.html"],
+      ["zh/dashboard/index.html", "../../dashboard.html"],
+      ["zh/gallery/index.html", "../../gallery.html"],
+      ["zh/assets/index.html", "../../assets.html"],
+      ["zh/history/index.html", "../../history.html"],
+      ["zh/share/index.html", "../../share.html"],
       ["zh/blog/index.html", "../../blog.html"],
       ["zh/terms/index.html", "../../terms.html"],
       ["zh/privacy/index.html", "../../privacy.html"],
@@ -274,7 +281,9 @@ describe("MVP static frontend", () => {
       "./zh/app/image-to-video/",
       "./zh/pricing/",
       "./zh/free-coins/",
-      "./zh/my-creations/"
+      "./zh/my-creations/",
+      "./zh/login/",
+      "./zh/gallery/"
     ]) {
       assert.ok(`${surfaces}\n${appScript}`.includes(expected), `primary click routes should include ${expected}`);
     }
@@ -284,7 +293,9 @@ describe("MVP static frontend", () => {
       'href="./image-tools.html"',
       'href="./video-tools.html"',
       'href="./pricing.html"',
-      'href="./free-coins.html"'
+      'href="./free-coins.html"',
+      'href="./signin.html"',
+      'href="./gallery.html"'
     ]) {
       assert.equal(surfaces.includes(oldHref), false, `primary discovery pages should not expose ${oldHref}`);
     }
