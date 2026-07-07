@@ -92,7 +92,10 @@ describe("MVP static frontend", () => {
       "data-language",
       "openUnlockModal",
       "data-unlock-auth",
-      "data-logout"
+      "data-logout",
+      "data-tool-workbench",
+      "data-tool-demo-generate",
+      "data-template-prompt"
     ]) {
       assert.ok(combined.includes(hook), `MVP hook should exist: ${hook}`);
     }
@@ -160,6 +163,22 @@ describe("MVP static frontend", () => {
     assert.ok(combined.includes("登录后解锁此工具"));
     assert.ok(combined.includes("data-unlock-auth=\"google\""));
     assert.ok(combined.includes("data-unlock-auth=\"discord\""));
+  });
+
+  it("contains actionable tool detail workbenches", () => {
+    const appScript = readPage("app.js");
+    const styles = readPage("styles.css");
+    for (const expected of [
+      "injectToolWorkbench",
+      "tool-workbench",
+      "tool-upload-zone",
+      "data-tool-demo-generate",
+      "runToolDemoGeneration",
+      "生成演示结果",
+      "已保存到资产库和生成历史"
+    ]) {
+      assert.ok(`${appScript}\n${styles}`.includes(expected), `tool workbench should include ${expected}`);
+    }
   });
 
   it("contains visual-first gallery and dashboard sections", () => {

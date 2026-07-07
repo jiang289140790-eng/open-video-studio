@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.29.0 |
+| Version | 0.30.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Added
+
+- Added a shared actionable workbench to tool detail pages with reference upload, mode tabs, prompt input, style/ratio selectors, demo generation, templates, and output status.
+- Added frontend-only demo generation for tool pages that saves local demo results to Assets and Generation History without connecting a real generation API.
+- Added static coverage for the injected tool workbench and demo generation hooks.
+
+### Validation
+
+- Ran production build and full test suite after the tool workbench update; 31 tests passed.
 
 ### Added
 

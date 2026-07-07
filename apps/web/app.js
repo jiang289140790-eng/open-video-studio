@@ -70,6 +70,7 @@ const state = loadState();
 
 injectTopNavigation();
 injectAppShell();
+injectToolWorkbench();
 injectGlobalFooter();
 hydrateAuthSession();
 
@@ -241,6 +242,56 @@ function injectGlobalFooter() {
   `);
 }
 
+function injectToolWorkbench() {
+  const hero = document.querySelector(".tool-detail-hero");
+  if (!hero || document.querySelector("[data-tool-workbench]")) return;
+  const toolName = document.querySelector(".tool-detail-copy h1")?.textContent?.trim() || "AI 工具";
+  hero.insertAdjacentHTML("afterend", `
+    <section class="tool-workbench" data-tool-workbench>
+      <div class="tool-input-panel">
+        <div class="tool-section-head">
+          <div>
+            <p class="eyebrow">Create</p>
+            <h2>${toolName} 工作台</h2>
+          </div>
+          <span class="credit-pill"><b data-credit-balance>${state.credits}</b> 积分</span>
+        </div>
+        <label class="tool-upload-zone">
+          <input type="file" accept="image/*,video/*">
+          <strong>上传参考图片或视频帧</strong>
+          <span>支持角色图、产品图、场景图和参考风格。</span>
+        </label>
+        <div class="tool-mode-tabs" role="tablist" aria-label="Tool modes">
+          <button class="active" type="button">标准</button>
+          <button type="button">高质量</button>
+          <button type="button">批量</button>
+        </div>
+        <label class="studio-field">
+          <span>提示词</span>
+          <textarea class="hero-textarea" data-tool-prompt rows="5">生成一个干净、电影感、适合社媒传播的 AI 创作结果，保持角色和品牌视觉一致。</textarea>
+        </label>
+        <div class="selector-grid">
+          <label>风格<select><option>电影感</option><option>商业广告</option><option>社媒短片</option><option>产品展示</option></select></label>
+          <label>比例<select><option>9:16</option><option>1:1</option><option>16:9</option><option>4:5</option></select></label>
+        </div>
+        <button class="btn primary full" type="button" data-tool-demo-generate>生成演示结果</button>
+      </div>
+      <div class="tool-output-panel">
+        <div class="tool-preview-canvas art-7" data-tool-demo-preview></div>
+        <div class="tool-output-status" data-tool-demo-status>
+          <strong>等待生成</strong>
+          <span>生成结果会保存到资产库和生成历史。</span>
+        </div>
+        <div class="tool-template-row">
+          <button type="button" data-template-prompt="产品发布主视觉，霓虹灯光，干净背景">产品发布</button>
+          <button type="button" data-template-prompt="角色封面图，电影感人像，清晰构图">角色封面</button>
+          <button type="button" data-template-prompt="社媒短视频封面，强对比色，高级质感">社媒封面</button>
+        </div>
+      </div>
+    </section>
+  `);
+}
+
 async function hydrateAuthSession() {
   if (!supabase) {
     renderState(state);
@@ -358,8 +409,49 @@ document.addEventListener("click", async (event) => {
     if (supabase) await supabase.auth.signOut();
     state.user = null;
     saveState(state);
+    return;
+  }
+  const templateButton = event.target.closest("[data-template-prompt]");
+  if (templateButton) {
+    const prompt = document.querySelector("[data-tool-prompt]");
+    if (prompt) prompt.value = templateButton.dataset.templatePrompt;
+    return;
+  }
+  const toolGenerateButton = event.target.closest("[data-tool-demo-generate]");
+  if (toolGenerateButton) {
+    if (!state.user) {
+      openUnlockModal(window.location.pathname.split("/").pop() || "./generate.html");
+      return;
+    }
+    runToolDemoGeneration();
   }
 });
+
+function runToolDemoGeneration() {
+  const status = document.querySelector("[data-tool-demo-status]");
+  const preview = document.querySelector("[data-tool-demo-preview]");
+  const prompt = document.querySelector("[data-tool-prompt]")?.value.trim() || "AI 工具演示生成";
+  const cost = 8;
+  if (state.credits < cost) {
+    if (status) status.innerHTML = `<strong>积分不足</strong><span>请先购买积分后继续生成。</span>`;
+    return;
+  }
+  state.credits -= cost;
+  const id = `asset_${Date.now()}`;
+  const toolName = document.querySelector(".tool-detail-copy h1")?.textContent?.trim() || "AI 工具";
+  const asset = { id, type: "image", title: `${toolName} 演示结果`, prompt, character: "Mira", credits: cost, status: "completed", visibility: "private", favorite: false };
+  const job = { id: `job_${Date.now()}`, type: "image", title: asset.title, prompt, provider: "local_api", model: "local-tool-demo-v0", status: "completed", credits: cost, duration: "9s", assetId: id };
+  state.assets.unshift(asset);
+  state.history.unshift(job);
+  saveState(state);
+  if (preview) {
+    preview.classList.remove("art-7");
+    preview.classList.add("art-3");
+  }
+  if (status) {
+    status.innerHTML = `<strong>已生成演示结果</strong><span>消耗 ${cost} 积分，已保存到资产库和生成历史。</span><a href="./assets.html">查看资产</a>`;
+  }
+}
 
 document.querySelectorAll(".tool-poster.locked").forEach((card) => {
   card.addEventListener("click", (event) => {
