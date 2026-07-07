@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.39.0 |
+| Version | 0.40.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -30,10 +30,12 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Added static coverage for public share conversion actions.
 - Aligned the Purchase Credits and Free Coins surfaces more closely with the referenced commerce flow: PayPal, Cash App, Apple Pay, Venmo choices; Chinese 2x bonus messaging; and a visible seven-day free-credit calendar.
 - Added static coverage for the free-credit calendar and checkout payment options.
+- Added a shared target-style discovery layer to every tool detail page: popular templates, use-case steps, related tool routing, and login/free-credit conversion actions.
+- Added static coverage for the tool template gallery, related tool routes, and conversion strip.
 
 ### Validation
 
-- Ran the full test suite after the public share, purchase credits, and free coins update; 40 tests passed.
+- Ran the full test suite after the public share, purchase credits, free coins, and tool discovery update; 40 tests passed.
 - Checked local HTML links and documentation summary links after the update.
 
 ### Added

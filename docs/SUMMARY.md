@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.46.0 |
+| Version | 0.47.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -35,6 +35,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 - Locked tool cards now use a target-style unlock flow: signed-out users see an in-page login modal with Google, X, Telegram, and Discord options before opening premium tools.
 - Signed-in users now see a target-style account navigation state with credit balance, avatar menu, dashboard, creations, history, assets, free coins, purchase credits, and logout actions.
 - Tool detail pages now include a target-style actionable workbench with upload, prompt, mode selection, templates, demo generation, and local asset/history persistence while real generation APIs remain disconnected.
+- Tool detail pages now also inject a target-style discovery layer with popular templates, use-case steps, related tool routing, and login/free-credit conversion actions.
 - A target-style floating quick action dock now provides daily check-in, free coins, support/help, assistant avatar, and back-to-top actions across the product surface.
 - My Creations now functions as a target-style creation center with work stats, search, filters, reusable asset cards, recent generation history, share links, prompt copy, and retry actions.
 - Gallery cards now have working product-loop actions for generate similar, copy prompt, share, favorite, and open character; Asset Library chips now filter visible assets.

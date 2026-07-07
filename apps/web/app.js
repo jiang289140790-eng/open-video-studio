@@ -91,6 +91,7 @@ let selectedCharacterId = state.characters[0]?.id || "";
 injectTopNavigation();
 injectAppShell();
 injectToolWorkbench();
+injectToolDiscovery();
 injectFloatingDock();
 injectGlobalFooter();
 hydrateAuthSession();
@@ -323,6 +324,79 @@ function injectToolWorkbench() {
           <button type="button" data-template-prompt="角色封面图，电影感人像，清晰构图">角色封面</button>
           <button type="button" data-template-prompt="社媒短视频封面，强对比色，高级质感">社媒封面</button>
         </div>
+      </div>
+    </section>
+  `);
+}
+
+function injectToolDiscovery() {
+  const page = document.querySelector(".tool-detail-page");
+  if (!page || document.querySelector("[data-tool-discovery]")) return;
+  const toolName = document.querySelector(".tool-detail-copy h1")?.textContent?.trim() || "AI 工具";
+  const isVideo = toolName.includes("视频");
+  const relatedTools = [
+    ["图片编辑器", "重绘、扩图、修复参考图", "image-editor.html", "art-3"],
+    ["AI 换脸", "授权角色替换与一致性", "face-swap.html", "art-2"],
+    ["造型工作室", "角色服装和场景风格", "outfit-studio.html", "art-11"],
+    ["姿势生成器", "动作、镜头和分镜参考", "pose-generator.html", "art-10"],
+    ["图像组合器", "多张资产合成主视觉", "image-combiner.html", "art-9"],
+    ["图片转视频", "把图像变成短视频资产", "image-to-video.html", "art-7"]
+  ].filter((item) => !toolName.includes(item[0])).slice(0, 5);
+
+  page.insertAdjacentHTML("beforeend", `
+    <section class="tool-template-gallery" data-tool-discovery>
+      <div class="tool-section-head">
+        <div>
+          <p class="eyebrow">模板库</p>
+          <h2>${toolName} 热门模板</h2>
+        </div>
+        <a href="./pricing.html">购买积分</a>
+      </div>
+      <div class="tool-template-grid">
+        ${[
+          ["品牌主视觉", "适合广告图、活动头图和产品发布", "品牌发布主视觉，电影感灯光，清晰主体，适合商业投放", "art-1"],
+          ["角色封面", "保持角色一致，生成可复用人物资产", "一致性角色封面，干净背景，高级摄影棚质感", "art-2"],
+          ["社媒短片", "竖屏节奏、强对比封面和可分享资产", "竖屏社媒短片封面，强视觉中心，适合视频发布", "art-13"],
+          ["产品场景", "把产品放入真实可传播的使用场景", "产品生活方式场景，真实光影，现代室内，商业摄影", "art-6"]
+        ].map(([title, desc, prompt, art]) => `
+          <button class="tool-template-card ${art}" type="button" data-template-prompt="${prompt}" data-tool-template-card>
+            <strong>${title}</strong>
+            <span>${desc}</span>
+          </button>
+        `).join("")}
+      </div>
+    </section>
+    <section class="tool-usecase-band">
+      <article><span>01</span><strong>${isVideo ? "从图片进入视频" : "上传或选择资产"}</strong><p>${isVideo ? "选择图片、角色或产品图，进入短视频生成流程。" : "从本地上传或从资产库选择参考图，保持创作素材可复用。"}</p></article>
+      <article><span>02</span><strong>选择模板并调整提示词</strong><p>用模板快速起步，再改角色、风格、比例和输出用途。</p></article>
+      <article><span>03</span><strong>保存到我的创作</strong><p>演示生成会进入资产、历史和分享链路，方便继续复用。</p></article>
+    </section>
+    <section class="tool-related-section" data-tool-related>
+      <div class="tool-section-head">
+        <div>
+          <p class="eyebrow">继续创作</p>
+          <h2>相关工具</h2>
+        </div>
+        <a href="./app.html">返回工具首页</a>
+      </div>
+      <div class="card-carousel compact">
+        ${relatedTools.map(([title, desc, href, art]) => `
+          <a class="tool-poster ${art}" href="./${href}" data-tool-route="${href}">
+            <strong>${title}</strong>
+            <span>${desc}</span>
+          </a>
+        `).join("")}
+      </div>
+    </section>
+    <section class="tool-conversion-strip">
+      <div>
+        <p class="eyebrow">创作额度</p>
+        <h2>生成结果会保存为可复用资产</h2>
+        <p class="muted">登录后可同步角色、素材库、历史记录、分享链接和积分余额。</p>
+      </div>
+      <div class="tool-conversion-actions">
+        <a class="btn primary" href="./signin.html" data-auth-modal>登录继续</a>
+        <a class="btn glass" href="./referral.html">领取免费硬币</a>
       </div>
     </section>
   `);
