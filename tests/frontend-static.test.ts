@@ -91,7 +91,8 @@ describe("MVP static frontend", () => {
       "daily-check",
       "data-language",
       "openUnlockModal",
-      "data-unlock-auth"
+      "data-unlock-auth",
+      "data-logout"
     ]) {
       assert.ok(combined.includes(hook), `MVP hook should exist: ${hook}`);
     }
@@ -133,6 +134,22 @@ describe("MVP static frontend", () => {
       "图片转视频"
     ]) {
       assert.ok(appScript.includes(expected), `top navigation should include ${expected}`);
+    }
+  });
+
+  it("contains signed-in account navigation state", () => {
+    const appScript = readPage("app.js");
+    const styles = readPage("styles.css");
+    for (const expected of [
+      "renderAccountNavigation",
+      "account-menu",
+      "account-dropdown",
+      "account-credit",
+      "退出登录",
+      "控制台",
+      "免费硬币"
+    ]) {
+      assert.ok(`${appScript}\n${styles}`.includes(expected), `account navigation should include ${expected}`);
     }
   });
 

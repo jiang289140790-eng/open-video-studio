@@ -119,6 +119,51 @@ function injectTopNavigation() {
   }
 }
 
+function languageMenuMarkup() {
+  return `
+    <div class="language-menu">
+      <button class="language-trigger" type="button" aria-label="切换语言">文A</button>
+      <div class="language-dropdown">
+        <button type="button" data-language="zh-CN">简体中文</button>
+        <button type="button" data-language="en">English</button>
+        <button type="button" data-language="ja">日本語</button>
+        <button type="button" data-language="ko">한국어</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderAccountNavigation(current) {
+  const accountnav = document.querySelector(".accountnav");
+  if (!accountnav) return;
+  if (!current.user) {
+    accountnav.innerHTML = `
+      <a class="daily-check" href="./referral.html">每日签到</a>
+      ${languageMenuMarkup()}
+      <a href="./signin.html">登录</a>
+    `;
+    return;
+  }
+  const initial = (current.user.name || "创作者").trim().charAt(0).toUpperCase();
+  accountnav.innerHTML = `
+    <a class="daily-check" href="./referral.html">每日签到</a>
+    <a class="account-credit" href="./pricing.html"><span data-credit-balance>${current.credits}</span> 积分</a>
+    ${languageMenuMarkup()}
+    <div class="account-menu">
+      <button class="account-trigger" type="button"><span>${initial}</span><b data-user-name>${current.user.name}</b></button>
+      <div class="account-dropdown">
+        <a href="./dashboard.html">控制台</a>
+        <a href="./my-creations.html">我的创作</a>
+        <a href="./history.html">生成历史</a>
+        <a href="./assets.html">资产库</a>
+        <a href="./referral.html">免费硬币</a>
+        <a href="./pricing.html">购买积分</a>
+        <button type="button" data-logout>退出登录</button>
+      </div>
+    </div>
+  `;
+}
+
 function injectAppShell() {
   const page = window.location.pathname.split("/").pop() || "index.html";
   if (!APP_SHELL_PAGES.has(page) || document.querySelector(".side-rail")) return;
@@ -233,6 +278,7 @@ function capitalize(value) {
 }
 
 function renderState(current) {
+  renderAccountNavigation(current);
   document.querySelectorAll("[data-credit-balance]").forEach((node) => {
     node.textContent = String(current.credits);
   });
@@ -292,20 +338,27 @@ document.querySelectorAll("[data-telegram-auth]").forEach((button) => {
   });
 });
 
-document.querySelectorAll(".daily-check").forEach((button) => {
-  button.addEventListener("click", (event) => {
+document.addEventListener("click", async (event) => {
+  const dailyCheck = event.target.closest(".daily-check");
+  if (dailyCheck) {
     event.preventDefault();
     openCheckInModal();
-  });
-});
-
-document.querySelectorAll("[data-language]").forEach((button) => {
-  button.addEventListener("click", () => {
-    const label = button.textContent.trim();
-    localStorage.setItem("ovs_language", button.dataset.language || "zh-CN");
+    return;
+  }
+  const languageButton = event.target.closest("[data-language]");
+  if (languageButton) {
+    const label = languageButton.textContent.trim();
+    localStorage.setItem("ovs_language", languageButton.dataset.language || "zh-CN");
     const trigger = document.querySelector(".language-trigger");
     if (trigger) trigger.textContent = label === "简体中文" ? "文A" : label.slice(0, 2);
-  });
+    return;
+  }
+  const logoutButton = event.target.closest("[data-logout]");
+  if (logoutButton) {
+    if (supabase) await supabase.auth.signOut();
+    state.user = null;
+    saveState(state);
+  }
 });
 
 document.querySelectorAll(".tool-poster.locked").forEach((card) => {

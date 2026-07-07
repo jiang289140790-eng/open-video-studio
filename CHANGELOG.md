@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.28.0 |
+| Version | 0.29.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Added
+
+- Added a signed-in top navigation state with credit balance, account avatar/menu, dashboard, creations, history, assets, free coins, purchase credits, and logout actions.
+- Converted Daily Check-in, language selection, and logout actions to delegated handlers so the account navigation remains interactive after state changes.
+- Added static coverage for signed-in account navigation state and logout hooks.
+
+### Validation
+
+- Ran production build and full test suite after the account navigation update; 30 tests passed.
 
 ### Added
 

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.35.0 |
+| Version | 0.36.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -33,6 +33,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 - The public page map now includes target-style tool routes for AI Effects, Image Editor, Face Swap, Outfit Studio, Pose Generator, Nano Banana, Image Combiner, Blog, Terms, Privacy, and Cookie, with Vite build entries for deployment.
 - The shared top navigation now uses target-style Image Tools and Video Tools dropdowns plus a frontend language selector, keeping tool discovery consistent across pages.
 - Locked tool cards now use a target-style unlock flow: signed-out users see an in-page login modal with Google, X, Telegram, and Discord options before opening premium tools.
+- Signed-in users now see a target-style account navigation state with credit balance, avatar menu, dashboard, creations, history, assets, free coins, purchase credits, and logout actions.
 - Browser authentication now calls Supabase Auth when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are configured; missing configuration is surfaced to the user instead of creating fake accounts.
 
 ## Knowledge Base Map

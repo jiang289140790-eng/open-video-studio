@@ -193,7 +193,7 @@ body.tool-layout .accountnav {
   font-weight: 760;
 }
 .topnav a:hover, .accountnav a:hover, .topnav a[aria-current="page"], .accountnav a[aria-current="page"],
-.nav-menu:hover .nav-trigger, .nav-menu:focus-within .nav-trigger, .language-menu:hover .language-trigger, .language-menu:focus-within .language-trigger {
+.nav-menu:hover .nav-trigger, .nav-menu:focus-within .nav-trigger, .language-menu:hover .language-trigger, .language-menu:focus-within .language-trigger, .account-menu:hover .account-trigger, .account-menu:focus-within .account-trigger {
   background: rgba(255, 255, 255, 0.10);
   color: var(--text);
 }
@@ -201,8 +201,12 @@ body.tool-layout .accountnav {
 .language-menu {
   position: relative;
 }
+.account-menu {
+  position: relative;
+}
 .nav-trigger,
-.language-trigger {
+.language-trigger,
+.account-trigger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -216,11 +220,37 @@ body.tool-layout .accountnav {
   font-size: 0.9rem;
   font-weight: 820;
 }
+.account-trigger {
+  gap: 8px;
+}
+.account-trigger span {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff62bb, #8b5cf6);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 950;
+}
+.account-trigger b {
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-credit {
+  border: 1px solid rgba(255,98,187,0.34);
+  background: rgba(255,98,187,0.10);
+  color: #ffd6ec !important;
+}
 .language-trigger {
   min-width: 42px;
 }
 .nav-dropdown,
-.language-dropdown {
+.language-dropdown,
+.account-dropdown {
   position: absolute;
   top: calc(100% + 10px);
   left: 0;
@@ -241,7 +271,9 @@ body.tool-layout .accountnav {
 .nav-menu:hover .nav-dropdown,
 .nav-menu:focus-within .nav-dropdown,
 .language-menu:hover .language-dropdown,
-.language-menu:focus-within .language-dropdown {
+.language-menu:focus-within .language-dropdown,
+.account-menu:hover .account-dropdown,
+.account-menu:focus-within .account-dropdown {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
@@ -269,7 +301,13 @@ body.tool-layout .accountnav {
   left: auto;
   min-width: 160px;
 }
-.language-dropdown button {
+.account-dropdown {
+  right: 0;
+  left: auto;
+  min-width: 190px;
+}
+.language-dropdown button,
+.account-dropdown button {
   min-height: 38px;
   border: 0;
   border-radius: 10px;
@@ -278,6 +316,18 @@ body.tool-layout .accountnav {
   color: #f8fbff;
   text-align: left;
   font-weight: 820;
+}
+.account-dropdown a,
+.account-dropdown button {
+  min-height: 40px;
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #f8fbff;
+  font-weight: 820;
+}
+.account-dropdown a:hover,
+.account-dropdown button:hover {
+  background: rgba(255,255,255,0.08);
 }
 
 .btn, .chip, .tab, .card-actions button, .row-actions button, .library-card button {
