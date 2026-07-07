@@ -234,6 +234,29 @@ describe("MVP static frontend", () => {
     }
   });
 
+  it("contains target-site-style zh app tool route aliases", () => {
+    const toolAliases = [
+      ["zh/app/image-editor/index.html", "../../../image-editor.html"],
+      ["zh/app/face-swap/index.html", "../../../face-swap.html"],
+      ["zh/app/outfit-studio/index.html", "../../../outfit-studio.html"],
+      ["zh/app/pose-generator/index.html", "../../../pose-generator.html"],
+      ["zh/app/nano-banana/index.html", "../../../nano-banana.html"],
+      ["zh/app/image-combiner/index.html", "../../../image-combiner.html"],
+      ["zh/app/ai-effects/index.html", "../../../ai-effects.html"],
+      ["zh/app/generate/index.html", "../../../generate.html"],
+      ["zh/app/characters/index.html", "../../../characters.html"],
+      ["zh/app/image-to-video/index.html", "../../../image-to-video.html"]
+    ];
+    for (const [alias, target] of toolAliases) {
+      const aliasPath = join(publicRoot, alias);
+      assert.equal(existsSync(aliasPath), true, `${alias} should exist`);
+      const html = readFileSync(aliasPath, "utf8");
+      assert.ok(html.includes('lang="zh-CN"'), `${alias} should declare Chinese language`);
+      assert.ok(html.includes(target), `${alias} should redirect to ${target}`);
+      assert.ok(html.includes("../../redirect.js"), `${alias} should use shared zh redirect script`);
+    }
+  });
+
   it("contains target-site-style top navigation dropdowns", () => {
     const appScript = readPage("app.js");
     for (const expected of [
