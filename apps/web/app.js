@@ -56,6 +56,7 @@ function saveState(state) {
 const state = loadState();
 
 injectAppShell();
+injectGlobalFooter();
 hydrateAuthSession();
 
 function injectAppShell() {
@@ -81,6 +82,46 @@ function injectAppShell() {
         <a class="rail-upgrade" href="./pricing.html">立即升级</a>
       </div>
     </aside>
+  `);
+}
+
+function injectGlobalFooter() {
+  if (document.querySelector(".site-footer") || document.body.classList.contains("share-body")) return;
+  document.body.insertAdjacentHTML("beforeend", `
+    <footer class="site-footer app-footer" aria-label="Footer navigation">
+      <div class="footer-top-links">
+        <a href="./app.html">Home</a>
+        <a href="./generate.html">AI Editor</a>
+        <a href="./image-to-video.html">AI Video</a>
+        <a href="./gallery.html">Gallery</a>
+      </div>
+      <div>
+        <h3>图像工具</h3>
+        <a href="./generate.html">图片生成器</a>
+        <a href="./characters.html">角色生成器</a>
+        <a href="./assets.html">资产库</a>
+        <a href="./gallery.html">作品探索</a>
+        <a href="./generate.html">图像组合器</a>
+      </div>
+      <div>
+        <h3>视频工具</h3>
+        <a href="./image-to-video.html">图片转视频</a>
+        <a href="./history.html">生成历史</a>
+        <a href="./my-creations.html">我的创作</a>
+      </div>
+      <div>
+        <h3>About Us</h3>
+        <a href="./pricing.html">价格</a>
+        <a href="./referral.html">推荐</a>
+        <a href="./signin.html">登录</a>
+        <a href="./index.html">首页</a>
+      </div>
+      <div>
+        <p>Support: support@openvideostudio.app</p>
+        <p>Business: business@openvideostudio.app</p>
+        <p>版权所有 © 2026</p>
+      </div>
+    </footer>
   `);
 }
 

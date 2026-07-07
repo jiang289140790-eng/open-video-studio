@@ -1,32 +1,30 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Pricing | Open Video Studio</title>
-    <meta name="description" content="Buy credits and choose creator-friendly AI video generation plans for Open Video Studio.">
+    <title>购买积分 | Open Video Studio</title>
+    <meta name="description" content="购买 Open Video Studio 积分，用于 AI 图片、视频、角色和资产生成。">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
-      <nav class="topnav" aria-label="Primary navigation"><a href="./gallery.html">Explore</a><a href="./generate.html">Generate</a><a href="./characters.html">Characters</a><a href="./assets.html">Assets</a><a href="./pricing.html" aria-current="page">Pricing</a></nav>
-      <nav class="accountnav" aria-label="Account navigation"><a href="./dashboard.html">Dashboard</a><a href="./history.html">History</a><a href="./pricing.html" aria-current="page">Credits <span data-credit-balance>40</span></a><a href="./signin.html">Account</a></nav>
-      <a class="btn primary" href="./signin.html">Start free</a>
+      <nav class="topnav" aria-label="Primary navigation"><a href="./generate.html">图像工具</a><a href="./image-to-video.html">视频工具</a><a href="./pricing.html" aria-current="page">购买积分</a><a href="./referral.html">免费硬币</a><a href="./my-creations.html">我的创作</a></nav>
+      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./referral.html">Daily Check-in</a><a href="./signin.html">登录</a></nav>
     </header>
-    <main class="app-surface">
-      <section class="page-hero compact center"><p class="eyebrow">Pricing / Credits</p><h1>Creator plans for image and video generation.</h1><p class="lead">Keep costs visible before each generation. Buy credits, upgrade when volume grows, and keep every result reusable.</p><label>Billing <select class="select" data-interval><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></label></section>
-      <section class="pricing-grid">
-        <article class="plan-card"><span class="badge">Starter</span><h2>Creator</h2><p>For individual creators testing repeatable AI workflows.</p><div class="price"><span data-monthly="$19" data-yearly="$15">$19</span><em>/mo</em></div><ul><li>600 monthly credits</li><li>Images and video previews</li><li>Personal assets</li></ul><a class="btn glass full" href="./dashboard.html" data-buy-credits="600">Start Starter</a></article>
-        <article class="plan-card featured"><span class="badge success">Popular</span><h2>Studio</h2><p>For creators producing campaigns and reusable characters.</p><div class="price"><span data-monthly="$59" data-yearly="$49">$59</span><em>/mo</em></div><ul><li>2,400 monthly credits</li><li>Character library</li><li>Priority generation queue</li></ul><a class="btn primary full" href="./dashboard.html" data-buy-credits="2400">Choose Studio</a></article>
-        <article class="plan-card"><span class="badge">Scale</span><h2>Pro</h2><p>For larger content operations that need more generation room.</p><div class="price"><span data-monthly="$149" data-yearly="$129">$149</span><em>/mo</em></div><ul><li>8,000 monthly credits</li><li>Advanced history</li><li>Share management</li></ul><a class="btn glass full" href="./dashboard.html" data-buy-credits="8000">Go Pro</a></article>
+    <main class="app-surface pricing-page">
+      <section class="page-hero compact center">
+        <h1>找到最适合您的计划</h1>
+        <p class="lead">积分用于图片生成、图片转视频、角色创建和资产复用。每次生成前都会显示预计消耗。</p>
       </section>
-      <section class="pricing-preview"><div><p class="eyebrow">Free coins</p><h2>Invite creators and earn credits.</h2><p class="muted">Referral rewards are reserved for growth launch.</p></div><a class="btn primary" href="./referral.html">Open referral</a></section>
-      <section class="faq">
-        <details open><summary>Can I buy more credits?</summary><p>Yes. The MVP includes a local purchase path through the Credits API; this page reserves the product entry.</p></details>
-        <details><summary>What consumes credits?</summary><p>Image, video, character, upscale, and edit operations are expected to consume credits.</p></details>
-        <details><summary>Can I keep my assets?</summary><p>Yes. Generated outputs flow into Assets and History for reuse.</p></details>
+      <section class="pricing-grid pricing-packages">
+        <article class="plan-card"><h2>Free</h2><div class="price"><span>$0</span><em>/ 20 积分</em></div><a class="btn glass full" href="./referral.html">申请免费积分</a><ul><li>最多生成 2 张图片</li><li>本地资产保存</li><li>无水印预览</li></ul></article>
+        <article class="plan-card"><h2>Standard</h2><div class="price"><span>$9.99</span><em>/ 200 积分</em></div><a class="btn glass full" href="./dashboard.html" data-buy-credits="200">立即购买</a><ul><li>最多生成 20 张图片</li><li>最多生成 5 个视频</li><li>私人生成记录</li></ul></article>
+        <article class="plan-card featured"><span class="badge success">最佳交易</span><h2>Pro</h2><div class="price old-price">$59.99</div><div class="price"><span>$29.99</span><em>/ 1000 积分</em></div><a class="btn primary full" href="./dashboard.html" data-buy-credits="1000">立即购买</a><ul><li>最多生成 100 张图片</li><li>最多生成 25 个视频</li><li>访问所有核心工具</li><li>无水印</li></ul></article>
+        <article class="plan-card"><h2>Ultra</h2><div class="price old-price">$599.99</div><div class="price"><span>$99.99</span><em>/ 5000 积分</em></div><a class="btn glass full" href="./dashboard.html" data-buy-credits="5000">立即购买</a><ul><li>最多生成 500 张图片</li><li>最多生成 120 个视频</li><li>优先生成队列</li><li>高级资产管理</li></ul></article>
       </section>
+      <section class="pricing-preview"><div><p class="eyebrow">Free coins</p><h2>获取更多免费积分</h2><p class="muted">通过每日签到和推荐好友获得额外生成积分。</p></div><a class="btn primary" href="./referral.html">打开免费硬币</a></section>
     </main>
     <script type="module" src="./app.js"></script>
   </body>

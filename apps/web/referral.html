@@ -1,29 +1,36 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Free Credits | Open Video Studio</title>
-    <meta name="description" content="Invite creators, earn free credits, and grow your Open Video Studio generation balance.">
+    <title>免费硬币 | Open Video Studio</title>
+    <meta name="description" content="通过每日签到、推荐好友和完成创作任务获得 Open Video Studio 免费积分。">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
-      <nav class="topnav" aria-label="Primary navigation"><a href="./app.html">Tools</a><a href="./gallery.html">Explore</a><a href="./generate.html">Generate</a><a href="./pricing.html">Buy credits</a></nav>
-      <nav class="accountnav" aria-label="Account navigation"><a href="./referral.html" aria-current="page">Free credits</a><a href="./my-creations.html">My creations</a><a href="./signin.html">Login</a></nav>
+      <nav class="topnav" aria-label="Primary navigation"><a href="./generate.html">图像工具</a><a href="./image-to-video.html">视频工具</a><a href="./pricing.html">购买积分</a><a href="./referral.html" aria-current="page">免费硬币</a><a href="./my-creations.html">我的创作</a></nav>
+      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./referral.html">Daily Check-in</a><a href="./signin.html">登录</a></nav>
     </header>
-    <main class="app-surface">
-      <section class="page-hero compact center"><p class="eyebrow">Referral / Free Credits</p><h1>Invite creators. Earn generation credits.</h1><p class="lead">Give new creators a reason to try Open Video Studio and earn credits when they join and create.</p></section>
-      <section class="pricing-preview">
-        <div><p class="eyebrow">Your referral link</p><h2>openvideostudio.ai/?ref=demo</h2><p class="muted">Referral tracking is prepared for launch. This MVP page validates the growth path and user flow.</p></div>
-        <button class="btn primary" data-buy-credits="100">Claim demo reward</button>
+    <main class="app-surface referral-page">
+      <section class="page-hero compact center">
+        <h1>获取更多免费积分</h1>
+        <p class="lead">签到、邀请创作者、完成首次生成，都可以帮助你获得更多 AI 创作额度。</p>
+      </section>
+      <section class="reward-panel">
+        <div><p class="eyebrow">Daily Check-in</p><h2>今日签到奖励</h2><p class="muted">每天打开 Open Video Studio，领取少量免费积分用于测试新工具。</p></div>
+        <button class="btn primary" data-buy-credits="20">领取 20 积分</button>
+      </section>
+      <section class="reward-panel">
+        <div><p class="eyebrow">Referral</p><h2>推荐好友</h2><p class="muted">把你的邀请链接发给创作者。对方注册并完成首次生成后，你将获得奖励积分。</p><code>openvideostudio.app/?ref=demo</code></div>
+        <button class="btn glass" data-buy-credits="100">领取演示奖励</button>
       </section>
       <section class="step-grid">
-        <article><span>01</span><h3>Invite</h3><p>Share your creator link.</p></article>
-        <article><span>02</span><h3>They sign up</h3><p>New users receive starter credits.</p></article>
-        <article><span>03</span><h3>They generate</h3><p>The first completed job confirms intent.</p></article>
-        <article><span>04</span><h3>You earn</h3><p>Credits are added to your balance.</p></article>
+        <article><span>01</span><h3>复制链接</h3><p>分享你的推荐链接。</p></article>
+        <article><span>02</span><h3>好友注册</h3><p>新用户获得启动积分。</p></article>
+        <article><span>03</span><h3>完成生成</h3><p>首次生成确认有效创作者。</p></article>
+        <article><span>04</span><h3>获得奖励</h3><p>积分自动进入账户余额。</p></article>
       </section>
     </main>
     <script type="module" src="./app.js"></script>

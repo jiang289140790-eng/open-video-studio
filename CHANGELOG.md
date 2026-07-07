@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.18.0 |
+| Version | 0.19.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,20 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Added
+
+- Added a global site footer module through `apps/web/app.js` so pages share the same footer navigation, tool links, contact details, and copyright block.
+- Added the global footer to the homepage by loading the shared product script from `apps/web/index.html`.
+
+### Changed
+
+- Rebuilt Pricing, Free Credits / Referral, My Creations, and Image to Video pages toward the target tool-site structure with Chinese navigation, compact black / pink styling, action-focused cards, and reusable page sections.
+- Updated frontend static tests to accept localized conversion CTAs while preserving route, auth, gallery, dashboard, and encoding checks.
+
+### Validation
+
+- Ran production build and full test suite after multi-page layout alignment; 26 tests passed.
 
 ### Changed
 

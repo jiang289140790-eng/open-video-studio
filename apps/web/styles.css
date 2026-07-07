@@ -728,6 +728,26 @@ body.tool-layout .tool-card {
   padding: 42px 0 58px;
   border-top: 1px solid rgba(255,255,255,0.08);
 }
+.site-footer {
+  width: min(100% - 48px, 1640px);
+  margin-left: auto;
+  margin-right: auto;
+  background: #121212;
+}
+.site-footer .footer-top-links {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding-bottom: 8px;
+}
+.site-footer .footer-top-links a {
+  color: #d9d9df;
+  font-weight: 820;
+}
+body.tool-layout .site-footer {
+  width: min(100% - 32px, 1640px);
+}
 .app-footer div {
   display: grid;
   align-content: start;
@@ -745,6 +765,50 @@ body.tool-layout .tool-card {
 .daily-check {
   background: rgba(255,255,255,0.08) !important;
   color: #fff !important;
+}
+.pricing-page,
+.referral-page,
+.creations-page {
+  padding-top: 24px;
+}
+.pricing-packages {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+}
+.pricing-packages .plan-card {
+  background: #181818;
+  border-color: rgba(255,255,255,0.10);
+}
+.old-price {
+  color: #8e929c;
+  text-decoration: line-through;
+  font-weight: 850;
+}
+.reward-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 22px;
+  margin-bottom: 18px;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 16px;
+  padding: 28px;
+  background: linear-gradient(135deg, #181d24, #211722);
+}
+.reward-panel code {
+  display: inline-flex;
+  margin-top: 16px;
+  border: 1px solid rgba(255,98,187,0.28);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(255,98,187,0.08);
+  color: #ffd6ec;
+}
+.creations-page .studio-toolbar {
+  margin-top: 24px;
+}
+.video-tool-page .lead {
+  margin-bottom: 18px;
 }
 .tool-card span {
   color: #dbeafe;
@@ -884,6 +948,8 @@ body.tool-layout .tool-card {
   .app-hero-grid { grid-template-columns: 1fr; }
   .quick-tool-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .app-footer { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+  .pricing-packages { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .reward-panel { align-items: stretch; flex-direction: column; }
   .topbar { grid-template-columns: 1fr; padding: 14px 18px; }
   .topnav, .accountnav { justify-content: start; }
   .hero, .studio-shell, .split, .prompt-result, .character-layout, .dashboard-grid, .auth-layout, .share-page { grid-template-columns: 1fr; }
@@ -909,6 +975,7 @@ body.tool-layout .tool-card {
   .auth-submit-grid { grid-template-columns: 1fr; }
   .rail-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .quick-tool-row, .app-footer { grid-template-columns: 1fr; }
+  .pricing-packages { grid-template-columns: 1fr; }
   .feature-banner { min-height: 280px; }
   .masonry-preview, .masonry-gallery { columns: 1; }
   .creative-preview { min-height: 320px; }

@@ -46,7 +46,7 @@ describe("MVP static frontend", () => {
 
   it("contains required conversion CTAs", () => {
     const combined = requiredPages.map(readPage).join("\n");
-    for (const cta of ["Start creating", "Generate your first scene", "Create character", "Quick generate", "Choose Studio", "Generate similar"]) {
+    for (const cta of ["Start creating", "Generate your first scene", "Create character", "Quick generate", "立即购买", "Generate similar"]) {
       assert.ok(combined.includes(cta), `CTA should exist: ${cta}`);
     }
   });
