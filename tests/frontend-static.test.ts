@@ -98,7 +98,15 @@ describe("MVP static frontend", () => {
       "data-template-prompt",
       "floating-dock",
       "data-support-widget",
-      "data-scroll-top"
+      "data-scroll-top",
+      "data-creation-list",
+      "data-creation-history",
+      "data-creation-search",
+      "data-creation-filter",
+      "renderCreations",
+      "data-copy-asset-prompt",
+      "data-retry-asset",
+      "data-retry-job"
     ]) {
       assert.ok(combined.includes(hook), `MVP hook should exist: ${hook}`);
     }
@@ -198,6 +206,25 @@ describe("MVP static frontend", () => {
       "data-scroll-top"
     ]) {
       assert.ok(`${appScript}\n${styles}`.includes(expected), `floating quick actions should include ${expected}`);
+    }
+  });
+
+  it("contains target-site-style my creations center", () => {
+    const creations = readPage("my-creations.html");
+    const appScript = readPage("app.js");
+    const styles = readPage("styles.css");
+    for (const expected of [
+      "creation-hero",
+      "creation-stats",
+      "creation-grid-dynamic",
+      "data-creation-list",
+      "data-creation-history",
+      "复制提示词",
+      "重新生成",
+      "renderCreations",
+      "creation-work-card"
+    ]) {
+      assert.ok(`${creations}\n${appScript}\n${styles}`.includes(expected), `my creations center should include ${expected}`);
     }
   });
 

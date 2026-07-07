@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>我的创作 | Open Video Studio</title>
-    <meta name="description" content="查看 Open Video Studio 中生成的图片、视频、角色、提示词、资产和分享链接。">
+    <meta name="description" content="集中管理 Open Video Studio 中生成的图片、视频、提示词、角色引用、资产和分享链接。">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
@@ -14,31 +14,58 @@
       <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./referral.html">每日签到</a><a href="./signin.html">登录</a></nav>
     </header>
     <main class="app-surface creations-page">
-      <section class="page-hero compact">
-        <h1>我的创作</h1>
-        <p class="lead">这里保存你的图片、视频、提示词、角色引用和公开分享链接。</p>
+      <section class="creation-hero art-9">
+        <div>
+          <p class="eyebrow">我的创作</p>
+          <h1>管理你的 AI 作品、资产和分享链接</h1>
+          <p class="lead">所有生成结果都会沉淀为可复用资产：图片、视频、提示词、角色引用和后续工作流入口都在这里统一管理。</p>
+          <div class="hero-actions"><a class="btn primary" href="./generate.html">继续创作</a><a class="btn glass" href="./assets.html">打开资产库</a></div>
+        </div>
+        <aside class="creation-hero-panel">
+          <span>当前工作区</span>
+          <strong data-user-name>访客创作者</strong>
+          <p>积分余额 <b data-credit-balance>40</b></p>
+        </aside>
       </section>
-      <section class="metric-grid dashboard-sections">
-        <article><span>积分</span><strong data-dashboard-credits>40</strong><p>可用积分</p></article>
-        <article><span>作品</span><strong data-dashboard-assets>2</strong><p>已保存资产</p></article>
-        <article><span>任务</span><strong data-dashboard-jobs>2</strong><p>生成历史</p></article>
-        <article><span>分享</span><strong data-dashboard-shares>1</strong><p>公开链接</p></article>
+
+      <section class="creation-stats metric-grid">
+        <article><span>作品</span><strong data-creation-count>0</strong><p>图片与视频资产</p></article>
+        <article><span>公开链接</span><strong data-creation-shares>0</strong><p>可分享页面</p></article>
+        <article><span>收藏</span><strong data-creation-favorites>0</strong><p>重点复用资产</p></article>
+        <article><span>生成任务</span><strong data-creation-jobs>0</strong><p>历史记录</p></article>
       </section>
-      <section class="studio-toolbar">
-        <input class="search" data-gallery-filter placeholder="搜索角色、提示词、模型或状态">
-        <div class="gallery-tabs"><button class="tab active">全部</button><button class="tab">图片</button><button class="tab">视频</button><button class="tab">收藏</button><button class="tab">公开</button></div>
+
+      <section class="creation-toolbar">
+        <input class="search" data-creation-search placeholder="搜索作品、角色、提示词、模型或状态">
+        <div class="gallery-tabs">
+          <button class="tab active" type="button" data-creation-filter="all">全部</button>
+          <button class="tab" type="button" data-creation-filter="image">图片</button>
+          <button class="tab" type="button" data-creation-filter="video">视频</button>
+          <button class="tab" type="button" data-creation-filter="favorite">收藏</button>
+          <button class="tab" type="button" data-creation-filter="public">公开</button>
+          <button class="tab" type="button" data-creation-filter="private">私密</button>
+        </div>
       </section>
-      <section class="empty-state">
-        <div><p class="eyebrow">创作入口</p><h2>还没有真实生成记录？</h2><p class="muted">先从图片生成器或图片转视频开始，生成结果会自动进入这里。</p></div>
-        <div class="section-actions"><a class="btn primary" href="./generate.html">生成图片</a><a class="btn glass" href="./image-to-video.html">图片转视频</a></div>
-      </section>
+
       <section class="tool-section">
-        <div class="tool-section-head"><h2>作品库</h2><a href="./generate.html">继续生成</a></div>
-        <div class="asset-library" data-asset-list></div>
+        <div class="tool-section-head">
+          <div><h2>作品中心</h2><small>生成结果可以继续分享、复制提示词、重新生成或进入资产库。</small></div>
+          <a href="./generate.html">生成新作品</a>
+        </div>
+        <div class="creation-grid-dynamic" data-creation-list></div>
       </section>
-      <section class="tool-section">
-        <div class="tool-section-head"><h2>生成历史</h2><a href="./history.html">查看更多</a></div>
-        <div class="history-list" data-history-list></div>
+
+      <section class="creation-split">
+        <article class="panel">
+          <div class="tool-section-head"><div><h2>最近生成</h2><small>从历史任务快速追踪成本、模型和输出。</small></div><a href="./history.html">完整历史</a></div>
+          <div class="creation-history-list" data-creation-history></div>
+        </article>
+        <article class="panel creation-next">
+          <p class="eyebrow">下一步</p>
+          <h2>把作品变成可复用素材</h2>
+          <p class="muted">保存角色、复制提示词、公开分享链接，或者把图片继续转成视频。</p>
+          <div class="section-actions"><a class="btn primary" href="./image-to-video.html">图片转视频</a><a class="btn glass" href="./characters.html">管理角色</a></div>
+        </article>
       </section>
     </main>
     <script type="module" src="./app.js"></script>

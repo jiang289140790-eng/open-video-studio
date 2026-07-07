@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.38.0 |
+| Version | 0.39.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -36,6 +36,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 - Signed-in users now see a target-style account navigation state with credit balance, avatar menu, dashboard, creations, history, assets, free coins, purchase credits, and logout actions.
 - Tool detail pages now include a target-style actionable workbench with upload, prompt, mode selection, templates, demo generation, and local asset/history persistence while real generation APIs remain disconnected.
 - A target-style floating quick action dock now provides daily check-in, free coins, support/help, assistant avatar, and back-to-top actions across the product surface.
+- My Creations now functions as a target-style creation center with work stats, search, filters, reusable asset cards, recent generation history, share links, prompt copy, and retry actions.
 - Browser authentication now calls Supabase Auth when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are configured; missing configuration is surfaced to the user instead of creating fake accounts.
 
 ## Knowledge Base Map

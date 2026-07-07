@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.31.0 |
+| Version | 0.32.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,17 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Added
+
+- Rebuilt My Creations into a target-site-style creation center with a hero summary, work stats, filters, search, reusable work cards, recent generation history, and next-step creation actions.
+- Added creation-center interactions for share links, copy prompt, retry from asset, and retry from generation history using stable delegated handlers.
+- Added static coverage for the My Creations center and its required hooks.
+
+### Validation
+
+- Ran production build and full test suite after the My Creations center update; 33 tests passed.
+- Checked local HTML links and `docs/SUMMARY.md` links after the update.
 
 ### Added
 

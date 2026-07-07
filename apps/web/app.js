@@ -353,6 +353,7 @@ function renderState(current) {
   renderCharacters(current);
   renderAssets(current);
   renderHistory(current);
+  renderCreations(current);
   renderDashboard(current);
   renderShare(current);
 }
@@ -808,19 +809,26 @@ function renderCharacters(current) {
   `).join("");
 }
 
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#39;"
+  })[character]);
+}
+
 function renderAssets(current) {
   const targets = document.querySelectorAll("[data-asset-list]");
   targets.forEach((target) => {
     target.innerHTML = current.assets.map((asset, index) => `
       <article class="library-card" data-asset>
         <span class="thumb ${asset.type === "video" ? "art-7" : ["art-3", "art-8", "art-10"][index % 3]}"></span>
-        <div><h3>${asset.title}</h3><p>${asset.type === "video" ? "视频" : "图片"} - ${asset.visibility === "public" ? "公开" : "私密"} - 角色 ${asset.character}</p></div>
+        <div><h3>${escapeHtml(asset.title)}</h3><p>${asset.type === "video" ? "视频" : "图片"} - ${asset.visibility === "public" ? "公开" : "私密"} - 角色 ${escapeHtml(asset.character)}</p></div>
         <button data-share-asset="${asset.id}">分享</button>
       </article>
     `).join("");
-  });
-  document.querySelectorAll("[data-share-asset]").forEach((button) => {
-    button.addEventListener("click", () => createShare(button.dataset.shareAsset));
   });
 }
 
@@ -830,16 +838,79 @@ function renderHistory(current) {
   target.innerHTML = current.history.map((job) => `
     <article class="history-row">
       <span class="thumb ${job.type === "video" ? "art-7" : "art-3"}"></span>
-      <div><h3>${job.title}</h3><p>提示词：${job.prompt}</p><small>服务商 ${job.provider} - 模型 ${job.model} - ${job.status === "completed" ? "已完成" : job.status} - ${job.credits} 积分 - ${job.duration}</small></div>
-      <div class="row-actions"><button data-retry-prompt="${job.prompt}">重试</button><button data-share-asset="${job.assetId}">分享</button></div>
+      <div><h3>${escapeHtml(job.title)}</h3><p>提示词：${escapeHtml(job.prompt)}</p><small>服务商 ${escapeHtml(job.provider)} - 模型 ${escapeHtml(job.model)} - ${job.status === "completed" ? "已完成" : escapeHtml(job.status)} - ${job.credits} 积分 - ${escapeHtml(job.duration)}</small></div>
+      <div class="row-actions"><button data-retry-job="${job.id}">重试</button><button data-share-asset="${job.assetId}">分享</button></div>
     </article>
   `).join("");
-  document.querySelectorAll("[data-retry-prompt]").forEach((button) => {
-    button.addEventListener("click", () => {
-      localStorage.setItem("ovs_retry_prompt", button.dataset.retryPrompt || "");
-      window.location.href = "./generate.html";
-    });
+}
+
+let creationFilter = "all";
+let creationSearch = "";
+
+function renderCreations(current) {
+  const list = document.querySelector("[data-creation-list]");
+  const historyList = document.querySelector("[data-creation-history]");
+  const stats = {
+    count: document.querySelector("[data-creation-count]"),
+    shares: document.querySelector("[data-creation-shares]"),
+    favorites: document.querySelector("[data-creation-favorites]"),
+    jobs: document.querySelector("[data-creation-jobs]")
+  };
+  if (stats.count) stats.count.textContent = String(current.assets.length);
+  if (stats.shares) stats.shares.textContent = String(current.shares.length);
+  if (stats.favorites) stats.favorites.textContent = String(current.assets.filter((asset) => asset.favorite).length);
+  if (stats.jobs) stats.jobs.textContent = String(current.history.length);
+
+  document.querySelectorAll("[data-creation-filter]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.creationFilter === creationFilter);
   });
+
+  if (list) {
+    const filteredAssets = current.assets.filter((asset) => {
+      const matchesFilter =
+        creationFilter === "all" ||
+        asset.type === creationFilter ||
+        (creationFilter === "favorite" && asset.favorite) ||
+        asset.visibility === creationFilter;
+      const haystack = `${asset.title} ${asset.prompt} ${asset.character} ${asset.type} ${asset.status} ${asset.visibility}`.toLowerCase();
+      return matchesFilter && (!creationSearch || haystack.includes(creationSearch));
+    });
+    list.innerHTML = filteredAssets.length ? filteredAssets.map((asset, index) => `
+      <article class="creation-work-card" data-asset>
+        <span class="creation-work-thumb ${asset.type === "video" ? "art-7" : ["art-3", "art-8", "art-10", "art-12"][index % 4]}"></span>
+        <div class="creation-work-body">
+          <div class="creation-work-meta"><span>${asset.type === "video" ? "视频" : "图片"}</span><span>${asset.visibility === "public" ? "公开" : "私密"}</span>${asset.favorite ? "<span>收藏</span>" : ""}</div>
+          <h3>${escapeHtml(asset.title)}</h3>
+          <p>${escapeHtml(asset.prompt)}</p>
+          <small>角色 ${escapeHtml(asset.character)} · ${asset.credits} 积分 · ${asset.status === "completed" ? "已完成" : escapeHtml(asset.status)}</small>
+          <div class="row-actions">
+            <button data-share-asset="${asset.id}">分享</button>
+            <button data-copy-asset-prompt="${asset.id}">复制提示词</button>
+            <button data-retry-asset="${asset.id}">重新生成</button>
+          </div>
+        </div>
+      </article>
+    `).join("") : `
+      <article class="empty-state creation-empty">
+        <div><p class="eyebrow">没有匹配作品</p><h2>换个关键词，或生成一个新作品</h2><p class="muted">生成结果会自动进入这里，方便继续复用、分享和转视频。</p></div>
+        <a class="btn primary" href="./generate.html">开始生成</a>
+      </article>
+    `;
+  }
+
+  if (historyList) {
+    historyList.innerHTML = current.history.slice(0, 5).map((job) => `
+      <article class="creation-job-row">
+        <span class="thumb ${job.type === "video" ? "art-7" : "art-3"}"></span>
+        <div>
+          <strong>${escapeHtml(job.title)}</strong>
+          <p>${escapeHtml(job.prompt)}</p>
+          <small>${escapeHtml(job.provider)} · ${escapeHtml(job.model)} · ${job.credits} 积分 · ${escapeHtml(job.duration)}</small>
+        </div>
+        <button data-retry-job="${job.id}">重试</button>
+      </article>
+    `).join("");
+  }
 }
 
 function createShare(assetId) {
@@ -888,6 +959,59 @@ if (filterInput) {
     });
   });
 }
+
+document.querySelector("[data-creation-search]")?.addEventListener("input", (event) => {
+  creationSearch = event.currentTarget.value.trim().toLowerCase();
+  renderCreations(state);
+});
+
+document.querySelectorAll("[data-creation-filter]").forEach((button) => {
+  button.addEventListener("click", () => {
+    creationFilter = button.dataset.creationFilter || "all";
+    renderCreations(state);
+  });
+});
+
+document.addEventListener("click", async (event) => {
+  const shareButton = event.target.closest("[data-share-asset]");
+  if (shareButton) {
+    event.preventDefault();
+    createShare(shareButton.dataset.shareAsset);
+    return;
+  }
+
+  const retryAssetButton = event.target.closest("[data-retry-asset]");
+  if (retryAssetButton) {
+    const asset = state.assets.find((item) => item.id === retryAssetButton.dataset.retryAsset);
+    if (asset) {
+      localStorage.setItem("ovs_retry_prompt", asset.prompt || "");
+      window.location.href = "./generate.html";
+    }
+    return;
+  }
+
+  const retryJobButton = event.target.closest("[data-retry-job]");
+  if (retryJobButton) {
+    const job = state.history.find((item) => item.id === retryJobButton.dataset.retryJob);
+    if (job) {
+      localStorage.setItem("ovs_retry_prompt", job.prompt || "");
+      window.location.href = "./generate.html";
+    }
+    return;
+  }
+
+  const copyPromptButton = event.target.closest("[data-copy-asset-prompt]");
+  if (copyPromptButton) {
+    const asset = state.assets.find((item) => item.id === copyPromptButton.dataset.copyAssetPrompt);
+    if (!asset) return;
+    try {
+      await navigator.clipboard?.writeText(asset.prompt || "");
+      copyPromptButton.textContent = "已复制";
+    } catch {
+      copyPromptButton.textContent = "复制提示词";
+    }
+  }
+});
 
 const intervalToggle = document.querySelector("[data-interval]");
 const priceTargets = document.querySelectorAll("[data-monthly][data-yearly]");
