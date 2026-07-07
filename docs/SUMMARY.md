@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.40.0 |
+| Version | 0.41.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -38,6 +38,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 - A target-style floating quick action dock now provides daily check-in, free coins, support/help, assistant avatar, and back-to-top actions across the product surface.
 - My Creations now functions as a target-style creation center with work stats, search, filters, reusable asset cards, recent generation history, share links, prompt copy, and retry actions.
 - Gallery cards now have working product-loop actions for generate similar, copy prompt, share, favorite, and open character; Asset Library chips now filter visible assets.
+- Character Management now behaves as an actionable character center with search, status/favorite filters, selectable profiles, character memory, copy-prompt, and use-character-to-generate handoff.
 - Browser authentication now calls Supabase Auth when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are configured; missing configuration is surfaced to the user instead of creating fake accounts.
 
 ## Knowledge Base Map

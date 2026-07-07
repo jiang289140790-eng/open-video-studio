@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.33.0 |
+| Version | 0.34.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,17 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Added
+
+- Upgraded Character Management into an actionable character center with search, filters, selectable character cards, dynamic profile preview, character memory, related assets, copy-character-prompt, and use-character-to-generate flow.
+- Added local character state defaults for status, favorite, and memory so existing demo characters remain compatible.
+- Added static coverage for the character management center and character-to-generate handoff.
+
+### Validation
+
+- Ran production build and full test suite after the character center update; 34 tests passed.
+- Checked local HTML links after the update.
 
 ### Added
 

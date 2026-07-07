@@ -35,9 +35,9 @@ const defaultState = {
   user: null,
   credits: 40,
   characters: [
-    { id: "char_mira", name: "Mira", role: "工作室主持人", tags: ["发布", "工作室", "冷静"], score: 92 },
-    { id: "char_atlas", name: "Atlas", role: "产品讲解员", tags: ["产品", "干净"], score: 88 },
-    { id: "char_nova", name: "Nova", role: "创作者形象", tags: ["时尚", "霓虹"], score: 95 }
+    { id: "char_mira", name: "Mira", role: "工作室主持人", tags: ["发布", "工作室", "冷静"], score: 92, status: "active", favorite: true, memory: "稳定的工作室主持人，适合产品讲解、发布短片和品牌介绍。" },
+    { id: "char_atlas", name: "Atlas", role: "产品讲解员", tags: ["产品", "干净"], score: 88, status: "active", favorite: false, memory: "商业产品讲解员，表达清晰，画面干净。" },
+    { id: "char_nova", name: "Nova", role: "创作者形象", tags: ["时尚", "霓虹"], score: 95, status: "draft", favorite: false, memory: "适合时尚、霓虹、竖屏内容的创作者形象。" }
   ],
   assets: [
     { id: "asset_launch", type: "image", title: "发布主视觉", prompt: "紫色灯光下的电影感产品发布", character: "Mira", credits: 8, status: "completed", visibility: "private", favorite: true },
@@ -67,6 +67,13 @@ function saveState(state) {
 }
 
 const state = loadState();
+state.characters = state.characters.map((character) => ({
+  status: "active",
+  favorite: false,
+  memory: `${character.role || "创意角色"}，保持视觉和提示词一致。`,
+  ...character
+}));
+let selectedCharacterId = state.characters[0]?.id || "";
 
 injectTopNavigation();
 injectAppShell();
@@ -783,8 +790,12 @@ if (characterForm) {
       name,
       role: String(form.get("role") || "创意角色"),
       tags: String(form.get("tags") || "自定义").split(",").map((tag) => tag.trim()).filter(Boolean),
-      score: 84
+      score: 84,
+      status: "active",
+      favorite: false,
+      memory: String(form.get("memory") || "保持角色外观、语气、镜头和品牌视觉一致。")
     });
+    selectedCharacterId = state.characters[0].id;
     saveState(state);
     characterForm.reset();
   });
@@ -797,16 +808,51 @@ function statusRow(title, body, href, action) {
   return row;
 }
 
+let characterFilter = "all";
+let characterSearch = "";
+
 function renderCharacters(current) {
   const target = document.querySelector("[data-character-list]");
-  if (!target) return;
-  target.innerHTML = current.characters.map((character, index) => `
-    <article class="character-card large ${["art-2", "art-11", "art-12"][index % 3]}">
-      <strong>${character.name}</strong>
-      <span>${character.role} - 一致性 ${character.score}%</span>
-      <p>标签：${character.tags.join(", ")}</p>
+  document.querySelectorAll("[data-character-filter]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.characterFilter === characterFilter);
+  });
+  if (target) {
+    const characters = current.characters.filter((character) => {
+      const matchesFilter =
+        characterFilter === "all" ||
+        character.status === characterFilter ||
+        (characterFilter === "favorite" && character.favorite);
+      const haystack = `${character.name} ${character.role} ${character.tags.join(" ")} ${character.memory}`.toLowerCase();
+      return matchesFilter && (!characterSearch || haystack.includes(characterSearch));
+    });
+    target.innerHTML = characters.map((character, index) => `
+    <article class="character-card large ${["art-2", "art-11", "art-12"][index % 3]} ${character.id === selectedCharacterId ? "selected" : ""}" data-character-card="${character.id}">
+      <span>${character.status === "active" ? "可生成" : "草稿"} ${character.favorite ? "· 收藏" : ""}</span>
+      <strong>${escapeHtml(character.name)}</strong>
+      <span>${escapeHtml(character.role)} - 一致性 ${character.score}%</span>
+      <p>标签：${character.tags.map(escapeHtml).join(", ")}</p>
+      <div class="row-actions"><button type="button" data-use-character="${character.id}">使用角色</button><button type="button" data-copy-character="${character.id}">复制设定</button></div>
     </article>
   `).join("");
+  }
+  renderCharacterProfile(current);
+}
+
+function renderCharacterProfile(current) {
+  const profile = document.querySelector("[data-character-profile]");
+  if (!profile) return;
+  const character = current.characters.find((item) => item.id === selectedCharacterId) || current.characters[0];
+  if (!character) return;
+  const relatedAssets = current.assets.filter((asset) => asset.character === character.name).slice(0, 3);
+  profile.querySelector(".eyebrow").textContent = character.status === "active" ? "角色预览" : "草稿角色";
+  profile.querySelector(".avatar").className = `avatar ${character.favorite ? "art-12" : "art-2"}`;
+  profile.querySelector("h2").textContent = `${character.name} ${character.role}`;
+  profile.querySelector(".muted").textContent = character.memory || "保持角色外观、语气、镜头和品牌视觉一致。";
+  profile.querySelector(".score").innerHTML = `一致性评分 <strong>${character.score}%</strong>`;
+  profile.querySelector(".character-action-row").innerHTML = `<button class="btn primary" type="button" data-use-character="${character.id}">使用角色生成</button><button class="btn glass" type="button" data-copy-character="${character.id}">复制角色提示词</button>`;
+  profile.querySelector(".mini-assets").innerHTML = relatedAssets.length
+    ? relatedAssets.map((asset, index) => `<span class="thumb ${asset.type === "video" ? "art-7" : ["art-3", "art-8", "art-10"][index % 3]}"></span>`).join("")
+    : `<span class="thumb art-3"></span><span class="thumb art-7"></span><span class="thumb art-8"></span>`;
 }
 
 function escapeHtml(value) {
@@ -1061,6 +1107,38 @@ document.addEventListener("click", async (event) => {
 
   if (event.target.closest("[data-open-character]")) {
     window.location.href = "./characters.html";
+    return;
+  }
+
+  const characterCard = event.target.closest("[data-character-card]");
+  if (characterCard && !event.target.closest("button")) {
+    selectedCharacterId = characterCard.dataset.characterCard || selectedCharacterId;
+    renderCharacters(state);
+    return;
+  }
+
+  const useCharacterButton = event.target.closest("[data-use-character]");
+  if (useCharacterButton) {
+    const character = state.characters.find((item) => item.id === useCharacterButton.dataset.useCharacter);
+    if (character) {
+      localStorage.setItem("ovs_selected_character", character.name);
+      localStorage.setItem("ovs_retry_prompt", `${character.name}，${character.role}，${character.memory || ""}`);
+      window.location.href = "./generate.html";
+    }
+    return;
+  }
+
+  const copyCharacterButton = event.target.closest("[data-copy-character]");
+  if (copyCharacterButton) {
+    const character = state.characters.find((item) => item.id === copyCharacterButton.dataset.copyCharacter);
+    if (!character) return;
+    const characterPrompt = `${character.name}｜${character.role}｜标签：${character.tags.join(", ")}｜记忆：${character.memory || ""}`;
+    try {
+      await navigator.clipboard?.writeText(characterPrompt);
+      copyCharacterButton.textContent = "已复制";
+    } catch {
+      copyCharacterButton.textContent = "复制设定";
+    }
   }
 });
 
@@ -1072,6 +1150,18 @@ document.querySelectorAll("[data-asset-filter]").forEach((button) => {
       const text = `${card.textContent || ""} ${card.dataset.assetKind || ""} ${card.dataset.assetFavorite || ""}`;
       card.hidden = filter !== "all" && !text.includes(filter);
     });
+  });
+});
+
+document.querySelector("[data-character-search]")?.addEventListener("input", (event) => {
+  characterSearch = event.currentTarget.value.trim().toLowerCase();
+  renderCharacters(state);
+});
+
+document.querySelectorAll("[data-character-filter]").forEach((button) => {
+  button.addEventListener("click", () => {
+    characterFilter = button.dataset.characterFilter || "all";
+    renderCharacters(state);
   });
 });
 
@@ -1090,6 +1180,15 @@ const retryPrompt = localStorage.getItem("ovs_retry_prompt");
 if (retryPrompt && promptBox) {
   promptBox.value = retryPrompt;
   localStorage.removeItem("ovs_retry_prompt");
+}
+const selectedCharacterName = localStorage.getItem("ovs_selected_character");
+if (selectedCharacterName) {
+  const characterSelect = document.querySelector(".selector-grid select");
+  if (characterSelect) {
+    const matchingOption = Array.from(characterSelect.options).find((option) => option.textContent.startsWith(selectedCharacterName));
+    if (matchingOption) characterSelect.value = matchingOption.value;
+  }
+  localStorage.removeItem("ovs_selected_character");
 }
 
 renderState(state);

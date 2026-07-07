@@ -111,7 +111,14 @@ describe("MVP static frontend", () => {
       "data-copy-gallery-prompt",
       "data-gallery-share",
       "data-gallery-favorite",
-      "data-asset-filter"
+      "data-asset-filter",
+      "data-character-search",
+      "data-character-filter",
+      "data-character-profile",
+      "data-character-card",
+      "data-use-character",
+      "data-copy-character",
+      "ovs_selected_character"
     ]) {
       assert.ok(combined.includes(hook), `MVP hook should exist: ${hook}`);
     }
@@ -230,6 +237,25 @@ describe("MVP static frontend", () => {
       "creation-work-card"
     ]) {
       assert.ok(`${creations}\n${appScript}\n${styles}`.includes(expected), `my creations center should include ${expected}`);
+    }
+  });
+
+  it("contains actionable character management center", () => {
+    const characters = readPage("characters.html");
+    const appScript = readPage("app.js");
+    const styles = readPage("styles.css");
+    for (const expected of [
+      "data-character-search",
+      "data-character-filter",
+      "data-character-profile",
+      "data-character-card",
+      "data-use-character",
+      "data-copy-character",
+      "角色记忆",
+      "character-action-row",
+      "selectedCharacterId"
+    ]) {
+      assert.ok(`${characters}\n${appScript}\n${styles}`.includes(expected), `character center should include ${expected}`);
     }
   });
 
