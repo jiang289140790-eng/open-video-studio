@@ -800,9 +800,9 @@ function openCreditOfferModal() {
   overlay.innerHTML = `
     <div class="credit-offer-modal">
       <button class="checkin-close" type="button" aria-label="关闭">×</button>
-      <span class="offer-pill">⚡ LIMITED TIME OFFER</span>
-      <h2>等等！现在购买可获得 <strong>2x 积分</strong></h2>
-      <p>当前创作者专属加赠，只在本次访问期间展示。</p>
+      <span class="offer-pill">⚡ 限时优惠</span>
+      <h2>等等！现在可获得 <strong>2x 积分加赠</strong></h2>
+      <p>当前创作者专属奖励，只在本次访问期间展示。</p>
       <div class="offer-compare">
         <div><span>原套餐</span><del>1000 积分</del><b>$29.99</b></div>
         <div class="active"><span>加赠后</span><strong>1600 积分</strong><b>$29.99</b></div>
@@ -810,7 +810,7 @@ function openCreditOfferModal() {
       <small>结账时使用优惠码</small>
       <button class="promo-code" type="button" data-copy-promo><span>WELCOME_SALE</span><em>复制</em></button>
       <div class="offer-timer">优惠倒计时 <b data-offer-countdown>29:51</b></div>
-      <button class="btn primary full" type="button" data-offer-claim data-buy-credits="1600">领取 2x 积分优惠</button>
+      <button class="btn primary full" type="button" data-offer-claim data-buy-credits="1600">领取我的 2x 积分</button>
       <button class="offer-skip" type="button">不用了，暂时跳过</button>
     </div>
   `;
@@ -863,9 +863,9 @@ function openCheckoutModal({ credits, planName, price, promo = "" }) {
       </label>
       <div class="checkout-methods" aria-label="Payment methods">
         <button class="active" type="button" data-checkout-method="paypal">PayPal</button>
-        <button type="button" data-checkout-method="card">银行卡</button>
+        <button type="button" data-checkout-method="cashapp">Cash App</button>
         <button type="button" data-checkout-method="applepay">Apple Pay</button>
-        <button type="button" data-checkout-method="crypto">USDT</button>
+        <button type="button" data-checkout-method="venmo">Venmo</button>
       </div>
       <p class="checkout-note">${signedIn ? "这是演示结账：不会调用真实支付接口，确认后积分会进入本地余额。" : "登录后可同步账户积分。当前演示模式会先创建本地创作者账户。"}</p>
       <div class="checkout-actions">
@@ -1236,14 +1236,18 @@ function renderReferral(current) {
 function renderShare(current) {
   const title = document.querySelector("[data-share-title]");
   if (!title) return;
-  const token = new URLSearchParams(window.location.search).get("token");
-  const share = current.shares.find((item) => item.token === token) || current.shares[0];
-  const asset = current.assets.find((item) => item.id === share?.assetId);
+  const asset = getCurrentShareAsset(current);
   if (!asset) return;
   title.textContent = asset.title;
   document.querySelectorAll("[data-share-prompt]").forEach((node) => node.textContent = `提示词：${asset.prompt}`);
   document.querySelectorAll("[data-share-character]").forEach((node) => node.textContent = asset.character);
   document.querySelectorAll("[data-share-credits]").forEach((node) => node.textContent = String(asset.credits));
+}
+
+function getCurrentShareAsset(current = state) {
+  const token = new URLSearchParams(window.location.search).get("token");
+  const share = current.shares.find((item) => item.token === token) || current.shares[0];
+  return current.assets.find((item) => item.id === share?.assetId);
 }
 
 const filterInput = document.querySelector("[data-gallery-filter]");
@@ -1270,6 +1274,42 @@ document.querySelectorAll("[data-creation-filter]").forEach((button) => {
 });
 
 document.addEventListener("click", async (event) => {
+  const shareGenerateButton = event.target.closest("[data-share-generate]");
+  if (shareGenerateButton) {
+    const asset = getCurrentShareAsset();
+    if (!asset) return;
+    localStorage.setItem("ovs_retry_prompt", asset.prompt || "");
+    localStorage.setItem("ovs_selected_character", asset.character || "");
+    window.location.href = "./generate.html";
+    return;
+  }
+
+  const shareCopyPromptButton = event.target.closest("[data-share-copy-prompt]");
+  if (shareCopyPromptButton) {
+    const asset = getCurrentShareAsset();
+    if (!asset) return;
+    try {
+      await navigator.clipboard?.writeText(asset.prompt || "");
+      shareCopyPromptButton.textContent = "已复制提示词";
+    } catch {
+      shareCopyPromptButton.textContent = "复制提示词";
+    }
+    return;
+  }
+
+  const shareSaveButton = event.target.closest("[data-share-save]");
+  if (shareSaveButton) {
+    const asset = getCurrentShareAsset();
+    if (!asset) return;
+    ensureUser("share");
+    asset.favorite = true;
+    asset.visibility = asset.visibility || "private";
+    saveState(state);
+    renderDashboard(state);
+    shareSaveButton.textContent = "已保存到资产库";
+    return;
+  }
+
   const shareButton = event.target.closest("[data-share-asset]");
   if (shareButton) {
     event.preventDefault();

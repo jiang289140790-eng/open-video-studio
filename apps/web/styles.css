@@ -1497,6 +1497,13 @@ body.tool-layout .site-footer {
 .payment-box button.active {
   outline: 3px solid rgba(255,98,187,0.55);
 }
+.global-payment-note {
+  margin: 10px 0 0;
+  text-align: center;
+  color: #858093;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
 .payment-ribbon {
   position: absolute;
   top: -16px;
@@ -1798,6 +1805,21 @@ body.tool-layout .site-footer {
 }
 .referral-progress b {
   color: #ff72c8;
+}
+.free-coin-calendar {
+  max-width: 1180px;
+  margin: 24px auto;
+  border: 1px solid rgba(255,98,187,0.18);
+  border-radius: 18px;
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(255,98,187,0.10), rgba(18,18,18,0.94));
+  box-shadow: 0 22px 70px rgba(0,0,0,0.35);
+}
+.inline-calendar {
+  margin-top: 18px;
+}
+.inline-calendar article {
+  min-height: 96px;
 }
 .free-coin-grid {
   display: grid;
@@ -2407,9 +2429,21 @@ body.tool-layout .site-footer {
 .share-page .brand { position: fixed; top: 22px; left: 24px; }
 .share-frame { min-height: 680px; display: grid; place-items: center; text-align: center; padding: 28px; }
 .share-meta dl { display: grid; gap: 10px; margin: 20px 0; }
-.share-meta div { display: flex; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.share-meta dl div { display: flex; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
 .share-meta dt { color: var(--muted); }
 .share-meta dd { margin: 0; font-weight: 850; }
+.share-actions { display: grid; gap: 10px; margin-top: 18px; }
+.share-conversion {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+}
+.share-conversion span { width: 100%; color: var(--text); font-weight: 850; }
+.share-conversion a { color: #ff5fbe; font-weight: 850; }
 
 .art-1 { background: radial-gradient(circle at 25% 18%, #38bdf8, transparent 25%), linear-gradient(135deg, #111827, #6d28d9 62%, #f472b6); }
 .art-2 { background: radial-gradient(circle at 50% 18%, #f8fafc, transparent 18%), linear-gradient(135deg, #0f172a, #2563eb); }

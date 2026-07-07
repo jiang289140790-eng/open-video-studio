@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.45.0 |
+| Version | 0.46.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -41,8 +41,10 @@ Provide the navigation map for the Open Video Studio knowledge base.
 - Character Management now behaves as an actionable character center with search, status/favorite filters, selectable profiles, character memory, copy-prompt, and use-character-to-generate handoff.
 - Free Coins and Dashboard are now state-driven: check-in progress, referral copy count, claimed rewards, recent generations, saved characters, and share links render from local product state.
 - Purchase Credits now uses a target-style checkout modal with order summary, payment method selection, promo code, login guidance, and demo credit delivery while real payment APIs remain disconnected.
+- Purchase Credits now presents PayPal, Cash App, Apple Pay, and Venmo options in the demo checkout surface, and Free Coins shows a visible seven-day credit calendar in addition to the daily check-in modal.
 - The target-style app side rail now highlights the current page dynamically and separates My Creations from Generation History routes.
 - Top navigation and locked tools now use a target-style global social login modal with Google, X, Telegram, and Discord entry points, while the standalone sign-in page remains available.
+- The public share page now acts as a conversion surface with generate-similar, copy-prompt, save-to-assets, pricing, tool, and login entry points.
 - Browser authentication now calls Supabase Auth when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are configured; missing configuration is surfaced to the user instead of creating fake accounts.
 
 ## Knowledge Base Map

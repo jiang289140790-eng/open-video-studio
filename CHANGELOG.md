@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.38.0 |
+| Version | 0.39.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,19 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Added
+
+- Made the public share page actionable with generate-similar, copy-prompt, save-to-assets, and conversion links back to tools, pricing, and login.
+- Reused the shared social-login modal from the public share page so signed-out users stay in the same conversion flow.
+- Added static coverage for public share conversion actions.
+- Aligned the Purchase Credits and Free Coins surfaces more closely with the referenced commerce flow: PayPal, Cash App, Apple Pay, Venmo choices; Chinese 2x bonus messaging; and a visible seven-day free-credit calendar.
+- Added static coverage for the free-credit calendar and checkout payment options.
+
+### Validation
+
+- Ran the full test suite after the public share, purchase credits, and free coins update; 40 tests passed.
+- Checked local HTML links and documentation summary links after the update.
 
 ### Added
 

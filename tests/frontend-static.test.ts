@@ -136,7 +136,11 @@ describe("MVP static frontend", () => {
       "openAuthModal",
       "data-modal-auth-provider",
       "startSocialAuth",
-      "auth-overlay"
+      "auth-overlay",
+      "data-share-generate",
+      "data-share-copy-prompt",
+      "data-share-save",
+      "getCurrentShareAsset"
     ]) {
       assert.ok(combined.includes(hook), `MVP hook should exist: ${hook}`);
     }
@@ -339,9 +343,43 @@ describe("MVP static frontend", () => {
       "checkout-methods",
       "data-checkout-method",
       "data-confirm-checkout",
+      "Cash App",
+      "Venmo",
+      "领取我的 2x 积分",
       "真实支付 API 接入前不会产生扣款"
     ]) {
       assert.ok(`${pricing}\n${appScript}\n${styles}`.includes(expected), `checkout flow should include ${expected}`);
+    }
+  });
+
+  it("contains target-site-style free coin reward calendar", () => {
+    const referral = readPage("referral.html");
+    const appScript = readPage("app.js");
+    const styles = readPage("styles.css");
+    for (const expected of [
+      "free-coin-calendar",
+      "连续 7 天最多领取 65 积分",
+      "Day 7",
+      "data-referral-progress",
+      "openCheckInModal",
+      "inline-calendar"
+    ]) {
+      assert.ok(`${referral}\n${appScript}\n${styles}`.includes(expected), `free coins page should include ${expected}`);
+    }
+  });
+
+  it("contains public share conversion actions", () => {
+    const share = readPage("share.html");
+    const appScript = readPage("app.js");
+    const styles = readPage("styles.css");
+    for (const expected of [
+      "data-share-generate",
+      "data-share-copy-prompt",
+      "data-share-save",
+      "share-conversion",
+      "getCurrentShareAsset"
+    ]) {
+      assert.ok(`${share}\n${appScript}\n${styles}`.includes(expected), `share page should include ${expected}`);
     }
   });
 
