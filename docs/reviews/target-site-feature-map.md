@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | REVIEW-TARGET-FEATURE-MAP-001 |
-| Version | 1.4.0 |
+| Version | 1.5.0 |
 | Status | Active |
 | Owner | Product / Frontend |
 | Dependencies | FE-BIBLE-001, REVIEW-LEGACY-001 |
@@ -26,6 +26,7 @@ Map the referenced AI tool site into product capabilities, page structure, and u
 | Tool directory home | `apps/web/app.html` | Left rail, top nav, featured tools, quick cards, categorized tool rows |
 | Chinese localized route shape | `apps/web/public/zh/*/index.html` | `/zh/.../` URL aliases that preserve query strings and hashes before routing to canonical pages |
 | Localized app tool route shape | `apps/web/public/zh/app/*/index.html` | `/zh/app/.../` aliases for primary image, character, effect, and video tool pages |
+| Localized click routing | `apps/web/app.html`, `apps/web/image-tools.html`, `apps/web/video-tools.html`, `apps/web/app.js` | Primary discovery surfaces route through `/zh/.../` and `/zh/app/.../` aliases instead of exposing static `.html` URLs |
 | Image tools category | `apps/web/image-tools.html` | Searchable category page for image generation, editing, face swap, styling, pose, and image combination routes |
 | Video tools category | `apps/web/video-tools.html` | Searchable category page for image-to-video, short video, history, and creation management routes |
 | Pricing / credits | `apps/web/pricing.html` | One-time credit packs, discount messaging, trust metrics, examples |

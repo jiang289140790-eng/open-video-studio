@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.58.0 |
+| Version | 0.59.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -22,6 +22,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 ## Current Implementation Notes
 
 - MVP product pages now use a target-style app shell with a left tool rail and dark creator-tool navigation.
+- Primary discovery surfaces now click through target-style localized `/zh/.../` routes instead of exposing `.html` file URLs.
 - Primary tools now have `/zh/app/.../` localized URL aliases that forward to the canonical tool pages while preserving query strings and hashes.
 - Static `/zh/.../` route aliases now mirror the referenced site's Chinese URL shape and redirect into the canonical Open Video Studio pages while preserving query strings and hashes.
 - `apps/web/image-tools.html` and `apps/web/video-tools.html` now provide target-style category landing pages for the top navigation before users enter a specific tool.

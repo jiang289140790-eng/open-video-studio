@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+﻿import { createClient } from "@supabase/supabase-js";
 
 const STORE_KEY = "ovs_mvp_state_v1";
 const COOKIE_PREF_KEY = "ovs_cookie_preferences_v1";
@@ -120,32 +120,32 @@ function injectTopNavigation() {
       <div class="nav-menu">
         <button class="nav-trigger" type="button" aria-expanded="false">图像工具 <span>⌄</span></button>
         <div class="nav-dropdown">
-          <a href="./image-tools.html"><strong>全部图像工具</strong><small>浏览图像生成、编辑、换脸、造型和组合工具</small></a>
-          <a href="./image-editor.html"><strong>图片编辑器</strong><small>重绘、扩图、局部修复</small></a>
-          <a href="./face-swap.html"><strong>AI 换脸</strong><small>授权角色替换</small></a>
-          <a href="./outfit-studio.html"><strong>造型工作室</strong><small>服装、场景和品牌造型</small></a>
-          <a href="./pose-generator.html"><strong>姿势生成器</strong><small>动作、镜头和分镜参考</small></a>
-          <a href="./nano-banana.html"><strong>Nano Banana</strong><small>快速创意实验</small></a>
-          <a href="./image-combiner.html"><strong>图像组合器</strong><small>多图参考合成</small></a>
+          <a href="./zh/image-tools/"><strong>全部图像工具</strong><small>浏览图像生成、编辑、换脸、造型和组合工具</small></a>
+          <a href="./zh/app/image-editor/"><strong>图片编辑器</strong><small>重绘、扩图、局部修复</small></a>
+          <a href="./zh/app/face-swap/"><strong>AI 换脸</strong><small>授权角色替换</small></a>
+          <a href="./zh/app/outfit-studio/"><strong>造型工作室</strong><small>服装、场景和品牌造型</small></a>
+          <a href="./zh/app/pose-generator/"><strong>姿势生成器</strong><small>动作、镜头和分镜参考</small></a>
+          <a href="./zh/app/nano-banana/"><strong>Nano Banana</strong><small>快速创意实验</small></a>
+          <a href="./zh/app/image-combiner/"><strong>图像组合器</strong><small>多图参考合成</small></a>
         </div>
       </div>
       <div class="nav-menu">
         <button class="nav-trigger" type="button" aria-expanded="false">视频工具 <span>⌄</span></button>
         <div class="nav-dropdown compact-dropdown">
-          <a href="./video-tools.html"><strong>全部视频工具</strong><small>浏览图片转视频、短片和创作管理入口</small></a>
-          <a href="./image-to-video.html"><strong>图片转视频</strong><small>把静态资产转成短视频</small></a>
+          <a href="./zh/video-tools/"><strong>全部视频工具</strong><small>浏览图片转视频、短片和创作管理入口</small></a>
+          <a href="./zh/app/image-to-video/"><strong>图片转视频</strong><small>把静态资产转成短视频</small></a>
           <a href="./history.html"><strong>生成历史</strong><small>查看任务、成本和输出</small></a>
-          <a href="./my-creations.html"><strong>我的创作</strong><small>管理生成作品</small></a>
+          <a href="./zh/my-creations/"><strong>我的创作</strong><small>管理生成作品</small></a>
         </div>
       </div>
-      <a href="./pricing.html">购买积分</a>
-      <a href="./free-coins.html">免费硬币</a>
-      <a href="./my-creations.html">我的创作</a>
+      <a href="./zh/pricing/">购买积分</a>
+      <a href="./zh/free-coins/">免费硬币</a>
+      <a href="./zh/my-creations/">我的创作</a>
     `;
   }
   if (accountnav && !accountnav.querySelector(".language-menu")) {
     accountnav.innerHTML = `
-      <a class="daily-check" href="./free-coins.html">🎁 每日签到</a>
+      <a class="daily-check" href="./zh/free-coins/">🎁 每日签到</a>
       ${languageMenuMarkup()}
       <a href="./signin.html" data-auth-modal>登录</a>
     `;
@@ -306,7 +306,7 @@ function renderAccountNavigation(current) {
   if (!accountnav) return;
   if (!current.user) {
     accountnav.innerHTML = `
-      <a class="daily-check" href="./free-coins.html">🎁 每日签到</a>
+      <a class="daily-check" href="./zh/free-coins/">🎁 每日签到</a>
       ${languageMenuMarkup()}
       <a href="./signin.html" data-auth-modal>登录</a>
     `;
@@ -314,18 +314,18 @@ function renderAccountNavigation(current) {
   }
   const initial = (current.user.name || "创作者").trim().charAt(0).toUpperCase();
   accountnav.innerHTML = `
-    <a class="daily-check" href="./free-coins.html">🎁 每日签到</a>
-    <a class="account-credit" href="./pricing.html"><span data-credit-balance>${current.credits}</span> 积分</a>
+    <a class="daily-check" href="./zh/free-coins/">🎁 每日签到</a>
+    <a class="account-credit" href="./zh/pricing/"><span data-credit-balance>${current.credits}</span> 积分</a>
     ${languageMenuMarkup()}
     <div class="account-menu">
       <button class="account-trigger" type="button" aria-expanded="false"><span>${initial}</span><b data-user-name>${current.user.name}</b></button>
       <div class="account-dropdown">
         <a href="./dashboard.html">控制台</a>
-        <a href="./my-creations.html">我的创作</a>
+        <a href="./zh/my-creations/">我的创作</a>
         <a href="./history.html">生成历史</a>
         <a href="./assets.html">资产库</a>
-        <a href="./free-coins.html">免费硬币</a>
-        <a href="./pricing.html">购买积分</a>
+        <a href="./zh/free-coins/">免费硬币</a>
+        <a href="./zh/pricing/">购买积分</a>
         <button type="button" data-logout>退出登录</button>
       </div>
     </div>
@@ -343,27 +343,27 @@ function injectAppShell() {
       <nav class="rail-nav">
         <a href="./app.html" class="${active("app.html")}">首页</a>
         <a href="./gallery.html" class="${active("gallery.html")}">热门作品</a>
-        <a href="./ai-effects.html" class="${active("ai-effects.html")}">AI 特效 <em>HOT</em></a>
+        <a href="./zh/app/ai-effects/" class="${active("ai-effects.html")}">AI 特效 <em>HOT</em></a>
         <span>AI 图像</span>
-        <a href="./image-tools.html" class="${active("image-tools.html")}">全部图像工具</a>
-        <a href="./image-editor.html" class="${active("image-editor.html")}">图片编辑器</a>
-        <a href="./face-swap.html" class="${active("face-swap.html")}">AI 换脸</a>
-        <a href="./outfit-studio.html" class="${active("outfit-studio.html")}">造型工作室</a>
-        <a href="./pose-generator.html" class="${active("pose-generator.html")}">姿势生成器</a>
-        <a href="./nano-banana.html" class="${active("nano-banana.html")}">Nano Banana</a>
-        <a href="./image-combiner.html" class="${active("image-combiner.html")}">图像组合器</a>
-        <a href="./generate.html" class="${active("generate.html")}">图片生成器</a>
-        <a href="./characters.html" class="${active("characters.html")}">角色生成器</a>
+        <a href="./zh/image-tools/" class="${active("image-tools.html")}">全部图像工具</a>
+        <a href="./zh/app/image-editor/" class="${active("image-editor.html")}">图片编辑器</a>
+        <a href="./zh/app/face-swap/" class="${active("face-swap.html")}">AI 换脸</a>
+        <a href="./zh/app/outfit-studio/" class="${active("outfit-studio.html")}">造型工作室</a>
+        <a href="./zh/app/pose-generator/" class="${active("pose-generator.html")}">姿势生成器</a>
+        <a href="./zh/app/nano-banana/" class="${active("nano-banana.html")}">Nano Banana</a>
+        <a href="./zh/app/image-combiner/" class="${active("image-combiner.html")}">图像组合器</a>
+        <a href="./zh/app/generate/" class="${active("generate.html")}">图片生成器</a>
+        <a href="./zh/app/characters/" class="${active("characters.html")}">角色生成器</a>
         <a href="./assets.html" class="${active("assets.html")}">资产库</a>
         <span>AI 视频</span>
-        <a href="./video-tools.html" class="${active("video-tools.html")}">全部视频工具</a>
-        <a href="./image-to-video.html" class="${active("image-to-video.html")}">图片转视频</a>
-        <a href="./my-creations.html" class="${active("my-creations.html")}">我的创作</a>
+        <a href="./zh/video-tools/" class="${active("video-tools.html")}">全部视频工具</a>
+        <a href="./zh/app/image-to-video/" class="${active("image-to-video.html")}">图片转视频</a>
+        <a href="./zh/my-creations/" class="${active("my-creations.html")}">我的创作</a>
         <a href="./history.html" class="${active("history.html")}">生成历史</a>
       </nav>
       <div class="rail-actions">
-        <a href="./free-coins.html">推荐好友</a>
-        <a class="rail-upgrade" href="./pricing.html">立即升级</a>
+        <a href="./zh/free-coins/">推荐好友</a>
+        <a class="rail-upgrade" href="./zh/pricing/">立即升级</a>
       </div>
     </aside>
   `);
@@ -375,36 +375,36 @@ function injectGlobalFooter() {
     <footer class="site-footer app-footer" aria-label="Footer navigation">
       <div class="footer-top-links">
         <a href="./app.html">首页</a>
-        <a href="./image-tools.html">图像工具</a>
-        <a href="./ai-effects.html">AI 特效</a>
-        <a href="./video-tools.html">AI 视频</a>
+        <a href="./zh/image-tools/">图像工具</a>
+        <a href="./zh/app/ai-effects/">AI 特效</a>
+        <a href="./zh/video-tools/">AI 视频</a>
         <a href="./gallery.html">作品探索</a>
       </div>
       <div>
         <h3>图像工具</h3>
-        <a href="./image-tools.html">全部图像工具</a>
-        <a href="./image-editor.html">图片编辑器</a>
-        <a href="./face-swap.html">AI 换脸</a>
-        <a href="./outfit-studio.html">造型工作室</a>
-        <a href="./pose-generator.html">姿势生成器</a>
-        <a href="./nano-banana.html">Nano Banana</a>
-        <a href="./image-combiner.html">图像组合器</a>
+        <a href="./zh/image-tools/">全部图像工具</a>
+        <a href="./zh/app/image-editor/">图片编辑器</a>
+        <a href="./zh/app/face-swap/">AI 换脸</a>
+        <a href="./zh/app/outfit-studio/">造型工作室</a>
+        <a href="./zh/app/pose-generator/">姿势生成器</a>
+        <a href="./zh/app/nano-banana/">Nano Banana</a>
+        <a href="./zh/app/image-combiner/">图像组合器</a>
       </div>
       <div>
         <h3>视频工具</h3>
-        <a href="./video-tools.html">全部视频工具</a>
-        <a href="./image-to-video.html">图片转视频</a>
+        <a href="./zh/video-tools/">全部视频工具</a>
+        <a href="./zh/app/image-to-video/">图片转视频</a>
         <a href="./history.html">生成历史</a>
-        <a href="./my-creations.html">我的创作</a>
+        <a href="./zh/my-creations/">我的创作</a>
       </div>
       <div>
         <h3>About Us</h3>
-        <a href="./blog.html">Blog</a>
-        <a href="./pricing.html">价格</a>
-        <a href="./free-coins.html">推荐</a>
-        <a href="./terms.html">Terms</a>
-        <a href="./privacy.html">Privacy</a>
-        <a href="./cookie.html">Cookie</a>
+        <a href="./zh/blog/">Blog</a>
+        <a href="./zh/pricing/">价格</a>
+        <a href="./zh/free-coins/">推荐</a>
+        <a href="./zh/terms/">Terms</a>
+        <a href="./zh/privacy/">Privacy</a>
+        <a href="./zh/cookie/">Cookie</a>
       </div>
       <div>
         <p>支持：support@openvideostudio.app</p>
@@ -420,7 +420,7 @@ function injectFloatingDock() {
   document.body.insertAdjacentHTML("beforeend", `
     <aside class="floating-dock" aria-label="Quick actions">
       <button class="floating-action daily-check" type="button" aria-label="每日签到"><span>🎁</span></button>
-      <a class="floating-action" href="./free-coins.html" aria-label="免费硬币"><span>币</span></a>
+      <a class="floating-action" href="./zh/free-coins/" aria-label="免费硬币"><span>币</span></a>
       <button class="floating-action" type="button" data-support-widget aria-label="帮助"><span>?</span></button>
       <button class="floating-avatar" type="button" data-support-widget aria-label="客服头像"><span>OVS</span></button>
       <button class="floating-action to-top" type="button" data-scroll-top aria-label="返回顶部"><span>↑</span></button>
@@ -499,7 +499,7 @@ function injectToolDiscovery() {
           <p class="eyebrow">模板库</p>
           <h2>${toolName} 热门模板</h2>
         </div>
-        <a href="./pricing.html">购买积分</a>
+        <a href="./zh/pricing/">购买积分</a>
       </div>
       <div class="tool-template-grid">
         ${[
@@ -545,7 +545,7 @@ function injectToolDiscovery() {
       </div>
       <div class="tool-conversion-actions">
         <a class="btn primary" href="./signin.html" data-auth-modal>登录继续</a>
-        <a class="btn glass" href="./free-coins.html">领取免费硬币</a>
+        <a class="btn glass" href="./zh/free-coins/">领取免费硬币</a>
       </div>
     </section>
   `);
@@ -781,7 +781,7 @@ document.addEventListener("click", async (event) => {
   const toolGenerateButton = event.target.closest("[data-tool-demo-generate]");
   if (toolGenerateButton) {
     if (!state.user) {
-      openUnlockModal(window.location.pathname.split("/").pop() || "./generate.html");
+      openUnlockModal(window.location.pathname.split("/").pop() || "./zh/app/generate/");
       return;
     }
     runToolDemoGeneration();
@@ -812,10 +812,10 @@ function openSupportWidget() {
       <h2>需要帮助？</h2>
       <p>这里是 Open Video Studio 的快速帮助入口。真实客服系统接入前，先提供常用路径。</p>
       <div class="support-links">
-        <a href="./image-editor.html">打开图片工具</a>
-        <a href="./image-to-video.html">打开视频工具</a>
-        <a href="./pricing.html">查看积分套餐</a>
-        <a href="./free-coins.html">领取免费硬币</a>
+        <a href="./zh/app/image-editor/">打开图片工具</a>
+        <a href="./zh/app/image-to-video/">打开视频工具</a>
+        <a href="./zh/pricing/">查看积分套餐</a>
+        <a href="./zh/free-coins/">领取免费硬币</a>
         <a href="mailto:support@openvideostudio.app">联系支持</a>
       </div>
     </div>
@@ -846,7 +846,7 @@ function openAuthModal(nextUrl = "./dashboard.html") {
         <button class="modal-auth-btn" type="button" data-modal-auth-provider="discord" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot dc-dot">DC</span>使用 Discord 登录 <b>→</b></button>
       </div>
       <p class="auth-message" data-auth-message>配置 Supabase OAuth 后，Google / X / Discord 会进行真实登录；Telegram 需要配置 Bot 和回调校验。</p>
-      <p class="login-terms">继续即表示你同意我们的 <a href="./terms.html">服务条款</a> 和 <a href="./privacy.html">隐私政策</a>。</p>
+      <p class="login-terms">继续即表示你同意我们的 <a href="./zh/terms/">服务条款</a> 和 <a href="./zh/privacy/">隐私政策</a>。</p>
     </div>
   `;
   document.body.append(overlay);
@@ -911,11 +911,11 @@ document.querySelectorAll(".tool-poster.locked").forEach((card) => {
   card.addEventListener("click", (event) => {
     if (state.user) return;
     event.preventDefault();
-    openUnlockModal(card.getAttribute("href") || "./generate.html");
+    openUnlockModal(card.getAttribute("href") || "./zh/app/generate/");
   });
 });
 
-function openUnlockModal(nextUrl = "./generate.html") {
+function openUnlockModal(nextUrl = "./zh/app/generate/") {
   document.querySelector(".unlock-overlay")?.remove();
   const overlay = document.createElement("section");
   overlay.className = "unlock-overlay";
@@ -934,7 +934,7 @@ function openUnlockModal(nextUrl = "./generate.html") {
         <button type="button" data-unlock-auth="discord" data-modal-auth-provider="discord" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot dc-dot">DC</span>使用 Discord 登录 <b>→</b></button>
       </div>
       <p class="auth-message" data-auth-message>选择一个账号继续。真实登录需要先配置 Supabase OAuth。</p>
-      <a class="btn primary full" href="./pricing.html">查看积分套餐</a>
+      <a class="btn primary full" href="./zh/pricing/">查看积分套餐</a>
     </div>
   `;
   document.body.append(overlay);
@@ -987,7 +987,7 @@ function openCheckInModal() {
   overlay.querySelector(".checkin-action")?.addEventListener("click", () => {
     if (!state.user) {
       overlay.remove();
-      openAuthModal("./free-coins.html");
+      openAuthModal("./zh/free-coins/");
       return;
     }
     if (state.rewards.lastCheckInDate === today) {
@@ -1245,7 +1245,7 @@ if (generateButton && queueTarget) {
     const activeMode = document.querySelector("[data-mode].active")?.dataset.mode || "image";
     const cost = modeCosts[activeMode] || 8;
     if (state.credits < cost) {
-    queueTarget.prepend(statusRow("积分不足", "请先购买积分再生成这个作品。", "./pricing.html", "购买积分"));
+    queueTarget.prepend(statusRow("积分不足", "请先购买积分再生成这个作品。", "./zh/pricing/", "购买积分"));
       return;
     }
     state.credits -= cost;
@@ -1423,7 +1423,7 @@ function renderCreations(current) {
     `).join("") : `
       <article class="empty-state creation-empty">
         <div><p class="eyebrow">没有匹配作品</p><h2>换个关键词，或生成一个新作品</h2><p class="muted">生成结果会自动进入这里，方便继续复用、分享和转视频。</p></div>
-        <a class="btn primary" href="./generate.html">开始生成</a>
+        <a class="btn primary" href="./zh/app/generate/">开始生成</a>
       </article>
     `;
   }
@@ -1602,7 +1602,7 @@ document.addEventListener("click", async (event) => {
     if (!asset) return;
     localStorage.setItem("ovs_retry_prompt", asset.prompt || "");
     localStorage.setItem("ovs_selected_character", asset.character || "");
-    window.location.href = "./generate.html";
+    window.location.href = "./zh/app/generate/";
     return;
   }
 
@@ -1644,7 +1644,7 @@ document.addEventListener("click", async (event) => {
     const asset = state.assets.find((item) => item.id === retryAssetButton.dataset.retryAsset);
     if (asset) {
       localStorage.setItem("ovs_retry_prompt", asset.prompt || "");
-      window.location.href = "./generate.html";
+      window.location.href = "./zh/app/generate/";
     }
     return;
   }
@@ -1654,7 +1654,7 @@ document.addEventListener("click", async (event) => {
     const job = state.history.find((item) => item.id === retryJobButton.dataset.retryJob);
     if (job) {
       localStorage.setItem("ovs_retry_prompt", job.prompt || "");
-      window.location.href = "./generate.html";
+      window.location.href = "./zh/app/generate/";
     }
     return;
   }
@@ -1678,7 +1678,7 @@ document.addEventListener("click", async (event) => {
 
   if (event.target.closest("[data-gallery-similar]")) {
     localStorage.setItem("ovs_retry_prompt", galleryPrompt);
-    window.location.href = "./generate.html";
+    window.location.href = "./zh/app/generate/";
     return;
   }
 
@@ -1719,7 +1719,7 @@ document.addEventListener("click", async (event) => {
   }
 
   if (event.target.closest("[data-open-character]")) {
-    window.location.href = "./characters.html";
+    window.location.href = "./zh/app/characters/";
     return;
   }
 
@@ -1736,7 +1736,7 @@ document.addEventListener("click", async (event) => {
     if (character) {
       localStorage.setItem("ovs_selected_character", character.name);
       localStorage.setItem("ovs_retry_prompt", `${character.name}，${character.role}，${character.memory || ""}`);
-      window.location.href = "./generate.html";
+      window.location.href = "./zh/app/generate/";
     }
     return;
   }
@@ -1805,3 +1805,4 @@ if (selectedCharacterName) {
 }
 
 renderState(state);
+

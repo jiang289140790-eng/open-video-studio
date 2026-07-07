@@ -257,6 +257,39 @@ describe("MVP static frontend", () => {
     }
   });
 
+  it("uses target-site-style localized click routes on primary discovery surfaces", () => {
+    const surfaces = ["app.html", "image-tools.html", "video-tools.html"].map(readPage).join("\n");
+    const appScript = readPage("app.js");
+    for (const expected of [
+      "./zh/image-tools/",
+      "./zh/video-tools/",
+      "./zh/app/image-editor/",
+      "./zh/app/face-swap/",
+      "./zh/app/outfit-studio/",
+      "./zh/app/pose-generator/",
+      "./zh/app/nano-banana/",
+      "./zh/app/image-combiner/",
+      "./zh/app/generate/",
+      "./zh/app/characters/",
+      "./zh/app/image-to-video/",
+      "./zh/pricing/",
+      "./zh/free-coins/",
+      "./zh/my-creations/"
+    ]) {
+      assert.ok(`${surfaces}\n${appScript}`.includes(expected), `primary click routes should include ${expected}`);
+    }
+    for (const oldHref of [
+      'href="./image-editor.html"',
+      'href="./image-to-video.html"',
+      'href="./image-tools.html"',
+      'href="./video-tools.html"',
+      'href="./pricing.html"',
+      'href="./free-coins.html"'
+    ]) {
+      assert.equal(surfaces.includes(oldHref), false, `primary discovery pages should not expose ${oldHref}`);
+    }
+  });
+
   it("contains target-site-style top navigation dropdowns", () => {
     const appScript = readPage("app.js");
     for (const expected of [
