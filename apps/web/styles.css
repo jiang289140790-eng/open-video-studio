@@ -883,6 +883,62 @@ body.tool-layout .tool-card {
   color: #fff;
   font-style: normal;
 }
+.tool-directory-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 28px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255,255,255,0.035);
+}
+.tool-filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tool-filter-tabs button {
+  min-height: 38px;
+  border: 0;
+  border-radius: 10px;
+  padding: 0 16px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font-weight: 900;
+}
+.tool-filter-tabs button.active {
+  background: #ffbf00;
+  color: #16120a;
+}
+.tool-search-box {
+  display: grid;
+  gap: 4px;
+  min-width: min(100%, 320px);
+  color: #aeb5c6;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+.tool-search-box input {
+  min-height: 42px;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 12px;
+  padding: 0 14px;
+  background: rgba(0,0,0,0.28);
+  color: #fff;
+  outline: 0;
+}
+.empty-tool-state {
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 14px;
+  margin: 28px 0 0;
+  padding: 20px;
+  background: rgba(255,255,255,0.04);
+  color: #aeb5c6;
+  text-align: center;
+  font-weight: 850;
+}
 .tool-section {
   margin-top: 38px;
 }
@@ -2586,6 +2642,7 @@ body.tool-layout .site-footer {
   }
   .rail-actions { display: none; }
   .app-hero-grid { grid-template-columns: 1fr; }
+  .tool-directory-bar { align-items: stretch; flex-direction: column; }
   .quick-tool-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .app-footer { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
   .credit-shop-shell { grid-template-columns: 1fr; }
@@ -2623,6 +2680,8 @@ body.tool-layout .site-footer {
   .auth-submit-grid { grid-template-columns: 1fr; }
   .rail-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .rail-nav span { grid-column: 1 / -1; }
+  .tool-filter-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tool-filter-tabs button { width: 100%; }
   .quick-tool-row, .app-footer { grid-template-columns: 1fr; }
   .credit-shop-shell { padding: 18px; }
   .credit-shop-panel h1 { text-align: left; }

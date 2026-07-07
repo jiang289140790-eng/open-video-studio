@@ -100,6 +100,9 @@ describe("MVP static frontend", () => {
       "data-tool-template-card",
       "data-tool-related",
       "data-tool-route",
+      "data-tool-home-filter",
+      "data-tool-home-search",
+      "renderToolHomeDirectory",
       "floating-dock",
       "data-support-widget",
       "data-scroll-top",
@@ -190,6 +193,27 @@ describe("MVP static frontend", () => {
       "图片转视频"
     ]) {
       assert.ok(appScript.includes(expected), `top navigation should include ${expected}`);
+    }
+  });
+
+  it("contains target-site-style tool directory filtering", () => {
+    const appHome = readPage("app.html");
+    const appScript = readPage("app.js");
+    const styles = readPage("styles.css");
+    for (const expected of [
+      "data-tool-home-filter=\"hot\"",
+      "data-tool-home-filter=\"new\"",
+      "data-tool-home-filter=\"image\"",
+      "data-tool-home-filter=\"video\"",
+      "data-tool-home-filter=\"character\"",
+      "data-tool-home-search",
+      "data-tool-home-card",
+      "data-tool-home-empty",
+      "renderToolHomeDirectory",
+      "tool-directory-bar",
+      "tool-filter-tabs"
+    ]) {
+      assert.ok(`${appHome}\n${appScript}\n${styles}`.includes(expected), `tool directory should include ${expected}`);
     }
   });
 

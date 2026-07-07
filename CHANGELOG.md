@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.42.0 |
+| Version | 0.43.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -35,10 +35,11 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Aligned the daily check-in flow with the target-style modal behavior: signed-out users now stay on the current page and open the social login modal from the check-in dialog.
 - Added stronger free-credit CTA copy and gift-labeled daily check-in navigation.
 - Upgraded the global language selector with persisted locale state, active menu state, document language updates, and a site toast that clarifies untranslated languages remain in Chinese for now.
+- Added target-style tool directory filtering on the AI tools homepage with category chips, search, active states, section hiding, and empty-state feedback.
 
 ### Validation
 
-- Ran the full test suite after the public share, purchase credits, free coins, tool discovery, daily check-in flow, and language selector update; 40 tests passed.
+- Ran the full test suite after the public share, purchase credits, free coins, tool discovery, daily check-in flow, language selector, and tool directory update; 41 tests passed.
 - Checked local HTML links and documentation summary links after the update.
 
 ### Added

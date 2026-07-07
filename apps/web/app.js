@@ -87,6 +87,8 @@ state.rewards = {
   ...(state.rewards || {})
 };
 let selectedCharacterId = state.characters[0]?.id || "";
+let toolHomeFilter = "all";
+let toolHomeSearch = "";
 
 injectTopNavigation();
 injectAppShell();
@@ -95,6 +97,7 @@ injectToolDiscovery();
 injectFloatingDock();
 injectGlobalFooter();
 applyStoredLanguage();
+renderToolHomeDirectory();
 hydrateAuthSession();
 
 function injectTopNavigation() {
@@ -177,6 +180,28 @@ function showSiteToast(message) {
   toast.textContent = message;
   document.body.append(toast);
   window.setTimeout(() => toast.remove(), 2200);
+}
+
+function renderToolHomeDirectory() {
+  const cards = Array.from(document.querySelectorAll("[data-tool-home-card]"));
+  if (!cards.length) return;
+  let visibleCount = 0;
+  cards.forEach((card) => {
+    const tags = `${card.dataset.toolTags || ""} ${card.textContent || ""}`.toLowerCase();
+    const matchesFilter = toolHomeFilter === "all" || tags.includes(toolHomeFilter);
+    const matchesSearch = !toolHomeSearch || tags.includes(toolHomeSearch);
+    const visible = matchesFilter && matchesSearch;
+    card.hidden = !visible;
+    if (visible) visibleCount += 1;
+  });
+  document.querySelectorAll("[data-tool-home-section]").forEach((section) => {
+    section.hidden = !section.querySelector("[data-tool-home-card]:not([hidden])");
+  });
+  document.querySelectorAll("[data-tool-home-filter]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.toolHomeFilter === toolHomeFilter);
+  });
+  const empty = document.querySelector("[data-tool-home-empty]");
+  if (empty) empty.hidden = visibleCount > 0;
 }
 
 function renderAccountNavigation(current) {
@@ -1370,6 +1395,18 @@ document.querySelectorAll("[data-creation-filter]").forEach((button) => {
     creationFilter = button.dataset.creationFilter || "all";
     renderCreations(state);
   });
+});
+
+document.querySelectorAll("[data-tool-home-filter]").forEach((button) => {
+  button.addEventListener("click", () => {
+    toolHomeFilter = button.dataset.toolHomeFilter || "all";
+    renderToolHomeDirectory();
+  });
+});
+
+document.querySelector("[data-tool-home-search]")?.addEventListener("input", (event) => {
+  toolHomeSearch = event.currentTarget.value.trim().toLowerCase();
+  renderToolHomeDirectory();
 });
 
 document.addEventListener("click", async (event) => {
