@@ -666,11 +666,10 @@ document.querySelectorAll("[data-email-auth]").forEach((button) => {
 document.querySelectorAll("[data-buy-credits]").forEach((button) => {
   button.addEventListener("click", (event) => {
     event.preventDefault();
-    ensureUser("email");
     const credits = Number(button.dataset.buyCredits || "0");
-    state.credits += credits;
-    saveState(state);
-    button.textContent = `已增加 ${credits} 积分`;
+    const planName = button.dataset.planName || button.textContent.trim() || "积分套餐";
+    const price = button.querySelector("strong")?.textContent?.trim() || button.dataset.planPrice || "演示结账";
+    openCheckoutModal({ credits, planName, price });
   });
 });
 
@@ -763,10 +762,69 @@ function openCreditOfferModal() {
     }
   });
   overlay.querySelector("[data-offer-claim]")?.addEventListener("click", () => {
-    ensureUser("email");
-    state.credits += 1600;
+    close();
+    openCheckoutModal({ credits: 1600, planName: "2x 加赠创作者包", price: "$29.99", promo: "WELCOME_SALE" });
+  });
+}
+
+function openCheckoutModal({ credits, planName, price, promo = "" }) {
+  document.querySelector(".checkout-overlay")?.remove();
+  const overlay = document.createElement("section");
+  overlay.className = "checkout-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", "积分结账");
+  const signedIn = Boolean(state.user);
+  overlay.innerHTML = `
+    <div class="checkout-modal">
+      <button class="checkin-close" type="button" aria-label="关闭">×</button>
+      <p class="eyebrow">Checkout</p>
+      <h2>确认购买 ${escapeHtml(planName)}</h2>
+      <div class="checkout-summary">
+        <div><span>套餐</span><strong>${escapeHtml(planName)}</strong></div>
+        <div><span>积分</span><strong>${credits}</strong></div>
+        <div><span>价格</span><strong>${escapeHtml(price)}</strong></div>
+        <div><span>账户</span><strong>${signedIn ? escapeHtml(state.user.name) : "访客结账"}</strong></div>
+      </div>
+      <label class="checkout-promo">
+        <span>优惠码</span>
+        <input value="${escapeHtml(promo)}" placeholder="WELCOME_SALE" data-checkout-promo>
+      </label>
+      <div class="checkout-methods" aria-label="Payment methods">
+        <button class="active" type="button" data-checkout-method="paypal">PayPal</button>
+        <button type="button" data-checkout-method="card">银行卡</button>
+        <button type="button" data-checkout-method="applepay">Apple Pay</button>
+        <button type="button" data-checkout-method="crypto">USDT</button>
+      </div>
+      <p class="checkout-note">${signedIn ? "这是演示结账：不会调用真实支付接口，确认后积分会进入本地余额。" : "登录后可同步账户积分。当前演示模式会先创建本地创作者账户。"}</p>
+      <div class="checkout-actions">
+        <button class="btn primary full" type="button" data-confirm-checkout>确认并发放演示积分</button>
+        <a class="btn glass full" href="./signin.html">登录账户</a>
+      </div>
+    </div>
+  `;
+  document.body.append(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector(".checkin-close")?.addEventListener("click", close);
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) close();
+  });
+  overlay.querySelectorAll("[data-checkout-method]").forEach((button) => {
+    button.addEventListener("click", () => {
+      overlay.querySelectorAll("[data-checkout-method]").forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+    });
+  });
+  overlay.querySelector("[data-confirm-checkout]")?.addEventListener("click", () => {
+    ensureUser("checkout");
+    state.credits += credits;
+    state.rewards.taskClaims = Array.from(new Set([...state.rewards.taskClaims, "purchase"]));
     saveState(state);
-    overlay.querySelector("[data-offer-claim]").textContent = "已增加 1600 积分";
+    overlay.querySelector("[data-confirm-checkout]").textContent = `已到账 ${credits} 积分`;
+    overlay.querySelector(".checkout-note").textContent = "演示积分已进入余额。真实支付 API 接入前不会产生扣款。";
+    window.setTimeout(() => {
+      window.location.href = "./dashboard.html";
+    }, 650);
   });
 }
 

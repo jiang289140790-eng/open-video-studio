@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.35.0 |
+| Version | 0.36.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,17 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Added
+
+- Added a target-site-style checkout modal for credit purchases with order summary, payment-method selection, promo code field, login prompt, and demo credit delivery without connecting a real payment API.
+- Routed the limited-time 2x credit offer through the same checkout flow so every purchase entry point behaves consistently.
+- Added static coverage for the checkout flow and no-real-payment messaging.
+
+### Validation
+
+- Ran production build and full test suite after the checkout flow update; 36 tests passed.
+- Checked local HTML links after the update.
 
 ### Added
 

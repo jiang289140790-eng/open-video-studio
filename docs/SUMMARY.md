@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.42.0 |
+| Version | 0.43.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -40,6 +40,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 - Gallery cards now have working product-loop actions for generate similar, copy prompt, share, favorite, and open character; Asset Library chips now filter visible assets.
 - Character Management now behaves as an actionable character center with search, status/favorite filters, selectable profiles, character memory, copy-prompt, and use-character-to-generate handoff.
 - Free Coins and Dashboard are now state-driven: check-in progress, referral copy count, claimed rewards, recent generations, saved characters, and share links render from local product state.
+- Purchase Credits now uses a target-style checkout modal with order summary, payment method selection, promo code, login guidance, and demo credit delivery while real payment APIs remain disconnected.
 - Browser authentication now calls Supabase Auth when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are configured; missing configuration is surfaced to the user instead of creating fake accounts.
 
 ## Knowledge Base Map

@@ -1594,6 +1594,91 @@ body.tool-layout .site-footer {
 .credit-offer-modal small {
   color: #aeb5c6;
 }
+.checkout-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 132;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0,0,0,0.78);
+  backdrop-filter: blur(8px);
+}
+.checkout-modal {
+  position: relative;
+  display: grid;
+  gap: 16px;
+  width: min(100%, 520px);
+  border: 1px solid rgba(255,98,187,0.32);
+  border-radius: 20px;
+  padding: 30px;
+  background: linear-gradient(180deg, #171717, #1c0d2e);
+  box-shadow: 0 30px 100px rgba(0,0,0,0.68);
+}
+.checkout-modal h2 {
+  max-width: none;
+  color: #fff;
+}
+.checkout-summary {
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.05);
+}
+.checkout-summary div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 13px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.checkout-summary div:last-child {
+  border-bottom: 0;
+}
+.checkout-summary span,
+.checkout-promo span,
+.checkout-note {
+  color: #aeb5c6;
+}
+.checkout-summary strong {
+  color: #fff;
+}
+.checkout-promo {
+  display: grid;
+  gap: 8px;
+}
+.checkout-promo input {
+  min-height: 48px;
+  border: 1px dashed rgba(255,98,187,0.45);
+  border-radius: 12px;
+  padding: 0 14px;
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+}
+.checkout-methods {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.checkout-methods button {
+  min-height: 48px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font-weight: 950;
+}
+.checkout-methods button.active {
+  border-color: #ff62bb;
+  background: linear-gradient(135deg, rgba(255,98,187,0.28), rgba(164,20,255,0.28));
+}
+.checkout-actions {
+  display: grid;
+  grid-template-columns: 1fr 0.7fr;
+  gap: 10px;
+}
 .offer-compare {
   overflow: hidden;
   border: 1px solid rgba(255,255,255,0.14);
@@ -2393,6 +2478,9 @@ body.tool-layout .site-footer {
     width: 40px;
     height: 40px;
   }
+  .checkout-actions,
+  .checkout-methods,
+  .checkout-summary div { grid-template-columns: 1fr; }
   .offer-compare div { grid-template-columns: 1fr; text-align: center; }
   .pricing-packages { grid-template-columns: 1fr; }
   .trust-band, .reward-task-grid { grid-template-columns: 1fr; }

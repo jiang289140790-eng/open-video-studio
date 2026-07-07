@@ -126,7 +126,12 @@ describe("MVP static frontend", () => {
       "renderReferral",
       "data-dashboard-recent",
       "data-dashboard-characters",
-      "data-dashboard-shares-list"
+      "data-dashboard-shares-list",
+      "openCheckoutModal",
+      "checkout-overlay",
+      "data-checkout-method",
+      "data-confirm-checkout",
+      "data-checkout-promo"
     ]) {
       assert.ok(combined.includes(hook), `MVP hook should exist: ${hook}`);
     }
@@ -287,6 +292,24 @@ describe("MVP static frontend", () => {
       "referral-progress"
     ]) {
       assert.ok(`${referral}\n${dashboard}\n${appScript}\n${styles}`.includes(expected), `reward/dashboard center should include ${expected}`);
+    }
+  });
+
+  it("contains target-site-style checkout flow without payment API", () => {
+    const pricing = readPage("pricing.html");
+    const appScript = readPage("app.js");
+    const styles = readPage("styles.css");
+    for (const expected of [
+      "data-buy-credits",
+      "data-payment-method",
+      "openCheckoutModal",
+      "checkout-overlay",
+      "checkout-methods",
+      "data-checkout-method",
+      "data-confirm-checkout",
+      "真实支付 API 接入前不会产生扣款"
+    ]) {
+      assert.ok(`${pricing}\n${appScript}\n${styles}`.includes(expected), `checkout flow should include ${expected}`);
     }
   });
 
