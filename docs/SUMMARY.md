@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.53.0 |
+| Version | 0.54.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -24,6 +24,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 - MVP product pages now use a target-style app shell with a left tool rail and dark creator-tool navigation.
 - `apps/web/app.html` now serves as the primary AI tool homepage with featured tools, quick actions, categorized rows, and footer links modeled after mature tool-directory UX.
 - The AI tool homepage now includes target-style category chips, search filtering, active states, section hiding, and empty-state feedback for tool discovery.
+- Horizontal tool and content card rows now include target-style injected carousel controls with left/right buttons and smooth scrolling.
 - The shared frontend script now injects a global footer navigation block across product pages and the homepage, keeping footer links consistent like a reusable site section.
 - Cookie policy behavior now includes a global preference banner, management modal, local preference persistence, and a Cookie page CTA for reopening preferences.
 - Pricing, Free Credits, My Creations, and Image to Video pages have been localized and visually aligned with the tool-directory product surface.

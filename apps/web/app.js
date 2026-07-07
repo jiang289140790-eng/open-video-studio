@@ -101,6 +101,7 @@ injectTopNavigation();
 injectAppShell();
 injectToolWorkbench();
 injectToolDiscovery();
+injectCarouselControls();
 injectFloatingDock();
 injectGlobalFooter();
 applyStoredLanguage();
@@ -541,6 +542,22 @@ function injectToolDiscovery() {
   `);
 }
 
+function injectCarouselControls() {
+  document.querySelectorAll(".card-carousel").forEach((carousel, index) => {
+    if (carousel.dataset.carouselReady === "true") return;
+    const id = `carousel_${index}`;
+    carousel.dataset.carouselReady = "true";
+    carousel.dataset.carouselId = id;
+    carousel.setAttribute("tabindex", "0");
+    carousel.insertAdjacentHTML("beforebegin", `
+      <div class="carousel-controls" data-carousel-controls>
+        <button type="button" data-carousel-scroll="${id}" data-direction="-1" aria-label="向左滚动">‹</button>
+        <button type="button" data-carousel-scroll="${id}" data-direction="1" aria-label="向右滚动">›</button>
+      </div>
+    `);
+  });
+}
+
 async function hydrateAuthSession() {
   if (!supabase) {
     renderState(state);
@@ -665,6 +682,17 @@ document.querySelectorAll("[data-telegram-auth]").forEach((button) => {
 });
 
 document.addEventListener("click", async (event) => {
+  const carouselButton = event.target.closest("[data-carousel-scroll]");
+  if (carouselButton) {
+    event.preventDefault();
+    const carousel = document.querySelector(`[data-carousel-id="${carouselButton.dataset.carouselScroll}"]`);
+    if (carousel) {
+      const direction = Number(carouselButton.dataset.direction || "1");
+      carousel.scrollBy({ left: direction * Math.max(260, carousel.clientWidth * 0.82), behavior: "smooth" });
+    }
+    return;
+  }
+
   if (event.target.closest("[data-cookie-manage]")) {
     event.preventDefault();
     openCookiePreferences();

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.46.0 |
+| Version | 0.47.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -39,10 +39,11 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Added target-style protected account page gates for Dashboard, My Creations, Assets, and History so signed-out visitors see a login/register prompt before managing demo account data.
 - Added click-to-open top navigation menus for image tools, video tools, language, and account navigation with `aria-expanded`, open-state styling, and outside-click closing for touch-friendly target-style navigation.
 - Added target-style Cookie preference controls with a global banner, manage preferences modal, local persistence, accept-essential and accept-all actions, and a Cookie page management CTA.
+- Added target-style carousel controls to horizontal tool/content rows with injected left/right buttons and smooth scrolling.
 
 ### Validation
 
-- Ran the full test suite after the public share, purchase credits, free coins, tool discovery, daily check-in flow, language selector, tool directory, protected account page, navigation menu, and Cookie preference update; 43 tests passed.
+- Ran the full test suite after the public share, purchase credits, free coins, tool discovery, daily check-in flow, language selector, tool directory, protected account page, navigation menu, Cookie preference, and carousel control update; 44 tests passed.
 - Checked local HTML links and documentation summary links after the update.
 
 ### Added

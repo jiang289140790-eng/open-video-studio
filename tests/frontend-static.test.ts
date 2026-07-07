@@ -153,7 +153,9 @@ describe("MVP static frontend", () => {
       "renderProtectedPageGate",
       "data-cookie-banner",
       "data-cookie-manage",
-      "COOKIE_PREF_KEY"
+      "COOKIE_PREF_KEY",
+      "injectCarouselControls",
+      "data-carousel-scroll"
     ]) {
       assert.ok(combined.includes(hook), `MVP hook should exist: ${hook}`);
     }
@@ -223,6 +225,21 @@ describe("MVP static frontend", () => {
       "tool-filter-tabs"
     ]) {
       assert.ok(`${appHome}\n${appScript}\n${styles}`.includes(expected), `tool directory should include ${expected}`);
+    }
+  });
+
+  it("contains target-site-style carousel controls", () => {
+    const appScript = readPage("app.js");
+    const styles = readPage("styles.css");
+    for (const expected of [
+      "injectCarouselControls",
+      "data-carousel-controls",
+      "data-carousel-scroll",
+      "data-carousel-id",
+      "carousel-controls",
+      "scrollBy"
+    ]) {
+      assert.ok(`${appScript}\n${styles}`.includes(expected), `carousel controls should include ${expected}`);
     }
   });
 

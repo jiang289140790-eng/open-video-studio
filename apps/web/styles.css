@@ -985,6 +985,30 @@ body.tool-layout .tool-card {
   gap: 16px;
   overflow-x: auto;
   padding-bottom: 8px;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+}
+.carousel-controls {
+  display: flex;
+  justify-content: end;
+  gap: 8px;
+  margin: -4px 0 12px;
+}
+.carousel-controls button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+.carousel-controls button:hover {
+  background: rgba(255,98,187,0.22);
+  border-color: rgba(255,98,187,0.46);
 }
 .card-carousel.compact {
   grid-auto-columns: minmax(180px, 220px);
