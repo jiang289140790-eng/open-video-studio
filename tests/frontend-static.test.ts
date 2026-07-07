@@ -106,7 +106,12 @@ describe("MVP static frontend", () => {
       "renderCreations",
       "data-copy-asset-prompt",
       "data-retry-asset",
-      "data-retry-job"
+      "data-retry-job",
+      "data-gallery-similar",
+      "data-copy-gallery-prompt",
+      "data-gallery-share",
+      "data-gallery-favorite",
+      "data-asset-filter"
     ]) {
       assert.ok(combined.includes(hook), `MVP hook should exist: ${hook}`);
     }
@@ -232,6 +237,8 @@ describe("MVP static frontend", () => {
     const gallery = readPage("gallery.html");
     const dashboard = readPage("dashboard.html");
     assert.ok(gallery.includes("masonry-gallery"));
+    assert.ok(gallery.includes("data-gallery-title"));
+    assert.ok(gallery.includes("data-gallery-prompt"));
     assert.ok(gallery.includes("热门"));
     assert.ok(gallery.includes("生成相似"));
     assert.ok(gallery.includes("复制提示词"));

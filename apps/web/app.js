@@ -823,7 +823,7 @@ function renderAssets(current) {
   const targets = document.querySelectorAll("[data-asset-list]");
   targets.forEach((target) => {
     target.innerHTML = current.assets.map((asset, index) => `
-      <article class="library-card" data-asset>
+      <article class="library-card" data-asset data-asset-kind="${asset.type === "video" ? "视频" : "图片"}" data-asset-favorite="${asset.favorite ? "收藏" : ""}">
         <span class="thumb ${asset.type === "video" ? "art-7" : ["art-3", "art-8", "art-10"][index % 3]}"></span>
         <div><h3>${escapeHtml(asset.title)}</h3><p>${asset.type === "video" ? "视频" : "图片"} - ${asset.visibility === "public" ? "公开" : "私密"} - 角色 ${escapeHtml(asset.character)}</p></div>
         <button data-share-asset="${asset.id}">分享</button>
@@ -1010,7 +1010,69 @@ document.addEventListener("click", async (event) => {
     } catch {
       copyPromptButton.textContent = "复制提示词";
     }
+    return;
   }
+
+  const galleryCard = event.target.closest("[data-gallery-title][data-gallery-prompt]");
+  const galleryTitle = galleryCard?.dataset.galleryTitle || "灵感作品";
+  const galleryPrompt = galleryCard?.dataset.galleryPrompt || "";
+
+  if (event.target.closest("[data-gallery-similar]")) {
+    localStorage.setItem("ovs_retry_prompt", galleryPrompt);
+    window.location.href = "./generate.html";
+    return;
+  }
+
+  const copyGalleryPromptButton = event.target.closest("[data-copy-gallery-prompt]");
+  if (copyGalleryPromptButton) {
+    try {
+      await navigator.clipboard?.writeText(galleryPrompt);
+      copyGalleryPromptButton.textContent = "已复制";
+    } catch {
+      copyGalleryPromptButton.textContent = "复制提示词";
+    }
+    return;
+  }
+
+  if (event.target.closest("[data-gallery-share]")) {
+    const assetId = `asset_gallery_${Date.now()}`;
+    state.assets.unshift({
+      id: assetId,
+      type: galleryTitle.includes("片") ? "video" : "image",
+      title: galleryTitle,
+      prompt: galleryPrompt,
+      character: "Gallery",
+      credits: galleryTitle.includes("片") ? 24 : 8,
+      status: "completed",
+      visibility: "private",
+      favorite: false
+    });
+    saveState(state);
+    createShare(assetId);
+    return;
+  }
+
+  const favoriteGalleryButton = event.target.closest("[data-gallery-favorite]");
+  if (favoriteGalleryButton) {
+    favoriteGalleryButton.textContent = "已收藏";
+    galleryCard?.classList.add("saved");
+    return;
+  }
+
+  if (event.target.closest("[data-open-character]")) {
+    window.location.href = "./characters.html";
+  }
+});
+
+document.querySelectorAll("[data-asset-filter]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const filter = button.dataset.assetFilter || "all";
+    document.querySelectorAll("[data-asset-filter]").forEach((item) => item.classList.toggle("active", item === button));
+    document.querySelectorAll("[data-asset]").forEach((card) => {
+      const text = `${card.textContent || ""} ${card.dataset.assetKind || ""} ${card.dataset.assetFavorite || ""}`;
+      card.hidden = filter !== "all" && !text.includes(filter);
+    });
+  });
 });
 
 const intervalToggle = document.querySelector("[data-interval]");

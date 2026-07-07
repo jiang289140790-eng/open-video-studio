@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.32.0 |
+| Version | 0.33.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,17 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Added
+
+- Wired the visual gallery cards into the product loop: Generate Similar now sends prompts to Generate, Copy Prompt writes the prompt, Share creates a shareable local asset, Favorite marks cards as saved, and Open Character routes to Characters.
+- Added working Asset Library filter chips for images, videos, prompts, references, and favorites.
+- Added static coverage for the gallery action hooks and asset filter hooks.
+
+### Validation
+
+- Ran production build and full test suite after the gallery and asset filter update; 33 tests passed.
+- Checked local HTML links after the update.
 
 ### Added
 
