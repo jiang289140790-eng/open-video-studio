@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.22.0 |
+| Version | 0.23.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -204,6 +204,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 - [Frontend Domain](0300-frontend/README.md) documents the current React/Vite app shell and static MVP surface.
 - [Backend Architecture Bible](0400-backend/000-backend-architecture-bible.md) documents the Supabase connection foundation.
 - [Database Bible](0500-database/README.md) documents Supabase PostgreSQL as the production target.
+- [Supabase MVP Schema](../src/supabase/mvp-schema.sql) defines the MVP Backend Loop tables, indexes, and RLS policies for the existing Supabase project.
 
 ## Reviews
 
@@ -216,7 +217,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 ## Roadmap
 
 - [ROADMAP-PLATFORM-V2-001 Platform Evolution Roadmap V2](1400-roadmap/platform-evolution-roadmap-v2.md)
-- [ROADMAP-MVP-SPRINTS-001 MVP Sprint Backlog](1400-roadmap/mvp-sprint-backlog.md) - Sprint 2 completed.
+- [ROADMAP-MVP-SPRINTS-001 MVP Sprint Backlog](1400-roadmap/mvp-sprint-backlog.md) - MVP Backend Loop completed.
 
 ## Acceptance Criteria
 

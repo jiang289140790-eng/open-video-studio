@@ -1,6 +1,8 @@
 import { createHash, randomBytes } from "node:crypto";
 import type { SqliteDatabase } from "../db/database.js";
 import { AuditLog } from "../audit/auditLog.js";
+import { CreditLedger } from "../credits/creditLedger.js";
+import { STARTER_CREDITS } from "../credits/starterCredits.js";
 import { UserRepository, type User } from "../users/userRepository.js";
 import { AppError } from "../shared/errors.js";
 import { createId } from "../shared/id.js";
@@ -15,6 +17,7 @@ export interface AuthSession {
 
 export class AuthService {
   private readonly users: UserRepository;
+  private readonly credits: CreditLedger;
   private readonly audit: AuditLog;
 
   constructor(
@@ -22,6 +25,7 @@ export class AuthService {
     private readonly sessionTtlSeconds = 60 * 60 * 24 * 7,
   ) {
     this.users = new UserRepository(db);
+    this.credits = new CreditLedger(db);
     this.audit = new AuditLog(db);
   }
 
@@ -39,6 +43,14 @@ export class AuthService {
       targetId: user.id,
       outcome: "success",
       riskClassification: "medium",
+    });
+    this.credits.grant({
+      accountId: user.id,
+      userId: user.id,
+      amount: STARTER_CREDITS,
+      sourceType: "auth_signup",
+      sourceId: user.id,
+      reason: "Starter credits for new user",
     });
     return this.createSession(user);
   }

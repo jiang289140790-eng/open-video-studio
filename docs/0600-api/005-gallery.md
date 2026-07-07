@@ -4,7 +4,7 @@
 |---|---|
 | ID | API-GALLERY-001 |
 | Unique ID | API-GALLERY-001 |
-| Version | 1.2.0 |
+| Version | 1.3.0 |
 | Status | Active |
 | Owner | Media Platform Lead / API Platform Lead |
 | Dependencies | API-AUTH-001, DB-MEDIA-ASSETS-001, DB-IMAGES-001, DB-VIDEOS-001 |
@@ -80,7 +80,7 @@ Sprint 2 adds MVP HTTP routes for assets, gallery filtering, review, favorites, 
 
 Current filters support project, character, asset type, source type, visibility, processing state, moderation state, favorite state, query, and tags.
 
-Public sharing still needs production signed URL, revocation, abuse, and analytics controls before launch.
+MVP Backend Loop adds Supabase-backed gallery reads from real `media_assets` rows, generation history linkage, share-link creation, and public share resolution. Public sharing still needs production signed URL, revocation, abuse, and analytics controls before launch.
 
 ## Future Plan
 

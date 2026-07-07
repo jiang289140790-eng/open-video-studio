@@ -4,7 +4,7 @@
 |---|---|
 | ID | API-CREDITS-001 |
 | Unique ID | API-CREDITS-001 |
-| Version | 1.2.0 |
+| Version | 1.3.0 |
 | Status | Active |
 | Owner | Billing Platform Lead / API Platform Lead |
 | Dependencies | API-AUTH-001, DB-CREDITS-001, DB-ORDERS-001, DB-SUBSCRIPTIONS-001 |
@@ -73,6 +73,8 @@ Support alerts, budget limits, credit reservations, pooled credits, enterprise c
 Credit reservation, refunds, failed-job credit policy, provider reconciliation, and subscription entitlements remain future work.
 
 MVP Sprint 1 exposes local HTTP routes for credit balance/history and local test credit purchase through `createMvpApiServer`.
+
+MVP Backend Loop grants `40` starter credits on signup and consumes credits when generation jobs are created. Payment purchase remains out of scope for this loop.
 
 ## Future Plan
 

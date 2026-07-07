@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DB-CREDITS-001 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Active |
 | Owner | Billing / Monetization Data Owner |
 | Dependencies | PB-006, DB-USERS-001, DB-ORDERS-001, DB-SUBSCRIPTIONS-001 |
@@ -53,6 +53,8 @@ Represent metered usage entitlement for expensive AI, media, rendering, export, 
 
 Credits are granted through subscription renewal, purchase, promotion, admin adjustment, or refund. Credits are consumed by eligible operations and may expire, reverse, or adjust based on policy.
 
+MVP Backend Loop grants `40` starter credits on signup and consumes credits when image or video generation jobs are created. Payments remain out of scope for this loop.
+
 ## Permissions
 
 Users may view their own credit balance and usage history. Admins may view workspace usage. Adjustments require elevated billing permission and audit logging.
@@ -69,6 +71,7 @@ Support multi-currency credit valuation, model-specific cost mapping, enterprise
 
 - Credit usage is explainable to users and reconcilable by billing.
 - Expensive operations can reference credit impact without duplicating billing rules.
+- Starter grants and generation consumption are recorded as ledger transactions.
 
 ## Future Plan
 

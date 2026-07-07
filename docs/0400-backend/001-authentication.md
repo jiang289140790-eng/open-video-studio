@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | BE-ARCH-AUTH-001 |
-| Version | 1.2.0 |
+| Version | 1.3.0 |
 | Status | Active |
 | Owner | Backend Lead / Security Lead |
 | Dependencies | API-AUTH-001, DB-USERS-001, DB-AUDIT-LOGS-001, SEC-INDEX-001 |
@@ -27,6 +27,8 @@ Authentication should be a platform boundary responsible for validating identity
 Phase 1 implements a local authentication service with password hashing, session token hashing, account status checks, user lookup, and audit logging. The production target is Supabase Auth, configured through `SUPABASE_URL` and `SUPABASE_ANON_KEY`.
 
 The repository now includes a Supabase client foundation and environment validation. Live authentication verification requires the existing Supabase project credentials in `.env.local`.
+
+MVP Backend Loop adds `SupabaseMvpBackendLoop`, which uses Supabase Auth for signup and password login, syncs an owned `profiles` row, and grants starter credits through the credit ledger table. The local `AuthService` mirrors the same starter-credit behavior for deterministic tests and local development.
 
 ## Responsibilities
 
@@ -53,6 +55,7 @@ Authentication should scale independently from expensive media workloads. Sessio
 - Protected backend services can rely on a consistent actor context.
 - Security-sensitive events are auditable.
 - Authentication failures do not expose sensitive account information.
+- New MVP users receive starter credits exactly once after signup.
 
 ## Future Plan
 

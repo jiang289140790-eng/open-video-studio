@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DB-SHARE-LINKS-001 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Active |
 | Owner | Media Platform Data Owner |
 | Dependencies | DB-USERS-001, DB-MEDIA-ASSETS-001 |
@@ -47,6 +47,8 @@ Share links are created for approved assets, used for public lookup, and may be 
 ## Permissions
 
 Only asset owners or authorized workspace members may create or revoke share links. Public token access must return only approved and public assets.
+
+MVP Backend Loop stores share links in Supabase with owner RLS plus public token read policy for active links. Creating a share link updates the asset visibility to `public`.
 
 ## Retention
 

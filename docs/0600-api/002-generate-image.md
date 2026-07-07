@@ -4,7 +4,7 @@
 |---|---|
 | ID | API-GEN-IMAGE-001 |
 | Unique ID | API-GEN-IMAGE-001 |
-| Version | 1.3.0 |
+| Version | 1.4.0 |
 | Status | Active |
 | Owner | AI Platform Lead / API Platform Lead |
 | Dependencies | API-AUTH-001, DB-IMAGES-001, DB-PROMPTS-001, DB-CREDITS-001, AI-INDEX-001 |
@@ -72,7 +72,7 @@ Support batch generation, image editing, inpainting, style libraries, brand cons
 
 Sprint 2 adds the MVP HTTP route `POST /generate/image`. The route uses local stub completion only: it creates a generation job, consumes credits, records provider/model/resolution/cost metadata, stores the generated result as a media asset, creates an image record, and makes the job visible in generation history.
 
-No external AI provider, OpenAPI contract, production model routing, or independent worker execution is connected yet.
+MVP Backend Loop adds a Supabase-compatible path that creates a generation job, consumes credits, keeps the Fake Worker, writes simulated output metadata to Supabase Storage, and records the output as a real asset. No external AI provider, OpenAPI contract, production model routing, or independent worker execution is connected yet.
 
 ## Future Plan
 

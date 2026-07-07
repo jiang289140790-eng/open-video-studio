@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DB-USERS-001 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Active |
 | Owner | Identity / Platform Data Owner |
 | Dependencies | PB-003, PB-008, SEC-INDEX-001 |
@@ -41,6 +41,10 @@ Represent human accounts that access Open Video Studio.
 - Updated timestamp.
 - Deleted or deactivated timestamp.
 
+## Current Implementation
+
+MVP Backend Loop maps Supabase Auth users to `profiles` rows in `src/supabase/mvp-schema.sql`. The profile row stores client-safe identity and profile fields only; credential handling remains owned by Supabase Auth.
+
 ## Indexes
 
 - User ID for primary lookup.
@@ -68,6 +72,7 @@ Add workspace membership, identity providers, SSO, MFA state, user preferences, 
 
 - User identity can be referenced consistently by product, API, backend, analytics, and audit docs.
 - Sensitive account data remains governed by security documents.
+- Supabase profile rows are owned by the authenticated user through RLS.
 
 ## Future Plan
 

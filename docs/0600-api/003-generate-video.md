@@ -4,7 +4,7 @@
 |---|---|
 | ID | API-GEN-VIDEO-001 |
 | Unique ID | API-GEN-VIDEO-001 |
-| Version | 1.3.0 |
+| Version | 1.4.0 |
 | Status | Active |
 | Owner | AI Video Platform Lead / API Platform Lead |
 | Dependencies | API-AUTH-001, DB-VIDEOS-001, DB-PROMPTS-001, DB-CREDITS-001, DB-MEDIA-ASSETS-001, AI-INDEX-001 |
@@ -73,7 +73,7 @@ Support batch generation, timeline-aware generation, scene regeneration, brand t
 
 Sprint 2 adds the MVP HTTP route `POST /generate/video`. The route uses local stub completion only: it creates a generation job, consumes credits, records provider/model/resolution/duration/cost metadata, stores the generated result as a media asset, creates a video record, and makes the job visible in generation history.
 
-No external video model, render pipeline, webhook, production model routing, or independent worker execution is connected yet.
+MVP Backend Loop adds a Supabase-compatible path that creates a generation job, consumes credits, keeps the Fake Worker, writes simulated output metadata to Supabase Storage, and records the output as a real asset. No external video model, render pipeline, webhook, production model routing, or independent worker execution is connected yet.
 
 ## Future Plan
 

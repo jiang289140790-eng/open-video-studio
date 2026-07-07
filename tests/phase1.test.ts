@@ -10,6 +10,7 @@ import {
   StorageService,
   createMigratedDatabase,
 } from "../src/index.js";
+import { STARTER_CREDITS } from "../src/credits/starterCredits.js";
 
 test("authentication creates users, logs in, authenticates sessions, and rejects invalid passwords", () => {
   const db = createMigratedDatabase();
@@ -57,7 +58,7 @@ test("credit ledger grants, consumes, prevents overdraft, and records balance", 
     sourceType: "promotion",
     reason: "Initial test grant",
   });
-  assert.equal(ledger.getBalance(session.user.id), 100);
+  assert.equal(ledger.getBalance(session.user.id), STARTER_CREDITS + 100);
 
   ledger.consume({
     accountId: session.user.id,
@@ -68,14 +69,14 @@ test("credit ledger grants, consumes, prevents overdraft, and records balance", 
     operationCategory: "image_generation",
     reason: "Generated image",
   });
-  assert.equal(ledger.getBalance(session.user.id), 65);
-  assert.equal(ledger.list(session.user.id).length, 2);
+  assert.equal(ledger.getBalance(session.user.id), STARTER_CREDITS + 65);
+  assert.equal(ledger.list(session.user.id).length, 3);
 
   assert.throws(
     () => ledger.consume({
       accountId: session.user.id,
       userId: session.user.id,
-      amount: 100,
+      amount: 1000,
       sourceType: "generation",
       operationCategory: "video_generation",
       reason: "Too expensive",

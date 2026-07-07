@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DB-GENERATION-JOBS-001 |
-| Version | 1.1.0 |
+| Version | 1.2.0 |
 | Status | Active |
 | Owner | AI Platform Data Owner |
 | Dependencies | DB-USERS-001, DB-CREDITS-001, DB-MEDIA-ASSETS-001, DB-CHARACTERS-001 |
@@ -80,6 +80,14 @@ Support retry counts, idempotency keys, provider references, queue priority, wor
 ## Current Implementation
 
 Sprint 2 records provider, model, project, resolution, estimated cost, character, source asset, result asset, duration, and prompt search context for the first reusable asset workflow.
+
+MVP Backend Loop adds Supabase-compatible generation job persistence in `src/supabase/mvp-schema.sql`. Fake Worker completion updates jobs to `completed`, links `result_asset_id`, and keeps history queryable by user through RLS.
+
+## Acceptance Criteria
+
+- Generation jobs consume credits before queueing.
+- Completed jobs link to generated media assets.
+- Users can list only their own generation history.
 
 ## AI Context
 

@@ -14,6 +14,7 @@ import {
   UserRepository,
   createMigratedDatabase,
 } from "../src/index.js";
+import { STARTER_CREDITS } from "../src/credits/starterCredits.js";
 
 test("one user can register, buy credits, generate, store, review, share, and inspect history", () => {
   const db = createMigratedDatabase();
@@ -49,7 +50,7 @@ test("one user can register, buy credits, generate, store, review, share, and in
       providerReference: "local_checkout_test",
     });
     assert.equal(order.status, "completed");
-    assert.equal(credits.getBalance(user.id), 120);
+    assert.equal(credits.getBalance(user.id), STARTER_CREDITS + 120);
 
     const reference = storage.saveAsset({
       ownerUserId: user.id,
@@ -80,7 +81,7 @@ test("one user can register, buy credits, generate, store, review, share, and in
     });
     assert.equal(imageJob.status, "queued");
     assert.equal(imageJob.costCredits, 8);
-    assert.equal(credits.getBalance(user.id), 112);
+    assert.equal(credits.getBalance(user.id), STARTER_CREDITS + 112);
 
     generation.startJob(imageJob.id, user.id);
     const imageResult = generation.completeJob({
@@ -111,7 +112,7 @@ test("one user can register, buy credits, generate, store, review, share, and in
       characterId: character.id,
     });
     assert.equal(videoJob.costCredits, 24);
-    assert.equal(credits.getBalance(user.id), 88);
+    assert.equal(credits.getBalance(user.id), STARTER_CREDITS + 88);
 
     generation.startJob(videoJob.id, user.id);
     const videoResult = generation.completeJob({

@@ -2,6 +2,7 @@ import { AddressInfo } from "node:net";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createMigratedDatabase, createMvpApiServer } from "../src/index.js";
+import { STARTER_CREDITS } from "../src/credits/starterCredits.js";
 
 test("MVP API supports auth, profile, credits, purchase, and orders", async () => {
   const db = createMigratedDatabase();
@@ -36,7 +37,7 @@ test("MVP API supports auth, profile, credits, purchase, and orders", async () =
 
     const initialCredits = await request(baseUrl, "GET", "/credits", undefined, token);
     assert.equal(initialCredits.status, 200);
-    assert.equal(initialCredits.body.balance, 0);
+    assert.equal(initialCredits.body.balance, STARTER_CREDITS);
 
     const purchase = await request(baseUrl, "POST", "/credits/purchase", {
       credits: 100,
@@ -44,12 +45,12 @@ test("MVP API supports auth, profile, credits, purchase, and orders", async () =
       providerReference: "local_test_checkout",
     }, token);
     assert.equal(purchase.status, 200);
-    assert.equal(purchase.body.balance, 100);
+    assert.equal(purchase.body.balance, STARTER_CREDITS + 100);
     assert.equal(purchase.body.order.status, "completed");
 
     const credits = await request(baseUrl, "GET", "/credits", undefined, token);
-    assert.equal(credits.body.balance, 100);
-    assert.equal(credits.body.transactions.length, 1);
+    assert.equal(credits.body.balance, STARTER_CREDITS + 100);
+    assert.equal(credits.body.transactions.length, 2);
 
     const orders = await request(baseUrl, "GET", "/orders", undefined, token);
     assert.equal(orders.status, 200);

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.4.0 |
+| Version | 1.5.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -119,6 +119,15 @@ Status: Completed.
 
 Product basis: `REVIEW-MVP-PRODUCT-001`.
 
+### MVP-S3-BE-001 MVP Backend Loop
+
+- Priority: P0.
+- Status: Completed.
+- Estimated Time: 1 day.
+- Dependencies: Sprint 1, Sprint 2, API-AUTH-001, API-CREDITS-001, API-GEN-IMAGE-001, API-GEN-VIDEO-001, API-GALLERY-001, DB-USERS-001, DB-CREDITS-001, DB-GENERATION-JOBS-001, DB-MEDIA-ASSETS-001, DB-SHARE-LINKS-001.
+- Acceptance Criteria: Supabase Auth integration exists, signup grants starter credits, generation jobs consume credits, Fake Worker writes output metadata to Supabase Storage, generated outputs become assets, gallery/history read real records, share links resolve public assets, and tests/build pass.
+- Related Documents: BE-ARCH-AUTH-001, BE-ARCH-STORAGE-001, DB-USERS-001, DB-CREDITS-001, DB-GENERATION-JOBS-001, DB-MEDIA-ASSETS-001, DB-SHARE-LINKS-001, API-AUTH-001, API-GALLERY-001.
+
 ### MVP-S3-000 Product Surface Direction Correction
 
 - Priority: P0.
@@ -231,6 +240,7 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - MVP work is limited to the approved 10 product areas.
 - Platform and enterprise expansion are deferred.
 - Sprint 1 and Sprint 2 are completed.
+- MVP Backend Loop is completed without adding payment or real AI provider execution.
 
 ## Future Plan
 

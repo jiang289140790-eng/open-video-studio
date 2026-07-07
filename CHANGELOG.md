@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.14.1 |
+| Version | 0.15.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,10 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Added
 
+- Added MVP Backend Loop Supabase adapter for Auth signup/login, profile sync, starter credits, generation jobs, Fake Worker completion, Supabase Storage output paths, asset records, gallery reads, history reads, and share links.
+- Added Supabase MVP schema and RLS policy file at `src/supabase/mvp-schema.sql`.
+- Added starter credits constant and automatic starter credit grant on signup.
+- Added Supabase backend loop test covering signup, login, starter credits, generation, fake output storage, gallery, history, and sharing.
 - Added GitHub Pages deployment workflow for the `production-mvp` branch using `npm ci`, `npm run build`, and `dist-web` artifact deployment.
 - Initialized Git repository and committed the stable MVP baseline.
 - Added React, Vite, and a production app shell while preserving the existing MVP product pages.
@@ -89,6 +93,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Changed
 
+- Updated local API and workflow tests to account for starter credits on signup.
+- Updated backend, database, API, summary, and MVP sprint backlog documentation for the MVP Backend Loop.
 - Optimized the live homepage hero for conversion with a shorter headline, clearer subheadline, stronger CTAs, benefit signals, improved generated-output preview, and an expanded creation gallery preview.
 - Updated static frontend validation to assert the new homepage conversion copy and CTA direction.
 - Fixed Vite asset base path for GitHub Pages subpath deployment so production CSS and JavaScript load under `/open-video-studio/`.
@@ -125,6 +131,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran TypeScript typecheck, production build, and full test suite after the MVP Backend Loop; 24 tests passed.
 - Ran local production build and full test suite after the homepage conversion optimization; 23 tests passed.
 - Confirmed local Vite build now emits relative asset URLs and reran the full test suite; 23 tests passed.
 - Ran local production build and full test suite before deploying GitHub Pages workflow.
