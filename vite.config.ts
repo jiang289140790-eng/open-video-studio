@@ -14,6 +14,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         home: resolve(webRoot, "index.html"),
+        tools: resolve(webRoot, "app.html"),
         explore: resolve(webRoot, "gallery.html"),
         generate: resolve(webRoot, "generate.html"),
         characters: resolve(webRoot, "characters.html"),
@@ -21,6 +22,9 @@ export default defineConfig({
         dashboard: resolve(webRoot, "dashboard.html"),
         history: resolve(webRoot, "history.html"),
         pricing: resolve(webRoot, "pricing.html"),
+        referral: resolve(webRoot, "referral.html"),
+        myCreations: resolve(webRoot, "my-creations.html"),
+        imageToVideo: resolve(webRoot, "image-to-video.html"),
         signin: resolve(webRoot, "signin.html"),
         share: resolve(webRoot, "share.html"),
         app: resolve(webRoot, "app-shell.html"),

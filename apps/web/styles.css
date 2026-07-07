@@ -397,6 +397,29 @@ h3 { font-size: 1.05rem; }
 .dashboard-sections strong { display: block; margin: 8px 0; font-size: 2.4rem; }
 
 .plan-card { display: grid; gap: 16px; padding: 24px; }
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.tool-card {
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  gap: 12px;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+.tool-card span {
+  color: #dbeafe;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.tool-card p { color: #dbeafe; max-width: 520px; }
 .plan-card.featured { border-color: rgba(56,189,248,0.68); background: linear-gradient(135deg, rgba(56,189,248,0.16), rgba(139,92,246,0.2)); }
 .price span { font-size: 3.2rem; font-weight: 950; }
 .price em { color: var(--muted); font-style: normal; }
@@ -491,7 +514,7 @@ h3 { font-size: 1.05rem; }
   .topnav, .accountnav { justify-content: start; }
   .hero, .studio-shell, .split, .prompt-result, .character-layout, .dashboard-grid, .auth-layout, .share-page { grid-template-columns: 1fr; }
   .hero-showcase { transform: none; }
-  .pricing-grid, .character-strip, .quote-grid, .usecase-grid, .step-grid, .metric-grid, .character-grid, .creation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pricing-grid, .character-strip, .quote-grid, .usecase-grid, .step-grid, .metric-grid, .character-grid, .creation-grid, .tool-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .share-page .brand { position: static; margin-bottom: 20px; }
 }
 
@@ -507,7 +530,7 @@ h3 { font-size: 1.05rem; }
   .showcase-card, .showcase-card.wide { grid-column: auto; }
   .showcase-card.tall { grid-row: auto; }
   .section-head, .pricing-preview, .final-cta, .preview-head, .sticky-generate, .result-row, .history-row, .library-card { align-items: stretch; flex-direction: column; }
-  .pricing-grid, .character-strip, .quote-grid, .usecase-grid, .step-grid, .metric-grid, .character-grid, .selector-grid, .mode-grid, .creation-grid { grid-template-columns: 1fr; }
+  .pricing-grid, .character-strip, .quote-grid, .usecase-grid, .step-grid, .metric-grid, .character-grid, .selector-grid, .mode-grid, .creation-grid, .tool-grid { grid-template-columns: 1fr; }
   .social-auth-grid { grid-template-columns: 1fr; }
   .masonry-preview, .masonry-gallery { columns: 1; }
   .creative-preview { min-height: 320px; }

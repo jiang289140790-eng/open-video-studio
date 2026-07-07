@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.15.1 |
+| Version | 0.16.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -20,6 +20,25 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Include documentation changes, architecture changes, validation performed, and known follow-ups.
 - Reference relevant document IDs, task IDs, and decision records.
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
+
+## 2026-07-07
+
+### Added
+
+- Added target-site-style routes for Tools, Image to Video, Free Credits / Referral, and My Creations.
+- Added local MVP browser-state interactions for social/email login, credit purchase, character creation, generation, asset listing, history listing, and public share pages.
+- Added Vite build entries and frontend static coverage for the expanded product route set and core interaction hooks.
+
+### Changed
+
+- Updated homepage navigation toward mature AI SaaS acquisition paths: Tools, Buy Credits, Free Credits, My Creations, and Login.
+- Updated Frontend Summary documentation to reflect the expanded route surface and local MVP interaction loop.
+
+### Validation
+
+- Ran production build and full test suite after route/function expansion; 26 tests passed.
+- Browser-tested the local MVP flow: Google login, credit purchase, character creation, generation, assets, history, my creations, and share page.
+- Checked Markdown links after documentation updates.
 
 ## 2026-07-06
 

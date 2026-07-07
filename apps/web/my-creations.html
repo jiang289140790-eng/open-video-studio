@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>My Creations | Open Video Studio</title>
+    <meta name="description" content="View your Open Video Studio generated images, videos, prompts, reusable assets, and share links.">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
+      <nav class="topnav" aria-label="Primary navigation"><a href="./app.html">Tools</a><a href="./gallery.html">Explore</a><a href="./generate.html">Generate</a><a href="./characters.html">Characters</a><a href="./pricing.html">Buy credits</a></nav>
+      <nav class="accountnav" aria-label="Account navigation"><a href="./referral.html">Free credits</a><a href="./my-creations.html" aria-current="page">My creations</a><a href="./signin.html">Login</a></nav>
+    </header>
+    <main class="app-surface">
+      <section class="page-hero compact"><p class="eyebrow">My Creations</p><h1>Your generated outputs, prompts, and shares.</h1><p class="lead">This is the logged-in creation shelf: everything generated becomes reusable and shareable.</p></section>
+      <section class="metric-grid dashboard-sections">
+        <article><span>Credits</span><strong data-dashboard-credits>40</strong><p>Available</p></article>
+        <article><span>Creations</span><strong data-dashboard-assets>2</strong><p>Assets saved</p></article>
+        <article><span>Jobs</span><strong data-dashboard-jobs>2</strong><p>History items</p></article>
+        <article><span>Shares</span><strong data-dashboard-shares>1</strong><p>Public links</p></article>
+      </section>
+      <section class="asset-library" data-asset-list></section>
+      <section class="history-list" data-history-list></section>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

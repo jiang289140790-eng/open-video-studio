@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.23.0 |
+| Version | 0.24.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -202,6 +202,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 - Root [README](../README.md) documents GitHub-ready setup, React/Vite build scripts, Supabase environment variables, and verification commands.
 - [Frontend Domain](0300-frontend/README.md) documents the current React/Vite app shell and static MVP surface.
+- The current MVP surface includes target-site-style routes for Tools, Image to Video, Free Credits / Referral, and My Creations, with local browser-state interaction for signup, credits, characters, generation, assets, history, and sharing.
 - [Backend Architecture Bible](0400-backend/000-backend-architecture-bible.md) documents the Supabase connection foundation.
 - [Database Bible](0500-database/README.md) documents Supabase PostgreSQL as the production target.
 - [Supabase MVP Schema](../src/supabase/mvp-schema.sql) defines the MVP Backend Loop tables, indexes, and RLS policies for the existing Supabase project.

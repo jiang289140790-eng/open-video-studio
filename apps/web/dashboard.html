@@ -15,12 +15,12 @@
       <a class="btn primary" href="./generate.html">Quick generate</a>
     </header>
     <main class="app-surface">
-      <section class="page-hero compact"><p class="eyebrow">Dashboard</p><h1>Your AI creation cockpit.</h1><p class="lead">Track credit balance, active jobs, saved characters, assets, shares, and the next thing to create.</p></section>
+      <section class="page-hero compact"><p class="eyebrow">Dashboard</p><h1>Your AI creation cockpit.</h1><p class="lead">Welcome back, <span data-user-name>Guest creator</span>. Track credit balance, active jobs, saved characters, assets, shares, and the next thing to create.</p></section>
       <section class="metric-grid dashboard-sections">
-        <article><span>Credits</span><strong>840</strong><p>Balance available</p></article>
-        <article><span>Active jobs</span><strong>3</strong><p>Queued and running</p></article>
-        <article><span>Assets</span><strong>128</strong><p>Reusable library items</p></article>
-        <article><span>Share links</span><strong>12</strong><p>Public approved outputs</p></article>
+        <article><span>Credits</span><strong data-dashboard-credits>40</strong><p>Balance available</p></article>
+        <article><span>Active jobs</span><strong data-dashboard-jobs>2</strong><p>Queued and running</p></article>
+        <article><span>Assets</span><strong data-dashboard-assets>2</strong><p>Reusable library items</p></article>
+        <article><span>Share links</span><strong data-dashboard-shares>1</strong><p>Public approved outputs</p></article>
       </section>
       <section class="dashboard-grid">
         <article class="panel"><h2>Recent generations</h2><div class="result-row"><span class="thumb art-3"></span><div><strong>Launch hero frame</strong><p>Completed</p></div></div><div class="result-row"><span class="thumb art-7"></span><div><strong>Vertical teaser</strong><p>Running</p></div></div></article>
@@ -28,5 +28,6 @@
         <article class="panel wide"><h2>Quick generate</h2><p class="muted">Start from a character, recent asset, or prompt preset.</p><a class="btn primary" href="./generate.html">Open Generate Studio</a></article>
       </section>
     </main>
+    <script type="module" src="./app.js"></script>
   </body>
 </html>

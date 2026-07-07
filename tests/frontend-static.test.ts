@@ -7,13 +7,17 @@ const webRoot = join(process.cwd(), "apps", "web");
 
 const requiredPages = [
   "index.html",
+  "app.html",
   "gallery.html",
   "generate.html",
+  "image-to-video.html",
   "characters.html",
   "assets.html",
   "history.html",
   "dashboard.html",
   "pricing.html",
+  "referral.html",
+  "my-creations.html",
   "signin.html",
   "share.html"
 ];
@@ -35,7 +39,7 @@ describe("MVP static frontend", () => {
 
   it("keeps required commercial navigation items available", () => {
     const combined = requiredPages.map(readPage).join("\n");
-    for (const item of ["Explore", "Generate", "Characters", "Assets", "Pricing", "Dashboard", "History", "Credits", "Account"]) {
+    for (const item of ["Tools", "Explore", "Generate", "Characters", "Buy credits", "Free credits", "My creations", "Dashboard", "History", "Credits", "Login"]) {
       assert.ok(combined.includes(item), `navigation should include ${item}`);
     }
   });
@@ -54,6 +58,21 @@ describe("MVP static frontend", () => {
     }
     assert.ok(signin.includes("40 starter credits"));
     assert.ok(signin.includes("Continue with email"));
+  });
+
+  it("contains working MVP hooks for the target-site-style product loop", () => {
+    const combined = requiredPages.map(readPage).join("\n");
+    for (const hook of [
+      "data-auth-provider=\"google\"",
+      "data-buy-credits",
+      "data-character-form",
+      "data-generate",
+      "data-asset-list",
+      "data-history-list",
+      "data-share-title"
+    ]) {
+      assert.ok(combined.includes(hook), `MVP hook should exist: ${hook}`);
+    }
   });
 
   it("contains visual-first gallery and dashboard sections", () => {

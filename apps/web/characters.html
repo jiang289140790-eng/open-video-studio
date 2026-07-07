@@ -19,11 +19,10 @@
     <main class="app-surface">
       <section class="page-hero compact"><p class="eyebrow">Characters</p><h1>Reusable characters for consistent AI video worlds.</h1><p class="lead">Create character memory, tags, covers, reference assets, and consistency signals before generating scenes.</p></section>
       <section class="character-layout">
-        <div class="character-grid">
+        <div class="character-grid" data-character-list>
           <article class="character-card large art-2"><strong>Mira</strong><span>Presenter - Consistency 92%</span><p>Tags: launch, studio, calm</p></article>
           <article class="character-card large art-11"><strong>Atlas</strong><span>Host - Consistency 88%</span><p>Tags: product, energetic, clean</p></article>
           <article class="character-card large art-12"><strong>Nova</strong><span>Creator - Consistency 95%</span><p>Tags: fashion, neon, vertical</p></article>
-          <article class="create-card"><h2>Create a character</h2><p>Add cover, memory, tags, and reference assets.</p><a class="btn primary" href="./generate.html">Start profile</a></article>
         </div>
         <aside class="profile-preview">
           <p class="eyebrow">Profile preview</p>
@@ -33,8 +32,16 @@
           <div class="score">Consistency score <strong>92%</strong></div>
           <h3>Related assets</h3>
           <div class="mini-assets"><span class="thumb art-3"></span><span class="thumb art-7"></span><span class="thumb art-8"></span></div>
+          <form class="auth-card" data-character-form>
+            <h3>Create a character</h3>
+            <label>Name<input class="input" name="name" placeholder="Luna"></label>
+            <label>Role<input class="input" name="role" placeholder="Fashion host"></label>
+            <label>Tags<input class="input" name="tags" placeholder="fashion, neon, vertical"></label>
+            <button class="btn primary full" type="submit">Create character</button>
+          </form>
         </aside>
       </section>
     </main>
+    <script type="module" src="./app.js"></script>
   </body>
 </html>
