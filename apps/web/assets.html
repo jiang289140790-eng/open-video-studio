@@ -1,27 +1,27 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Assets | Open Video Studio</title>
-    <meta name="description" content="Manage reusable images, videos, prompts, references, favorites, and generated media assets.">
+    <title>资产库 | Open Video Studio</title>
+    <meta name="description" content="管理 Open Video Studio 中可复用的图片、视频、提示词、参考图和收藏资产。">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
-      <nav class="topnav" aria-label="Primary navigation"><a href="./gallery.html">Explore</a><a href="./generate.html">Generate</a><a href="./characters.html">Characters</a><a href="./assets.html" aria-current="page">Assets</a><a href="./pricing.html">Pricing</a></nav>
-      <nav class="accountnav" aria-label="Account navigation"><a href="./dashboard.html">Dashboard</a><a href="./history.html">History</a><a href="./pricing.html">Credits</a><a href="./signin.html">Account</a></nav>
-      <a class="btn primary" href="./generate.html">Add asset</a>
+      <nav class="topnav" aria-label="Primary navigation"><a href="./generate.html">图像工具</a><a href="./image-to-video.html">视频工具</a><a href="./pricing.html">购买积分</a><a href="./referral.html">免费硬币</a><a href="./my-creations.html">我的创作</a></nav>
+      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./referral.html">每日签到</a><a href="./signin.html">登录</a></nav>
+      <a class="btn primary" href="./generate.html">添加资产</a>
     </header>
     <main class="app-surface">
-      <section class="page-hero compact"><p class="eyebrow">Asset Library</p><h1>Your reusable AI creation library.</h1><p class="lead">Images, videos, prompts, references, favorites, and future media types live here as reusable building blocks.</p></section>
-      <section class="studio-toolbar"><input class="search" placeholder="Search assets, prompts, references"><div class="chip-row"><button class="chip active">All</button><button class="chip">Images</button><button class="chip">Videos</button><button class="chip">Prompts</button><button class="chip">References</button><button class="chip">Favorites</button></div></section>
+      <section class="page-hero compact"><p class="eyebrow">资产库</p><h1>你的 AI 创作素材库</h1><p class="lead">图片、视频、提示词、参考图、收藏和未来媒体类型都会作为可复用素材保存在这里。</p></section>
+      <section class="studio-toolbar"><input class="search" placeholder="搜索资产、提示词、参考图"><div class="chip-row"><button class="chip active">全部</button><button class="chip">图片</button><button class="chip">视频</button><button class="chip">提示词</button><button class="chip">参考图</button><button class="chip">收藏</button></div></section>
       <section class="asset-library" data-asset-list>
-        <article class="library-card"><span class="thumb art-3"></span><div><h3>Launch hero frame</h3><p>Image - Favorite - Character Mira</p></div><button>Use</button></article>
-        <article class="library-card"><span class="thumb art-7"></span><div><h3>Vertical teaser</h3><p>Video - Public - 24 credits</p></div><button>Share</button></article>
-        <article class="library-card"><span class="thumb prompt-thumb"></span><div><h3>Cinematic product prompt</h3><p>Prompt - copied 18 times</p></div><button>Copy</button></article>
-        <article class="library-card"><span class="thumb art-10"></span><div><h3>Blue studio reference</h3><p>Reference image - Approved</p></div><button>Generate</button></article>
+        <article class="library-card"><span class="thumb art-3"></span><div><h3>发布主视觉</h3><p>图片 - 收藏 - 角色 Mira</p></div><button>使用</button></article>
+        <article class="library-card"><span class="thumb art-7"></span><div><h3>竖屏短片</h3><p>视频 - 公开 - 24 积分</p></div><button>分享</button></article>
+        <article class="library-card"><span class="thumb prompt-thumb"></span><div><h3>电影感产品提示词</h3><p>提示词 - 已复制 18 次</p></div><button>复制</button></article>
+        <article class="library-card"><span class="thumb art-10"></span><div><h3>蓝色工作室参考</h3><p>参考图 - 已通过</p></div><button>生成</button></article>
       </section>
     </main>
     <script type="module" src="./app.js"></script>

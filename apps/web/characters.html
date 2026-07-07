@@ -1,43 +1,41 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Characters | Open Video Studio</title>
-    <meta name="description" content="Create and manage reusable AI characters with profile previews, tags, consistency scores, and related assets.">
+    <title>角色生成器 | Open Video Studio</title>
+    <meta name="description" content="创建和管理可复用 AI 角色，包含角色资料、标签、一致性评分和关联资产。">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
-      <nav class="topnav" aria-label="Primary navigation">
-        <a href="./gallery.html">Explore</a><a href="./generate.html">Generate</a><a href="./characters.html" aria-current="page">Characters</a><a href="./assets.html">Assets</a><a href="./pricing.html">Pricing</a>
-      </nav>
-      <nav class="accountnav" aria-label="Account navigation"><a href="./dashboard.html">Dashboard</a><a href="./history.html">History</a><a href="./pricing.html">Credits</a><a href="./signin.html">Account</a></nav>
-      <a class="btn primary" href="./generate.html">Create character</a>
+      <nav class="topnav" aria-label="Primary navigation"><a href="./generate.html">图像工具</a><a href="./image-to-video.html">视频工具</a><a href="./pricing.html">购买积分</a><a href="./referral.html">免费硬币</a><a href="./my-creations.html">我的创作</a></nav>
+      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./referral.html">每日签到</a><a href="./signin.html">登录</a></nav>
+      <a class="btn primary" href="./generate.html">生成角色</a>
     </header>
     <main class="app-surface">
-      <section class="page-hero compact"><p class="eyebrow">Characters</p><h1>Reusable characters for consistent AI video worlds.</h1><p class="lead">Create character memory, tags, covers, reference assets, and consistency signals before generating scenes.</p></section>
+      <section class="page-hero compact"><p class="eyebrow">角色生成器</p><h1>创建可复用的一致性角色</h1><p class="lead">先保存角色记忆、标签、封面和参考资产，再生成新的图片或视频场景。</p></section>
       <section class="character-layout">
         <div class="character-grid" data-character-list>
-          <article class="character-card large art-2"><strong>Mira</strong><span>Presenter - Consistency 92%</span><p>Tags: launch, studio, calm</p></article>
-          <article class="character-card large art-11"><strong>Atlas</strong><span>Host - Consistency 88%</span><p>Tags: product, energetic, clean</p></article>
-          <article class="character-card large art-12"><strong>Nova</strong><span>Creator - Consistency 95%</span><p>Tags: fashion, neon, vertical</p></article>
+          <article class="character-card large art-2"><strong>Mira</strong><span>主持人 - 一致性 92%</span><p>标签：发布、工作室、冷静</p></article>
+          <article class="character-card large art-11"><strong>Atlas</strong><span>产品讲解员 - 一致性 88%</span><p>标签：产品、干净、商业</p></article>
+          <article class="character-card large art-12"><strong>Nova</strong><span>创作者形象 - 一致性 95%</span><p>标签：时尚、霓虹、竖屏</p></article>
         </div>
         <aside class="profile-preview">
-          <p class="eyebrow">Profile preview</p>
+          <p class="eyebrow">角色预览</p>
           <div class="avatar art-2"></div>
-          <h2>Mira Studio Presenter</h2>
-          <p class="muted">A premium SaaS presenter with soft studio lighting, black wardrobe, and calm product narration style.</p>
-          <div class="score">Consistency score <strong>92%</strong></div>
-          <h3>Related assets</h3>
+          <h2>Mira 工作室主持人</h2>
+          <p class="muted">适合 SaaS 产品讲解、发布短片和品牌介绍的固定角色。</p>
+          <div class="score">一致性评分 <strong>92%</strong></div>
+          <h3>关联资产</h3>
           <div class="mini-assets"><span class="thumb art-3"></span><span class="thumb art-7"></span><span class="thumb art-8"></span></div>
           <form class="auth-card" data-character-form>
-            <h3>Create a character</h3>
-            <label>Name<input class="input" name="name" placeholder="Luna"></label>
-            <label>Role<input class="input" name="role" placeholder="Fashion host"></label>
-            <label>Tags<input class="input" name="tags" placeholder="fashion, neon, vertical"></label>
-            <button class="btn primary full" type="submit">Create character</button>
+            <h3>创建角色</h3>
+            <label>名称<input class="input" name="name" placeholder="Luna"></label>
+            <label>角色定位<input class="input" name="role" placeholder="时尚主持人"></label>
+            <label>标签<input class="input" name="tags" placeholder="时尚, 霓虹, 竖屏"></label>
+            <button class="btn primary full" type="submit">创建角色</button>
           </form>
         </aside>
       </section>

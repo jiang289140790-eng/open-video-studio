@@ -1,25 +1,24 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>History | Open Video Studio</title>
-    <meta name="description" content="Review generation history with prompts, models, providers, status, credits, duration, outputs, retry, and share actions.">
+    <title>生成历史 | Open Video Studio</title>
+    <meta name="description" content="查看每次生成的提示词、模型、服务商、状态、积分、耗时、输出、重试和分享操作。">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
-      <nav class="topnav" aria-label="Primary navigation"><a href="./gallery.html">Explore</a><a href="./generate.html">Generate</a><a href="./characters.html">Characters</a><a href="./assets.html">Assets</a><a href="./pricing.html">Pricing</a></nav>
-      <nav class="accountnav" aria-label="Account navigation"><a href="./dashboard.html">Dashboard</a><a href="./history.html" aria-current="page">History</a><a href="./pricing.html">Credits</a><a href="./signin.html">Account</a></nav>
-      <a class="btn primary" href="./generate.html">Retry prompt</a>
+      <nav class="topnav" aria-label="Primary navigation"><a href="./generate.html">图像工具</a><a href="./image-to-video.html">视频工具</a><a href="./pricing.html">购买积分</a><a href="./referral.html">免费硬币</a><a href="./my-creations.html">我的创作</a></nav>
+      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./referral.html">每日签到</a><a href="./signin.html">登录</a></nav>
+      <a class="btn primary" href="./generate.html">重试提示词</a>
     </header>
     <main class="app-surface">
-      <section class="page-hero compact"><p class="eyebrow">Generation History</p><h1>Every prompt, model, credit, and output in one timeline.</h1></section>
+      <section class="page-hero compact"><p class="eyebrow">生成历史</p><h1>每次提示词、模型、积分和输出都在这里</h1></section>
       <section class="history-list" data-history-list>
-        <article class="history-row"><span class="thumb art-3"></span><div><h3>Product launch hero</h3><p>Prompt: cinematic product reveal with violet lighting</p><small>Provider local_api - Model local-image-v0 - Completed - 8 credits - 18s</small></div><div class="row-actions"><button>Retry</button><a href="./share.html">Share</a></div></article>
-        <article class="history-row"><span class="thumb art-7"></span><div><h3>Vertical teaser</h3><p>Prompt: animate hero frame into a social teaser</p><small>Provider local_api - Model local-video-v0 - Running - 24 credits - 8s duration</small></div><div class="row-actions"><button>Cancel</button><a href="./assets.html">Output</a></div></article>
-        <article class="history-row"><span class="thumb art-8"></span><div><h3>Macro product shot</h3><p>Prompt: reflective bottle macro with studio motion</p><small>Provider local_api - Failed - 8 credits reserved</small></div><div class="row-actions"><button>Retry</button></div></article>
+        <article class="history-row"><span class="thumb art-3"></span><div><h3>产品发布主视觉</h3><p>提示词：紫色灯光下的电影感产品发布</p><small>服务商 local_api - 模型 local-image-v0 - 已完成 - 8 积分 - 18 秒</small></div><div class="row-actions"><button>重试</button><a href="./share.html">分享</a></div></article>
+        <article class="history-row"><span class="thumb art-7"></span><div><h3>竖屏短片</h3><p>提示词：把主视觉转成社媒短片</p><small>服务商 local_api - 模型 local-video-v0 - 运行中 - 24 积分 - 8 秒</small></div><div class="row-actions"><button>取消</button><a href="./assets.html">输出</a></div></article>
       </section>
     </main>
     <script type="module" src="./app.js"></script>

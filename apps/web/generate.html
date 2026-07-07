@@ -1,79 +1,68 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Generate Studio | Open Video Studio</title>
-    <meta name="description" content="Generate AI images and videos with characters, styles, reference assets, prompt enhancement, credit estimates, and live preview.">
+    <title>图片生成器 | Open Video Studio</title>
+    <meta name="description" content="使用 Open Video Studio 生成 AI 图片、视频和角色资产。">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
-      <nav class="topnav" aria-label="Primary navigation">
-        <a href="./gallery.html">Explore</a>
-        <a href="./generate.html" aria-current="page">Generate</a>
-        <a href="./characters.html">Characters</a>
-        <a href="./assets.html">Assets</a>
-        <a href="./pricing.html">Pricing</a>
-      </nav>
-      <nav class="accountnav" aria-label="Account navigation">
-        <a href="./dashboard.html">Dashboard</a>
-        <a href="./history.html">History</a>
-        <a href="./pricing.html">Credits</a>
-        <a href="./signin.html">Account</a>
-      </nav>
-      <a class="btn primary" href="./pricing.html"><span data-credit-balance>40</span> credits</a>
+      <nav class="topnav" aria-label="Primary navigation"><a href="./generate.html" aria-current="page">图像工具</a><a href="./image-to-video.html">视频工具</a><a href="./pricing.html">购买积分</a><a href="./referral.html">免费硬币</a><a href="./my-creations.html">我的创作</a></nav>
+      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./referral.html">每日签到</a><a href="./signin.html">登录</a></nav>
+      <a class="btn primary" href="./pricing.html"><span data-credit-balance>40</span> 积分</a>
     </header>
 
     <main class="studio-shell">
       <section class="studio-panel control-panel">
-        <p class="eyebrow">Generate Studio</p>
-        <h1>Direct your next AI scene.</h1>
+        <p class="eyebrow">图片生成器</p>
+        <h1>生成你的下一张 AI 作品</h1>
 
         <div class="mode-grid" aria-label="Mode cards">
-          <button class="mode-card active" data-mode="image"><span>Image</span><strong>Concept frame</strong><em>8 credits</em></button>
-          <button class="mode-card" data-mode="video"><span>Video</span><strong>Motion scene</strong><em>24 credits</em></button>
-          <button class="mode-card" data-mode="character"><span>Character</span><strong>Profile seed</strong><em>12 credits</em></button>
+          <button class="mode-card active" data-mode="image"><span>图片</span><strong>概念图</strong><em>8 积分</em></button>
+          <button class="mode-card" data-mode="video"><span>视频</span><strong>动态场景</strong><em>24 积分</em></button>
+          <button class="mode-card" data-mode="character"><span>角色</span><strong>角色种子</strong><em>12 积分</em></button>
         </div>
 
-        <label class="studio-field">Prompt
-          <textarea class="textarea hero-textarea">A cinematic product launch scene with a consistent presenter, electric blue lighting, reflective floor, smooth camera motion, and premium AI SaaS mood.</textarea>
+        <label class="studio-field">提示词
+          <textarea class="textarea hero-textarea">电影感产品发布场景，固定角色主持人，电光蓝灯效，反光地面，镜头平滑移动，高级 AI 创作平台氛围。</textarea>
         </label>
-        <button class="btn glass" data-enhance type="button">Enhance prompt</button>
+        <button class="btn glass" data-enhance type="button">优化提示词</button>
 
         <div class="selector-grid">
-          <label class="studio-field">Character selector
-            <select class="select"><option>Mira - Studio Presenter</option><option>Atlas - Product Host</option><option>Nova - Creator Avatar</option></select>
+          <label class="studio-field">角色选择
+            <select class="select"><option>Mira - 工作室主持人</option><option>Atlas - 产品讲解员</option><option>Nova - 创作者形象</option></select>
           </label>
-          <label class="studio-field">Style selector
-            <select class="select"><option>Cinematic violet</option><option>Editorial clean</option><option>Runway motion</option><option>Anime neon</option></select>
+          <label class="studio-field">风格选择
+            <select class="select"><option>电影感粉紫</option><option>干净商业</option><option>运动镜头</option><option>霓虹动漫</option></select>
           </label>
         </div>
 
-        <label class="upload-zone">Reference asset upload
+        <label class="upload-zone">上传参考资产
           <input type="file" aria-label="Upload reference asset">
-          <span>Drop image, video still, prompt, or reference board</span>
+          <span>支持图片、视频帧、提示词或参考板</span>
         </label>
       </section>
 
       <section class="studio-panel preview-panel">
         <div class="preview-head">
-          <div><p class="eyebrow">Live preview</p><h2>Scene preview</h2></div>
-          <span class="credit-pill" data-credit-cost>8 credits</span>
+          <div><p class="eyebrow">实时预览</p><h2>生成预览</h2></div>
+          <span class="credit-pill" data-credit-cost>8 积分</span>
         </div>
         <div class="creative-preview art-13">
           <span class="play-dot"></span>
-          <strong data-mode-label>Image generation</strong>
+          <strong data-mode-label>图片生成</strong>
         </div>
         <div class="sticky-generate">
-          <div><strong>Ready to generate</strong><p>Output saves to Assets and History.</p></div>
-          <button class="btn primary" data-generate type="button">Generate</button>
+          <div><strong>准备生成</strong><p>结果会保存到资产库和生成历史。</p></div>
+          <button class="btn primary" data-generate type="button">生成</button>
         </div>
         <div class="recent-results" data-queue>
-          <h2>Recent results</h2>
-          <article class="result-row"><span class="thumb art-3"></span><div><strong>Launch hero frame</strong><p>Completed - shared once</p></div><a href="./share.html">Share</a></article>
-          <article class="result-row"><span class="thumb art-7"></span><div><strong>Vertical teaser</strong><p>Queued - 24 credits</p></div><a href="./history.html">History</a></article>
+          <h2>最近结果</h2>
+          <article class="result-row"><span class="thumb art-3"></span><div><strong>发布主视觉</strong><p>已完成 - 已分享 1 次</p></div><a href="./share.html">分享</a></article>
+          <article class="result-row"><span class="thumb art-7"></span><div><strong>竖屏短片</strong><p>队列中 - 24 积分</p></div><a href="./history.html">历史</a></article>
         </div>
       </section>
     </main>

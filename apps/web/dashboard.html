@@ -1,31 +1,31 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Dashboard | Open Video Studio</title>
-    <meta name="description" content="View credits, active jobs, recent generations, saved characters, assets count, share links, and quick generation actions.">
+    <title>控制台 | Open Video Studio</title>
+    <meta name="description" content="查看积分、生成任务、最近作品、保存角色、资产数量和分享链接。">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
-      <nav class="topnav" aria-label="Primary navigation"><a href="./gallery.html">Explore</a><a href="./generate.html">Generate</a><a href="./characters.html">Characters</a><a href="./assets.html">Assets</a><a href="./pricing.html">Pricing</a></nav>
-      <nav class="accountnav" aria-label="Account navigation"><a href="./dashboard.html" aria-current="page">Dashboard</a><a href="./history.html">History</a><a href="./pricing.html">Credits</a><a href="./signin.html">Account</a></nav>
-      <a class="btn primary" href="./generate.html">Quick generate</a>
+      <nav class="topnav" aria-label="Primary navigation"><a href="./generate.html">图像工具</a><a href="./image-to-video.html">视频工具</a><a href="./pricing.html">购买积分</a><a href="./referral.html">免费硬币</a><a href="./my-creations.html">我的创作</a></nav>
+      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./referral.html">每日签到</a><a href="./signin.html">登录</a></nav>
+      <a class="btn primary" href="./generate.html">快速生成</a>
     </header>
     <main class="app-surface">
-      <section class="page-hero compact"><p class="eyebrow">Dashboard</p><h1>Your AI creation cockpit.</h1><p class="lead">Welcome back, <span data-user-name>Guest creator</span>. Track credit balance, active jobs, saved characters, assets, shares, and the next thing to create.</p></section>
+      <section class="page-hero compact"><p class="eyebrow">控制台</p><h1>你的 AI 创作工作台</h1><p class="lead">欢迎回来，<span data-user-name>创作者</span>。在这里查看积分、任务、角色、资产和分享链接。</p></section>
       <section class="metric-grid dashboard-sections">
-        <article><span>Credits</span><strong data-dashboard-credits>40</strong><p>Balance available</p></article>
-        <article><span>Active jobs</span><strong data-dashboard-jobs>2</strong><p>Queued and running</p></article>
-        <article><span>Assets</span><strong data-dashboard-assets>2</strong><p>Reusable library items</p></article>
-        <article><span>Share links</span><strong data-dashboard-shares>1</strong><p>Public approved outputs</p></article>
+        <article><span>积分</span><strong data-dashboard-credits>40</strong><p>可用积分</p></article>
+        <article><span>任务</span><strong data-dashboard-jobs>2</strong><p>队列与运行中</p></article>
+        <article><span>资产</span><strong data-dashboard-assets>2</strong><p>可复用资产</p></article>
+        <article><span>分享链接</span><strong data-dashboard-shares>1</strong><p>公开链接</p></article>
       </section>
       <section class="dashboard-grid">
-        <article class="panel"><h2>Recent generations</h2><div class="result-row"><span class="thumb art-3"></span><div><strong>Launch hero frame</strong><p>Completed</p></div></div><div class="result-row"><span class="thumb art-7"></span><div><strong>Vertical teaser</strong><p>Running</p></div></div></article>
-        <article class="panel"><h2>Saved characters</h2><div class="mini-assets"><span class="thumb art-2"></span><span class="thumb art-11"></span><span class="thumb art-12"></span></div><a class="btn glass" href="./characters.html">Manage characters</a></article>
-        <article class="panel wide"><h2>Quick generate</h2><p class="muted">Start from a character, recent asset, or prompt preset.</p><a class="btn primary" href="./generate.html">Open Generate Studio</a></article>
+        <article class="panel"><h2>最近生成</h2><div class="result-row"><span class="thumb art-3"></span><div><strong>发布主视觉</strong><p>已完成</p></div></div><div class="result-row"><span class="thumb art-7"></span><div><strong>竖屏短片</strong><p>运行中</p></div></div></article>
+        <article class="panel"><h2>保存角色</h2><div class="mini-assets"><span class="thumb art-2"></span><span class="thumb art-11"></span><span class="thumb art-12"></span></div><a class="btn glass" href="./characters.html">管理角色</a></article>
+        <article class="panel wide"><h2>快速生成</h2><p class="muted">从角色、最近资产或提示词预设开始。</p><a class="btn primary" href="./generate.html">打开图片生成器</a></article>
       </section>
     </main>
     <script type="module" src="./app.js"></script>

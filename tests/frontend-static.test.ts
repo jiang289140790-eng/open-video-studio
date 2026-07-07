@@ -39,14 +39,14 @@ describe("MVP static frontend", () => {
 
   it("keeps required commercial navigation items available", () => {
     const combined = requiredPages.map(readPage).join("\n");
-    for (const item of ["Tools", "Explore", "Generate", "Characters", "Buy credits", "Free credits", "My creations", "Dashboard", "History", "Credits", "Login"]) {
+    for (const item of ["工具", "作品探索", "图像工具", "角色", "购买积分", "免费硬币", "我的创作", "控制台", "生成历史", "积分", "登录"]) {
       assert.ok(combined.includes(item), `navigation should include ${item}`);
     }
   });
 
   it("contains required conversion CTAs", () => {
     const combined = requiredPages.map(readPage).join("\n");
-    for (const cta of ["Start creating", "Generate your first scene", "Create character", "Quick generate", "立即购买", "Generate similar"]) {
+    for (const cta of ["开始创作", "生成第一个场景", "创建角色", "快速生成", "立即购买", "生成相似作品"]) {
       assert.ok(combined.includes(cta), `CTA should exist: ${cta}`);
     }
   });
@@ -54,11 +54,11 @@ describe("MVP static frontend", () => {
   it("offers social authentication options on the account page", () => {
     const signin = readPage("signin.html");
     for (const provider of ["Google", "GitHub", "Discord", "Apple"]) {
-      assert.ok(signin.includes(`Continue with ${provider}`), `signin should include ${provider}`);
+      assert.ok(signin.includes(provider), `signin should include ${provider}`);
     }
-    assert.ok(signin.includes("40 starter credits"));
-    assert.ok(signin.includes("Create account"));
-    assert.ok(signin.includes("Sign in"));
+    assert.ok(signin.includes("40 启动积分"));
+    assert.ok(signin.includes("创建账户"));
+    assert.ok(signin.includes("登录"));
     assert.ok(signin.includes("data-auth-email"));
     assert.ok(signin.includes("data-auth-password"));
   });
@@ -82,25 +82,25 @@ describe("MVP static frontend", () => {
     const gallery = readPage("gallery.html");
     const dashboard = readPage("dashboard.html");
     assert.ok(gallery.includes("masonry-gallery"));
-    assert.ok(gallery.includes("Trending"));
-    assert.ok(gallery.includes("Generate Similar"));
-    assert.ok(gallery.includes("Copy Prompt"));
-    assert.ok(gallery.includes("Share"));
-    assert.ok(dashboard.includes("Credit"));
-    assert.ok(dashboard.includes("Recent generations"));
-    assert.ok(dashboard.includes("Active jobs"));
-    assert.ok(dashboard.includes("Saved characters"));
-    assert.ok(dashboard.includes("Share links"));
+    assert.ok(gallery.includes("热门"));
+    assert.ok(gallery.includes("生成相似"));
+    assert.ok(gallery.includes("复制提示词"));
+    assert.ok(gallery.includes("分享"));
+    assert.ok(dashboard.includes("积分"));
+    assert.ok(dashboard.includes("最近生成"));
+    assert.ok(dashboard.includes("任务"));
+    assert.ok(dashboard.includes("保存角色"));
+    assert.ok(dashboard.includes("分享链接"));
   });
 
   it("preserves premium AI SaaS positioning over internal-tool language", () => {
     const combined = requiredPages.map(readPage).join("\n");
-    assert.ok(combined.includes("premium AI creation platform"));
-    assert.ok(combined.includes("Explore what you can create"));
-    assert.ok(combined.includes("Create AI videos with consistent characters"));
-    assert.ok(combined.includes("Start generating free"));
-    assert.ok(combined.includes("Generate Studio"));
-    assert.ok(combined.includes("Character selector"));
+    assert.ok(combined.includes("AI 视频创作平台"));
+    assert.ok(combined.includes("看看你可以创建什么"));
+    assert.ok(combined.includes("用一致性角色创建 AI 视频"));
+    assert.ok(combined.includes("免费开始生成"));
+    assert.ok(combined.includes("图片生成器"));
+    assert.ok(combined.includes("角色选择"));
     assert.ok(combined.includes("图片生成器"));
     const appScript = readPage("app.js");
     assert.ok(appScript.includes("side-rail"));

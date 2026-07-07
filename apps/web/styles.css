@@ -16,7 +16,7 @@
   --shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
   --radius: 24px;
   --max: 1240px;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Inter", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -39,9 +39,9 @@ a { color: inherit; text-decoration: none; }
 button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
 h1, h2, h3, p { margin: 0; }
-h1 { max-width: 860px; font-size: clamp(2.75rem, 5.4vw, 4.9rem); line-height: 0.98; letter-spacing: 0; }
-h2 { font-size: clamp(2rem, 4vw, 4.2rem); line-height: 1; letter-spacing: 0; }
-h3 { font-size: 1.05rem; }
+h1 { max-width: 860px; font-size: clamp(2rem, 3.4vw, 3.35rem); line-height: 1.08; letter-spacing: 0; font-weight: 900; }
+h2 { font-size: clamp(1.45rem, 2.4vw, 2.4rem); line-height: 1.12; letter-spacing: 0; font-weight: 900; }
+h3 { font-size: 1rem; font-weight: 850; }
 
 .topbar {
   position: sticky;
@@ -63,6 +63,13 @@ body.tool-layout .topbar {
   min-height: 56px;
   padding: 0 28px;
   background: rgba(24, 24, 24, 0.97);
+}
+body.tool-layout,
+body.tool-layout button,
+body.tool-layout input,
+body.tool-layout select,
+body.tool-layout textarea {
+  font-size: 15px;
 }
 body.tool-layout .topbar .brand {
   display: none;
@@ -403,7 +410,45 @@ body.tool-layout .section {
   width: min(100% - 32px, 1640px);
 }
 body.tool-layout h1 {
-  font-size: clamp(2.2rem, 3.6vw, 3.9rem);
+  font-size: clamp(1.9rem, 3vw, 3rem);
+  line-height: 1.12;
+}
+body.tool-layout h2 {
+  font-size: clamp(1.35rem, 2.1vw, 2.15rem);
+}
+body.tool-layout .studio-panel {
+  border-color: #3a3a3a;
+  border-radius: 14px;
+  background: #232323;
+  box-shadow: none;
+}
+body.tool-layout .mode-card,
+body.tool-layout .input,
+body.tool-layout .select,
+body.tool-layout .textarea,
+body.tool-layout .upload-zone {
+  border-color: #484848;
+  border-radius: 14px;
+  background: #303030;
+}
+body.tool-layout .mode-card.active {
+  border-color: #ff62bb;
+  background: linear-gradient(135deg, rgba(255,98,187,0.18), rgba(75,75,75,0.5));
+}
+body.tool-layout .eyebrow {
+  color: #f7c8df;
+}
+body.tool-layout .btn.primary {
+  border-color: transparent;
+  background: linear-gradient(135deg, #ff6bc1, #ff9bd4);
+  color: #180912;
+  box-shadow: none;
+}
+body.tool-layout .credit-pill,
+body.tool-layout .badge {
+  background: #303030;
+  color: #f4f4f5;
+  border-color: #4b4b4b;
 }
 body.tool-layout .tool-grid,
 body.tool-layout .masonry-gallery,

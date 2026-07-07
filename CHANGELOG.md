@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.19.0 |
+| Version | 0.20.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,17 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Changed
+
+- Localized the primary MVP product surface to Chinese across Home, Generate, Gallery, Characters, Assets, Dashboard, History, Sign in, Share, Image to Video, Pricing, Referral, and My Creations pages.
+- Tuned global typography, title scale, panel colors, controls, and tool-page styling toward the referenced black / charcoal / pink visual direction.
+- Localized visible dynamic interaction messages for auth configuration, credit purchase, generation results, asset lists, history rows, and share prompts.
+- Updated frontend static tests to enforce the Chinese product surface and localized CTA/navigation expectations.
+
+### Validation
+
+- Ran production build and full test suite after localization and typography changes; 26 tests passed.
 
 ### Added
 

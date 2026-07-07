@@ -22,17 +22,17 @@ const defaultState = {
   user: null,
   credits: 40,
   characters: [
-    { id: "char_mira", name: "Mira", role: "Studio Presenter", tags: ["launch", "studio", "calm"], score: 92 },
-    { id: "char_atlas", name: "Atlas", role: "Product Host", tags: ["product", "clean"], score: 88 },
-    { id: "char_nova", name: "Nova", role: "Creator Avatar", tags: ["fashion", "neon"], score: 95 }
+    { id: "char_mira", name: "Mira", role: "工作室主持人", tags: ["发布", "工作室", "冷静"], score: 92 },
+    { id: "char_atlas", name: "Atlas", role: "产品讲解员", tags: ["产品", "干净"], score: 88 },
+    { id: "char_nova", name: "Nova", role: "创作者形象", tags: ["时尚", "霓虹"], score: 95 }
   ],
   assets: [
-    { id: "asset_launch", type: "image", title: "Launch hero frame", prompt: "cinematic product reveal with violet lighting", character: "Mira", credits: 8, status: "completed", visibility: "private", favorite: true },
-    { id: "asset_teaser", type: "video", title: "Vertical teaser", prompt: "animate hero frame into a social teaser", character: "Mira", credits: 24, status: "completed", visibility: "public", favorite: false }
+    { id: "asset_launch", type: "image", title: "发布主视觉", prompt: "紫色灯光下的电影感产品发布", character: "Mira", credits: 8, status: "completed", visibility: "private", favorite: true },
+    { id: "asset_teaser", type: "video", title: "竖屏短片", prompt: "把主视觉转成社媒短片", character: "Mira", credits: 24, status: "completed", visibility: "public", favorite: false }
   ],
   history: [
-    { id: "job_launch", type: "image", title: "Product launch hero", prompt: "cinematic product reveal with violet lighting", provider: "local_api", model: "local-image-v0", status: "completed", credits: 8, duration: "18s", assetId: "asset_launch" },
-    { id: "job_teaser", type: "video", title: "Vertical teaser", prompt: "animate hero frame into a social teaser", provider: "local_api", model: "local-video-v0", status: "completed", credits: 24, duration: "8s", assetId: "asset_teaser" }
+    { id: "job_launch", type: "image", title: "产品发布主视觉", prompt: "紫色灯光下的电影感产品发布", provider: "local_api", model: "local-image-v0", status: "completed", credits: 8, duration: "18s", assetId: "asset_launch" },
+    { id: "job_teaser", type: "video", title: "竖屏短片", prompt: "把主视觉转成社媒短片", provider: "local_api", model: "local-video-v0", status: "completed", credits: 24, duration: "8s", assetId: "asset_teaser" }
   ],
   shares: [
     { id: "share_teaser", token: "demo-share", assetId: "asset_teaser", title: "Vertical teaser" }
@@ -90,10 +90,10 @@ function injectGlobalFooter() {
   document.body.insertAdjacentHTML("beforeend", `
     <footer class="site-footer app-footer" aria-label="Footer navigation">
       <div class="footer-top-links">
-        <a href="./app.html">Home</a>
-        <a href="./generate.html">AI Editor</a>
-        <a href="./image-to-video.html">AI Video</a>
-        <a href="./gallery.html">Gallery</a>
+        <a href="./app.html">首页</a>
+        <a href="./generate.html">图片编辑器</a>
+        <a href="./image-to-video.html">AI 视频</a>
+        <a href="./gallery.html">作品探索</a>
       </div>
       <div>
         <h3>图像工具</h3>
@@ -110,15 +110,15 @@ function injectGlobalFooter() {
         <a href="./my-creations.html">我的创作</a>
       </div>
       <div>
-        <h3>About Us</h3>
+        <h3>关于我们</h3>
         <a href="./pricing.html">价格</a>
         <a href="./referral.html">推荐</a>
         <a href="./signin.html">登录</a>
         <a href="./index.html">首页</a>
       </div>
       <div>
-        <p>Support: support@openvideostudio.app</p>
-        <p>Business: business@openvideostudio.app</p>
+        <p>支持：support@openvideostudio.app</p>
+        <p>商务：business@openvideostudio.app</p>
         <p>版权所有 © 2026</p>
       </div>
     </footer>
@@ -134,7 +134,7 @@ async function hydrateAuthSession() {
   if (data.session?.user) {
     state.user = {
       id: data.session.user.id,
-      name: String(data.session.user.user_metadata?.display_name || data.session.user.email || "Creator"),
+      name: String(data.session.user.user_metadata?.display_name || data.session.user.email || "创作者"),
       email: data.session.user.email || "",
       provider: "supabase",
       createdAt: data.session.user.created_at || new Date().toISOString()
@@ -149,7 +149,7 @@ function ensureUser(provider = "email") {
   if (!state.user) {
     state.user = {
       id: "user_demo",
-      name: provider === "email" ? "Demo Creator" : `${capitalize(provider)} Creator`,
+      name: provider === "email" ? "演示创作者" : `${capitalize(provider)} 创作者`,
       provider,
       createdAt: new Date().toISOString()
     };
@@ -166,7 +166,7 @@ function renderState(current) {
     node.textContent = String(current.credits);
   });
   document.querySelectorAll("[data-user-name]").forEach((node) => {
-    node.textContent = current.user ? current.user.name : "Guest creator";
+    node.textContent = current.user ? current.user.name : "访客创作者";
   });
   renderCharacters(current);
   renderAssets(current);
@@ -187,7 +187,7 @@ document.querySelectorAll("[data-auth-provider]").forEach((button) => {
     event.preventDefault();
     const provider = button.dataset.authProvider || "google";
     if (!supabase) {
-      showAuthMessage("Supabase is not configured yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable real social login.", "error");
+      showAuthMessage("Supabase 尚未配置。添加 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY 后即可启用真实社交登录。", "error");
       return;
     }
     const { error } = await supabase.auth.signInWithOAuth({
@@ -206,33 +206,33 @@ document.querySelectorAll("[data-email-auth]").forEach((button) => {
     const displayName = document.querySelector("[data-auth-name]")?.value.trim() || email;
     const mode = button.dataset.emailAuth || "signin";
     if (!email || !password) {
-      showAuthMessage("Enter an email and password first.", "error");
+      showAuthMessage("请先输入邮箱和密码。", "error");
       return;
     }
     if (!supabase) {
-      showAuthMessage("Supabase is not configured yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable real registration.", "error");
+      showAuthMessage("Supabase 尚未配置。添加 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY 后即可启用真实注册。", "error");
       return;
     }
-    button.textContent = mode === "signup" ? "Creating account..." : "Signing in...";
+    button.textContent = mode === "signup" ? "正在创建账户..." : "正在登录...";
     const result = mode === "signup"
       ? await supabase.auth.signUp({ email, password, options: { data: { display_name: displayName } } })
       : await supabase.auth.signInWithPassword({ email, password });
     if (result.error) {
-      button.textContent = mode === "signup" ? "Create account" : "Sign in";
+      button.textContent = mode === "signup" ? "创建账户" : "登录";
       showAuthMessage(result.error.message, "error");
       return;
     }
     if (result.data.user) {
       state.user = {
         id: result.data.user.id,
-        name: String(result.data.user.user_metadata?.display_name || result.data.user.email || "Creator"),
+        name: String(result.data.user.user_metadata?.display_name || result.data.user.email || "创作者"),
         email: result.data.user.email || email,
         provider: "supabase",
         createdAt: result.data.user.created_at || new Date().toISOString()
       };
       saveState(state);
     }
-    showAuthMessage(mode === "signup" ? "Account created. Check email if confirmation is required." : "Signed in successfully.", "success");
+    showAuthMessage(mode === "signup" ? "账户已创建。如开启邮箱验证，请检查邮件。" : "登录成功。", "success");
     window.location.href = "./dashboard.html";
   });
 });
@@ -244,7 +244,7 @@ document.querySelectorAll("[data-buy-credits]").forEach((button) => {
     const credits = Number(button.dataset.buyCredits || "0");
     state.credits += credits;
     saveState(state);
-    button.textContent = `Added ${credits} credits`;
+    button.textContent = `已增加 ${credits} 积分`;
   });
 });
 
@@ -263,9 +263,9 @@ modeButtons.forEach((button) => {
     modeButtons.forEach((item) => item.classList.remove("active"));
     button.classList.add("active");
     const mode = button.dataset.mode || "image";
-    if (costTarget) costTarget.textContent = `${modeCosts[mode] || 8} credits`;
+    if (costTarget) costTarget.textContent = `${modeCosts[mode] || 8} 积分`;
     if (modeTarget) {
-      modeTarget.textContent = mode === "video" ? "Video generation" : mode === "character" ? "Character generation" : "Image generation";
+      modeTarget.textContent = mode === "video" ? "视频生成" : mode === "character" ? "角色生成" : "图片生成";
     }
   });
 });
@@ -284,20 +284,20 @@ if (generateButton && queueTarget) {
     const activeMode = document.querySelector("[data-mode].active")?.dataset.mode || "image";
     const cost = modeCosts[activeMode] || 8;
     if (state.credits < cost) {
-      queueTarget.prepend(statusRow("Insufficient credits", "Buy credits before generating this output.", "./pricing.html", "Buy credits"));
+    queueTarget.prepend(statusRow("积分不足", "请先购买积分再生成这个作品。", "./pricing.html", "购买积分"));
       return;
     }
     state.credits -= cost;
     const id = `asset_${Date.now()}`;
-    const title = activeMode === "video" ? "Generated video scene" : activeMode === "character" ? "Generated character seed" : "Generated image scene";
-    const prompt = promptBox?.value.trim() || "Generated AI scene";
+    const title = activeMode === "video" ? "生成视频场景" : activeMode === "character" ? "生成角色种子" : "生成图片作品";
+    const prompt = promptBox?.value.trim() || "生成 AI 场景";
     const character = document.querySelector(".selector-grid select")?.value?.split(" - ")[0] || "Mira";
     const asset = { id, type: activeMode === "video" ? "video" : "image", title, prompt, character, credits: cost, status: "completed", visibility: "private", favorite: false };
     const job = { id: `job_${Date.now()}`, type: asset.type, title, prompt, provider: "local_api", model: activeMode === "video" ? "local-video-v0" : "local-image-v0", status: "completed", credits: cost, duration: activeMode === "video" ? "8s" : "12s", assetId: id };
     state.assets.unshift(asset);
     state.history.unshift(job);
     saveState(state);
-    queueTarget.prepend(statusRow(`${title} completed`, "Saved to Assets and History.", "./assets.html", "Open output"));
+    queueTarget.prepend(statusRow(`${title}已完成`, "已保存到资产库和生成历史。", "./assets.html", "打开作品"));
   });
 }
 
@@ -311,8 +311,8 @@ if (characterForm) {
     state.characters.unshift({
       id: `char_${Date.now()}`,
       name,
-      role: String(form.get("role") || "Creative Character"),
-      tags: String(form.get("tags") || "custom").split(",").map((tag) => tag.trim()).filter(Boolean),
+      role: String(form.get("role") || "创意角色"),
+      tags: String(form.get("tags") || "自定义").split(",").map((tag) => tag.trim()).filter(Boolean),
       score: 84
     });
     saveState(state);
@@ -333,8 +333,8 @@ function renderCharacters(current) {
   target.innerHTML = current.characters.map((character, index) => `
     <article class="character-card large ${["art-2", "art-11", "art-12"][index % 3]}">
       <strong>${character.name}</strong>
-      <span>${character.role} - Consistency ${character.score}%</span>
-      <p>Tags: ${character.tags.join(", ")}</p>
+      <span>${character.role} - 一致性 ${character.score}%</span>
+      <p>标签：${character.tags.join(", ")}</p>
     </article>
   `).join("");
 }
@@ -345,8 +345,8 @@ function renderAssets(current) {
     target.innerHTML = current.assets.map((asset, index) => `
       <article class="library-card" data-asset>
         <span class="thumb ${asset.type === "video" ? "art-7" : ["art-3", "art-8", "art-10"][index % 3]}"></span>
-        <div><h3>${asset.title}</h3><p>${capitalize(asset.type)} - ${asset.visibility} - Character ${asset.character}</p></div>
-        <button data-share-asset="${asset.id}">Share</button>
+        <div><h3>${asset.title}</h3><p>${asset.type === "video" ? "视频" : "图片"} - ${asset.visibility === "public" ? "公开" : "私密"} - 角色 ${asset.character}</p></div>
+        <button data-share-asset="${asset.id}">分享</button>
       </article>
     `).join("");
   });
@@ -361,8 +361,8 @@ function renderHistory(current) {
   target.innerHTML = current.history.map((job) => `
     <article class="history-row">
       <span class="thumb ${job.type === "video" ? "art-7" : "art-3"}"></span>
-      <div><h3>${job.title}</h3><p>Prompt: ${job.prompt}</p><small>Provider ${job.provider} - Model ${job.model} - ${capitalize(job.status)} - ${job.credits} credits - ${job.duration}</small></div>
-      <div class="row-actions"><button data-retry-prompt="${job.prompt}">Retry</button><button data-share-asset="${job.assetId}">Share</button></div>
+      <div><h3>${job.title}</h3><p>提示词：${job.prompt}</p><small>服务商 ${job.provider} - 模型 ${job.model} - ${job.status === "completed" ? "已完成" : job.status} - ${job.credits} 积分 - ${job.duration}</small></div>
+      <div class="row-actions"><button data-retry-prompt="${job.prompt}">重试</button><button data-share-asset="${job.assetId}">分享</button></div>
     </article>
   `).join("");
   document.querySelectorAll("[data-retry-prompt]").forEach((button) => {
@@ -404,7 +404,7 @@ function renderShare(current) {
   const asset = current.assets.find((item) => item.id === share?.assetId);
   if (!asset) return;
   title.textContent = asset.title;
-  document.querySelectorAll("[data-share-prompt]").forEach((node) => node.textContent = `Prompt: ${asset.prompt}`);
+  document.querySelectorAll("[data-share-prompt]").forEach((node) => node.textContent = `提示词：${asset.prompt}`);
   document.querySelectorAll("[data-share-character]").forEach((node) => node.textContent = asset.character);
   document.querySelectorAll("[data-share-credits]").forEach((node) => node.textContent = String(asset.credits));
 }

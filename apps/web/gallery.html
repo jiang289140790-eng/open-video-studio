@@ -1,64 +1,53 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Explore Gallery | Open Video Studio</title>
-    <meta name="description" content="Explore trending AI images, videos, characters, prompts, and reusable creative assets in Open Video Studio.">
+    <title>作品探索 | Open Video Studio</title>
+    <meta name="description" content="探索 Open Video Studio 的 AI 图片、视频、角色、提示词和可复用资产。">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
-      <nav class="topnav" aria-label="Primary navigation">
-        <a href="./gallery.html" aria-current="page">Explore</a>
-        <a href="./generate.html">Generate</a>
-        <a href="./characters.html">Characters</a>
-        <a href="./assets.html">Assets</a>
-        <a href="./pricing.html">Pricing</a>
-      </nav>
-      <nav class="accountnav" aria-label="Account navigation">
-        <a href="./dashboard.html">Dashboard</a>
-        <a href="./history.html">History</a>
-        <a href="./pricing.html">Credits</a>
-        <a href="./signin.html">Account</a>
-      </nav>
-      <a class="btn primary" href="./generate.html">Create</a>
+      <nav class="topnav" aria-label="Primary navigation"><a href="./generate.html">图像工具</a><a href="./image-to-video.html">视频工具</a><a href="./pricing.html">购买积分</a><a href="./referral.html">免费硬币</a><a href="./my-creations.html">我的创作</a></nav>
+      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./referral.html">每日签到</a><a href="./signin.html">登录</a></nav>
+      <a class="btn primary" href="./generate.html">开始创作</a>
     </header>
 
     <main class="app-surface">
       <section class="page-hero compact">
-        <p class="eyebrow">Explore / Gallery</p>
-        <h1>Discover AI scenes, characters, and prompts worth remixing.</h1>
-        <p class="lead">The gallery is the emotional front door: trending outputs, reusable references, and creator actions in one visual-first surface.</p>
+        <p class="eyebrow">作品探索</p>
+        <h1>发现可以复用的 AI 作品、角色和提示词</h1>
+        <p class="lead">这里是灵感入口：热门作品、参考图、角色世界和一键再生成操作集中在一个视觉页面。</p>
       </section>
 
       <section class="studio-toolbar" aria-label="Gallery controls">
-        <input class="search" data-gallery-filter type="search" placeholder="Search cinematic, fashion, product, character">
+        <input class="search" data-gallery-filter type="search" placeholder="搜索电影感、产品、角色、视频">
         <div class="chip-row" aria-label="Category filters">
-          <button class="chip active">Trending</button>
-          <button class="chip">New</button>
-          <button class="chip">Images</button>
-          <button class="chip">Videos</button>
-          <button class="chip">Characters</button>
-          <button class="chip">Saved</button>
+          <button class="chip active">热门</button>
+          <button class="chip">最新</button>
+          <button class="chip">图片</button>
+          <button class="chip">视频</button>
+          <button class="chip">角色</button>
+          <button class="chip">收藏</button>
         </div>
       </section>
 
       <section class="gallery-tabs" aria-label="Image and video tabs">
-        <button class="tab active">Image feed</button>
-        <button class="tab">Video feed</button>
-        <button class="tab">Character worlds</button>
+        <button class="tab active">图片流</button>
+        <button class="tab">视频流</button>
+        <button class="tab">角色世界</button>
       </section>
 
       <section class="masonry-gallery" aria-label="Masonry AI gallery">
-        <article class="gallery-item tall art-1" data-asset><div><span>Trending video</span><h3>Neon launch film</h3><p>Prompt: cinematic product reveal, blue violet light</p><div class="card-actions"><button>Generate Similar</button><button>Copy Prompt</button><button>Share</button><button>Save</button></div></div></article>
-        <article class="gallery-item art-6" data-asset><div><span>Image</span><h3>Editorial portrait</h3><p>Character: Mira</p><div class="card-actions"><button>Like</button><button>Save</button></div></div></article>
-        <article class="gallery-item wide art-9" data-asset><div><span>Storyboard</span><h3>Social launch set</h3><p>8 frames, reusable references</p><div class="card-actions"><button>Generate Similar</button><button>Copy Prompt</button></div></div></article>
-        <article class="gallery-item art-8" data-asset><div><span>Product</span><h3>Macro bottle shot</h3><p>Model: local-image-v0</p><div class="card-actions"><button>Share</button><button>Save</button></div></div></article>
-        <article class="gallery-item tall art-7" data-asset><div><span>Video</span><h3>Vertical teaser</h3><p>9:16, 24 credits</p><div class="card-actions"><button>Generate Similar</button><button>Share</button></div></div></article>
-        <article class="gallery-item art-12" data-asset><div><span>Character</span><h3>Nova scene test</h3><p>Consistency 95%</p><div class="card-actions"><button>Open Character</button><button>Save</button></div></div></article>
-        <article class="gallery-item art-10" data-asset><div><span>Reference</span><h3>Lighting board</h3><p>Saved to assets</p><div class="card-actions"><button>Use in Generate</button></div></div></article>
+        <article class="gallery-item tall art-1" data-asset><div><span>热门视频</span><h3>霓虹发布短片</h3><p>提示词：产品发布、蓝紫灯光、电影感</p><div class="card-actions"><button>生成相似</button><button>复制提示词</button><button>分享</button><button>收藏</button></div></div></article>
+        <article class="gallery-item art-6" data-asset><div><span>图片</span><h3>商业肖像</h3><p>角色：Mira</p><div class="card-actions"><button>喜欢</button><button>收藏</button></div></div></article>
+        <article class="gallery-item wide art-9" data-asset><div><span>分镜</span><h3>社媒发布套图</h3><p>8 张画面，可复用参考</p><div class="card-actions"><button>生成相似</button><button>复制提示词</button></div></div></article>
+        <article class="gallery-item art-8" data-asset><div><span>产品</span><h3>微距产品图</h3><p>模型：local-image-v0</p><div class="card-actions"><button>分享</button><button>收藏</button></div></div></article>
+        <article class="gallery-item tall art-7" data-asset><div><span>视频</span><h3>竖屏预告片</h3><p>9:16，24 积分</p><div class="card-actions"><button>生成相似</button><button>分享</button></div></div></article>
+        <article class="gallery-item art-12" data-asset><div><span>角色</span><h3>Nova 场景测试</h3><p>一致性 95%</p><div class="card-actions"><button>打开角色</button><button>收藏</button></div></div></article>
+        <article class="gallery-item art-10" data-asset><div><span>参考</span><h3>灯光参考板</h3><p>已保存到资产库</p><div class="card-actions"><button>用于生成</button></div></div></article>
       </section>
     </main>
     <script type="module" src="./app.js"></script>

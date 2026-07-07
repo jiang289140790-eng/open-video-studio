@@ -1,46 +1,40 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Sign in | Open Video Studio</title>
-    <meta name="description" content="Sign in to Open Video Studio to manage credits, characters, assets, generation history, and account settings.">
+    <title>登录 | Open Video Studio</title>
+    <meta name="description" content="登录 Open Video Studio，管理积分、角色、资产、生成历史和账户设置。">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
-      <nav class="topnav" aria-label="Primary navigation"><a href="./gallery.html">Explore</a><a href="./generate.html">Generate</a><a href="./characters.html">Characters</a><a href="./assets.html">Assets</a><a href="./pricing.html">Pricing</a></nav>
-      <nav class="accountnav" aria-label="Account navigation"><a href="./dashboard.html">Dashboard</a><a href="./history.html">History</a><a href="./pricing.html">Credits</a><a href="./signin.html" aria-current="page">Account</a></nav>
+      <nav class="topnav" aria-label="Primary navigation"><a href="./generate.html">图像工具</a><a href="./image-to-video.html">视频工具</a><a href="./pricing.html">购买积分</a><a href="./referral.html">免费硬币</a><a href="./my-creations.html">我的创作</a></nav>
+      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./referral.html">每日签到</a><a href="./signin.html" aria-current="page">登录</a></nav>
     </header>
     <main class="auth-layout">
-      <section class="auth-art art-13"><h1>Your AI studio is waiting.</h1><p>Create, save, share, and reuse generated media from one account.</p></section>
+      <section class="auth-art art-13"><h1>登录后开始创作</h1><p>保存生成结果、复用资产、分享作品，并管理你的积分。</p></section>
       <section class="auth-card">
-        <p class="eyebrow">Sign in / Account</p>
-        <h2>Start creating faster</h2>
-        <p class="muted">Use a social account for one-click access, or continue with email. New creators receive starter credits after signup.</p>
+        <p class="eyebrow">登录 / 注册</p>
+        <h2>更快开始创作</h2>
+        <p class="muted">使用社交账号一键登录，或使用邮箱注册。新用户注册后可获得启动积分。</p>
         <div class="social-auth-grid" aria-label="Social sign in options">
-          <a class="social-auth-btn" href="./dashboard.html" data-auth-provider="google"><span>G</span>Continue with Google</a>
-          <a class="social-auth-btn" href="./dashboard.html" data-auth-provider="github"><span>GH</span>Continue with GitHub</a>
-          <a class="social-auth-btn" href="./dashboard.html" data-auth-provider="discord"><span>DC</span>Continue with Discord</a>
-          <a class="social-auth-btn" href="./dashboard.html" data-auth-provider="apple"><span>A</span>Continue with Apple</a>
+          <a class="social-auth-btn" href="./dashboard.html" data-auth-provider="google"><span>G</span>使用 Google 登录</a>
+          <a class="social-auth-btn" href="./dashboard.html" data-auth-provider="github"><span>GH</span>使用 GitHub 登录</a>
+          <a class="social-auth-btn" href="./dashboard.html" data-auth-provider="discord"><span>DC</span>使用 Discord 登录</a>
+          <a class="social-auth-btn" href="./dashboard.html" data-auth-provider="apple"><span>A</span>使用 Apple 登录</a>
         </div>
-        <div class="auth-divider"><span>or use email</span></div>
-        <label>Display name<input class="input" type="text" placeholder="Studio creator" data-auth-name></label>
-        <label>Email<input class="input" type="email" placeholder="creator@example.com" data-auth-email autocomplete="email"></label>
-        <label>Password<input class="input" type="password" placeholder="Enter your password" data-auth-password autocomplete="current-password"></label>
+        <div class="auth-divider"><span>或使用邮箱</span></div>
+        <label>昵称<input class="input" type="text" placeholder="Studio creator" data-auth-name></label>
+        <label>邮箱<input class="input" type="email" placeholder="creator@example.com" data-auth-email autocomplete="email"></label>
+        <label>密码<input class="input" type="password" placeholder="输入密码" data-auth-password autocomplete="current-password"></label>
         <div class="auth-submit-grid">
-          <button class="btn primary full" type="button" data-email-auth="signup">Create account</button>
-          <button class="btn glass full" type="button" data-email-auth="signin">Sign in</button>
+          <button class="btn primary full" type="button" data-email-auth="signup">创建账户</button>
+          <button class="btn glass full" type="button" data-email-auth="signin">登录</button>
         </div>
-        <p class="auth-message" data-auth-message>Use real Supabase Auth when VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are configured.</p>
-        <div class="auth-benefits">
-          <span>40 starter credits</span>
-          <span>Reusable assets</span>
-          <span>Share links</span>
-        </div>
-        <p class="muted">Enable Google, GitHub, Discord, and Apple providers in Supabase Auth for production social login.</p>
-        <p class="muted"><a class="text-link" href="./pricing.html">Buy credits</a> or invite creators through the upcoming referral program.</p>
+        <p class="auth-message" data-auth-message>配置 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY 后，将使用真实 Supabase Auth。</p>
+        <div class="auth-benefits"><span>40 启动积分</span><span>可复用资产</span><span>公开分享链接</span></div>
       </section>
     </main>
     <script type="module" src="./app.js"></script>
