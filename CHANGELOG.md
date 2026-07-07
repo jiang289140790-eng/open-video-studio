@@ -27,6 +27,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 - Built the MVP Admin backend foundation with `SupabaseAdminBackend`, role-gated admin/operator access, dashboard summaries, user balance views, credit adjustments, order updates, asset review, share revocation, and audit log reads.
 - Added the Supabase `admin` Edge Function entry for production-safe admin actions without exposing the service role key in the browser.
+- Added Supabase CLI-standard project configuration and admin console migration files under `supabase/`.
 - Extended the Supabase MVP schema with admin-required `audit_logs`, `orders`, `characters`, `images`, and `videos` tables plus role-aware RLS read policies.
 - Rebuilt `apps/web/admin.html` as a real Chinese admin console for users, credits, orders, content moderation, generation jobs, share links, system configuration, and audit logs.
 - Connected the admin console frontend to Supabase Functions and added clear blocked states for unauthenticated users, unauthorized roles, missing Supabase config, or undeployed admin functions.

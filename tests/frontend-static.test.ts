@@ -488,6 +488,8 @@ describe("MVP static frontend", () => {
     const styles = readPage("styles.css");
     const viteConfig = readFileSync(join(process.cwd(), "vite.config.ts"), "utf8");
     const adminFunction = readFileSync(join(process.cwd(), "supabase", "functions", "admin", "index.ts"), "utf8");
+    const supabaseConfig = readFileSync(join(process.cwd(), "supabase", "config.toml"), "utf8");
+    const adminMigration = readFileSync(join(process.cwd(), "supabase", "migrations", "202607070001_mvp_admin_console.sql"), "utf8");
     for (const expected of [
       "data-oauth-readiness",
       "getOAuthReadiness",
@@ -517,8 +519,12 @@ describe("MVP static frontend", () => {
       "admin-status-grid",
       "oauth-readiness-panel"
     ]) {
-      assert.ok(`${admin}\n${signin}\n${appScript}\n${styles}\n${viteConfig}\n${adminFunction}`.includes(expected), `production-readiness surface should include ${expected}`);
+      assert.ok(`${admin}\n${signin}\n${appScript}\n${styles}\n${viteConfig}\n${adminFunction}\n${supabaseConfig}\n${adminMigration}`.includes(expected), `production-readiness surface should include ${expected}`);
     }
+    assert.ok(supabaseConfig.includes('project_id = "wyvswkxogkmywduhrhkw"'));
+    assert.ok(supabaseConfig.includes("[functions.admin]"));
+    assert.ok(adminMigration.includes("create table if not exists public.audit_logs"));
+    assert.ok(adminMigration.includes("current_profile_role"));
     assert.ok(admin.includes("管理后台"));
     assert.ok(admin.includes("运营管理后台"));
     assert.ok(admin.includes("用户管理"));

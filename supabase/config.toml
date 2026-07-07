@@ -1,0 +1,22 @@
+project_id = "wyvswkxogkmywduhrhkw"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[auth]
+enabled = true
+site_url = "https://jiang289140790-eng.github.io/open-video-studio/"
+additional_redirect_urls = [
+  "https://jiang289140790-eng.github.io/open-video-studio/signin.html",
+  "https://jiang289140790-eng.github.io/open-video-studio/zh/login/",
+  "https://jiang289140790-eng.github.io/open-video-studio/zh/dashboard/",
+  "http://127.0.0.1:4173",
+  "http://127.0.0.1:4174"
+]
+
+[functions.admin]
+verify_jwt = true

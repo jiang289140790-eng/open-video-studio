@@ -23,7 +23,7 @@ Define how the MVP Admin console is enabled safely for Open Video Studio.
 
 ## Deployment Steps
 
-1. Apply `src/supabase/mvp-schema.sql` to the existing Supabase project.
+1. Apply the migration at `supabase/migrations/202607070001_mvp_admin_console.sql` to the existing Supabase project.
 2. Deploy `supabase/functions/admin/index.ts` as the `admin` Edge Function.
 3. Set Supabase Function secrets:
    - `SUPABASE_URL`
