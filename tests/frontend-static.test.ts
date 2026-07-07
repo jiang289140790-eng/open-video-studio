@@ -150,7 +150,10 @@ describe("MVP static frontend", () => {
       "data-share-save",
       "getCurrentShareAsset",
       "data-protected-gate",
-      "renderProtectedPageGate"
+      "renderProtectedPageGate",
+      "data-cookie-banner",
+      "data-cookie-manage",
+      "COOKIE_PREF_KEY"
     ]) {
       assert.ok(combined.includes(hook), `MVP hook should exist: ${hook}`);
     }
@@ -260,6 +263,27 @@ describe("MVP static frontend", () => {
       "protected-gate-actions"
     ]) {
       assert.ok(`${appScript}\n${styles}`.includes(expected), `protected pages should include ${expected}`);
+    }
+  });
+
+  it("contains target-site-style cookie preference controls", () => {
+    const cookie = readPage("cookie.html");
+    const appScript = readPage("app.js");
+    const styles = readPage("styles.css");
+    for (const expected of [
+      "COOKIE_PREF_KEY",
+      "renderCookieBanner",
+      "openCookiePreferences",
+      "data-cookie-banner",
+      "data-cookie-manage",
+      "data-cookie-essential",
+      "data-cookie-accept",
+      "data-cookie-save",
+      "cookie-preferences-modal",
+      "cookie-banner-actions",
+      "管理 Cookie 偏好"
+    ]) {
+      assert.ok(`${cookie}\n${appScript}\n${styles}`.includes(expected), `cookie preferences should include ${expected}`);
     }
   });
 

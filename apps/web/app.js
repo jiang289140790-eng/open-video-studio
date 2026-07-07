@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 const STORE_KEY = "ovs_mvp_state_v1";
+const COOKIE_PREF_KEY = "ovs_cookie_preferences_v1";
 const APP_SHELL_PAGES = new Set([
   "app.html",
   "gallery.html",
@@ -104,6 +105,7 @@ injectFloatingDock();
 injectGlobalFooter();
 applyStoredLanguage();
 renderToolHomeDirectory();
+renderCookieBanner();
 hydrateAuthSession();
 
 function injectTopNavigation() {
@@ -186,6 +188,72 @@ function showSiteToast(message) {
   toast.textContent = message;
   document.body.append(toast);
   window.setTimeout(() => toast.remove(), 2200);
+}
+
+function getCookiePreferences() {
+  try {
+    return JSON.parse(localStorage.getItem(COOKIE_PREF_KEY) || "null");
+  } catch {
+    return null;
+  }
+}
+
+function saveCookiePreferences(preferences) {
+  localStorage.setItem(COOKIE_PREF_KEY, JSON.stringify({
+    necessary: true,
+    analytics: Boolean(preferences.analytics),
+    marketing: Boolean(preferences.marketing),
+    updatedAt: new Date().toISOString()
+  }));
+  document.querySelector(".cookie-banner")?.remove();
+  document.querySelector(".cookie-preferences-overlay")?.remove();
+  showSiteToast("Cookie 偏好已保存");
+}
+
+function renderCookieBanner() {
+  if (document.body.classList.contains("share-body") || getCookiePreferences() || document.querySelector(".cookie-banner")) return;
+  document.body.insertAdjacentHTML("beforeend", `
+    <section class="cookie-banner" data-cookie-banner>
+      <div>
+        <strong>Cookie 偏好</strong>
+        <p>我们使用必要本地存储保存登录、积分演示、语言和创作状态。你可以选择是否允许分析和营销用途。</p>
+      </div>
+      <div class="cookie-banner-actions">
+        <button type="button" data-cookie-manage>管理偏好</button>
+        <button type="button" data-cookie-essential>仅必要</button>
+        <button type="button" data-cookie-accept>接受全部</button>
+      </div>
+    </section>
+  `);
+}
+
+function openCookiePreferences() {
+  document.querySelector(".cookie-preferences-overlay")?.remove();
+  const current = getCookiePreferences() || { necessary: true, analytics: false, marketing: false };
+  const overlay = document.createElement("section");
+  overlay.className = "cookie-preferences-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", "Cookie 偏好设置");
+  overlay.innerHTML = `
+    <div class="cookie-preferences-modal">
+      <button class="checkin-close" type="button" aria-label="关闭">×</button>
+      <p class="eyebrow">Cookie</p>
+      <h2>管理 Cookie 偏好</h2>
+      <label><span><strong>必要存储</strong><small>登录状态、积分演示、语言和生成历史。</small></span><input type="checkbox" checked disabled></label>
+      <label><span><strong>产品分析</strong><small>帮助理解页面使用情况，后续接入真实分析前仅保存偏好。</small></span><input type="checkbox" data-cookie-analytics ${current.analytics ? "checked" : ""}></label>
+      <label><span><strong>营销偏好</strong><small>用于优惠提示和推荐活动偏好，当前不会连接第三方广告 API。</small></span><input type="checkbox" data-cookie-marketing ${current.marketing ? "checked" : ""}></label>
+      <div class="cookie-modal-actions">
+        <button class="btn glass" type="button" data-cookie-essential>仅必要</button>
+        <button class="btn primary" type="button" data-cookie-save>保存偏好</button>
+      </div>
+    </div>
+  `;
+  document.body.append(overlay);
+  overlay.querySelector(".checkin-close")?.addEventListener("click", () => overlay.remove());
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) overlay.remove();
+  });
 }
 
 function closeOpenMenus(exceptMenu = null) {
@@ -597,6 +665,30 @@ document.querySelectorAll("[data-telegram-auth]").forEach((button) => {
 });
 
 document.addEventListener("click", async (event) => {
+  if (event.target.closest("[data-cookie-manage]")) {
+    event.preventDefault();
+    openCookiePreferences();
+    return;
+  }
+  if (event.target.closest("[data-cookie-essential]")) {
+    event.preventDefault();
+    saveCookiePreferences({ analytics: false, marketing: false });
+    return;
+  }
+  if (event.target.closest("[data-cookie-accept]")) {
+    event.preventDefault();
+    saveCookiePreferences({ analytics: true, marketing: true });
+    return;
+  }
+  if (event.target.closest("[data-cookie-save]")) {
+    event.preventDefault();
+    saveCookiePreferences({
+      analytics: Boolean(document.querySelector("[data-cookie-analytics]")?.checked),
+      marketing: Boolean(document.querySelector("[data-cookie-marketing]")?.checked)
+    });
+    return;
+  }
+
   const menuTrigger = event.target.closest(".nav-trigger, .language-trigger, .account-trigger");
   if (menuTrigger) {
     event.preventDefault();

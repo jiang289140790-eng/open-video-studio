@@ -1157,6 +1157,94 @@ body.tool-layout .site-footer {
   box-shadow: 0 18px 55px rgba(0,0,0,0.42);
   font-weight: 850;
 }
+.cookie-banner {
+  position: fixed;
+  left: 18px;
+  right: 18px;
+  bottom: 18px;
+  z-index: 170;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  max-width: 980px;
+  margin: 0 auto;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 18px;
+  background: rgba(18,18,18,0.96);
+  box-shadow: 0 22px 75px rgba(0,0,0,0.46);
+}
+.cookie-banner strong {
+  color: #fff;
+}
+.cookie-banner p {
+  margin: 4px 0 0;
+  color: #aeb5c6;
+}
+.cookie-banner-actions,
+.cookie-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: end;
+  gap: 10px;
+}
+.cookie-banner-actions button {
+  min-height: 40px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  padding: 0 14px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font-weight: 850;
+}
+.cookie-banner-actions button:last-child {
+  border-color: transparent;
+  background: #ff62bb;
+  color: #120916;
+}
+.cookie-preferences-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 175;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0,0,0,0.74);
+  backdrop-filter: blur(8px);
+}
+.cookie-preferences-modal {
+  position: relative;
+  display: grid;
+  gap: 16px;
+  width: min(100%, 540px);
+  border: 1px solid rgba(255,98,187,0.28);
+  border-radius: 18px;
+  padding: 34px 24px 24px;
+  background: #17121f;
+  box-shadow: 0 28px 90px rgba(0,0,0,0.55);
+}
+.cookie-preferences-modal h2 {
+  max-width: none;
+  color: #fff;
+}
+.cookie-preferences-modal label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 14px;
+  padding: 14px;
+  background: rgba(255,255,255,0.05);
+}
+.cookie-preferences-modal label span {
+  display: grid;
+  gap: 4px;
+}
+.cookie-preferences-modal small {
+  color: #aeb5c6;
+}
 .protected-gate {
   display: flex;
   align-items: center;
@@ -2688,6 +2776,8 @@ body.tool-layout .site-footer {
   .tool-directory-bar { align-items: stretch; flex-direction: column; }
   .protected-gate { align-items: stretch; flex-direction: column; }
   .protected-gate-actions { justify-content: stretch; min-width: 0; }
+  .cookie-banner { align-items: stretch; flex-direction: column; }
+  .cookie-banner-actions, .cookie-modal-actions { justify-content: stretch; }
   .quick-tool-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .app-footer { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
   .credit-shop-shell { grid-template-columns: 1fr; }
