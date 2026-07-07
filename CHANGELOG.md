@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.27.0 |
+| Version | 0.28.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Added
+
+- Added target-site-style locked tool gates: locked tool cards now open a login modal for signed-out visitors instead of navigating directly.
+- Added four-provider unlock login choices for Google, X, Telegram, and Discord, plus a credits package CTA inside the unlock modal.
+- Added static coverage for locked tool login gates and unlock modal hooks.
+
+### Validation
+
+- Ran production build and full test suite after the locked tool gate update; 29 tests passed.
 
 ### Added
 

@@ -308,6 +308,42 @@ document.querySelectorAll("[data-language]").forEach((button) => {
   });
 });
 
+document.querySelectorAll(".tool-poster.locked").forEach((card) => {
+  card.addEventListener("click", (event) => {
+    if (state.user) return;
+    event.preventDefault();
+    openUnlockModal(card.getAttribute("href") || "./generate.html");
+  });
+});
+
+function openUnlockModal(nextUrl = "./generate.html") {
+  document.querySelector(".unlock-overlay")?.remove();
+  const overlay = document.createElement("section");
+  overlay.className = "unlock-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", "登录解锁工具");
+  overlay.innerHTML = `
+    <div class="unlock-modal">
+      <button class="checkin-close" type="button" aria-label="关闭">×</button>
+      <h2>登录后解锁此工具</h2>
+      <p>保存生成结果、复用资产、管理积分，并继续打开这个创作工具。</p>
+      <div class="unlock-auth-list">
+        <a href="./signin.html?next=${encodeURIComponent(nextUrl)}" data-unlock-auth="google"><span class="provider-dot google-dot">G</span>使用 Google 登录 <b>→</b></a>
+        <a href="./signin.html?next=${encodeURIComponent(nextUrl)}" data-unlock-auth="twitter"><span class="provider-dot x-dot">X</span>使用 X 登录 <b>→</b></a>
+        <a href="./signin.html?next=${encodeURIComponent(nextUrl)}" data-unlock-auth="telegram"><span class="provider-dot tg-dot">TG</span>使用 Telegram 登录 <b>→</b></a>
+        <a href="./signin.html?next=${encodeURIComponent(nextUrl)}" data-unlock-auth="discord"><span class="provider-dot dc-dot">DC</span>使用 Discord 登录 <b>→</b></a>
+      </div>
+      <a class="btn primary full" href="./pricing.html">查看积分套餐</a>
+    </div>
+  `;
+  document.body.append(overlay);
+  overlay.querySelector(".checkin-close")?.addEventListener("click", () => overlay.remove());
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) overlay.remove();
+  });
+}
+
 function openCheckInModal() {
   document.querySelector(".checkin-overlay")?.remove();
   const signedIn = Boolean(state.user);

@@ -89,7 +89,9 @@ describe("MVP static frontend", () => {
       "data-history-list",
       "data-share-title",
       "daily-check",
-      "data-language"
+      "data-language",
+      "openUnlockModal",
+      "data-unlock-auth"
     ]) {
       assert.ok(combined.includes(hook), `MVP hook should exist: ${hook}`);
     }
@@ -132,6 +134,15 @@ describe("MVP static frontend", () => {
     ]) {
       assert.ok(appScript.includes(expected), `top navigation should include ${expected}`);
     }
+  });
+
+  it("contains locked tool login gates", () => {
+    const combined = [...requiredPages.map(readPage), readPage("app.js"), readPage("styles.css")].join("\n");
+    assert.ok(combined.includes("tool-poster art-2 locked"));
+    assert.ok(combined.includes("unlock-overlay"));
+    assert.ok(combined.includes("登录后解锁此工具"));
+    assert.ok(combined.includes("data-unlock-auth=\"google\""));
+    assert.ok(combined.includes("data-unlock-auth=\"discord\""));
   });
 
   it("contains visual-first gallery and dashboard sections", () => {

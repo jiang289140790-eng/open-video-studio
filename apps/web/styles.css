@@ -827,7 +827,7 @@ body.tool-layout .tool-card {
   background: linear-gradient(180deg, transparent 32%, rgba(0,0,0,0.78));
 }
 .tool-poster.locked::before {
-  content: "解锁";
+  content: "🔒";
   position: absolute;
   z-index: 2;
   left: 50%;
@@ -840,7 +840,7 @@ body.tool-layout .tool-card {
   border-radius: 999px;
   background: rgba(0,0,0,0.64);
   color: #fff;
-  font-size: 0.8rem;
+  font-size: 1.45rem;
   font-weight: 900;
 }
 .tool-poster strong,
@@ -954,6 +954,56 @@ body.tool-layout .site-footer {
   color: #ff62bb;
   font-size: 3rem;
   font-weight: 900;
+}
+.unlock-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0,0,0,0.74);
+  backdrop-filter: blur(8px);
+}
+.unlock-modal {
+  position: relative;
+  display: grid;
+  gap: 16px;
+  width: min(100%, 512px);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 12px;
+  padding: 52px 28px 28px;
+  background: #151515;
+  box-shadow: 0 26px 90px rgba(0,0,0,0.62);
+  text-align: center;
+}
+.unlock-modal h2 {
+  max-width: none;
+  font-size: clamp(1.7rem, 4vw, 2.25rem);
+}
+.unlock-modal p {
+  color: #aeb5c6;
+}
+.unlock-auth-list {
+  display: grid;
+  gap: 12px;
+  margin: 10px 0 4px;
+}
+.unlock-auth-list a {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  border-radius: 7px;
+  padding: 0 18px;
+  background: #fff;
+  color: #191919;
+  font-weight: 900;
+}
+.unlock-auth-list b {
+  font-size: 1.35rem;
+  font-weight: 800;
 }
 .checkin-modal h2 {
   max-width: none;
