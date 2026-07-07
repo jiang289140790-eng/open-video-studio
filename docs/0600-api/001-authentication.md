@@ -4,7 +4,7 @@
 |---|---|
 | ID | API-AUTH-001 |
 | Unique ID | API-AUTH-001 |
-| Version | 1.3.0 |
+| Version | 1.4.0 |
 | Status | Active |
 | Owner | API Platform Lead / Security Lead |
 | Dependencies | DB-USERS-001, SEC-INDEX-001 |
@@ -74,6 +74,8 @@ MVP Sprint 1 exposes local HTTP routes for signup, login, and current user throu
 MVP Backend Loop adds Supabase Auth integration through `SupabaseMvpBackendLoop.signUp` and `signIn`. Signup syncs a `profiles` row and grants starter credits. Runtime configuration uses environment variables and never hardcodes Supabase credentials.
 
 Social auth support now uses `SupabaseMvpBackendLoop.createOAuthSignInUrl` for Google, GitHub, Discord, and Apple. Provider secrets and redirect settings must be configured inside Supabase, not committed to the repository.
+
+The static MVP frontend also calls Supabase Auth directly for browser signup, signin, and OAuth redirects through browser-safe Vite variables: `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. These public values must point to the same Supabase project used by the backend environment.
 
 ## Future Plan
 

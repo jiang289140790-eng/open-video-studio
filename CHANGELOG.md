@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.16.0 |
+| Version | 0.17.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,22 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Added
+
+- Added target-style product application shell with a left tool rail, compact dark top navigation, referral and upgrade actions, and tool-first navigation across MVP product pages.
+- Added real Supabase browser Auth integration for email signup, email signin, and OAuth redirects for Google, GitHub, Discord, and Apple using `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+- Added frontend environment examples for browser-safe Supabase public configuration.
+- Added GitHub Pages build environment wiring for browser Supabase Auth variables without committing credentials.
+
+### Changed
+
+- Replaced fake email/social auth redirects on `signin.html` with Supabase Auth calls and visible configuration/error states.
+- Updated static frontend tests to prevent regression to local-only fake registration and to verify the target-style product shell hooks.
+
+### Validation
+
+- Ran production build and full test suite after auth/layout changes; 26 tests passed.
 
 ### Added
 

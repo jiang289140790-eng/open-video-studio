@@ -26,15 +26,20 @@
           <a class="social-auth-btn" href="./dashboard.html" data-auth-provider="apple"><span>A</span>Continue with Apple</a>
         </div>
         <div class="auth-divider"><span>or use email</span></div>
-        <label>Email<input class="input" type="email" placeholder="creator@example.com"></label>
-        <label>Password<input class="input" type="password" placeholder="Enter your password"></label>
-        <a class="btn primary full" href="./dashboard.html" data-email-auth>Continue with email</a>
+        <label>Display name<input class="input" type="text" placeholder="Studio creator" data-auth-name></label>
+        <label>Email<input class="input" type="email" placeholder="creator@example.com" data-auth-email autocomplete="email"></label>
+        <label>Password<input class="input" type="password" placeholder="Enter your password" data-auth-password autocomplete="current-password"></label>
+        <div class="auth-submit-grid">
+          <button class="btn primary full" type="button" data-email-auth="signup">Create account</button>
+          <button class="btn glass full" type="button" data-email-auth="signin">Sign in</button>
+        </div>
+        <p class="auth-message" data-auth-message>Use real Supabase Auth when VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are configured.</p>
         <div class="auth-benefits">
           <span>40 starter credits</span>
           <span>Reusable assets</span>
           <span>Share links</span>
         </div>
-        <p class="muted">Supabase OAuth support is implemented in the backend. Enable providers in Supabase before production launch.</p>
+        <p class="muted">Enable Google, GitHub, Discord, and Apple providers in Supabase Auth for production social login.</p>
         <p class="muted"><a class="text-link" href="./pricing.html">Buy credits</a> or invite creators through the upcoming referral program.</p>
       </section>
     </main>

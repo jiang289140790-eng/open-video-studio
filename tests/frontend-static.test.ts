@@ -57,7 +57,10 @@ describe("MVP static frontend", () => {
       assert.ok(signin.includes(`Continue with ${provider}`), `signin should include ${provider}`);
     }
     assert.ok(signin.includes("40 starter credits"));
-    assert.ok(signin.includes("Continue with email"));
+    assert.ok(signin.includes("Create account"));
+    assert.ok(signin.includes("Sign in"));
+    assert.ok(signin.includes("data-auth-email"));
+    assert.ok(signin.includes("data-auth-password"));
   });
 
   it("contains working MVP hooks for the target-site-style product loop", () => {
@@ -98,6 +101,10 @@ describe("MVP static frontend", () => {
     assert.ok(combined.includes("Start generating free"));
     assert.ok(combined.includes("Generate Studio"));
     assert.ok(combined.includes("Character selector"));
+    assert.ok(combined.includes("AI Image Generator"));
+    const appScript = readPage("app.js");
+    assert.ok(appScript.includes("side-rail"));
+    assert.ok(appScript.includes("VITE_SUPABASE_URL"));
     assert.equal(combined.includes("PAGE-003"), false);
     assert.equal(combined.includes("internal engineering"), false);
     assert.equal(combined.includes("Fake worker"), false);

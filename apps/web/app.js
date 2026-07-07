@@ -1,4 +1,22 @@
+import { createClient } from "@supabase/supabase-js";
+
 const STORE_KEY = "ovs_mvp_state_v1";
+const APP_SHELL_PAGES = new Set([
+  "app.html",
+  "gallery.html",
+  "generate.html",
+  "image-to-video.html",
+  "characters.html",
+  "assets.html",
+  "history.html",
+  "dashboard.html",
+  "pricing.html",
+  "referral.html",
+  "my-creations.html"
+]);
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
+const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
 
 const defaultState = {
   user: null,
@@ -37,6 +55,53 @@ function saveState(state) {
 
 const state = loadState();
 
+injectAppShell();
+hydrateAuthSession();
+
+function injectAppShell() {
+  const page = window.location.pathname.split("/").pop() || "index.html";
+  if (!APP_SHELL_PAGES.has(page) || document.querySelector(".side-rail")) return;
+  document.body.classList.add("tool-layout");
+  document.body.insertAdjacentHTML("afterbegin", `
+    <aside class="side-rail" aria-label="Product tools">
+      <a class="rail-brand" href="./index.html"><span>ovs</span><strong>Open Video Studio</strong></a>
+      <nav class="rail-nav">
+        <a href="./app.html">Home</a>
+        <a href="./generate.html">AI Image Generator</a>
+        <a href="./image-to-video.html">Image to Video</a>
+        <a href="./characters.html">Character Builder</a>
+        <a href="./gallery.html">Explore Gallery</a>
+        <a href="./assets.html">Asset Library</a>
+        <a href="./history.html">My Creations</a>
+      </nav>
+      <div class="rail-actions">
+        <a href="./referral.html">Refer friends</a>
+        <a class="rail-upgrade" href="./pricing.html">Upgrade credits</a>
+      </div>
+    </aside>
+  `);
+}
+
+async function hydrateAuthSession() {
+  if (!supabase) {
+    renderState(state);
+    return;
+  }
+  const { data } = await supabase.auth.getSession();
+  if (data.session?.user) {
+    state.user = {
+      id: data.session.user.id,
+      name: String(data.session.user.user_metadata?.display_name || data.session.user.email || "Creator"),
+      email: data.session.user.email || "",
+      provider: "supabase",
+      createdAt: data.session.user.created_at || new Date().toISOString()
+    };
+    saveState(state);
+  } else {
+    renderState(state);
+  }
+}
+
 function ensureUser(provider = "email") {
   if (!state.user) {
     state.user = {
@@ -67,18 +132,64 @@ function renderState(current) {
   renderShare(current);
 }
 
+function showAuthMessage(message, tone = "info") {
+  const target = document.querySelector("[data-auth-message]");
+  if (!target) return;
+  target.textContent = message;
+  target.dataset.tone = tone;
+}
+
 document.querySelectorAll("[data-auth-provider]").forEach((button) => {
-  button.addEventListener("click", (event) => {
+  button.addEventListener("click", async (event) => {
     event.preventDefault();
-    ensureUser(button.dataset.authProvider || "email");
-    window.location.href = "./dashboard.html";
+    const provider = button.dataset.authProvider || "google";
+    if (!supabase) {
+      showAuthMessage("Supabase is not configured yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable real social login.", "error");
+      return;
+    }
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: new URL("./dashboard.html", window.location.href).href }
+    });
+    if (error) showAuthMessage(error.message, "error");
   });
 });
 
 document.querySelectorAll("[data-email-auth]").forEach((button) => {
-  button.addEventListener("click", (event) => {
+  button.addEventListener("click", async (event) => {
     event.preventDefault();
-    ensureUser("email");
+    const email = document.querySelector("[data-auth-email]")?.value.trim();
+    const password = document.querySelector("[data-auth-password]")?.value;
+    const displayName = document.querySelector("[data-auth-name]")?.value.trim() || email;
+    const mode = button.dataset.emailAuth || "signin";
+    if (!email || !password) {
+      showAuthMessage("Enter an email and password first.", "error");
+      return;
+    }
+    if (!supabase) {
+      showAuthMessage("Supabase is not configured yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable real registration.", "error");
+      return;
+    }
+    button.textContent = mode === "signup" ? "Creating account..." : "Signing in...";
+    const result = mode === "signup"
+      ? await supabase.auth.signUp({ email, password, options: { data: { display_name: displayName } } })
+      : await supabase.auth.signInWithPassword({ email, password });
+    if (result.error) {
+      button.textContent = mode === "signup" ? "Create account" : "Sign in";
+      showAuthMessage(result.error.message, "error");
+      return;
+    }
+    if (result.data.user) {
+      state.user = {
+        id: result.data.user.id,
+        name: String(result.data.user.user_metadata?.display_name || result.data.user.email || "Creator"),
+        email: result.data.user.email || email,
+        provider: "supabase",
+        createdAt: result.data.user.created_at || new Date().toISOString()
+      };
+      saveState(state);
+    }
+    showAuthMessage(mode === "signup" ? "Account created. Check email if confirmation is required." : "Signed in successfully.", "success");
     window.location.href = "./dashboard.html";
   });
 });
@@ -284,4 +395,3 @@ if (retryPrompt && promptBox) {
 }
 
 renderState(state);
-

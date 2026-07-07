@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | PAGE-AUTH-001 |
-| Version | 1.1.0 |
+| Version | 1.2.0 |
 | Status | Active |
 | Owner | Frontend Lead / Security Lead |
 | Dependencies | API-AUTH-001, DB-USERS-001, SEC-INDEX-001, DS-012 |
@@ -85,11 +85,13 @@ Authentication pages may be crawlable only if useful for brand navigation, but s
 
 ## Current Implementation
 
-`apps/web/signin.html` now presents social authentication options for Google, GitHub, Discord, and Apple before the email fallback. The page also communicates starter credits and routes users toward credits/referral growth paths without copying third-party page content.
+`apps/web/signin.html` presents social authentication options for Google, GitHub, Discord, and Apple before the email form. Email signup and signin now call Supabase Auth from the browser when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are configured. Missing Supabase configuration is shown as an explicit page message rather than silently creating a fake local account.
+
+Product pages now use a target-style app shell with a persistent left tool rail and compact top navigation so authenticated creation flows feel like a mature AI tool product rather than a marketing-only website.
 
 ## Future Plan
 
-Add SSO, passkeys, MFA, enterprise domain discovery, and account recovery policies.
+Complete production redirect configuration in Supabase, enable provider credentials for Google, GitHub, Discord, and Apple, then add password recovery, email verification handling, and account settings.
 
 ## AI Context
 
