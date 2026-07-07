@@ -85,6 +85,12 @@ Verify local and GitHub Pages production auth configuration:
 npm run verify:production-config
 ```
 
+Validate the MVP Admin backend after applying the Supabase migration and deploying the `admin` Edge Function:
+
+```bash
+npm run verify:admin
+```
+
 ## Environment Variables
 
 Copy `.env.local.example` to `.env.local` and fill in values from the existing Supabase project. Never commit `.env.local` or any real secret.

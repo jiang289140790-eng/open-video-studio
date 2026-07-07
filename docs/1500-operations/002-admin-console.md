@@ -39,6 +39,18 @@ where email = 'YOUR_ADMIN_EMAIL';
 
 5. Open `/admin.html` or `/zh/admin/` and verify the access panel shows the authenticated admin role.
 
+6. Validate the deployed admin console backend:
+
+```bash
+npm run verify:admin
+```
+
+Expected successful result:
+
+- All admin tables return `ok: true`.
+- `edgeFunction.ok` is `true`.
+- An unauthenticated function check returns `ADMIN_AUTH_REQUIRED`, proving the function exists and fails closed.
+
 ## Acceptance Criteria
 
 - Signed-out users see a blocked admin state.
@@ -46,6 +58,10 @@ where email = 'YOUR_ADMIN_EMAIL';
 - Operators can view users, assets, orders, jobs, and perform allowed content review.
 - Admins can adjust credits, update orders, revoke shares, and read audit logs.
 - Every high-risk write has an `audit_logs` row.
+
+## Current Deployment Status
+
+As of the first MVP Admin implementation, database tables are reachable from the configured Supabase project when using the local service role environment. The `admin` Edge Function still must be deployed in Supabase before `/admin.html` can load real production admin data.
 
 ## AI Context
 
