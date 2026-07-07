@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.50.0 |
+| Version | 0.51.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -37,6 +37,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 - The global language selector now persists the selected locale, updates the document language and active state, and shows clear feedback when a non-Chinese translation is not yet implemented.
 - Locked tool cards now use a target-style unlock flow: signed-out users see an in-page login modal with Google, X, Telegram, and Discord options before opening premium tools.
 - Signed-in users now see a target-style account navigation state with credit balance, avatar menu, dashboard, creations, history, assets, free coins, purchase credits, and logout actions.
+- Dashboard, My Creations, Assets, and History now show a target-style login/register gate to signed-out visitors while preserving local demo content behind the prompt.
 - Tool detail pages now include a target-style actionable workbench with upload, prompt, mode selection, templates, demo generation, and local asset/history persistence while real generation APIs remain disconnected.
 - Tool detail pages now also inject a target-style discovery layer with popular templates, use-case steps, related tool routing, and login/free-credit conversion actions.
 - A target-style floating quick action dock now provides daily check-in, free coins, support/help, assistant avatar, and back-to-top actions across the product surface.

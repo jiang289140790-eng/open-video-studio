@@ -25,6 +25,12 @@ const APP_SHELL_PAGES = new Set([
   "privacy.html",
   "cookie.html"
 ]);
+const PROTECTED_PRODUCT_PAGES = new Set([
+  "dashboard.html",
+  "my-creations.html",
+  "assets.html",
+  "history.html"
+]);
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 const telegramBotUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "";
@@ -488,6 +494,7 @@ function capitalize(value) {
 
 function renderState(current) {
   renderAccountNavigation(current);
+  renderProtectedPageGate(current);
   document.querySelectorAll("[data-credit-balance]").forEach((node) => {
     node.textContent = String(current.credits);
   });
@@ -501,6 +508,29 @@ function renderState(current) {
   renderDashboard(current);
   renderReferral(current);
   renderShare(current);
+}
+
+function renderProtectedPageGate(current) {
+  const page = window.location.pathname.split("/").pop() || "index.html";
+  if (!PROTECTED_PRODUCT_PAGES.has(page)) return;
+  document.querySelector(".protected-gate")?.remove();
+  document.body.classList.toggle("protected-signed-out", !current.user);
+  if (current.user) return;
+  const main = document.querySelector("main");
+  if (!main) return;
+  main.insertAdjacentHTML("afterbegin", `
+    <section class="protected-gate" data-protected-gate>
+      <div>
+        <p class="eyebrow">需要登录</p>
+        <h2>登录后管理你的创作、资产和积分</h2>
+        <p>这些页面会保存你的生成结果、历史记录、分享链接和资产库。当前展示的是本地演示数据，登录后可进入真实账户流程。</p>
+      </div>
+      <div class="protected-gate-actions">
+        <a class="btn primary" href="./signin.html" data-auth-modal>登录 / 注册</a>
+        <a class="btn glass" href="./app.html">先浏览工具</a>
+      </div>
+    </section>
+  `);
 }
 
 function showAuthMessage(message, tone = "info") {

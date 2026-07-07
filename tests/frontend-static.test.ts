@@ -148,7 +148,9 @@ describe("MVP static frontend", () => {
       "data-share-generate",
       "data-share-copy-prompt",
       "data-share-save",
-      "getCurrentShareAsset"
+      "getCurrentShareAsset",
+      "data-protected-gate",
+      "renderProtectedPageGate"
     ]) {
       assert.ok(combined.includes(hook), `MVP hook should exist: ${hook}`);
     }
@@ -238,6 +240,22 @@ describe("MVP static frontend", () => {
       "免费硬币"
     ]) {
       assert.ok(`${appScript}\n${styles}`.includes(expected), `account navigation should include ${expected}`);
+    }
+  });
+
+  it("contains target-site-style protected account page gates", () => {
+    const appScript = readPage("app.js");
+    const styles = readPage("styles.css");
+    for (const expected of [
+      "PROTECTED_PRODUCT_PAGES",
+      "renderProtectedPageGate",
+      "data-protected-gate",
+      "需要登录",
+      "登录 / 注册",
+      "protected-gate",
+      "protected-gate-actions"
+    ]) {
+      assert.ok(`${appScript}\n${styles}`.includes(expected), `protected pages should include ${expected}`);
     }
   });
 
