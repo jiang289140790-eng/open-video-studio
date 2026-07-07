@@ -223,6 +223,60 @@ document.querySelectorAll("[data-telegram-auth]").forEach((button) => {
   });
 });
 
+document.querySelectorAll(".daily-check").forEach((button) => {
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    openCheckInModal();
+  });
+});
+
+function openCheckInModal() {
+  document.querySelector(".checkin-overlay")?.remove();
+  const signedIn = Boolean(state.user);
+  const overlay = document.createElement("section");
+  overlay.className = "checkin-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", "每日签到");
+  overlay.innerHTML = `
+    <div class="checkin-modal">
+      <button class="checkin-close" type="button" aria-label="关闭">×</button>
+      <div class="checkin-gift" aria-hidden="true">🎁</div>
+      <h2>${signedIn ? "今日签到奖励已准备好" : "登录即可立即获得 10 免费积分"}</h2>
+      <p>连续签到 7 天最多可获得 <strong>65 积分</strong></p>
+      <div class="checkin-status">
+        <span>Day ${signedIn ? "1" : "0"} of 7</span>
+        <span><b data-credit-balance>${state.credits}</b></span>
+      </div>
+      <div class="checkin-days">
+        ${[5, 6, 12, 6, 8, 8, 20].map((value, index) => `
+          <article class="${index === 0 ? "active" : ""}">
+            ${index === 2 ? "<i>2x</i>" : ""}
+            ${index === 6 ? "<i>3x</i>" : ""}
+            <strong>+${value}</strong>
+            <span>Day ${index + 1}</span>
+          </article>
+        `).join("")}
+      </div>
+      <button class="btn primary full checkin-action" type="button">${signedIn ? "领取今日签到积分" : "登录开始签到"}</button>
+    </div>
+  `;
+  document.body.append(overlay);
+  overlay.querySelector(".checkin-close")?.addEventListener("click", () => overlay.remove());
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) overlay.remove();
+  });
+  overlay.querySelector(".checkin-action")?.addEventListener("click", () => {
+    if (!state.user) {
+      window.location.href = "./signin.html";
+      return;
+    }
+    state.credits += 10;
+    saveState(state);
+    overlay.querySelector(".checkin-action").textContent = "已领取 10 积分";
+  });
+}
+
 document.querySelectorAll("[data-email-auth]").forEach((button) => {
   button.addEventListener("click", async (event) => {
     event.preventDefault();

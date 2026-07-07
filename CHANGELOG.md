@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.23.0 |
+| Version | 0.24.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,15 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Added
+
+- Added a target-style Daily Check-in modal opened from the top navigation check-in action.
+- Added signed-out and signed-in check-in states, a seven-day reward calendar, current credit display, red notification dot, and a login-to-claim CTA.
+
+### Validation
+
+- Ran production build and full test suite after the Daily Check-in modal update; 26 tests passed.
 
 ### Changed
 

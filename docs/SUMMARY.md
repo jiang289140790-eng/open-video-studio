@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.30.0 |
+| Version | 0.31.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -28,6 +28,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 - The MVP frontend is now localized to Chinese across the primary product pages, and typography/color styling is tuned toward the referenced black / charcoal / pink AI tool-site direction.
 - [REVIEW-TARGET-FEATURE-MAP-001](reviews/target-site-feature-map.md) maps the referenced site into feature modules, page structure, and Open Video Studio implementation parity.
 - The account page now supports Google, X, Telegram, and Discord entry points; GitHub and Apple have been removed from the MVP login surface.
+- The Daily Check-in navigation action now opens a reusable modal with signed-out login guidance, signed-in credit claiming, and a seven-day reward calendar.
 - Browser authentication now calls Supabase Auth when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are configured; missing configuration is surfaced to the user instead of creating fake accounts.
 
 ## Knowledge Base Map

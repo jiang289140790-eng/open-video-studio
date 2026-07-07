@@ -76,7 +76,8 @@ describe("MVP static frontend", () => {
       "data-generate",
       "data-asset-list",
       "data-history-list",
-      "data-share-title"
+      "data-share-title",
+      "daily-check"
     ]) {
       assert.ok(combined.includes(hook), `MVP hook should exist: ${hook}`);
     }
@@ -108,6 +109,7 @@ describe("MVP static frontend", () => {
     const appScript = readPage("app.js");
     assert.ok(appScript.includes("side-rail"));
     assert.ok(appScript.includes("VITE_SUPABASE_URL"));
+    assert.ok(appScript.includes("openCheckInModal"));
     assert.equal(combined.includes("PAGE-003"), false);
     assert.equal(combined.includes("internal engineering"), false);
     assert.equal(combined.includes("Fake worker"), false);

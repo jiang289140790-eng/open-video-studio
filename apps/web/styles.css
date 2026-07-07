@@ -810,6 +810,142 @@ body.tool-layout .site-footer {
 .daily-check {
   background: rgba(255,255,255,0.08) !important;
   color: #fff !important;
+  position: relative;
+}
+.daily-check::after {
+  content: "";
+  position: absolute;
+  right: 7px;
+  top: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #ff3b6f;
+}
+.checkin-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: blur(7px);
+}
+.checkin-modal {
+  position: relative;
+  width: min(100%, 522px);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 8px;
+  padding: 46px 32px 24px;
+  background: linear-gradient(180deg, #241936, #191a23);
+  box-shadow: 0 28px 90px rgba(0,0,0,0.58);
+  text-align: center;
+}
+.checkin-close {
+  position: absolute;
+  right: 20px;
+  top: 18px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 1.45rem;
+}
+.checkin-gift {
+  display: grid;
+  place-items: center;
+  width: 80px;
+  height: 80px;
+  margin: 2px auto 20px;
+  border-radius: 999px;
+  background: rgba(255,98,187,0.16);
+  color: #ff62bb;
+  font-size: 3rem;
+  font-weight: 900;
+}
+.checkin-modal h2 {
+  max-width: none;
+  font-size: clamp(1.55rem, 3vw, 1.95rem);
+}
+.checkin-modal p {
+  margin-top: 10px;
+  color: #aeb5c6;
+}
+.checkin-modal p strong {
+  color: #ff62bb;
+}
+.checkin-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 22px;
+}
+.checkin-status span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 0 14px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font-weight: 850;
+}
+.checkin-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.checkin-days article {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 90px;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.07);
+}
+.checkin-days article.active {
+  border-color: #ff62bb;
+  background: rgba(255,98,187,0.14);
+  box-shadow: inset 0 0 0 1px rgba(255,98,187,0.22);
+}
+.checkin-days strong {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+.checkin-days article.active strong {
+  background: rgba(255,98,187,0.25);
+}
+.checkin-days span {
+  color: #c7c7d1;
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+.checkin-days i {
+  position: absolute;
+  right: -4px;
+  top: -8px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: #ff6b1a;
+  color: #fff;
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 950;
+}
+.checkin-action {
+  min-height: 38px;
 }
 .pricing-page,
 .referral-page,
