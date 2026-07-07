@@ -59,11 +59,9 @@ describe("MVP static frontend", () => {
     assert.ok(signin.includes("使用 Discord 登录"));
     assert.equal(signin.includes("GitHub"), false);
     assert.equal(signin.includes("Apple"), false);
-    assert.ok(signin.includes("40 启动积分"));
-    assert.ok(signin.includes("创建账户"));
     assert.ok(signin.includes("登录"));
-    assert.ok(signin.includes("data-auth-email"));
-    assert.ok(signin.includes("data-auth-password"));
+    assert.equal(signin.includes("data-auth-email"), false);
+    assert.equal(signin.includes("data-auth-password"), false);
   });
 
   it("contains working MVP hooks for the target-site-style product loop", () => {

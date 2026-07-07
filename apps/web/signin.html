@@ -4,40 +4,40 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>登录 | Open Video Studio</title>
-    <meta name="description" content="登录 Open Video Studio，管理积分、角色、资产、生成历史和账户设置。">
+    <meta name="description" content="使用 Google、X、Telegram 或 Discord 登录 Open Video Studio。">
     <link rel="stylesheet" href="./styles.css">
   </head>
-  <body>
+  <body class="login-modal-page">
     <header class="topbar">
       <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
       <nav class="topnav" aria-label="Primary navigation"><a href="./generate.html">图像工具</a><a href="./image-to-video.html">视频工具</a><a href="./pricing.html">购买积分</a><a href="./referral.html">免费硬币</a><a href="./my-creations.html">我的创作</a></nav>
       <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./referral.html">每日签到</a><a href="./signin.html" aria-current="page">登录</a></nav>
     </header>
-    <main class="auth-layout">
-      <section class="auth-art art-13">
+
+    <main class="login-modal-shell">
+      <div class="login-backdrop-grid" aria-hidden="true">
+        <span class="tool-poster art-3"></span>
+        <span class="tool-poster art-7"></span>
+        <span class="tool-poster art-2"></span>
+        <span class="tool-poster art-9"></span>
+        <span class="tool-poster art-12"></span>
+        <span class="tool-poster art-1"></span>
+      </div>
+
+      <section class="login-modal-card" aria-label="登录到 Open Video Studio">
+        <a class="modal-close" href="./app.html" aria-label="关闭登录弹窗">×</a>
         <h1>登录到 Open Video Studio</h1>
-        <p>保存生成结果、复用资产、分享作品，并管理你的积分。</p>
-      </section>
-      <section class="auth-card">
-        <p class="eyebrow">登录 / 注册</p>
-        <h2>选择登录方式</h2>
-        <p class="muted">使用社交账号快速登录。Google、X 和 Discord 通过 Supabase OAuth；Telegram 使用 Telegram Login Widget / Bot 登录预留入口。</p>
-        <div class="social-auth-grid" aria-label="Social sign in options">
-          <a class="social-auth-btn" href="./dashboard.html" data-auth-provider="google"><span>G</span>使用 Google 登录</a>
-          <a class="social-auth-btn" href="./dashboard.html" data-auth-provider="twitter"><span>X</span>使用 X 登录</a>
-          <a class="social-auth-btn" href="./dashboard.html" data-telegram-auth><span>TG</span>使用 Telegram 登录</a>
-          <a class="social-auth-btn" href="./dashboard.html" data-auth-provider="discord"><span>DC</span>使用 Discord 登录</a>
+        <p class="muted">选择一个账号继续创作。登录后可以保存作品、购买积分、复用资产并管理分享链接。</p>
+
+        <div class="modal-auth-list">
+          <a class="modal-auth-btn" href="./dashboard.html" data-auth-provider="google"><span class="provider-dot google-dot">G</span>使用 Google 登录 <b>→</b></a>
+          <a class="modal-auth-btn" href="./dashboard.html" data-auth-provider="twitter"><span class="provider-dot x-dot">X</span>使用 X 登录 <b>→</b></a>
+          <a class="modal-auth-btn" href="./dashboard.html" data-telegram-auth><span class="provider-dot tg-dot">TG</span>使用 Telegram 登录 <b>→</b></a>
+          <a class="modal-auth-btn" href="./dashboard.html" data-auth-provider="discord"><span class="provider-dot dc-dot">DC</span>使用 Discord 登录 <b>→</b></a>
         </div>
-        <div class="auth-divider"><span>或使用邮箱</span></div>
-        <label>昵称<input class="input" type="text" placeholder="Studio creator" data-auth-name></label>
-        <label>邮箱<input class="input" type="email" placeholder="creator@example.com" data-auth-email autocomplete="email"></label>
-        <label>密码<input class="input" type="password" placeholder="输入密码" data-auth-password autocomplete="current-password"></label>
-        <div class="auth-submit-grid">
-          <button class="btn primary full" type="button" data-email-auth="signup">创建账户</button>
-          <button class="btn glass full" type="button" data-email-auth="signin">登录</button>
-        </div>
-        <p class="auth-message" data-auth-message>配置 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY 后，将启用真实 Google / X / Discord 登录。</p>
-        <div class="auth-benefits"><span>40 启动积分</span><span>可复用资产</span><span>公开分享链接</span></div>
+
+        <p class="auth-message" data-auth-message>配置 Supabase OAuth 后，Google / X / Discord 会进行真实登录；Telegram 需要配置 Telegram Bot 和回调校验。</p>
+        <p class="login-terms">继续即表示你同意我们的 <a href="./app.html">服务条款</a> 和 <a href="./app.html">隐私政策</a>。</p>
       </section>
     </main>
     <script type="module" src="./app.js"></script>

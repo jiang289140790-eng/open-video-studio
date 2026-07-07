@@ -990,6 +990,110 @@ body.tool-layout .site-footer {
   color: #bbf7d0;
   background: rgba(6,78,59,0.22);
 }
+.login-modal-page {
+  min-height: 100vh;
+  background: #121212;
+}
+.login-modal-shell {
+  position: relative;
+  display: grid;
+  min-height: calc(100vh - 56px);
+  place-items: center;
+  overflow: hidden;
+  padding: 40px 18px;
+}
+.login-backdrop-grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 18px;
+  padding: 34px;
+  opacity: 0.32;
+  filter: blur(1px);
+  transform: scale(1.05);
+}
+.login-backdrop-grid::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.62);
+  backdrop-filter: blur(3px);
+}
+.login-modal-card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 520px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 52px 24px 26px;
+  background: #151515;
+  box-shadow: 0 28px 80px rgba(0,0,0,0.55);
+  text-align: center;
+}
+.login-modal-card h1 {
+  max-width: none;
+  margin-bottom: 14px;
+  font-size: clamp(1.8rem, 4vw, 2.25rem);
+}
+.modal-close {
+  position: absolute;
+  right: 18px;
+  top: 14px;
+  color: #d5d5dc;
+  font-size: 1.7rem;
+  line-height: 1;
+}
+.modal-auth-list {
+  display: grid;
+  gap: 12px;
+  margin: 28px 0 18px;
+}
+.modal-auth-btn {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 54px;
+  border-radius: 6px;
+  padding: 0 18px;
+  background: #fff;
+  color: #191919;
+  font-size: 1.05rem;
+  font-weight: 880;
+  text-align: left;
+}
+.modal-auth-btn b {
+  font-size: 1.45rem;
+  font-weight: 700;
+}
+.provider-dot {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 950;
+}
+.google-dot { background: #4285f4; }
+.x-dot { background: #111; }
+.tg-dot { background: #2aabee; }
+.dc-dot { background: #5865f2; }
+.login-terms {
+  color: #aeb5c6;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.login-terms a {
+  color: #ff62bb;
+  font-weight: 850;
+}
+.login-modal-card .auth-message {
+  margin-bottom: 16px;
+  text-align: left;
+}
 .auth-benefits span {
   border: 1px solid rgba(56,189,248,0.28);
   border-radius: 999px;

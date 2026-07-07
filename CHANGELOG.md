@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.22.0 |
+| Version | 0.23.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Changed
+
+- Rebuilt `signin.html` from a two-column email form into a target-style centered login modal with only Google, X, Telegram, and Discord entry points.
+- Removed visible email/password form fields from the MVP login surface while keeping provider hooks and configuration messaging.
+- Added modal login styling with dimmed tool-card backdrop, white provider buttons, close action, and terms/privacy text.
+
+### Validation
+
+- Ran production build and full test suite after the login modal rebuild; 26 tests passed.
 
 ### Changed
 
