@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.48.0 |
+| Version | 0.49.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Added
 
+- Added canonical `image-tools.html` and `video-tools.html` category pages so the top navigation now opens target-style tool category surfaces before users choose a specific tool.
+- Updated top navigation dropdowns, left rail, footer links, Vite build inputs, and static tests to include the image/video category route layer.
 - Added `free-coins.html` as the canonical target-style Free Coins page while preserving `referral.html` as a compatibility route.
 - Updated global navigation, account navigation, side rail, footer links, floating quick actions, Vite build inputs, and static tests to include the Free Coins route.
 - Made the public share page actionable with generate-similar, copy-prompt, save-to-assets, and conversion links back to tools, pricing, and login.

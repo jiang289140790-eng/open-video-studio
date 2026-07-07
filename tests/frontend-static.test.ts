@@ -19,6 +19,8 @@ const requiredPages = [
   "free-coins.html",
   "referral.html",
   "my-creations.html",
+  "image-tools.html",
+  "video-tools.html",
   "image-editor.html",
   "face-swap.html",
   "outfit-studio.html",
@@ -179,6 +181,28 @@ describe("MVP static frontend", () => {
     ]) {
       assert.ok(existsSync(join(webRoot, page)), `${page} should exist`);
       assert.ok(combined.includes(page), `${page} should be linked from the product surface`);
+    }
+  });
+
+  it("contains target-site-style image and video tool category pages", () => {
+    const imageTools = readPage("image-tools.html");
+    const videoTools = readPage("video-tools.html");
+    const appScript = readPage("app.js");
+    const viteConfig = readFileSync(join(process.cwd(), "vite.config.ts"), "utf8");
+    for (const expected of [
+      "image-tools.html",
+      "video-tools.html",
+      "全部图像工具",
+      "全部视频工具",
+      "data-tool-home-filter",
+      "data-tool-home-search",
+      "tool-category-page",
+      "图片编辑器",
+      "图片转视频",
+      "选择资产",
+      "查看历史"
+    ]) {
+      assert.ok(`${imageTools}\n${videoTools}\n${appScript}\n${viteConfig}`.includes(expected), `tool category pages should include ${expected}`);
     }
   });
 

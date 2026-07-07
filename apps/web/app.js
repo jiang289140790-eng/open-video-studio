@@ -15,6 +15,8 @@ const APP_SHELL_PAGES = new Set([
   "free-coins.html",
   "referral.html",
   "my-creations.html",
+  "image-tools.html",
+  "video-tools.html",
   "image-editor.html",
   "face-swap.html",
   "outfit-studio.html",
@@ -118,6 +120,7 @@ function injectTopNavigation() {
       <div class="nav-menu">
         <button class="nav-trigger" type="button" aria-expanded="false">图像工具 <span>⌄</span></button>
         <div class="nav-dropdown">
+          <a href="./image-tools.html"><strong>全部图像工具</strong><small>浏览图像生成、编辑、换脸、造型和组合工具</small></a>
           <a href="./image-editor.html"><strong>图片编辑器</strong><small>重绘、扩图、局部修复</small></a>
           <a href="./face-swap.html"><strong>AI 换脸</strong><small>授权角色替换</small></a>
           <a href="./outfit-studio.html"><strong>造型工作室</strong><small>服装、场景和品牌造型</small></a>
@@ -129,6 +132,7 @@ function injectTopNavigation() {
       <div class="nav-menu">
         <button class="nav-trigger" type="button" aria-expanded="false">视频工具 <span>⌄</span></button>
         <div class="nav-dropdown compact-dropdown">
+          <a href="./video-tools.html"><strong>全部视频工具</strong><small>浏览图片转视频、短片和创作管理入口</small></a>
           <a href="./image-to-video.html"><strong>图片转视频</strong><small>把静态资产转成短视频</small></a>
           <a href="./history.html"><strong>生成历史</strong><small>查看任务、成本和输出</small></a>
           <a href="./my-creations.html"><strong>我的创作</strong><small>管理生成作品</small></a>
@@ -341,6 +345,7 @@ function injectAppShell() {
         <a href="./gallery.html" class="${active("gallery.html")}">热门作品</a>
         <a href="./ai-effects.html" class="${active("ai-effects.html")}">AI 特效 <em>HOT</em></a>
         <span>AI 图像</span>
+        <a href="./image-tools.html" class="${active("image-tools.html")}">全部图像工具</a>
         <a href="./image-editor.html" class="${active("image-editor.html")}">图片编辑器</a>
         <a href="./face-swap.html" class="${active("face-swap.html")}">AI 换脸</a>
         <a href="./outfit-studio.html" class="${active("outfit-studio.html")}">造型工作室</a>
@@ -351,6 +356,7 @@ function injectAppShell() {
         <a href="./characters.html" class="${active("characters.html")}">角色生成器</a>
         <a href="./assets.html" class="${active("assets.html")}">资产库</a>
         <span>AI 视频</span>
+        <a href="./video-tools.html" class="${active("video-tools.html")}">全部视频工具</a>
         <a href="./image-to-video.html" class="${active("image-to-video.html")}">图片转视频</a>
         <a href="./my-creations.html" class="${active("my-creations.html")}">我的创作</a>
         <a href="./history.html" class="${active("history.html")}">生成历史</a>
@@ -369,13 +375,14 @@ function injectGlobalFooter() {
     <footer class="site-footer app-footer" aria-label="Footer navigation">
       <div class="footer-top-links">
         <a href="./app.html">首页</a>
-        <a href="./image-editor.html">图片编辑器</a>
+        <a href="./image-tools.html">图像工具</a>
         <a href="./ai-effects.html">AI 特效</a>
-        <a href="./image-to-video.html">AI 视频</a>
+        <a href="./video-tools.html">AI 视频</a>
         <a href="./gallery.html">作品探索</a>
       </div>
       <div>
         <h3>图像工具</h3>
+        <a href="./image-tools.html">全部图像工具</a>
         <a href="./image-editor.html">图片编辑器</a>
         <a href="./face-swap.html">AI 换脸</a>
         <a href="./outfit-studio.html">造型工作室</a>
@@ -385,6 +392,7 @@ function injectGlobalFooter() {
       </div>
       <div>
         <h3>视频工具</h3>
+        <a href="./video-tools.html">全部视频工具</a>
         <a href="./image-to-video.html">图片转视频</a>
         <a href="./history.html">生成历史</a>
         <a href="./my-creations.html">我的创作</a>

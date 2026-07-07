@@ -25,6 +25,8 @@ export default defineConfig({
         freeCoins: resolve(webRoot, "free-coins.html"),
         referral: resolve(webRoot, "referral.html"),
         myCreations: resolve(webRoot, "my-creations.html"),
+        imageTools: resolve(webRoot, "image-tools.html"),
+        videoTools: resolve(webRoot, "video-tools.html"),
         imageToVideo: resolve(webRoot, "image-to-video.html"),
         imageEditor: resolve(webRoot, "image-editor.html"),
         faceSwap: resolve(webRoot, "face-swap.html"),
