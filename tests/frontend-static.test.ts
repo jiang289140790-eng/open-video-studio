@@ -16,6 +16,7 @@ const requiredPages = [
   "history.html",
   "dashboard.html",
   "pricing.html",
+  "free-coins.html",
   "referral.html",
   "my-creations.html",
   "image-editor.html",
@@ -411,7 +412,7 @@ describe("MVP static frontend", () => {
   });
 
   it("contains dynamic rewards and dashboard centers", () => {
-    const referral = readPage("referral.html");
+    const referral = readPage("free-coins.html");
     const dashboard = readPage("dashboard.html");
     const appScript = readPage("app.js");
     const styles = readPage("styles.css");
@@ -455,7 +456,7 @@ describe("MVP static frontend", () => {
   });
 
   it("contains target-site-style free coin reward calendar", () => {
-    const referral = readPage("referral.html");
+    const referral = readPage("free-coins.html");
     const appScript = readPage("app.js");
     const styles = readPage("styles.css");
     for (const expected of [

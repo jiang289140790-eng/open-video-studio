@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.54.0 |
+| Version | 0.55.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -22,6 +22,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 ## Current Implementation Notes
 
 - MVP product pages now use a target-style app shell with a left tool rail and dark creator-tool navigation.
+- `apps/web/free-coins.html` is now the canonical Free Coins entry, matching the target-style top navigation while `apps/web/referral.html` remains available as a compatibility route.
 - `apps/web/app.html` now serves as the primary AI tool homepage with featured tools, quick actions, categorized rows, and footer links modeled after mature tool-directory UX.
 - The AI tool homepage now includes target-style category chips, search filtering, active states, section hiding, and empty-state feedback for tool discovery.
 - Horizontal tool and content card rows now include target-style injected carousel controls with left/right buttons and smooth scrolling.

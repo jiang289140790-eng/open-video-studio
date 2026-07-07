@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.47.0 |
+| Version | 0.48.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Added
 
+- Added `free-coins.html` as the canonical target-style Free Coins page while preserving `referral.html` as a compatibility route.
+- Updated global navigation, account navigation, side rail, footer links, floating quick actions, Vite build inputs, and static tests to include the Free Coins route.
 - Made the public share page actionable with generate-similar, copy-prompt, save-to-assets, and conversion links back to tools, pricing, and login.
 - Reused the shared social-login modal from the public share page so signed-out users stay in the same conversion flow.
 - Added static coverage for public share conversion actions.
@@ -43,7 +45,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
-- Ran the full test suite after the public share, purchase credits, free coins, tool discovery, daily check-in flow, language selector, tool directory, protected account page, navigation menu, Cookie preference, and carousel control update; 44 tests passed.
+- Ran the full test suite after the Free Coins route, public share, purchase credits, free coins, tool discovery, daily check-in flow, language selector, tool directory, protected account page, navigation menu, Cookie preference, and carousel control update; 44 tests passed.
 - Checked local HTML links and documentation summary links after the update.
 
 ### Added

@@ -12,6 +12,7 @@ const APP_SHELL_PAGES = new Set([
   "history.html",
   "dashboard.html",
   "pricing.html",
+  "free-coins.html",
   "referral.html",
   "my-creations.html",
   "image-editor.html",
@@ -134,13 +135,13 @@ function injectTopNavigation() {
         </div>
       </div>
       <a href="./pricing.html">购买积分</a>
-      <a href="./referral.html">免费硬币</a>
+      <a href="./free-coins.html">免费硬币</a>
       <a href="./my-creations.html">我的创作</a>
     `;
   }
   if (accountnav && !accountnav.querySelector(".language-menu")) {
     accountnav.innerHTML = `
-      <a class="daily-check" href="./referral.html">🎁 每日签到</a>
+      <a class="daily-check" href="./free-coins.html">🎁 每日签到</a>
       ${languageMenuMarkup()}
       <a href="./signin.html" data-auth-modal>登录</a>
     `;
@@ -301,7 +302,7 @@ function renderAccountNavigation(current) {
   if (!accountnav) return;
   if (!current.user) {
     accountnav.innerHTML = `
-      <a class="daily-check" href="./referral.html">🎁 每日签到</a>
+      <a class="daily-check" href="./free-coins.html">🎁 每日签到</a>
       ${languageMenuMarkup()}
       <a href="./signin.html" data-auth-modal>登录</a>
     `;
@@ -309,7 +310,7 @@ function renderAccountNavigation(current) {
   }
   const initial = (current.user.name || "创作者").trim().charAt(0).toUpperCase();
   accountnav.innerHTML = `
-    <a class="daily-check" href="./referral.html">🎁 每日签到</a>
+    <a class="daily-check" href="./free-coins.html">🎁 每日签到</a>
     <a class="account-credit" href="./pricing.html"><span data-credit-balance>${current.credits}</span> 积分</a>
     ${languageMenuMarkup()}
     <div class="account-menu">
@@ -319,7 +320,7 @@ function renderAccountNavigation(current) {
         <a href="./my-creations.html">我的创作</a>
         <a href="./history.html">生成历史</a>
         <a href="./assets.html">资产库</a>
-        <a href="./referral.html">免费硬币</a>
+        <a href="./free-coins.html">免费硬币</a>
         <a href="./pricing.html">购买积分</a>
         <button type="button" data-logout>退出登录</button>
       </div>
@@ -355,7 +356,7 @@ function injectAppShell() {
         <a href="./history.html" class="${active("history.html")}">生成历史</a>
       </nav>
       <div class="rail-actions">
-        <a href="./referral.html">推荐好友</a>
+        <a href="./free-coins.html">推荐好友</a>
         <a class="rail-upgrade" href="./pricing.html">立即升级</a>
       </div>
     </aside>
@@ -392,7 +393,7 @@ function injectGlobalFooter() {
         <h3>About Us</h3>
         <a href="./blog.html">Blog</a>
         <a href="./pricing.html">价格</a>
-        <a href="./referral.html">推荐</a>
+        <a href="./free-coins.html">推荐</a>
         <a href="./terms.html">Terms</a>
         <a href="./privacy.html">Privacy</a>
         <a href="./cookie.html">Cookie</a>
@@ -411,7 +412,7 @@ function injectFloatingDock() {
   document.body.insertAdjacentHTML("beforeend", `
     <aside class="floating-dock" aria-label="Quick actions">
       <button class="floating-action daily-check" type="button" aria-label="每日签到"><span>🎁</span></button>
-      <a class="floating-action" href="./referral.html" aria-label="免费硬币"><span>币</span></a>
+      <a class="floating-action" href="./free-coins.html" aria-label="免费硬币"><span>币</span></a>
       <button class="floating-action" type="button" data-support-widget aria-label="帮助"><span>?</span></button>
       <button class="floating-avatar" type="button" data-support-widget aria-label="客服头像"><span>OVS</span></button>
       <button class="floating-action to-top" type="button" data-scroll-top aria-label="返回顶部"><span>↑</span></button>
@@ -536,7 +537,7 @@ function injectToolDiscovery() {
       </div>
       <div class="tool-conversion-actions">
         <a class="btn primary" href="./signin.html" data-auth-modal>登录继续</a>
-        <a class="btn glass" href="./referral.html">领取免费硬币</a>
+        <a class="btn glass" href="./free-coins.html">领取免费硬币</a>
       </div>
     </section>
   `);
@@ -806,7 +807,7 @@ function openSupportWidget() {
         <a href="./image-editor.html">打开图片工具</a>
         <a href="./image-to-video.html">打开视频工具</a>
         <a href="./pricing.html">查看积分套餐</a>
-        <a href="./referral.html">领取免费硬币</a>
+        <a href="./free-coins.html">领取免费硬币</a>
         <a href="mailto:support@openvideostudio.app">联系支持</a>
       </div>
     </div>
@@ -978,7 +979,7 @@ function openCheckInModal() {
   overlay.querySelector(".checkin-action")?.addEventListener("click", () => {
     if (!state.user) {
       overlay.remove();
-      openAuthModal("./referral.html");
+      openAuthModal("./free-coins.html");
       return;
     }
     if (state.rewards.lastCheckInDate === today) {

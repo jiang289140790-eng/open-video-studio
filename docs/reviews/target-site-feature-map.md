@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | REVIEW-TARGET-FEATURE-MAP-001 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Active |
 | Owner | Product / Frontend |
 | Dependencies | FE-BIBLE-001, REVIEW-LEGACY-001 |
@@ -25,7 +25,7 @@ Map the referenced AI tool site into product capabilities, page structure, and u
 |---|---|---|
 | Tool directory home | `apps/web/app.html` | Left rail, top nav, featured tools, quick cards, categorized tool rows |
 | Pricing / credits | `apps/web/pricing.html` | One-time credit packs, discount messaging, trust metrics, examples |
-| Free coins / referral | `apps/web/referral.html` | Daily check-in, referral reward, task-based credit earning |
+| Free coins / referral | `apps/web/free-coins.html` plus compatibility route `apps/web/referral.html` | Daily check-in, referral reward, task-based credit earning |
 | My creations | `apps/web/my-creations.html` | Assets, history, share links, search/filter, signed-in creation shelf |
 | Image to video tool | `apps/web/image-to-video.html` | Upload, prompt, preview, credit estimate, generate action, examples |
 | Image generation tool | `apps/web/generate.html` | Mode cards, character selector, prompt enhancer, preview, recent results |

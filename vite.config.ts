@@ -22,6 +22,7 @@ export default defineConfig({
         dashboard: resolve(webRoot, "dashboard.html"),
         history: resolve(webRoot, "history.html"),
         pricing: resolve(webRoot, "pricing.html"),
+        freeCoins: resolve(webRoot, "free-coins.html"),
         referral: resolve(webRoot, "referral.html"),
         myCreations: resolve(webRoot, "my-creations.html"),
         imageToVideo: resolve(webRoot, "image-to-video.html"),
