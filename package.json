@@ -9,6 +9,7 @@
     "build:server": "tsc -p tsconfig.json",
     "build:web": "vite build",
     "verify:supabase": "node scripts/verify-supabase.mjs",
+    "verify:production-config": "node scripts/check-production-config.mjs",
     "test": "npm run build && node --test dist/tests/**/*.test.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },

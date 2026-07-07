@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.62.0 |
+| Version | 0.63.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -25,6 +25,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 - Sign-in now exposes an OAuth readiness checklist for Google, X, Telegram, and Discord so provider configuration gaps are visible before production launch.
 - The shared frontend script now includes a lightweight i18n dictionary for core navigation, account, and conversion labels, plus local original preview assets for major creation cards.
 - Demo checkout now creates order records that appear in Admin, preserving a visible fulfillment trail until real payment webhooks are connected.
+- [OPS-AUTH-001](1500-operations/001-production-auth-config.md) now defines the production Supabase OAuth, Telegram, GitHub Pages Variables/Secrets, redirect URL, and verification checklist.
 - Root static product pages now use localized `/zh/.../` and `/zh/app/.../` click routes for primary navigation, keeping the public experience aligned with the target-style Chinese URL structure.
 - MVP product pages now use a target-style app shell with a left tool rail and dark creator-tool navigation.
 - Account, login, gallery, dashboard, assets, history, and share flows now have localized `/zh/.../` aliases and primary links route through them.
@@ -86,6 +87,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 - [1200 Analytics](1200-analytics/README.md)
 - [1300 Security](1300-security/README.md)
 - [1400 Roadmap](1400-roadmap/README.md)
+- [1500 Operations](1500-operations/001-production-auth-config.md)
 
 ## Governance Documents
 

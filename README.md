@@ -79,6 +79,12 @@ Verify Supabase configuration:
 npm run verify:supabase
 ```
 
+Verify local and GitHub Pages production auth configuration:
+
+```bash
+npm run verify:production-config
+```
+
 ## Environment Variables
 
 Copy `.env.local.example` to `.env.local` and fill in values from the existing Supabase project. Never commit `.env.local` or any real secret.
@@ -88,6 +94,17 @@ Required for live Supabase verification:
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
 - `SUPABASE_STORAGE_BUCKET`
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+Required for GitHub Pages social login build:
+
+- GitHub Variable: `VITE_SUPABASE_URL`
+- GitHub Secret: `VITE_SUPABASE_ANON_KEY`
+- GitHub Variable: `VITE_TELEGRAM_BOT_USERNAME`
+- GitHub Variable: `VITE_TELEGRAM_AUTH_URL`
+
+Production OAuth setup is documented in [Production Auth Configuration](docs/1500-operations/001-production-auth-config.md).
 
 Optional server-only key:
 

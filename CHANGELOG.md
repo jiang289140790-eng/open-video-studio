@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.55.0 |
+| Version | 0.56.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,9 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Added
 
+- Added `npm run verify:production-config` to check local Supabase environment values and required GitHub Pages Variables/Secrets for production OAuth readiness.
+- Added `OPS-AUTH-001` production auth configuration documentation covering Supabase OAuth, Telegram login, redirect URLs, GitHub Variables/Secrets, and validation steps.
+- Updated README with the production auth configuration verification command and required GitHub Pages environment names.
 - Added the MVP Admin surface with localized `/zh/admin/` routing, OAuth readiness, moderation queue, order fulfillment, risk controls, and system health status.
 - Added OAuth readiness checks to the sign-in page so Google, X, Telegram, and Discord login setup gaps are visible before production launch.
 - Added a shared i18n message dictionary and static text translation pass for core navigation, account, and conversion labels.
@@ -60,6 +63,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran production configuration verification; it correctly reports missing `.env.local` and missing GitHub Variables/Secrets until real Supabase and provider values are supplied.
 - Ran the full test suite after the production-readiness surface update; 51 tests passed.
 - Ran the full test suite after the static route normalization update; 49 tests passed.
 - Checked local HTML links and documentation summary links after the route normalization update.
