@@ -23,7 +23,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 - The MVP Admin console is now a real Supabase-backed operations surface. Admin/operator access is based on `profiles.role`, sensitive write actions go through the Supabase `admin` Edge Function, and admin credit/order/content/share actions write audit logs.
 - Supabase project configuration and the admin console migration now live under `supabase/`, matching standard Supabase CLI layout for deployment handoff.
-- `npm run verify:admin` validates the admin database tables and `admin` Edge Function deployment; current verification confirms the tables are reachable and the Edge Function still needs deployment.
+- `npm run verify:admin` validates the admin database tables and `admin` Edge Function deployment; current verification confirms both are reachable and the function fails closed for unauthenticated requests.
 - `src/supabase/mvp-schema.sql` now includes the admin-required production tables and RLS policies for audit logs, orders, characters, images, videos, and role-aware admin reads.
 - Shared top navigation visibility has been restored after the dropdown hidden-state fix; dropdown menus stay hidden until opened without collapsing the visible nav/login bar.
 - The MVP now includes an Admin surface at `apps/web/admin.html` with `/zh/admin/` routing for OAuth readiness, content moderation review, order fulfillment status, risk controls, and system health.

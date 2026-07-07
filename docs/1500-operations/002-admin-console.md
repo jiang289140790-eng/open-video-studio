@@ -61,7 +61,9 @@ Expected successful result:
 
 ## Current Deployment Status
 
-As of the first MVP Admin implementation, database tables are reachable from the configured Supabase project when using the local service role environment. The `admin` Edge Function still must be deployed in Supabase before `/admin.html` can load real production admin data.
+As of the first MVP Admin implementation, database tables are reachable from the configured Supabase project when using the local service role environment. The `admin` Edge Function has been deployed and `npm run verify:admin` confirms that the function exists and fails closed with `ADMIN_AUTH_REQUIRED` for unauthenticated requests.
+
+Supabase Auth currently has no users in this project, so the first admin role can only be assigned after the first real account signs up.
 
 ## AI Context
 

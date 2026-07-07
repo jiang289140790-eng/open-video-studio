@@ -38,6 +38,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 - Ran TypeScript type checking after the admin backend implementation.
 - Ran `npm run verify:admin`; admin database tables were reachable, while the Supabase `admin` Edge Function still returned `404` until deployed.
+- Deployed the Supabase `admin` Edge Function from the dashboard and reran `npm run verify:admin`; verification now passes with the expected unauthenticated `ADMIN_AUTH_REQUIRED` response.
+- Checked Supabase Auth user inventory; no users exist yet, so the first `profiles.role = 'admin'` assignment must wait until a real account signs up.
 
 ### Fixed
 
