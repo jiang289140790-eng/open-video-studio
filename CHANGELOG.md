@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.20.0 |
+| Version | 0.21.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,20 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Added
+
+- Added `REVIEW-TARGET-FEATURE-MAP-001` to document the referenced tool site's page map, feature checklist, and Open Video Studio implementation mapping.
+- Added pricing trust metrics, creator quotes, and example creation cards to strengthen the credit purchase flow.
+- Added referral task cards, a My Creations empty-state creation prompt, and an Image to Video workflow explainer.
+
+### Changed
+
+- Expanded page modules to better match mature AI tool-site information architecture while keeping original Open Video Studio copy and safe AI creation categories.
+
+### Validation
+
+- Ran production build, full test suite, and Markdown link check after the module expansion; 26 tests passed.
 
 ### Changed
 

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.28.0 |
+| Version | 0.29.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -26,6 +26,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 - The shared frontend script now injects a global footer navigation block across product pages and the homepage, keeping footer links consistent like a reusable site section.
 - Pricing, Free Credits, My Creations, and Image to Video pages have been localized and visually aligned with the tool-directory product surface.
 - The MVP frontend is now localized to Chinese across the primary product pages, and typography/color styling is tuned toward the referenced black / charcoal / pink AI tool-site direction.
+- [REVIEW-TARGET-FEATURE-MAP-001](reviews/target-site-feature-map.md) maps the referenced site into feature modules, page structure, and Open Video Studio implementation parity.
 - Browser authentication now calls Supabase Auth when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are configured; missing configuration is surfaced to the user instead of creating fake accounts.
 
 ## Knowledge Base Map
@@ -54,6 +55,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 - [CTX-001 Project Context](context/PROJECT_CONTEXT.md)
 - [REVIEW-ARCH-001 Architecture Review V1](reviews/architecture-review-v1.md)
 - [REVIEW-LEGACY-001 Legacy Site Migration Review](reviews/legacy-site-migration-review.md)
+- [REVIEW-TARGET-FEATURE-MAP-001 Target Site Feature Map](reviews/target-site-feature-map.md)
 - [DOC-STD-001 Document Standard](0000-overview/DOC-STD-001-document-standard.md)
 - [ID-REG-001 Numbering System](0000-overview/ID-REG-001-numbering-system.md)
 - [REF-001 Cross-Reference Standard](0000-overview/REF-001-cross-reference-standard.md)

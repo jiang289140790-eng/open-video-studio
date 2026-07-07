@@ -1,0 +1,57 @@
+# Target Site Feature Map
+
+| Field | Value |
+|---|---|
+| Unique ID | REVIEW-TARGET-FEATURE-MAP-001 |
+| Version | 1.0.0 |
+| Status | Active |
+| Owner | Product / Frontend |
+| Dependencies | FE-BIBLE-001, REVIEW-LEGACY-001 |
+| Referenced By | DOC-002, CHANGELOG-001 |
+
+## Purpose
+
+Map the referenced AI tool site into product capabilities, page structure, and user flows that Open Video Studio can implement with original UI, original copy, and safe product categories.
+
+## Requirements
+
+- Match product capability, information architecture, and user journey shape.
+- Do not copy proprietary source code, images, or exact protected creative expression.
+- Keep Open Video Studio content focused on reusable AI images, video, characters, assets, credits, and sharing.
+
+## Page Map
+
+| Target Pattern | Open Video Studio Page | Implemented Capability |
+|---|---|---|
+| Tool directory home | `apps/web/app.html` | Left rail, top nav, featured tools, quick cards, categorized tool rows |
+| Pricing / credits | `apps/web/pricing.html` | One-time credit packs, discount messaging, trust metrics, examples |
+| Free coins / referral | `apps/web/referral.html` | Daily check-in, referral reward, task-based credit earning |
+| My creations | `apps/web/my-creations.html` | Assets, history, share links, search/filter, signed-in creation shelf |
+| Image to video tool | `apps/web/image-to-video.html` | Upload, prompt, preview, credit estimate, generate action, examples |
+| Image generation tool | `apps/web/generate.html` | Mode cards, character selector, prompt enhancer, preview, recent results |
+| Gallery / explore | `apps/web/gallery.html` | Masonry feed, filters, generate similar, copy prompt, share, save |
+| Authentication | `apps/web/signin.html` | Email auth, social auth options, real Supabase integration hooks |
+| Shared footer | `apps/web/app.js` | Site-wide footer links, tool links, contact, copyright |
+
+## Feature Checklist
+
+- Global top navigation: image tools, video tools, credits, free credits, my creations, login.
+- Left tool rail: home, tool categories, my creations, referral, upgrade.
+- Tool directory: large feature banners, quick action cards, categorized horizontal rows.
+- Credit commerce: credit packs, visible price, discounts, trust section, examples.
+- Growth loop: check-in, referral link, reward steps, task rewards.
+- Creation loop: upload/reference, prompt, mode, preview, credit estimate, generate.
+- Asset loop: saved outputs, history, search, filters, share, retry.
+- Public loop: share page, generate similar action.
+- Trust / conversion: metrics, user-style quotes, visual examples, upgrade CTA.
+
+## Acceptance Criteria
+
+- Every primary page uses Chinese product copy.
+- Pages share a consistent black / charcoal / pink tool-site visual system.
+- Footer appears as a reusable site section, not a one-off page block.
+- Users can navigate from tool discovery to generation, credits, creation history, and sharing.
+
+## AI Context
+
+Future AI agents should use this document as the comparison checklist when aligning pages to mature AI tool-site behavior. Preserve functional parity and user-flow parity while keeping copy, media, and brand expression original to Open Video Studio.
