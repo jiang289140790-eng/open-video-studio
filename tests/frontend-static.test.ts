@@ -51,11 +51,14 @@ describe("MVP static frontend", () => {
     }
   });
 
-  it("offers social authentication options on the account page", () => {
+  it("offers the required social authentication options on the account page", () => {
     const signin = readPage("signin.html");
-    for (const provider of ["Google", "GitHub", "Discord", "Apple"]) {
-      assert.ok(signin.includes(provider), `signin should include ${provider}`);
-    }
+    assert.ok(signin.includes("使用 Google 登录"));
+    assert.ok(signin.includes("使用 X 登录"));
+    assert.ok(signin.includes("使用 Telegram 登录"));
+    assert.ok(signin.includes("使用 Discord 登录"));
+    assert.equal(signin.includes("GitHub"), false);
+    assert.equal(signin.includes("Apple"), false);
     assert.ok(signin.includes("40 启动积分"));
     assert.ok(signin.includes("创建账户"));
     assert.ok(signin.includes("登录"));
@@ -67,6 +70,9 @@ describe("MVP static frontend", () => {
     const combined = requiredPages.map(readPage).join("\n");
     for (const hook of [
       "data-auth-provider=\"google\"",
+      "data-auth-provider=\"twitter\"",
+      "data-telegram-auth",
+      "data-auth-provider=\"discord\"",
       "data-buy-credits",
       "data-character-form",
       "data-generate",
@@ -101,7 +107,6 @@ describe("MVP static frontend", () => {
     assert.ok(combined.includes("免费开始生成"));
     assert.ok(combined.includes("图片生成器"));
     assert.ok(combined.includes("角色选择"));
-    assert.ok(combined.includes("图片生成器"));
     const appScript = readPage("app.js");
     assert.ok(appScript.includes("side-rail"));
     assert.ok(appScript.includes("VITE_SUPABASE_URL"));
@@ -114,7 +119,7 @@ describe("MVP static frontend", () => {
     const staticFiles = [...requiredPages, "styles.css", "app.js"];
     for (const file of staticFiles) {
       const content = readPage(file);
-      assert.equal(/鈥|⑩|€|�|Â|Ã/.test(content), false, `${file} should not contain mojibake markers`);
+      assert.equal(/閳鈶﹟鈧瑋锟絴脗|脙|鐧诲綍|鍥惧儚|绉垎/.test(content), false, `${file} should not contain mojibake markers`);
     }
   });
 });

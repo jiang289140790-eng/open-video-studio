@@ -16,6 +16,8 @@ const APP_SHELL_PAGES = new Set([
 ]);
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
+const telegramBotUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "";
+const telegramAuthUrl = import.meta.env.VITE_TELEGRAM_AUTH_URL || "";
 const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
 
 const defaultState = {
@@ -195,6 +197,29 @@ document.querySelectorAll("[data-auth-provider]").forEach((button) => {
       options: { redirectTo: new URL("./dashboard.html", window.location.href).href }
     });
     if (error) showAuthMessage(error.message, "error");
+  });
+});
+
+document.querySelectorAll("[data-telegram-auth]").forEach((button) => {
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    if (!telegramBotUsername || !telegramAuthUrl) {
+      showAuthMessage("Telegram 登录需要先配置 VITE_TELEGRAM_BOT_USERNAME 和 VITE_TELEGRAM_AUTH_URL，并在后端校验 Telegram 返回签名。", "error");
+      return;
+    }
+    const container = document.createElement("div");
+    container.className = "telegram-widget-slot";
+    button.after(container);
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = "https://telegram.org/js/telegram-widget.js?22";
+    script.setAttribute("data-telegram-login", telegramBotUsername);
+    script.setAttribute("data-size", "large");
+    script.setAttribute("data-auth-url", telegramAuthUrl);
+    script.setAttribute("data-request-access", "write");
+    container.innerHTML = "";
+    container.append(script);
+    showAuthMessage("请在 Telegram 弹窗中完成授权。", "success");
   });
 });
 

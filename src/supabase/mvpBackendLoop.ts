@@ -6,7 +6,7 @@ import { nowIso } from "../shared/time.js";
 import { STARTER_CREDITS } from "../credits/starterCredits.js";
 
 export type SupabaseGenerationMediaType = "image" | "video";
-export type SupabaseOAuthProvider = "google" | "github" | "discord" | "apple";
+export type SupabaseOAuthProvider = "google" | "twitter" | "discord";
 
 export interface SupabaseBackendLoopOptions {
   storageBucket: string;

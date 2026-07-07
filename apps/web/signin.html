@@ -14,16 +14,19 @@
       <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./referral.html">每日签到</a><a href="./signin.html" aria-current="page">登录</a></nav>
     </header>
     <main class="auth-layout">
-      <section class="auth-art art-13"><h1>登录后开始创作</h1><p>保存生成结果、复用资产、分享作品，并管理你的积分。</p></section>
+      <section class="auth-art art-13">
+        <h1>登录到 Open Video Studio</h1>
+        <p>保存生成结果、复用资产、分享作品，并管理你的积分。</p>
+      </section>
       <section class="auth-card">
         <p class="eyebrow">登录 / 注册</p>
-        <h2>更快开始创作</h2>
-        <p class="muted">使用社交账号一键登录，或使用邮箱注册。新用户注册后可获得启动积分。</p>
+        <h2>选择登录方式</h2>
+        <p class="muted">使用社交账号快速登录。Google、X 和 Discord 通过 Supabase OAuth；Telegram 使用 Telegram Login Widget / Bot 登录预留入口。</p>
         <div class="social-auth-grid" aria-label="Social sign in options">
           <a class="social-auth-btn" href="./dashboard.html" data-auth-provider="google"><span>G</span>使用 Google 登录</a>
-          <a class="social-auth-btn" href="./dashboard.html" data-auth-provider="github"><span>GH</span>使用 GitHub 登录</a>
+          <a class="social-auth-btn" href="./dashboard.html" data-auth-provider="twitter"><span>X</span>使用 X 登录</a>
+          <a class="social-auth-btn" href="./dashboard.html" data-telegram-auth><span>TG</span>使用 Telegram 登录</a>
           <a class="social-auth-btn" href="./dashboard.html" data-auth-provider="discord"><span>DC</span>使用 Discord 登录</a>
-          <a class="social-auth-btn" href="./dashboard.html" data-auth-provider="apple"><span>A</span>使用 Apple 登录</a>
         </div>
         <div class="auth-divider"><span>或使用邮箱</span></div>
         <label>昵称<input class="input" type="text" placeholder="Studio creator" data-auth-name></label>
@@ -33,7 +36,7 @@
           <button class="btn primary full" type="button" data-email-auth="signup">创建账户</button>
           <button class="btn glass full" type="button" data-email-auth="signin">登录</button>
         </div>
-        <p class="auth-message" data-auth-message>配置 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY 后，将使用真实 Supabase Auth。</p>
+        <p class="auth-message" data-auth-message>配置 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY 后，将启用真实 Google / X / Discord 登录。</p>
         <div class="auth-benefits"><span>40 启动积分</span><span>可复用资产</span><span>公开分享链接</span></div>
       </section>
     </main>

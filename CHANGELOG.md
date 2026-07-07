@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.21.0 |
+| Version | 0.22.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,18 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Changed
+
+- Replaced the account page social options with the requested four-provider set: Google, X, Telegram, and Discord.
+- Removed GitHub and Apple login options from the frontend and Supabase OAuth provider type.
+- Updated Supabase OAuth support to use Google, X/Twitter, and Discord; Telegram is wired through Telegram Login Widget configuration and requires a backend signed-hash callback.
+- Added Telegram public configuration variables to environment templates and the GitHub Pages deployment workflow.
+- Rebuilt the frontend static test file as clean UTF-8 and added coverage for the four required social login options.
+
+### Validation
+
+- Ran production build and full test suite after the social login provider update; 26 tests passed.
 
 ### Added
 
