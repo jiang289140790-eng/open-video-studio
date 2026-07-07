@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.24.0 |
+| Version | 0.25.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Changed
+
+- Rebuilt the Purchase Credits page into a conversion-focused credit shop with highlighted credit packs, one-time payment messaging, payment method choices, creator trust cards, and a limited-time 2x credit offer modal.
+- Rebuilt the Free Coins page around login-required rewards, daily check-in, referral link copy, creator tasks, and free-credit use cases.
+- Added frontend interactions for payment method selection, referral link copying, and the credit offer promo-code claim path.
+
+### Validation
+
+- Ran production build and full test suite after the credit shop and free coins update; 26 tests passed.
 
 ### Added
 

@@ -327,6 +327,84 @@ document.querySelectorAll("[data-buy-credits]").forEach((button) => {
   });
 });
 
+document.querySelectorAll("[data-payment-method]").forEach((button) => {
+  button.dataset.label = button.textContent;
+  button.addEventListener("click", () => {
+    document.querySelectorAll("[data-payment-method]").forEach((item) => {
+      item.classList.remove("active");
+      item.textContent = item.dataset.label || item.textContent.replace("（已选择）", "");
+    });
+    button.classList.add("active");
+    button.textContent = `${button.dataset.label}（已选择）`;
+  });
+});
+
+document.querySelector("[data-copy-referral]")?.addEventListener("click", async (event) => {
+  const button = event.currentTarget;
+  const link = document.querySelector("[data-referral-link]")?.value || "https://openvideostudio.app/?ref=creator-demo";
+  try {
+    await navigator.clipboard?.writeText(link);
+    button.textContent = "已复制";
+  } catch {
+    button.textContent = "复制链接";
+  }
+});
+
+if (document.body.classList.contains("pricing-page") || document.querySelector(".pricing-page")) {
+  window.setTimeout(openCreditOfferModal, 450);
+}
+
+function openCreditOfferModal() {
+  if (sessionStorage.getItem("ovs-credit-offer-dismissed") === "true") return;
+  document.querySelector(".credit-offer-overlay")?.remove();
+  const overlay = document.createElement("section");
+  overlay.className = "credit-offer-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", "限时积分优惠");
+  overlay.innerHTML = `
+    <div class="credit-offer-modal">
+      <button class="checkin-close" type="button" aria-label="关闭">×</button>
+      <span class="offer-pill">⚡ LIMITED TIME OFFER</span>
+      <h2>等等！现在购买可获得 <strong>2x 积分</strong></h2>
+      <p>当前创作者专属加赠，只在本次访问期间展示。</p>
+      <div class="offer-compare">
+        <div><span>原套餐</span><del>1000 积分</del><b>$29.99</b></div>
+        <div class="active"><span>加赠后</span><strong>1600 积分</strong><b>$29.99</b></div>
+      </div>
+      <small>结账时使用优惠码</small>
+      <button class="promo-code" type="button" data-copy-promo><span>WELCOME_SALE</span><em>复制</em></button>
+      <div class="offer-timer">优惠倒计时 <b data-offer-countdown>29:51</b></div>
+      <button class="btn primary full" type="button" data-offer-claim data-buy-credits="1600">领取 2x 积分优惠</button>
+      <button class="offer-skip" type="button">不用了，暂时跳过</button>
+    </div>
+  `;
+  document.body.append(overlay);
+  const close = () => {
+    sessionStorage.setItem("ovs-credit-offer-dismissed", "true");
+    overlay.remove();
+  };
+  overlay.querySelector(".checkin-close")?.addEventListener("click", close);
+  overlay.querySelector(".offer-skip")?.addEventListener("click", close);
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) close();
+  });
+  overlay.querySelector("[data-copy-promo]")?.addEventListener("click", async (event) => {
+    try {
+      await navigator.clipboard?.writeText("WELCOME_SALE");
+      event.currentTarget.querySelector("em").textContent = "已复制";
+    } catch {
+      event.currentTarget.querySelector("em").textContent = "复制";
+    }
+  });
+  overlay.querySelector("[data-offer-claim]")?.addEventListener("click", () => {
+    ensureUser("email");
+    state.credits += 1600;
+    saveState(state);
+    overlay.querySelector("[data-offer-claim]").textContent = "已增加 1600 积分";
+  });
+}
+
 const modeButtons = document.querySelectorAll("[data-mode]");
 const costTarget = document.querySelector("[data-credit-cost]");
 const modeTarget = document.querySelector("[data-mode-label]");

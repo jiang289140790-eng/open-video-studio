@@ -9,36 +9,73 @@
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
+      <a class="brand" href="./app.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
       <nav class="topnav" aria-label="Primary navigation"><a href="./generate.html">图像工具</a><a href="./image-to-video.html">视频工具</a><a href="./pricing.html">购买积分</a><a href="./referral.html" aria-current="page">免费硬币</a><a href="./my-creations.html">我的创作</a></nav>
       <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./referral.html">每日签到</a><a href="./signin.html">登录</a></nav>
     </header>
     <main class="app-surface referral-page">
-      <section class="page-hero compact center">
-        <h1>获取更多免费积分</h1>
-        <p class="lead">签到、邀请创作者、完成首次生成，都可以帮助你获得更多 AI 创作额度。</p>
+      <section class="free-coin-hero">
+        <div>
+          <p class="eyebrow">免费硬币</p>
+          <h1>赚取免费积分</h1>
+          <p class="lead">签到、邀请创作者、完成首次生成，都可以获得更多 AI 创作额度。</p>
+          <div class="free-coin-actions">
+            <button class="btn primary daily-check" type="button">每日签到</button>
+            <a class="btn glass" href="./signin.html">登录开始</a>
+          </div>
+        </div>
+        <aside class="login-required-card">
+          <span>需要登录</span>
+          <h2>登录后查看你的推荐仪表板</h2>
+          <p>登录后可以复制专属推荐链接、查看奖励进度，并领取完成任务后的免费积分。</p>
+          <a class="btn primary full" href="./signin.html">登录开始</a>
+        </aside>
       </section>
-      <section class="reward-panel">
-        <div><p class="eyebrow">每日签到</p><h2>今日签到奖励</h2><p class="muted">每天打开 Open Video Studio，领取少量免费积分用于测试新工具。</p></div>
-        <button class="btn primary" data-buy-credits="20">领取 20 积分</button>
+      <section class="reward-panel referral-dashboard">
+        <div>
+          <p class="eyebrow">推荐计划</p>
+          <h2>每邀请 1 位有效创作者，获得 20 积分</h2>
+          <p class="muted">当对方注册并完成首次生成后，奖励会进入你的积分余额。</p>
+          <label class="referral-copy">
+            <span>你的推荐链接</span>
+            <input value="https://openvideostudio.app/?ref=creator-demo" readonly data-referral-link>
+          </label>
+        </div>
+        <button class="btn glass" type="button" data-copy-referral>复制链接</button>
       </section>
-      <section class="reward-panel">
-        <div><p class="eyebrow">Referral</p><h2>推荐好友</h2><p class="muted">把你的邀请链接发给创作者。对方注册并完成首次生成后，你将获得奖励积分。</p><code>openvideostudio.app/?ref=demo</code></div>
-        <button class="btn glass" data-buy-credits="100">领取演示奖励</button>
-      </section>
-      <section class="step-grid">
-        <article><span>01</span><h3>复制链接</h3><p>分享你的推荐链接。</p></article>
-        <article><span>02</span><h3>好友注册</h3><p>新用户获得启动积分。</p></article>
-        <article><span>03</span><h3>完成生成</h3><p>首次生成确认有效创作者。</p></article>
-        <article><span>04</span><h3>获得奖励</h3><p>积分自动进入账户余额。</p></article>
+      <section class="free-coin-grid">
+        <article>
+          <span>01</span>
+          <h3>每日签到</h3>
+          <p>连续签到 7 天最多可获得 65 积分。</p>
+          <button class="btn primary daily-check" type="button">打开签到</button>
+        </article>
+        <article>
+          <span>02</span>
+          <h3>推荐好友</h3>
+          <p>每位有效新用户可获得 20 积分。</p>
+          <button class="btn glass" type="button" data-buy-credits="20">领取演示奖励</button>
+        </article>
+        <article>
+          <span>03</span>
+          <h3>首次生成图片</h3>
+          <p>完成第一张 AI 图片后获得新手任务奖励。</p>
+          <a class="btn glass" href="./generate.html">去生成</a>
+        </article>
+        <article>
+          <span>04</span>
+          <h3>分享作品</h3>
+          <p>公开分享一个资产链接，获得额外奖励。</p>
+          <a class="btn glass" href="./my-creations.html">去分享</a>
+        </article>
       </section>
       <section class="tool-section">
-        <div class="tool-section-head"><h2>赚取积分任务</h2><a href="./pricing.html">购买积分</a></div>
+        <div class="tool-section-head"><h2>免费积分可以用来做什么</h2><a href="./pricing.html">购买更多积分</a></div>
         <div class="reward-task-grid">
-          <article><strong>每日签到</strong><span>+20 积分</span><button class="btn glass" data-buy-credits="20">领取</button></article>
-          <article><strong>首次生成图片</strong><span>+30 积分</span><a class="btn glass" href="./generate.html">去生成</a></article>
-          <article><strong>分享作品链接</strong><span>+50 积分</span><a class="btn glass" href="./my-creations.html">去分享</a></article>
-          <article><strong>邀请创作者</strong><span>+100 积分</span><button class="btn primary" data-buy-credits="100">领取演示奖励</button></article>
+          <article><strong>生成图片</strong><span>8 积分起</span><a class="btn glass" href="./generate.html">打开工具</a></article>
+          <article><strong>生成角色</strong><span>12 积分起</span><a class="btn glass" href="./characters.html">创建角色</a></article>
+          <article><strong>图片转视频</strong><span>24 积分起</span><a class="btn glass" href="./image-to-video.html">转成视频</a></article>
+          <article><strong>保存资产</strong><span>复用提示词和参考图</span><a class="btn primary" href="./assets.html">查看素材库</a></article>
         </div>
       </section>
     </main>

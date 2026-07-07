@@ -4,46 +4,92 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>购买积分 | Open Video Studio</title>
-    <meta name="description" content="购买 Open Video Studio 积分，用于 AI 图片、视频、角色和资产生成。">
+    <meta name="description" content="购买 Open Video Studio 积分，用于 AI 图片、视频、角色和可复用资产生成。">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
+      <a class="brand" href="./app.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
       <nav class="topnav" aria-label="Primary navigation"><a href="./generate.html">图像工具</a><a href="./image-to-video.html">视频工具</a><a href="./pricing.html" aria-current="page">购买积分</a><a href="./referral.html">免费硬币</a><a href="./my-creations.html">我的创作</a></nav>
       <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./referral.html">每日签到</a><a href="./signin.html">登录</a></nav>
     </header>
     <main class="app-surface pricing-page">
-      <section class="page-hero compact center">
-        <h1>找到最适合您的计划</h1>
-        <p class="lead">积分用于图片生成、图片转视频、角色创建和资产复用。每次生成前都会显示预计消耗。</p>
-      </section>
-      <section class="pricing-grid pricing-packages">
-        <article class="plan-card"><h2>Free</h2><div class="price"><span>$0</span><em>/ 20 积分</em></div><a class="btn glass full" href="./referral.html">申请免费积分</a><ul><li>最多生成 2 张图片</li><li>本地资产保存</li><li>无水印预览</li></ul></article>
-        <article class="plan-card"><h2>标准版</h2><div class="price"><span>$9.99</span><em>/ 200 积分</em></div><a class="btn glass full" href="./dashboard.html" data-buy-credits="200">立即购买</a><ul><li>最多生成 20 张图片</li><li>最多生成 5 个视频</li><li>私人生成记录</li></ul></article>
-        <article class="plan-card featured"><span class="badge success">最佳交易</span><h2>专业版</h2><div class="price old-price">$59.99</div><div class="price"><span>$29.99</span><em>/ 1000 积分</em></div><a class="btn primary full" href="./dashboard.html" data-buy-credits="1000">立即购买</a><ul><li>最多生成 100 张图片</li><li>最多生成 25 个视频</li><li>访问所有核心工具</li><li>无水印</li></ul></article>
-        <article class="plan-card"><h2>旗舰版</h2><div class="price old-price">$599.99</div><div class="price"><span>$99.99</span><em>/ 5000 积分</em></div><a class="btn glass full" href="./dashboard.html" data-buy-credits="5000">立即购买</a><ul><li>最多生成 500 张图片</li><li>最多生成 120 个视频</li><li>优先生成队列</li><li>高级资产管理</li></ul></article>
-      </section>
-      <section class="trust-band">
-        <div><strong>50K+</strong><span>创作者测试</span></div>
-        <div><strong>4.9/5</strong><span>工具体验评分</span></div>
-        <div><strong>99%</strong><span>私密资产默认保护</span></div>
-      </section>
-      <section class="quote-grid">
-        <blockquote>“积分价格清楚，生成前知道成本，适合长期做内容。”</blockquote>
-        <blockquote>“图片、视频、角色和历史放在一起，比单次生成工具更像工作台。”</blockquote>
-        <blockquote>“能把作品保存成资产再继续复用，这一点很关键。”</blockquote>
+      <section class="credit-shop-shell">
+        <div class="credit-shop-art">
+          <span class="credit-shop-badge">限时加赠</span>
+          <div class="credit-character art-2"></div>
+          <h2>为下一次生成准备足够积分</h2>
+          <p>图片、角色、视频和资产复用都使用同一套积分余额。生成前显示消耗，购买后立即可用。</p>
+        </div>
+        <section class="credit-shop-panel" aria-labelledby="pricing-title">
+          <p class="eyebrow">购买积分</p>
+          <h1 id="pricing-title">选择你的创作套餐</h1>
+          <p class="shop-subtitle">一次性购买 · 不自动续费 · 资产默认私密</p>
+          <div class="credit-plan-list">
+            <button class="credit-plan-card" type="button" data-buy-credits="200" data-plan-name="入门包">
+              <span>200 积分</span>
+              <strong>$9.99</strong>
+              <small>立即购买</small>
+            </button>
+            <button class="credit-plan-card featured" type="button" data-buy-credits="1000" data-plan-name="创作者包">
+              <i>50% OFF</i>
+              <span>1000 积分</span>
+              <strong>$29.99</strong>
+              <em>原价 $59.99</em>
+              <small>立即购买</small>
+              <b>约 $0.30 / 图片 · $1.20 / 视频</b>
+            </button>
+            <button class="credit-plan-card" type="button" data-buy-credits="5000" data-plan-name="增长包">
+              <i>83% OFF</i>
+              <span>5000 积分</span>
+              <strong>$99.99</strong>
+              <em>原价 $599.99</em>
+              <small>立即购买</small>
+            </button>
+            <button class="credit-plan-card" type="button" data-buy-credits="20000" data-plan-name="工作室包">
+              <i>90% OFF</i>
+              <span>20000 积分</span>
+              <strong>$299.99</strong>
+              <em>原价 $2999.99</em>
+              <small>立即购买</small>
+            </button>
+          </div>
+          <ul class="payment-notes">
+            <li>不会在银行账单中显示生成内容</li>
+            <li>一次性购买，不会自动扣款</li>
+            <li>积分到账后可用于图片、视频、角色和资产生成</li>
+          </ul>
+          <div class="payment-box">
+            <span class="payment-ribbon">推荐</span>
+            <button type="button" data-payment-method="paypal">PayPal</button>
+            <button type="button" data-payment-method="card">银行卡</button>
+            <button type="button" data-payment-method="applepay">Apple Pay</button>
+            <button type="button" data-payment-method="crypto">USDT</button>
+          </div>
+        </section>
+        <aside class="credit-social-proof">
+          <h2>创作者正在使用 Open Video Studio</h2>
+          <p>适合持续制作角色、短视频、广告素材和可复用内容资产。</p>
+          <article><strong>★★★★★</strong><span>“积分价格清楚，生成前能看到预计消耗，适合长期做内容。”</span></article>
+          <article><strong>★★★★★</strong><span>“角色、历史和素材库放在一起，比单次生成工具更像真正工作台。”</span></article>
+          <article><strong>★★★★★</strong><span>“买一次积分，不用订阅，适合先验证创作流程。”</span></article>
+          <div class="credit-metrics">
+            <div><b>50K+</b><small>测试创作者</small></div>
+            <div><b>4.9/5</b><small>体验评分</small></div>
+            <div><b>99%</b><small>私密资产</small></div>
+          </div>
+        </aside>
       </section>
       <section class="tool-section">
-        <div class="tool-section-head"><h2>大家正在创建</h2><a href="./gallery.html">查看更多</a></div>
+        <div class="tool-section-head"><h2>购买后可以创建什么</h2><a href="./generate.html">开始生成</a></div>
         <div class="card-carousel compact">
-          <a class="tool-poster art-3" href="./gallery.html"><strong>产品主视觉</strong><span>8 积分</span></a>
-          <a class="tool-poster art-7" href="./gallery.html"><strong>竖屏短片</strong><span>24 积分</span></a>
-          <a class="tool-poster art-2" href="./gallery.html"><strong>角色肖像</strong><span>12 积分</span></a>
-          <a class="tool-poster art-9" href="./gallery.html"><strong>社媒套图</strong><span>可复用</span></a>
+          <a class="tool-poster art-3" href="./generate.html"><strong>产品主视觉</strong><span>8 积分</span></a>
+          <a class="tool-poster art-7" href="./image-to-video.html"><strong>图片转视频</strong><span>24 积分</span></a>
+          <a class="tool-poster art-2" href="./characters.html"><strong>一致角色</strong><span>12 积分</span></a>
+          <a class="tool-poster art-9" href="./assets.html"><strong>可复用资产</strong><span>保存到素材库</span></a>
         </div>
       </section>
-      <section class="pricing-preview"><div><p class="eyebrow">Free coins</p><h2>获取更多免费积分</h2><p class="muted">通过每日签到和推荐好友获得额外生成积分。</p></div><a class="btn primary" href="./referral.html">打开免费硬币</a></section>
+      <section class="pricing-preview"><div><p class="eyebrow">免费硬币</p><h2>还想先试用？</h2><p class="muted">通过每日签到和推荐好友获得额外积分，再决定购买哪个套餐。</p></div><a class="btn primary" href="./referral.html">打开免费硬币</a></section>
     </main>
     <script type="module" src="./app.js"></script>
   </body>
