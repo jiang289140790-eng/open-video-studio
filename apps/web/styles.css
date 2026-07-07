@@ -47,7 +47,7 @@ h3 { font-size: 1rem; font-weight: 850; }
   position: sticky;
   top: 0;
   z-index: 50;
-  display: none;
+  display: grid;
   grid-template-columns: auto 1fr auto auto;
   align-items: center;
   gap: 18px;
@@ -255,7 +255,7 @@ body.tool-layout .accountnav {
   top: calc(100% + 10px);
   left: 0;
   z-index: 80;
-  display: grid;
+  display: none;
   gap: 6px;
   min-width: 280px;
   border: 1px solid rgba(255,255,255,0.10);

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.56.0 |
+| Version | 0.57.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Fixed
+
+- Restored the shared top navigation bar after the dropdown hidden-state styling accidentally hid `.topbar` on deployed pages.
+- Kept image tools, video tools, language, and account dropdowns hidden by default while preserving the visible top navigation and login actions.
+
+### Validation
+
+- Ran the full test suite after the top navigation visibility fix; 51 tests passed.
+- Ran the production build after the top navigation visibility fix.
 
 ### Added
 
