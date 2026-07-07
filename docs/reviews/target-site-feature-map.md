@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | REVIEW-TARGET-FEATURE-MAP-001 |
-| Version | 1.7.0 |
+| Version | 1.8.0 |
 | Status | Active |
 | Owner | Product / Frontend |
 | Dependencies | FE-BIBLE-001, REVIEW-LEGACY-001 |
@@ -38,6 +38,9 @@ Map the referenced AI tool site into product capabilities, page structure, and u
 | Image generation tool | `apps/web/generate.html` | Mode cards, character selector, prompt enhancer, preview, recent results |
 | Gallery / explore | `apps/web/gallery.html` | Masonry feed, filters, generate similar, copy prompt, share, save |
 | Authentication | `apps/web/signin.html` | Email auth, social auth options, real Supabase integration hooks |
+| OAuth readiness | `apps/web/signin.html`, `apps/web/admin.html` | Google, X, Telegram, and Discord setup visibility before production launch |
+| Admin operations | `apps/web/admin.html` | Moderation queue, order fulfillment status, risk rules, and system health |
+| Local visual assets | `apps/web/public/assets/previews/*` | Original deployable preview imagery for character, video, fashion, and portrait cards |
 | Shared footer | `apps/web/app.js` | Site-wide footer links, tool links, contact, copyright |
 
 ## Feature Checklist

@@ -41,6 +41,7 @@ export default defineConfig({
         cookie: resolve(webRoot, "cookie.html"),
         signin: resolve(webRoot, "signin.html"),
         share: resolve(webRoot, "share.html"),
+        admin: resolve(webRoot, "admin.html"),
         app: resolve(webRoot, "app-shell.html"),
       },
     },

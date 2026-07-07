@@ -39,6 +39,12 @@
         <p class="auth-message" data-auth-message>配置 Supabase OAuth 后，Google / X / Discord 会进行真实登录；Telegram 需要配置 Telegram Bot 和回调校验。</p>
         <p class="login-terms">继续即表示你同意我们的 <a href="./zh/app/">服务条款</a> 和 <a href="./zh/app/">隐私政策</a>。</p>
       </section>
+      <section class="oauth-readiness-panel">
+        <p class="eyebrow">OAuth Readiness</p>
+        <h2>社交登录上线检查</h2>
+        <p class="muted">Google、X 和 Discord 通过 Supabase OAuth 发起真实登录；Telegram 需要 Bot 登录组件和后端签名校验。配置完成后按钮会直接进入真实授权流程。</p>
+        <div class="oauth-readiness-list" data-oauth-readiness></div>
+      </section>
     </main>
     <script type="module" src="./app.js"></script>
   </body>

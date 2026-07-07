@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.54.0 |
+| Version | 0.55.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,12 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Added
 
+- Added the MVP Admin surface with localized `/zh/admin/` routing, OAuth readiness, moderation queue, order fulfillment, risk controls, and system health status.
+- Added OAuth readiness checks to the sign-in page so Google, X, Telegram, and Discord login setup gaps are visible before production launch.
+- Added a shared i18n message dictionary and static text translation pass for core navigation, account, and conversion labels.
+- Added local original preview assets for major creation cards so product surfaces are no longer limited to pure CSS placeholder visuals.
+- Added demo order records to the checkout flow so credit fulfillment is visible in Admin instead of only changing the local balance.
+- Added static coverage for admin, OAuth readiness, i18n, moderation, orders, and local preview assets.
 - Normalized root static product-page links so user-facing navigation now routes through the existing localized `/zh/.../` and `/zh/app/.../` public paths instead of exposing canonical `.html` file URLs.
 - Added static coverage to prevent primary root product pages from regressing back to old `.html` click routes.
 - Added localized account, login, gallery, dashboard, assets, history, and share route aliases, then routed primary account and creation-flow links through those `/zh/.../` paths.
@@ -54,6 +60,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran the full test suite after the production-readiness surface update; 51 tests passed.
 - Ran the full test suite after the static route normalization update; 49 tests passed.
 - Checked local HTML links and documentation summary links after the route normalization update.
 - Ran the full test suite after the Free Coins route, public share, purchase credits, free coins, tool discovery, daily check-in flow, language selector, tool directory, protected account page, navigation menu, Cookie preference, and carousel control update; 44 tests passed.

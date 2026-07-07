@@ -27,19 +27,59 @@ const APP_SHELL_PAGES = new Set([
   "blog.html",
   "terms.html",
   "privacy.html",
-  "cookie.html"
+  "cookie.html",
+  "admin.html"
 ]);
 const PROTECTED_PRODUCT_PAGES = new Set([
   "dashboard.html",
   "my-creations.html",
   "assets.html",
-  "history.html"
+  "history.html",
+  "admin.html"
 ]);
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 const telegramBotUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "";
 const telegramAuthUrl = import.meta.env.VITE_TELEGRAM_AUTH_URL || "";
 const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+const I18N_MESSAGES = {
+  en: {
+    "图像工具": "Image tools",
+    "视频工具": "Video tools",
+    "购买积分": "Buy credits",
+    "免费硬币": "Free coins",
+    "我的创作": "My creations",
+    "每日签到": "Daily check-in",
+    "登录": "Sign in",
+    "控制台": "Dashboard",
+    "生成历史": "History",
+    "资产库": "Assets",
+    "管理后台": "Admin",
+    "立即升级": "Upgrade now",
+    "推荐好友": "Refer friends",
+    "开始创作": "Start creating",
+    "开始生成": "Start generating",
+    "返回控制台": "Back to dashboard"
+  },
+  ja: {
+    "图像工具": "画像ツール",
+    "视频工具": "動画ツール",
+    "购买积分": "クレジット購入",
+    "免费硬币": "無料コイン",
+    "我的创作": "マイ作品",
+    "每日签到": "デイリーチェックイン",
+    "登录": "ログイン"
+  },
+  ko: {
+    "图像工具": "이미지 도구",
+    "视频工具": "비디오 도구",
+    "购买积分": "크레딧 구매",
+    "免费硬币": "무료 코인",
+    "我的创作": "내 작업",
+    "每日签到": "데일리 체크인",
+    "登录": "로그인"
+  }
+};
 
 const defaultState = {
   user: null,
@@ -59,6 +99,9 @@ const defaultState = {
   ],
   shares: [
     { id: "share_teaser", token: "demo-share", assetId: "asset_teaser", title: "Vertical teaser" }
+  ],
+  orders: [
+    { id: "order_demo", planName: "创作者包", credits: 1000, price: "$29.99", method: "paypal", status: "fulfilled", createdAt: "2026-07-07" }
   ],
   rewards: {
     checkInDay: 0,
@@ -96,6 +139,7 @@ state.rewards = {
   taskClaims: [],
   ...(state.rewards || {})
 };
+state.orders = Array.isArray(state.orders) ? state.orders : [...defaultState.orders];
 let selectedCharacterId = state.characters[0]?.id || "";
 let toolHomeFilter = "all";
 let toolHomeSearch = "";
@@ -108,6 +152,7 @@ injectCarouselControls();
 injectFloatingDock();
 injectGlobalFooter();
 applyStoredLanguage();
+renderOAuthReadiness();
 renderToolHomeDirectory();
 renderCookieBanner();
 hydrateAuthSession();
@@ -183,6 +228,20 @@ function applyStoredLanguage() {
   });
   document.querySelectorAll("[data-language]").forEach((button) => {
     button.setAttribute("aria-pressed", String(button.dataset.language === locale));
+  });
+  translateStaticText(locale);
+}
+
+function translateStaticText(locale) {
+  const dictionary = I18N_MESSAGES[locale];
+  document.body.dataset.locale = locale;
+  if (!dictionary) return;
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach((node) => {
+    const text = node.nodeValue.trim();
+    if (dictionary[text]) node.nodeValue = node.nodeValue.replace(text, dictionary[text]);
   });
 }
 
@@ -324,6 +383,7 @@ function renderAccountNavigation(current) {
         <a href="./zh/my-creations/">我的创作</a>
         <a href="./zh/history/">生成历史</a>
         <a href="./zh/assets/">资产库</a>
+        <a href="./zh/admin/">管理后台</a>
         <a href="./zh/free-coins/">免费硬币</a>
         <a href="./zh/pricing/">购买积分</a>
         <button type="button" data-logout>退出登录</button>
@@ -341,7 +401,7 @@ function injectAppShell() {
     <aside class="side-rail" aria-label="Product tools">
       <a class="rail-brand" href="./index.html"><span>ovs.ai</span><strong>Open Video Studio</strong></a>
       <nav class="rail-nav">
-        <a href="./app.html" class="${active("app.html")}">首页</a>
+        <a href="./zh/app/" class="${active("app.html")}">首页</a>
         <a href="./zh/gallery/" class="${active("gallery.html")}">热门作品</a>
         <a href="./zh/app/ai-effects/" class="${active("ai-effects.html")}">AI 特效 <em>HOT</em></a>
         <span>AI 图像</span>
@@ -360,6 +420,7 @@ function injectAppShell() {
         <a href="./zh/app/image-to-video/" class="${active("image-to-video.html")}">图片转视频</a>
         <a href="./zh/my-creations/" class="${active("my-creations.html")}">我的创作</a>
         <a href="./zh/history/" class="${active("history.html")}">生成历史</a>
+        <a href="./zh/admin/" class="${active("admin.html")}">管理后台</a>
       </nav>
       <div class="rail-actions">
         <a href="./zh/free-coins/">推荐好友</a>
@@ -374,7 +435,7 @@ function injectGlobalFooter() {
   document.body.insertAdjacentHTML("beforeend", `
     <footer class="site-footer app-footer" aria-label="Footer navigation">
       <div class="footer-top-links">
-        <a href="./app.html">首页</a>
+        <a href="./zh/app/">首页</a>
         <a href="./zh/image-tools/">图像工具</a>
         <a href="./zh/app/ai-effects/">AI 特效</a>
         <a href="./zh/video-tools/">AI 视频</a>
@@ -405,6 +466,7 @@ function injectGlobalFooter() {
         <a href="./zh/terms/">Terms</a>
         <a href="./zh/privacy/">Privacy</a>
         <a href="./zh/cookie/">Cookie</a>
+        <a href="./zh/admin/">Admin</a>
       </div>
       <div>
         <p>支持：support@openvideostudio.app</p>
@@ -619,6 +681,8 @@ function renderState(current) {
   renderDashboard(current);
   renderReferral(current);
   renderShare(current);
+  renderAdmin(current);
+  translateStaticText(getStoredLanguage());
 }
 
 function renderProtectedPageGate(current) {
@@ -649,6 +713,27 @@ function showAuthMessage(message, tone = "info") {
   if (!target) return;
   target.textContent = message;
   target.dataset.tone = tone;
+}
+
+function getOAuthReadiness() {
+  return [
+    { name: "Google", ready: Boolean(supabase), action: "Supabase Authentication > Providers > Google，填写 Client ID / Secret，并加入站点回调 URL。" },
+    { name: "X", ready: Boolean(supabase), action: "Supabase Authentication > Providers > Twitter/X，填写 API Key / Secret。" },
+    { name: "Telegram", ready: Boolean(telegramBotUsername && telegramAuthUrl), action: "配置 Telegram Bot Username、VITE_TELEGRAM_AUTH_URL，并在后端校验 Telegram 签名。" },
+    { name: "Discord", ready: Boolean(supabase), action: "Supabase Authentication > Providers > Discord，填写 Client ID / Secret。" }
+  ];
+}
+
+function renderOAuthReadiness() {
+  const target = document.querySelector("[data-oauth-readiness]");
+  if (!target) return;
+  target.innerHTML = getOAuthReadiness().map((item) => `
+    <article class="oauth-readiness-row">
+      <span class="status-dot ${item.ready ? "ready" : "blocked"}"></span>
+      <div><strong>${item.name}</strong><p>${escapeHtml(item.action)}</p></div>
+      <em>${item.ready ? "前端已就绪" : "待后台配置"}</em>
+    </article>
+  `).join("");
 }
 
 document.querySelectorAll("[data-auth-provider]").forEach((button) => {
@@ -1198,7 +1283,20 @@ function openCheckoutModal({ credits, planName, price, promo = "" }) {
   });
   overlay.querySelector("[data-confirm-checkout]")?.addEventListener("click", () => {
     ensureUser("checkout");
+    const method = overlay.querySelector("[data-checkout-method].active")?.dataset.checkoutMethod || "paypal";
     state.credits += credits;
+    state.orders = [
+      {
+        id: `order_${Date.now()}`,
+        planName,
+        credits,
+        price,
+        method,
+        status: "fulfilled",
+        createdAt: new Date().toISOString().slice(0, 10)
+      },
+      ...(state.orders || [])
+    ];
     state.rewards.taskClaims = Array.from(new Set([...state.rewards.taskClaims, "purchase"]));
     saveState(state);
     overlay.querySelector("[data-confirm-checkout]").textContent = `已到账 ${credits} 积分`;
@@ -1497,6 +1595,61 @@ function renderDashboard(current) {
       </article>
     `).join("");
   }
+}
+
+function renderAdmin(current) {
+  const oauthItems = getOAuthReadiness().map((item) => ({
+    ...item,
+    detail: item.ready ? "前端可发起真实授权" : item.action
+  }));
+  const oauthList = document.querySelector("[data-admin-oauth]");
+  if (oauthList) {
+    oauthList.innerHTML = oauthItems.map((item) => `
+      <article class="admin-row">
+        <span class="status-dot ${item.ready ? "ready" : "blocked"}"></span>
+        <div><strong>${item.name}</strong><p>${escapeHtml(item.detail)}</p></div>
+        <em>${item.ready ? "可用" : "待配置"}</em>
+      </article>
+    `).join("");
+  }
+  const oauthCount = document.querySelector("[data-admin-oauth-count]");
+  if (oauthCount) oauthCount.textContent = `${oauthItems.filter((item) => item.ready).length}/4`;
+
+  const moderationItems = current.assets.map((asset) => ({
+    id: asset.id,
+    title: asset.title,
+    type: asset.type,
+    status: asset.moderation || (asset.visibility === "public" ? "review" : "approved"),
+    reason: asset.visibility === "public" ? "公开资产需要人工抽检" : "私有资产低风险"
+  }));
+  const moderationList = document.querySelector("[data-admin-moderation]");
+  if (moderationList) {
+    moderationList.innerHTML = moderationItems.map((item) => `
+      <article class="admin-row">
+        <span class="thumb ${item.type === "video" ? "art-7" : "art-3"}"></span>
+        <div><strong>${escapeHtml(item.title)}</strong><p>${escapeHtml(item.reason)}</p></div>
+        <em>${item.status === "approved" ? "已通过" : "待审核"}</em>
+      </article>
+    `).join("");
+  }
+  const moderationCount = document.querySelector("[data-admin-moderation-count]");
+  if (moderationCount) moderationCount.textContent = String(moderationItems.filter((item) => item.status !== "approved").length);
+
+  const orderList = document.querySelector("[data-admin-orders]");
+  if (orderList) {
+    orderList.innerHTML = (current.orders || []).map((order) => `
+      <article class="admin-row">
+        <span class="status-dot ${order.status === "fulfilled" ? "ready" : "blocked"}"></span>
+        <div><strong>${escapeHtml(order.planName)} · ${order.credits} 积分</strong><p>${escapeHtml(order.method)} · ${escapeHtml(order.price)} · ${escapeHtml(order.createdAt || "today")}</p></div>
+        <em>${order.status === "fulfilled" ? "已到账" : "待处理"}</em>
+      </article>
+    `).join("");
+  }
+  const orderCount = document.querySelector("[data-admin-order-count]");
+  if (orderCount) orderCount.textContent = String((current.orders || []).length);
+
+  const health = document.querySelector("[data-admin-health]");
+  if (health) health.textContent = supabase ? "已配置" : "演示";
 }
 
 function renderReferral(current) {

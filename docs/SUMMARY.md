@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.61.0 |
+| Version | 0.62.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,10 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- The MVP now includes an Admin surface at `apps/web/admin.html` with `/zh/admin/` routing for OAuth readiness, content moderation review, order fulfillment status, risk controls, and system health.
+- Sign-in now exposes an OAuth readiness checklist for Google, X, Telegram, and Discord so provider configuration gaps are visible before production launch.
+- The shared frontend script now includes a lightweight i18n dictionary for core navigation, account, and conversion labels, plus local original preview assets for major creation cards.
+- Demo checkout now creates order records that appear in Admin, preserving a visible fulfillment trail until real payment webhooks are connected.
 - Root static product pages now use localized `/zh/.../` and `/zh/app/.../` click routes for primary navigation, keeping the public experience aligned with the target-style Chinese URL structure.
 - MVP product pages now use a target-style app shell with a left tool rail and dark creator-tool navigation.
 - Account, login, gallery, dashboard, assets, history, and share flows now have localized `/zh/.../` aliases and primary links route through them.

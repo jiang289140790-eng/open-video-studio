@@ -34,7 +34,8 @@ const requiredPages = [
   "privacy.html",
   "cookie.html",
   "signin.html",
-  "share.html"
+  "share.html",
+  "admin.html"
 ];
 
 function readPage(file: string): string {
@@ -222,6 +223,7 @@ describe("MVP static frontend", () => {
       ["zh/assets/index.html", "../../assets.html"],
       ["zh/history/index.html", "../../history.html"],
       ["zh/share/index.html", "../../share.html"],
+      ["zh/admin/index.html", "../../admin.html"],
       ["zh/blog/index.html", "../../blog.html"],
       ["zh/terms/index.html", "../../terms.html"],
       ["zh/privacy/index.html", "../../privacy.html"],
@@ -327,6 +329,7 @@ describe("MVP static frontend", () => {
       'href="./cookie.html"',
       'href="./signin.html"',
       'href="./dashboard.html"',
+      'href="./admin.html"',
       'href="./gallery.html"',
       'href="./assets.html"',
       'href="./history.html"',
@@ -476,6 +479,47 @@ describe("MVP static frontend", () => {
     ]) {
       assert.ok(`${appScript}\n${styles}`.includes(expected), `global auth modal should include ${expected}`);
     }
+  });
+
+  it("contains production-readiness surfaces for auth, i18n, admin, moderation, and orders", () => {
+    const admin = readPage("admin.html");
+    const signin = readPage("signin.html");
+    const appScript = readPage("app.js");
+    const styles = readPage("styles.css");
+    const viteConfig = readFileSync(join(process.cwd(), "vite.config.ts"), "utf8");
+    for (const expected of [
+      "data-oauth-readiness",
+      "getOAuthReadiness",
+      "I18N_MESSAGES",
+      "translateStaticText",
+      "data-admin-oauth",
+      "data-admin-moderation",
+      "data-admin-orders",
+      "data-admin-health",
+      "renderAdmin",
+      "orders",
+      "moderation",
+      "admin.html",
+      "admin-status-grid",
+      "oauth-readiness-panel"
+    ]) {
+      assert.ok(`${admin}\n${signin}\n${appScript}\n${styles}\n${viteConfig}`.includes(expected), `production-readiness surface should include ${expected}`);
+    }
+  });
+
+  it("ships local original preview assets instead of only CSS placeholders", () => {
+    for (const asset of [
+      "assets/previews/character-studio.svg",
+      "assets/previews/product-video.svg",
+      "assets/previews/fashion-scene.svg",
+      "assets/previews/cinematic-portrait.svg"
+    ]) {
+      assert.equal(existsSync(join(publicRoot, asset)), true, `${asset} should exist`);
+      assert.equal(existsSync(join(webRoot, "src", asset)), true, `src/${asset} should exist`);
+    }
+    const styles = readPage("styles.css");
+    assert.ok(styles.includes('url("./src/assets/previews/product-video.svg")'));
+    assert.ok(styles.includes('url("./src/assets/previews/character-studio.svg")'));
   });
 
   it("contains locked tool login gates", () => {
