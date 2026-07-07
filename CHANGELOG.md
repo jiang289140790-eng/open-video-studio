@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.53.0 |
+| Version | 0.54.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Added
 
+- Normalized root static product-page links so user-facing navigation now routes through the existing localized `/zh/.../` and `/zh/app/.../` public paths instead of exposing canonical `.html` file URLs.
+- Added static coverage to prevent primary root product pages from regressing back to old `.html` click routes.
 - Added localized account, login, gallery, dashboard, assets, history, and share route aliases, then routed primary account and creation-flow links through those `/zh/.../` paths.
 - Updated primary tool discovery, category, navigation, footer, modal, and conversion links to use target-style `/zh/.../` and `/zh/app/.../` click routes instead of exposing `.html` file URLs.
 - Added `/zh/app/.../` tool route aliases for the primary image, character, effect, and video tool pages to better match target-style localized tool URLs.
@@ -52,6 +54,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran the full test suite after the static route normalization update; 49 tests passed.
+- Checked local HTML links and documentation summary links after the route normalization update.
 - Ran the full test suite after the Free Coins route, public share, purchase credits, free coins, tool discovery, daily check-in flow, language selector, tool directory, protected account page, navigation menu, Cookie preference, and carousel control update; 44 tests passed.
 - Checked local HTML links and documentation summary links after the update.
 

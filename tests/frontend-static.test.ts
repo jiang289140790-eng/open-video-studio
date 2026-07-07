@@ -301,6 +301,41 @@ describe("MVP static frontend", () => {
     }
   });
 
+  it("uses localized click routes across root static product pages", () => {
+    const pages = requiredPages.map(readPage).join("\n");
+    for (const oldHref of [
+      'href="./app.html"',
+      'href="./image-tools.html"',
+      'href="./video-tools.html"',
+      'href="./image-editor.html"',
+      'href="./face-swap.html"',
+      'href="./outfit-studio.html"',
+      'href="./pose-generator.html"',
+      'href="./nano-banana.html"',
+      'href="./image-combiner.html"',
+      'href="./ai-effects.html"',
+      'href="./generate.html"',
+      'href="./characters.html"',
+      'href="./image-to-video.html"',
+      'href="./pricing.html"',
+      'href="./free-coins.html"',
+      'href="./referral.html"',
+      'href="./my-creations.html"',
+      'href="./blog.html"',
+      'href="./terms.html"',
+      'href="./privacy.html"',
+      'href="./cookie.html"',
+      'href="./signin.html"',
+      'href="./dashboard.html"',
+      'href="./gallery.html"',
+      'href="./assets.html"',
+      'href="./history.html"',
+      'href="./share.html"'
+    ]) {
+      assert.equal(pages.includes(oldHref), false, `root product pages should not expose ${oldHref}`);
+    }
+  });
+
   it("contains target-site-style top navigation dropdowns", () => {
     const appScript = readPage("app.js");
     for (const expected of [

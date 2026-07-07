@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.60.0 |
+| Version | 0.61.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Root static product pages now use localized `/zh/.../` and `/zh/app/.../` click routes for primary navigation, keeping the public experience aligned with the target-style Chinese URL structure.
 - MVP product pages now use a target-style app shell with a left tool rail and dark creator-tool navigation.
 - Account, login, gallery, dashboard, assets, history, and share flows now have localized `/zh/.../` aliases and primary links route through them.
 - Primary discovery surfaces now click through target-style localized `/zh/.../` routes instead of exposing `.html` file URLs.
