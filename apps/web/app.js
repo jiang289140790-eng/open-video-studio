@@ -112,7 +112,7 @@ function injectTopNavigation() {
   if (topnav && !topnav.querySelector(".nav-menu")) {
     topnav.innerHTML = `
       <div class="nav-menu">
-        <button class="nav-trigger" type="button">图像工具 <span>⌄</span></button>
+        <button class="nav-trigger" type="button" aria-expanded="false">图像工具 <span>⌄</span></button>
         <div class="nav-dropdown">
           <a href="./image-editor.html"><strong>图片编辑器</strong><small>重绘、扩图、局部修复</small></a>
           <a href="./face-swap.html"><strong>AI 换脸</strong><small>授权角色替换</small></a>
@@ -123,7 +123,7 @@ function injectTopNavigation() {
         </div>
       </div>
       <div class="nav-menu">
-        <button class="nav-trigger" type="button">视频工具 <span>⌄</span></button>
+        <button class="nav-trigger" type="button" aria-expanded="false">视频工具 <span>⌄</span></button>
         <div class="nav-dropdown compact-dropdown">
           <a href="./image-to-video.html"><strong>图片转视频</strong><small>把静态资产转成短视频</small></a>
           <a href="./history.html"><strong>生成历史</strong><small>查看任务、成本和输出</small></a>
@@ -148,7 +148,7 @@ function languageMenuMarkup() {
   const locale = getStoredLanguage();
   return `
     <div class="language-menu">
-      <button class="language-trigger" type="button" aria-label="切换语言">${languageTriggerLabel(locale)}</button>
+      <button class="language-trigger" type="button" aria-label="切换语言" aria-expanded="false">${languageTriggerLabel(locale)}</button>
       <div class="language-dropdown">
         <button type="button" data-language="zh-CN" aria-pressed="${locale === "zh-CN"}">简体中文</button>
         <button type="button" data-language="en" aria-pressed="${locale === "en"}">English</button>
@@ -186,6 +186,23 @@ function showSiteToast(message) {
   toast.textContent = message;
   document.body.append(toast);
   window.setTimeout(() => toast.remove(), 2200);
+}
+
+function closeOpenMenus(exceptMenu = null) {
+  document.querySelectorAll(".nav-menu.is-open, .language-menu.is-open, .account-menu.is-open").forEach((menu) => {
+    if (menu === exceptMenu) return;
+    menu.classList.remove("is-open");
+    menu.querySelector("button")?.setAttribute("aria-expanded", "false");
+  });
+}
+
+function toggleDropdownMenu(trigger) {
+  const menu = trigger.closest(".nav-menu, .language-menu, .account-menu");
+  if (!menu) return;
+  const willOpen = !menu.classList.contains("is-open");
+  closeOpenMenus(menu);
+  menu.classList.toggle("is-open", willOpen);
+  trigger.setAttribute("aria-expanded", String(willOpen));
 }
 
 function renderToolHomeDirectory() {
@@ -227,7 +244,7 @@ function renderAccountNavigation(current) {
     <a class="account-credit" href="./pricing.html"><span data-credit-balance>${current.credits}</span> 积分</a>
     ${languageMenuMarkup()}
     <div class="account-menu">
-      <button class="account-trigger" type="button"><span>${initial}</span><b data-user-name>${current.user.name}</b></button>
+      <button class="account-trigger" type="button" aria-expanded="false"><span>${initial}</span><b data-user-name>${current.user.name}</b></button>
       <div class="account-dropdown">
         <a href="./dashboard.html">控制台</a>
         <a href="./my-creations.html">我的创作</a>
@@ -580,6 +597,16 @@ document.querySelectorAll("[data-telegram-auth]").forEach((button) => {
 });
 
 document.addEventListener("click", async (event) => {
+  const menuTrigger = event.target.closest(".nav-trigger, .language-trigger, .account-trigger");
+  if (menuTrigger) {
+    event.preventDefault();
+    toggleDropdownMenu(menuTrigger);
+    return;
+  }
+  if (!event.target.closest(".nav-menu, .language-menu, .account-menu")) {
+    closeOpenMenus();
+  }
+
   const authModalLink = event.target.closest("[data-auth-modal]");
   if (authModalLink) {
     event.preventDefault();

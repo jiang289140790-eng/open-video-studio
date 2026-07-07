@@ -270,13 +270,28 @@ body.tool-layout .accountnav {
 }
 .nav-menu:hover .nav-dropdown,
 .nav-menu:focus-within .nav-dropdown,
+.nav-menu.is-open .nav-dropdown,
 .language-menu:hover .language-dropdown,
 .language-menu:focus-within .language-dropdown,
+.language-menu.is-open .language-dropdown,
 .account-menu:hover .account-dropdown,
-.account-menu:focus-within .account-dropdown {
+.account-menu:focus-within .account-dropdown,
+.account-menu.is-open .account-dropdown {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
+}
+.nav-menu.is-open .nav-trigger,
+.language-menu.is-open .language-trigger,
+.account-menu.is-open .account-trigger {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+.nav-menu.is-open .nav-trigger span {
+  transform: rotate(180deg);
+}
+.nav-trigger span {
+  transition: transform .16s ease;
 }
 .nav-dropdown a {
   display: grid;

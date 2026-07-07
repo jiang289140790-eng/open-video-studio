@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.44.0 |
+| Version | 0.45.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -37,10 +37,11 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Upgraded the global language selector with persisted locale state, active menu state, document language updates, and a site toast that clarifies untranslated languages remain in Chinese for now.
 - Added target-style tool directory filtering on the AI tools homepage with category chips, search, active states, section hiding, and empty-state feedback.
 - Added target-style protected account page gates for Dashboard, My Creations, Assets, and History so signed-out visitors see a login/register prompt before managing demo account data.
+- Added click-to-open top navigation menus for image tools, video tools, language, and account navigation with `aria-expanded`, open-state styling, and outside-click closing for touch-friendly target-style navigation.
 
 ### Validation
 
-- Ran the full test suite after the public share, purchase credits, free coins, tool discovery, daily check-in flow, language selector, tool directory, and protected account page update; 42 tests passed.
+- Ran the full test suite after the public share, purchase credits, free coins, tool discovery, daily check-in flow, language selector, tool directory, protected account page, and navigation menu update; 42 tests passed.
 - Checked local HTML links and documentation summary links after the update.
 
 ### Added
