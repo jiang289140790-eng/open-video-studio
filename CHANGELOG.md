@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.26.0 |
+| Version | 0.27.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-07
+
+### Added
+
+- Added target-site-style top navigation dropdowns for Image Tools and Video Tools across the product surface.
+- Added a language selector menu with Chinese, English, Japanese, and Korean choices as a frontend-only interaction.
+- Added static coverage for dropdown navigation, language hooks, and the expanded tool route map.
+
+### Validation
+
+- Ran production build and full test suite after the navigation interaction update; 28 tests passed.
 
 ### Added
 

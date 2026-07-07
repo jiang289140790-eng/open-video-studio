@@ -76,7 +76,7 @@ describe("MVP static frontend", () => {
   });
 
   it("contains working MVP hooks for the target-site-style product loop", () => {
-    const combined = requiredPages.map(readPage).join("\n");
+    const combined = [...requiredPages.map(readPage), readPage("app.js")].join("\n");
     for (const hook of [
       "data-auth-provider=\"google\"",
       "data-auth-provider=\"twitter\"",
@@ -88,7 +88,8 @@ describe("MVP static frontend", () => {
       "data-asset-list",
       "data-history-list",
       "data-share-title",
-      "daily-check"
+      "daily-check",
+      "data-language"
     ]) {
       assert.ok(combined.includes(hook), `MVP hook should exist: ${hook}`);
     }
@@ -111,6 +112,25 @@ describe("MVP static frontend", () => {
     ]) {
       assert.ok(existsSync(join(webRoot, page)), `${page} should exist`);
       assert.ok(combined.includes(page), `${page} should be linked from the product surface`);
+    }
+  });
+
+  it("contains target-site-style top navigation dropdowns", () => {
+    const appScript = readPage("app.js");
+    for (const expected of [
+      "nav-menu",
+      "nav-dropdown",
+      "language-menu",
+      "language-dropdown",
+      "图片编辑器",
+      "AI 换脸",
+      "造型工作室",
+      "姿势生成器",
+      "Nano Banana",
+      "图像组合器",
+      "图片转视频"
+    ]) {
+      assert.ok(appScript.includes(expected), `top navigation should include ${expected}`);
     }
   });
 

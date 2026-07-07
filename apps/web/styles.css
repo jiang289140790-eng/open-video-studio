@@ -192,9 +192,92 @@ body.tool-layout .accountnav {
   font-size: 0.9rem;
   font-weight: 760;
 }
-.topnav a:hover, .accountnav a:hover, .topnav a[aria-current="page"], .accountnav a[aria-current="page"] {
+.topnav a:hover, .accountnav a:hover, .topnav a[aria-current="page"], .accountnav a[aria-current="page"],
+.nav-menu:hover .nav-trigger, .nav-menu:focus-within .nav-trigger, .language-menu:hover .language-trigger, .language-menu:focus-within .language-trigger {
   background: rgba(255, 255, 255, 0.10);
   color: var(--text);
+}
+.nav-menu,
+.language-menu {
+  position: relative;
+}
+.nav-trigger,
+.language-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 12px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 820;
+}
+.language-trigger {
+  min-width: 42px;
+}
+.nav-dropdown,
+.language-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 80;
+  display: grid;
+  gap: 6px;
+  min-width: 280px;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 16px;
+  padding: 10px;
+  background: rgba(24,24,24,0.98);
+  box-shadow: 0 24px 70px rgba(0,0,0,0.46);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity .16s ease, transform .16s ease;
+}
+.nav-menu:hover .nav-dropdown,
+.nav-menu:focus-within .nav-dropdown,
+.language-menu:hover .language-dropdown,
+.language-menu:focus-within .language-dropdown {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.nav-dropdown a {
+  display: grid;
+  gap: 4px;
+  border-radius: 12px;
+  padding: 12px;
+  color: #fff;
+}
+.nav-dropdown a:hover,
+.language-dropdown button:hover {
+  background: rgba(255,255,255,0.08);
+}
+.nav-dropdown small {
+  color: #9ca3af;
+  font-size: 0.78rem;
+}
+.compact-dropdown {
+  min-width: 240px;
+}
+.language-dropdown {
+  right: 0;
+  left: auto;
+  min-width: 160px;
+}
+.language-dropdown button {
+  min-height: 38px;
+  border: 0;
+  border-radius: 10px;
+  padding: 0 12px;
+  background: transparent;
+  color: #f8fbff;
+  text-align: left;
+  font-weight: 820;
 }
 
 .btn, .chip, .tab, .card-actions button, .row-actions button, .library-card button {

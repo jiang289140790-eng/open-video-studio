@@ -68,9 +68,56 @@ function saveState(state) {
 
 const state = loadState();
 
+injectTopNavigation();
 injectAppShell();
 injectGlobalFooter();
 hydrateAuthSession();
+
+function injectTopNavigation() {
+  const topnav = document.querySelector(".topnav");
+  const accountnav = document.querySelector(".accountnav");
+  if (topnav && !topnav.querySelector(".nav-menu")) {
+    topnav.innerHTML = `
+      <div class="nav-menu">
+        <button class="nav-trigger" type="button">图像工具 <span>⌄</span></button>
+        <div class="nav-dropdown">
+          <a href="./image-editor.html"><strong>图片编辑器</strong><small>重绘、扩图、局部修复</small></a>
+          <a href="./face-swap.html"><strong>AI 换脸</strong><small>授权角色替换</small></a>
+          <a href="./outfit-studio.html"><strong>造型工作室</strong><small>服装、场景和品牌造型</small></a>
+          <a href="./pose-generator.html"><strong>姿势生成器</strong><small>动作、镜头和分镜参考</small></a>
+          <a href="./nano-banana.html"><strong>Nano Banana</strong><small>快速创意实验</small></a>
+          <a href="./image-combiner.html"><strong>图像组合器</strong><small>多图参考合成</small></a>
+        </div>
+      </div>
+      <div class="nav-menu">
+        <button class="nav-trigger" type="button">视频工具 <span>⌄</span></button>
+        <div class="nav-dropdown compact-dropdown">
+          <a href="./image-to-video.html"><strong>图片转视频</strong><small>把静态资产转成短视频</small></a>
+          <a href="./history.html"><strong>生成历史</strong><small>查看任务、成本和输出</small></a>
+          <a href="./my-creations.html"><strong>我的创作</strong><small>管理生成作品</small></a>
+        </div>
+      </div>
+      <a href="./pricing.html">购买积分</a>
+      <a href="./referral.html">免费硬币</a>
+      <a href="./my-creations.html">我的创作</a>
+    `;
+  }
+  if (accountnav && !accountnav.querySelector(".language-menu")) {
+    accountnav.innerHTML = `
+      <a class="daily-check" href="./referral.html">每日签到</a>
+      <div class="language-menu">
+        <button class="language-trigger" type="button" aria-label="切换语言">文A</button>
+        <div class="language-dropdown">
+          <button type="button" data-language="zh-CN">简体中文</button>
+          <button type="button" data-language="en">English</button>
+          <button type="button" data-language="ja">日本語</button>
+          <button type="button" data-language="ko">한국어</button>
+        </div>
+      </div>
+      <a href="./signin.html">登录</a>
+    `;
+  }
+}
 
 function injectAppShell() {
   const page = window.location.pathname.split("/").pop() || "index.html";
@@ -249,6 +296,15 @@ document.querySelectorAll(".daily-check").forEach((button) => {
   button.addEventListener("click", (event) => {
     event.preventDefault();
     openCheckInModal();
+  });
+});
+
+document.querySelectorAll("[data-language]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const label = button.textContent.trim();
+    localStorage.setItem("ovs_language", button.dataset.language || "zh-CN");
+    const trigger = document.querySelector(".language-trigger");
+    if (trigger) trigger.textContent = label === "简体中文" ? "文A" : label.slice(0, 2);
   });
 });
 
