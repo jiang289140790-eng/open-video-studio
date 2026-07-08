@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.82.0 |
+| Version | 0.83.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-09
+
+### Improved
+
+- Expanded the frontend i18n quality scope from 24 core navigation/admin terms to a 59-term product glossary covering account, generation, credits, admin operations, workflow rollout, and tool publishing language.
+- Added Japanese and Korean translations for the expanded MVP product glossary, keeping English, Japanese, and Korean product-term coverage at 100%.
+- Added `npm run verify:i18n` to independently validate registered locales, product-term coverage, translated placeholders/attributes, runtime coverage logic, and mojibake markers.
+
+### Validation
+
+- Ran `npm run verify:i18n`; Chinese, English, Japanese, and Korean locale registration passed, product-term coverage was 100% for all target locales, and no mojibake markers were detected.
 
 ### Improved
 

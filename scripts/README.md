@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | SCRIPT-README-001 |
-| Version | 0.4.0 |
+| Version | 0.5.0 |
 | Status | Active |
 | Owner | Engineering |
 | Dependencies | OVSB-001, DOC-STD-001, DEVOPS-INDEX-001 |
@@ -25,6 +25,7 @@ Store maintenance, validation, generation, and operational scripts used to suppo
 - `npm run verify:production-config`: checks required local and GitHub Pages environment variables for deployment readiness.
 - `npm run verify:admin`: checks the Admin Edge Function and admin schema readiness.
 - `npm run verify:oauth`: creates non-redirecting Supabase OAuth authorization URLs for Google, X/Twitter, and Discord, and checks Telegram Login Widget public configuration.
+- `npm run verify:i18n`: checks registered locales, MVP product-term translation coverage, translated attributes, runtime coverage logic, and mojibake markers for the static product surface.
 - `npm run verify:ai`: checks that the Supabase `ai` Edge Function fails closed for unauthenticated requests, then performs an authenticated smoke test for provider status with live provider probes, Qwen Vision image analysis, DeepSeek prompt enhancement, demo credit purchase, generation job creation, Fake Worker processing, Supabase Storage upload, asset creation, queued-job cancellation refund, and production table readback from `generation_jobs`, `media_assets`, and `credit_transactions`. If `SUPABASE_TEST_ACCESS_TOKEN` is absent, the script uses the local service role key to create and clean up a temporary verification user.
 - `npm run verify:payments`: checks that unauthenticated demo credit purchases fail closed, then performs an authenticated production smoke test for demo checkout, order creation, order readback, credit ledger grant, and credit balance readback. This verifies the MVP no-charge payment loop while real payment gateway integration remains deferred.
 - `npm run deploy:function -- <slug>`: deploys a Supabase Edge Function through the Supabase Management API using `SUPABASE_ACCESS_TOKEN`. Use this when the local Supabase CLI binary is unavailable. The script does not print access tokens or function secrets.

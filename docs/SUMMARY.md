@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.86.0 |
+| Version | 0.87.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Frontend i18n now has an explicit product glossary quality gate. `I18N_PRODUCT_TERMS` expands the runtime coverage check to 59 MVP product terms across account, generation, credits, admin, workflow, and tool-publishing language. `npm run verify:i18n` validates locale registration, coverage, translated attributes, runtime coverage logic, and mojibake markers.
 - The Supabase `ai` Edge Function has been redeployed through `npm run deploy:function -- ai` using the Supabase Management API because the npm Supabase CLI binary is unavailable on the current Windows runtime. The deployment script reads `SUPABASE_ACCESS_TOKEN` locally and only prints non-secret deployment metadata.
 - Qwen Vision and DeepSeek server prompts now use valid Chinese text instead of mojibake. Provider health probes now include normalized failure diagnostics with code, status, category, and message; current production verification classifies Qwen Vision as HTTP `401` / `auth`, while DeepSeek, Fake Worker, generation persistence, credit debit, and cancellation refund continue to pass.
 - Production payment-loop verification now has a dedicated `npm run verify:payments` script. It proves the MVP demo checkout path fails closed when unauthenticated, then creates an authenticated temporary user, calls the server-side demo credit purchase action, and reads back `orders` plus `credit_transactions` to confirm order fulfillment and credit balance. This is still a no-charge demo checkout until a real payment gateway is configured.

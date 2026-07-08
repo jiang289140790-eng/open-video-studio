@@ -10,6 +10,7 @@
     "build:web": "vite build",
     "verify:supabase": "node scripts/verify-supabase.mjs",
     "verify:oauth": "node scripts/verify-oauth.mjs",
+    "verify:i18n": "node scripts/verify-i18n.mjs",
     "verify:ai": "node scripts/verify-ai-function.mjs",
     "verify:payments": "node scripts/verify-payment-loop.mjs",
     "verify:production-config": "node scripts/check-production-config.mjs",

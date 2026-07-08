@@ -94,6 +94,44 @@ const I18N_CORE_TERMS = [
   "Workflow Center",
   "Prompt 管理"
 ];
+const I18N_PRODUCT_TERMS = Array.from(new Set([
+  ...I18N_CORE_TERMS,
+  "立即升级",
+  "推荐好友",
+  "开始创作",
+  "返回控制台",
+  "作品探索",
+  "图片生成器",
+  "生成预览",
+  "准备生成",
+  "结果会保存到资产库和生成历史。",
+  "积分不足",
+  "打开作品",
+  "真实生成暂不可用",
+  "后台安全函数不可用",
+  "积分管理",
+  "生成任务",
+  "成本利润",
+  "Worker 管理",
+  "首页内容",
+  "页面模块",
+  "工具上架",
+  "工具版本",
+  "内容情报",
+  "运营管理后台",
+  "打开网站",
+  "退出登录",
+  "发布 Workflow 配置",
+  "预览 Workflow",
+  "发布",
+  "测试",
+  "草稿",
+  "停用",
+  "回滚 Fake",
+  "切千问",
+  "切 DeepSeek",
+  "切 Qwen"
+]));
 const I18N_MESSAGES = {
   "zh-CN": {},
   en: {
@@ -183,7 +221,41 @@ const I18N_MESSAGES = {
     "系统配置": "システム設定",
     "审计日志": "監査ログ",
     "Workflow Center": "Workflow Center",
-    "Prompt 管理": "プロンプト管理"
+    "Prompt 管理": "プロンプト管理",
+    "立即升级": "今すぐアップグレード",
+    "推荐好友": "友達を紹介",
+    "开始创作": "作成を開始",
+    "返回控制台": "ダッシュボードへ戻る",
+    "作品探索": "作品を探す",
+    "图片生成器": "画像ジェネレーター",
+    "生成预览": "生成プレビュー",
+    "准备生成": "生成準備完了",
+    "结果会保存到资产库和生成历史。": "結果はアセットと履歴に保存されます。",
+    "积分不足": "クレジット不足",
+    "打开作品": "作品を開く",
+    "真实生成暂不可用": "実生成は現在利用できません",
+    "后台安全函数不可用": "管理用セキュア関数は利用できません",
+    "生成任务": "生成ジョブ",
+    "成本利润": "コストと利益",
+    "Worker 管理": "Worker 管理",
+    "首页内容": "ホーム内容",
+    "页面模块": "ページモジュール",
+    "工具上架": "ツール公開",
+    "工具版本": "ツールバージョン",
+    "内容情报": "コンテンツインテリジェンス",
+    "运营管理后台": "運用管理",
+    "打开网站": "サイトを開く",
+    "退出登录": "ログアウト",
+    "发布 Workflow 配置": "Workflow 設定を公開",
+    "预览 Workflow": "Workflow をプレビュー",
+    "发布": "公開",
+    "测试": "テスト",
+    "草稿": "下書き",
+    "停用": "無効",
+    "回滚 Fake": "Fake に戻す",
+    "切千问": "Qianwen に切替",
+    "切 DeepSeek": "DeepSeek に切替",
+    "切 Qwen": "Qwen に切替"
   },
   ko: {
     "图像工具": "이미지 도구",
@@ -210,7 +282,41 @@ const I18N_MESSAGES = {
     "系统配置": "시스템 설정",
     "审计日志": "감사 로그",
     "Workflow Center": "Workflow Center",
-    "Prompt 管理": "프롬프트 관리"
+    "Prompt 管理": "프롬프트 관리",
+    "立即升级": "지금 업그레이드",
+    "推荐好友": "친구 추천",
+    "开始创作": "창작 시작",
+    "返回控制台": "대시보드로 돌아가기",
+    "作品探索": "작품 탐색",
+    "图片生成器": "이미지 생성기",
+    "生成预览": "생성 미리보기",
+    "准备生成": "생성 준비 완료",
+    "结果会保存到资产库和生成历史。": "결과는 에셋과 생성 기록에 저장됩니다.",
+    "积分不足": "크레딧 부족",
+    "打开作品": "작품 열기",
+    "真实生成暂不可用": "실제 생성은 현재 사용할 수 없습니다",
+    "后台安全函数不可用": "관리 보안 함수 사용 불가",
+    "生成任务": "생성 작업",
+    "成本利润": "비용과 마진",
+    "Worker 管理": "Worker 관리",
+    "首页内容": "홈 콘텐츠",
+    "页面模块": "페이지 모듈",
+    "工具上架": "도구 게시",
+    "工具版本": "도구 버전",
+    "内容情报": "콘텐츠 인텔리전스",
+    "运营管理后台": "운영 관리자",
+    "打开网站": "사이트 열기",
+    "退出登录": "로그아웃",
+    "发布 Workflow 配置": "Workflow 설정 게시",
+    "预览 Workflow": "Workflow 미리보기",
+    "发布": "게시됨",
+    "测试": "테스트",
+    "草稿": "초안",
+    "停用": "비활성",
+    "回滚 Fake": "Fake로 롤백",
+    "切千问": "Qianwen 사용",
+    "切 DeepSeek": "DeepSeek 사용",
+    "切 Qwen": "Qwen 사용"
   }
 };
 const I18N_ATTRIBUTE_MESSAGES = {
@@ -834,8 +940,8 @@ function translateStaticAttributes(locale) {
 function getI18nCoverage(locale) {
   if (locale === "zh-CN") return 100;
   const dictionary = I18N_MESSAGES[locale] || {};
-  const translated = I18N_CORE_TERMS.filter((term) => dictionary[term]).length;
-  return Math.round((translated / I18N_CORE_TERMS.length) * 100);
+  const translated = I18N_PRODUCT_TERMS.filter((term) => dictionary[term]).length;
+  return Math.round((translated / I18N_PRODUCT_TERMS.length) * 100);
 }
 
 function showSiteToast(message) {

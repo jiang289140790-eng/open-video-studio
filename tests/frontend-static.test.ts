@@ -287,6 +287,7 @@ describe("MVP static frontend", () => {
     const videoTools = readPage("video-tools.html");
     const appScript = readPage("app.js");
     const viteConfig = readFileSync(join(process.cwd(), "vite.config.ts"), "utf8");
+    const packageJson = readFileSync(join(process.cwd(), "package.json"), "utf8");
     for (const expected of [
       "image-tools.html",
       "video-tools.html",
@@ -593,6 +594,7 @@ describe("MVP static frontend", () => {
     const appScript = readPage("app.js");
     const styles = readPage("styles.css");
     const viteConfig = readFileSync(join(process.cwd(), "vite.config.ts"), "utf8");
+    const packageJson = readFileSync(join(process.cwd(), "package.json"), "utf8");
     const adminFunction = readFileSync(join(process.cwd(), "supabase", "functions", "admin", "index.ts"), "utf8");
     const supabaseConfig = readFileSync(join(process.cwd(), "supabase", "config.toml"), "utf8");
     const adminMigration = readFileSync(join(process.cwd(), "supabase", "migrations", "202607070001_mvp_admin_console.sql"), "utf8");
@@ -602,12 +604,14 @@ describe("MVP static frontend", () => {
       "I18N_MESSAGES",
       "I18N_LOCALES",
       "I18N_CORE_TERMS",
+      "I18N_PRODUCT_TERMS",
       "I18N_ATTRIBUTE_MESSAGES",
       "I18N_ORIGINAL_TEXT",
       "I18N_ORIGINAL_ATTRS",
       "translateStaticText",
       "translateStaticAttributes",
       "getI18nCoverage",
+      "verify:i18n",
       "i18nCoverage",
       "workflowRolloutHint",
       "data-admin-oauth",
@@ -662,7 +666,7 @@ describe("MVP static frontend", () => {
       "admin-status-grid",
       "oauth-readiness-panel"
     ]) {
-      assert.ok(`${admin}\n${signin}\n${appScript}\n${styles}\n${viteConfig}\n${adminFunction}\n${supabaseConfig}\n${adminMigration}`.includes(expected), `production-readiness surface should include ${expected}`);
+      assert.ok(`${admin}\n${signin}\n${appScript}\n${styles}\n${viteConfig}\n${packageJson}\n${adminFunction}\n${supabaseConfig}\n${adminMigration}`.includes(expected), `production-readiness surface should include ${expected}`);
     }
     assert.ok(supabaseConfig.includes('project_id = "wyvswkxogkmywduhrhkw"'));
     assert.ok(supabaseConfig.includes("[functions.admin]"));
