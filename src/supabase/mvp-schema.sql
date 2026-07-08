@@ -179,6 +179,15 @@ create table if not exists public.audit_logs (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.site_settings (
+  setting_key text primary key,
+  value_json jsonb not null default '{}'::jsonb,
+  status text not null default 'draft',
+  updated_by uuid references auth.users(id) on delete set null,
+  updated_at timestamptz not null default now(),
+  created_at timestamptz not null default now()
+);
+
 create index if not exists idx_profiles_email on public.profiles(email);
 create index if not exists idx_credit_user_time on public.credit_transactions(user_id, created_at desc);
 create index if not exists idx_generation_user_time on public.generation_jobs(user_id, created_at desc);
@@ -194,6 +203,7 @@ create index if not exists idx_orders_user_time on public.orders(user_id, create
 create index if not exists idx_orders_status on public.orders(status);
 create index if not exists idx_audit_actor on public.audit_logs(actor_type, actor_id, created_at desc);
 create index if not exists idx_audit_target on public.audit_logs(target_type, target_id);
+create index if not exists idx_site_settings_status on public.site_settings(status);
 
 create or replace function public.current_profile_role()
 returns text
@@ -215,6 +225,7 @@ alter table public.images enable row level security;
 alter table public.videos enable row level security;
 alter table public.orders enable row level security;
 alter table public.audit_logs enable row level security;
+alter table public.site_settings enable row level security;
 
 drop policy if exists "profiles owner read" on public.profiles;
 create policy "profiles owner read" on public.profiles
@@ -279,3 +290,11 @@ create policy "orders owner read" on public.orders
 drop policy if exists "audit admin read" on public.audit_logs;
 create policy "audit admin read" on public.audit_logs
   for select using (public.current_profile_role() = 'admin');
+
+drop policy if exists "site settings public read" on public.site_settings;
+create policy "site settings public read" on public.site_settings
+  for select using (status = 'published');
+
+drop policy if exists "site settings admin read" on public.site_settings;
+create policy "site settings admin read" on public.site_settings
+  for select using (public.current_profile_role() in ('admin', 'operator'));

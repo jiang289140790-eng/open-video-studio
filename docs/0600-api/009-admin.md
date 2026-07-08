@@ -4,7 +4,7 @@
 |---|---|
 | ID | API-ADMIN-001 |
 | Unique ID | API-ADMIN-001 |
-| Version | 1.1.0 |
+| Version | 1.2.0 |
 | Status | Active |
 | Owner | Platform Admin Lead / Security Lead |
 | Dependencies | API-AUTH-001, DB-USERS-001, DB-AUDIT-LOGS-001, SEC-INDEX-001 |
@@ -46,12 +46,14 @@ MVP implementation uses one Supabase Edge Function named `admin` with an `action
 - `list-generation-jobs`
 - `list-share-links`
 - `list-audit-logs`
+- `get-homepage-config`
+- `update-homepage-config`
 - `adjust-credits`
 - `update-order-status`
 - `review-asset`
 - `revoke-share-link`
 
-Sensitive write actions require a non-empty `reason`.
+Sensitive write actions require a non-empty `reason`. `update-homepage-config` accepts the MVP homepage configuration payload for hero copy, CTA links, trust signals, showcase cards, and gallery preview cards.
 
 ## Response
 
@@ -90,6 +92,8 @@ Define role-based access control and admin audit taxonomy before implementation.
 ## Current Implementation
 
 `SupabaseAdminBackend` and the Supabase `admin` Edge Function implement the MVP operations console. `profiles.role = 'operator'` can read operational data and review non-archival content. `profiles.role = 'admin'` can perform high-risk writes such as credit adjustment, order status update, audit reads, and share revocation. The browser never receives a service role key.
+
+The MVP Admin surface now also supports a lightweight homepage manager. Operators may read the current homepage configuration; only admins may publish updates. Published homepage settings are stored in `site_settings` and admin publishes write an `admin.update_homepage_config` audit log.
 
 ## AI Context
 

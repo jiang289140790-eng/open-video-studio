@@ -23,6 +23,28 @@ export interface AdminDashboardSummary {
   activeShares: number;
 }
 
+export interface HomepageConfig {
+  eyebrow: string;
+  headline: string;
+  subheadline: string;
+  primaryCtaLabel: string;
+  primaryCtaHref: string;
+  secondaryCtaLabel: string;
+  secondaryCtaHref: string;
+  galleryTitle: string;
+  trustSignals: string[];
+  showcaseCards: HomepageCard[];
+  creationCards: HomepageCard[];
+}
+
+export interface HomepageCard {
+  label: string;
+  title: string;
+  style: string;
+  size?: string;
+  outputPreview?: boolean;
+}
+
 export class SupabaseAdminBackend {
   constructor(private readonly client: SupabaseClient) {}
 
@@ -215,6 +237,47 @@ export class SupabaseAdminBackend {
     return this.selectAll("share_links", "created_at", false);
   }
 
+  async getHomepageConfig(actor: AdminActor): Promise<Record<string, unknown>> {
+    await this.requireOperator(actor);
+    const result = await this.client
+      .from("site_settings")
+      .select("*")
+      .eq("setting_key", "homepage_config")
+      .single();
+    if (result.error || !result.data) {
+      return {
+        setting_key: "homepage_config",
+        value_json: this.defaultHomepageConfig(),
+        status: "default",
+      };
+    }
+    return result.data as Record<string, unknown>;
+  }
+
+  async updateHomepageConfig(actor: AdminActor, input: { config: Partial<HomepageConfig>; reason: string }): Promise<Record<string, unknown>> {
+    this.requireAdmin(actor);
+    this.requireReason(input.reason);
+    const record = {
+      setting_key: "homepage_config",
+      value_json: this.normalizeHomepageConfig(input.config),
+      status: "published",
+      updated_by: actor.id,
+      updated_at: nowIso(),
+    };
+    const result = await this.client
+      .from("site_settings")
+      .upsert(record, { onConflict: "setting_key" })
+      .select("*")
+      .single();
+    if (result.error) {
+      throw new AppError("ADMIN_HOMEPAGE_UPDATE_FAILED", result.error.message, 502);
+    }
+    await this.audit(actor, "admin.update_homepage_config", "site_setting", "homepage_config", "success", {
+      reason: input.reason.trim(),
+    });
+    return result.data as Record<string, unknown>;
+  }
+
   async revokeShareLink(actor: AdminActor, input: { shareId: string; reason: string }): Promise<Record<string, unknown>> {
     this.requireAdmin(actor);
     this.requireReason(input.reason);
@@ -291,5 +354,55 @@ export class SupabaseAdminBackend {
     if (!reason?.trim()) {
       throw new AppError("ADMIN_REASON_REQUIRED", "Admin action reason is required.");
     }
+  }
+
+  private normalizeHomepageConfig(config: Partial<HomepageConfig>): HomepageConfig {
+    const fallback = this.defaultHomepageConfig();
+    return {
+      ...fallback,
+      ...config,
+      primaryCtaHref: this.safeHref(config.primaryCtaHref, fallback.primaryCtaHref),
+      secondaryCtaHref: this.safeHref(config.secondaryCtaHref, fallback.secondaryCtaHref),
+      trustSignals: this.safeTextList(config.trustSignals, fallback.trustSignals, 6),
+      showcaseCards: this.safeCards(config.showcaseCards, fallback.showcaseCards, 8),
+      creationCards: this.safeCards(config.creationCards, fallback.creationCards, 12),
+    };
+  }
+
+  private defaultHomepageConfig(): HomepageConfig {
+    return {
+      eyebrow: "可复用角色的 AI 创作平台",
+      headline: "用一致性角色创建 AI 视频",
+      subheadline: "在一个创作空间里生成角色、场景、提示词、图片和视频，并持续复用。",
+      primaryCtaLabel: "免费开始生成",
+      primaryCtaHref: "./zh/app/generate/",
+      secondaryCtaLabel: "探索作品",
+      secondaryCtaHref: "./zh/gallery/",
+      galleryTitle: "看看你可以创建什么",
+      trustSignals: ["无需设计经验", "角色可复用", "提示词到视频", "积分制生成"],
+      showcaseCards: [
+        { label: "视频", title: "生成营销短片", style: "art-1", size: "tall", outputPreview: true },
+        { label: "角色", title: "工作室主持人", style: "art-2" },
+      ],
+      creationCards: [
+        { label: "AI 角色", title: "带记忆的可复用主持人", style: "art-2" },
+        { label: "产品视频", title: "适合发布的动态概念", style: "art-1" },
+      ],
+    };
+  }
+
+  private safeHref(value: string | undefined, fallback: string): string {
+    if (!value) return fallback;
+    return value.startsWith("./") || value.startsWith("/") || value.startsWith("#") ? value : fallback;
+  }
+
+  private safeTextList(value: string[] | undefined, fallback: string[], max: number): string[] {
+    return Array.isArray(value) ? value.map((item) => String(item).trim()).filter(Boolean).slice(0, max) : fallback;
+  }
+
+  private safeCards(cards: HomepageCard[] | undefined, fallback: HomepageCard[], max: number): HomepageCard[] {
+    return Array.isArray(cards) && cards.length
+      ? cards.filter((card) => card.label && card.title).slice(0, max)
+      : fallback;
   }
 }

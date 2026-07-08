@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DB-BIBLE-001 |
-| Version | 1.8.0 |
+| Version | 1.9.0 |
 | Status | Active |
 | Owner | Data Architecture Lead |
 | Dependencies | PB-008, PB-010, SEC-INDEX-001, ANALYTICS-INDEX-001 |
@@ -62,7 +62,9 @@ The production database target is Supabase PostgreSQL. The repository includes e
 
 `ADR-007` adds local workspace, workspace member, project, and permission foundation tables for Platform Architecture V2 Sprint 1.
 
-MVP Admin implementation extends `src/supabase/mvp-schema.sql` with Supabase PostgreSQL tables for `audit_logs`, `orders`, `characters`, `images`, and `videos`, plus role-aware RLS policies. Admin operations use `profiles.role` for `admin` and `operator` access and must preserve auditability for high-risk writes.
+MVP Admin implementation extends `src/supabase/mvp-schema.sql` with Supabase PostgreSQL tables for `audit_logs`, `orders`, `characters`, `images`, `videos`, and `site_settings`, plus role-aware RLS policies. Admin operations use `profiles.role` for `admin` and `operator` access and must preserve auditability for high-risk writes.
+
+The MVP homepage manager stores published public homepage configuration in `site_settings` under `homepage_config`. Public reads are allowed only for published settings; writes go through the admin backend and create audit logs.
 
 ## Acceptance Criteria
 

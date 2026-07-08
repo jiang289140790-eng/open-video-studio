@@ -25,6 +25,7 @@ const adminTables = [
   "videos",
   "orders",
   "audit_logs",
+  "site_settings",
 ];
 
 const key = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;

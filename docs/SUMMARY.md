@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.65.0 |
+| Version | 0.66.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -22,6 +22,8 @@ Provide the navigation map for the Open Video Studio knowledge base.
 ## Current Implementation Notes
 
 - The MVP Admin console is now a real Supabase-backed operations surface. Admin/operator access is based on `profiles.role`, sensitive write actions go through the Supabase `admin` Edge Function, and admin credit/order/content/share actions write audit logs.
+- The Admin console now includes an MVP homepage manager for Shopify-style public content control: admins can publish hero copy, CTA links, trust signals, showcase cards, and gallery preview cards through `site_settings.homepage_config`.
+- The public homepage can read published homepage configuration from Supabase while preserving static fallback content for GitHub Pages and local preview.
 - Supabase project configuration and the admin console migration now live under `supabase/`, matching standard Supabase CLI layout for deployment handoff.
 - `npm run verify:admin` validates the admin database tables and `admin` Edge Function deployment; current verification confirms both are reachable and the function fails closed for unauthenticated requests.
 - `src/supabase/mvp-schema.sql` now includes the admin-required production tables and RLS policies for audit logs, orders, characters, images, videos, and role-aware admin reads.

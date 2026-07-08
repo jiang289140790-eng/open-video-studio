@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>管理后台 | Open Video Studio</title>
-    <meta name="description" content="Open Video Studio 管理后台，用于管理用户、积分、订单、内容审核、生成任务、分享链接和系统配置。">
+    <meta name="description" content="Open Video Studio 管理后台，用于管理首页内容、用户、积分、订单、内容审核、生成任务、分享链接和系统配置。">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
@@ -29,7 +29,7 @@
         <div>
           <p class="eyebrow">Admin Console</p>
           <h1>运营管理后台</h1>
-          <p class="lead">管理真实用户、积分、订单、生成内容、分享链接和系统状态。所有敏感操作都必须通过安全后台接口执行并写入审计日志。</p>
+          <p class="lead">管理真实用户、首页内容、积分、订单、生成内容、分享链接和系统状态。敏感操作必须通过安全后台接口执行，并写入审计日志。</p>
         </div>
         <div class="admin-hero-actions">
           <button class="btn primary" type="button" data-admin-refresh>刷新后台数据</button>
@@ -46,13 +46,41 @@
       </section>
 
       <section class="admin-status-grid" data-admin-summary>
-        <article><span>用户</span><strong data-admin-summary-users>0</strong><p>注册账户总数</p></article>
+        <article><span>用户</span><strong data-admin-summary-users>0</strong><p>注册账号总数</p></article>
         <article><span>资产</span><strong data-admin-summary-assets>0</strong><p><b data-admin-summary-pending>0</b> 个待审核</p></article>
         <article><span>生成任务</span><strong data-admin-summary-jobs>0</strong><p><b data-admin-summary-failed>0</b> 个失败</p></article>
         <article><span>积分消耗</span><strong data-admin-summary-credits>0</strong><p>已消耗积分</p></article>
       </section>
 
       <section class="admin-grid wide">
+        <article class="panel admin-home-builder">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Homepage Builder</p><h2>首页内容管理</h2></div>
+            <span>Admin only</span>
+          </div>
+          <p class="muted">像 Shopify 首页模块一样，先管理首页首屏、CTA、信任标签和展示卡片。保存后前台首页会读取已发布配置。</p>
+          <form class="admin-home-form" data-admin-homepage-form>
+            <div class="admin-form-grid">
+              <label><span>首屏标签</span><input name="eyebrow" data-homepage-field="eyebrow" placeholder="可复用角色的 AI 创作平台"></label>
+              <label><span>主标题</span><input name="headline" data-homepage-field="headline" placeholder="用一致性角色创建 AI 视频"></label>
+              <label class="wide-field"><span>副标题</span><textarea name="subheadline" data-homepage-field="subheadline" rows="3" placeholder="在一个创作空间里生成角色、场景、提示词、图片和视频，并持续复用。"></textarea></label>
+              <label><span>主按钮文案</span><input name="primaryCtaLabel" data-homepage-field="primaryCtaLabel" placeholder="免费开始生成"></label>
+              <label><span>主按钮链接</span><input name="primaryCtaHref" data-homepage-field="primaryCtaHref" placeholder="./zh/app/generate/"></label>
+              <label><span>副按钮文案</span><input name="secondaryCtaLabel" data-homepage-field="secondaryCtaLabel" placeholder="探索作品"></label>
+              <label><span>副按钮链接</span><input name="secondaryCtaHref" data-homepage-field="secondaryCtaHref" placeholder="./zh/gallery/"></label>
+              <label class="wide-field"><span>信任标签，使用逗号分隔</span><input name="trustSignals" data-homepage-field="trustSignals" placeholder="无需设计经验,角色可复用,提示词到视频,积分制生成"></label>
+              <label class="wide-field"><span>展示卡片，格式：标签|标题|样式；每行一个</span><textarea name="showcaseCards" data-homepage-field="showcaseCards" rows="5" placeholder="视频|生成营销短片|art-1&#10;角色|工作室主持人|art-2"></textarea></label>
+              <label class="wide-field"><span>作品预览卡片，格式：标签|标题|样式；每行一个</span><textarea name="creationCards" data-homepage-field="creationCards" rows="6" placeholder="AI 角色|带记忆的可复用主持人|art-2&#10;产品视频|适合发布的动态概念|art-1"></textarea></label>
+              <label class="wide-field"><span>发布原因</span><input name="reason" placeholder="例如：首页转化文案优化" required></label>
+            </div>
+            <div class="admin-home-actions">
+              <button class="btn glass" type="button" data-admin-homepage-preview>预览当前配置</button>
+              <button class="btn primary" type="submit">发布首页配置</button>
+            </div>
+          </form>
+          <div class="admin-list" data-admin-homepage-preview-list></div>
+        </article>
+
         <article class="panel">
           <div class="panel-heading">
             <div><p class="eyebrow">Users</p><h2>用户管理</h2></div>

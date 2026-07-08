@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DB-SETTINGS-001 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Active |
 | Owner | Platform Data Owner |
 | Dependencies | DB-USERS-001, DB-SUBSCRIPTIONS-001, SEC-INDEX-001 |
@@ -19,6 +19,7 @@ Represent user, workspace, product, AI, notification, privacy, and operational p
 - Separate user preferences from workspace or admin-controlled settings.
 - Support future settings versioning and policy enforcement.
 - Avoid storing secrets in general settings records.
+- Store public site content configuration separately from user preferences when it affects published marketing surfaces.
 
 ## Relationships
 
@@ -39,6 +40,15 @@ Represent user, workspace, product, AI, notification, privacy, and operational p
 - Created timestamp.
 - Updated timestamp.
 
+MVP implementation uses `site_settings` for published public-site configuration:
+
+- `setting_key`
+- `value_json`
+- `status`
+- `updated_by`
+- `updated_at`
+- `created_at`
+
 ## Indexes
 
 - Scope type plus scope reference.
@@ -53,6 +63,8 @@ Settings are created through defaults, onboarding, admin configuration, user pre
 ## Permissions
 
 Users may update personal settings. Workspace admins may manage workspace settings. Policy-locked settings require admin or system authority.
+
+Published `site_settings` rows may be publicly readable when they only contain public page content. Writes must go through admin-controlled backend actions and must not expose service-role credentials to the browser.
 
 ## Retention
 
@@ -74,3 +86,5 @@ Define workspace and permissions architecture before implementing setting scopes
 ## AI Context
 
 Settings are not a dumping ground. If a value controls security, billing, or AI policy, it may need a dedicated governed table.
+
+Homepage copy and layout configuration can live in `site_settings` during MVP because it is public content, but secrets, payment settings, provider keys, and security controls must never be stored there.

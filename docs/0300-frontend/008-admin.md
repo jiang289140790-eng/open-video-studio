@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | PAGE-ADMIN-001 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Active |
 | Owner | Frontend Lead / Platform Admin Lead |
 | Dependencies | API-ADMIN-001, DB-AUDIT-LOGS-001, SEC-INDEX-001, DS-010 |
@@ -27,6 +27,7 @@ Admin should use a dense operational layout with navigation for users, billing, 
 ## Sections
 
 - Admin navigation.
+- Homepage content management.
 - Overview or status summary.
 - User and access management.
 - Billing or subscription administration.
@@ -44,11 +45,14 @@ Admin should use a dense operational layout with navigation for users, billing, 
 - Confirmation dialog.
 - Audit log preview.
 - Status badge.
+- Homepage section editor.
 
 ## State Flow
 
 - Validate admin access.
 - Load role-specific admin modules.
+- Admin edits homepage hero, CTA, trust signals, and gallery preview modules.
+- Admin previews or publishes the homepage configuration.
 - User filters or opens target records.
 - User performs allowed action.
 - Action requires confirmation, reason, and audit record.
@@ -78,12 +82,13 @@ Admin pages are not indexable.
 ## Acceptance Criteria
 
 - Unauthorized users cannot see admin content.
+- Admins can manage MVP homepage content without editing source files.
 - High-risk actions require explicit confirmation and reason.
 - Admin actions are tied to audit expectations.
 
 ## Future Plan
 
-Add enterprise admin, support workflows, break-glass controls, and approval flows.
+Add richer site-builder capabilities such as section ordering, scheduled publishing, media picker, per-locale content, and rollback history after the MVP homepage manager proves useful.
 
 ## AI Context
 

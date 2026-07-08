@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | OPS-ADMIN-001 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Active |
 | Owner | CTO / Operations |
 | Dependencies | API-ADMIN-001, DB-AUDIT-LOGS-001, BE-ARCH-SECURITY-001 |
@@ -20,6 +20,7 @@ Define how the MVP Admin console is enabled safely for Open Video Studio.
 - Route sensitive write operations through the Supabase `admin` Edge Function.
 - Require a reason for high-risk actions.
 - Write audit logs for credit, order, content, and share-link changes.
+- Let admins update MVP homepage content without source-code edits.
 
 ## Deployment Steps
 
@@ -57,6 +58,8 @@ Expected successful result:
 - Normal users cannot view production admin data.
 - Operators can view users, assets, orders, jobs, and perform allowed content review.
 - Admins can adjust credits, update orders, revoke shares, and read audit logs.
+- Admins can edit and publish homepage hero copy, CTA links, trust signals, showcase cards, and gallery preview cards.
+- Operators can read homepage configuration but cannot publish changes.
 - Every high-risk write has an `audit_logs` row.
 
 ## Current Deployment Status
@@ -64,6 +67,8 @@ Expected successful result:
 As of the first MVP Admin implementation, database tables are reachable from the configured Supabase project when using the local service role environment. The `admin` Edge Function has been deployed and `npm run verify:admin` confirms that the function exists and fails closed with `ADMIN_AUTH_REQUIRED` for unauthenticated requests.
 
 Supabase Auth currently has no users in this project, so the first admin role can only be assigned after the first real account signs up.
+
+The admin console now includes a lightweight homepage manager backed by `site_settings.homepage_config`. This is the MVP version of a Shopify-style site editor: it supports public homepage content changes while keeping high-risk writes behind admin permission and audit logging.
 
 ## AI Context
 

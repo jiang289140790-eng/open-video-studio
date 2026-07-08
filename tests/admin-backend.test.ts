@@ -53,6 +53,29 @@ test("admin backend enforces roles and audits sensitive operations", async () =>
   });
   assert.equal(share.visibility_status, "revoked");
   assert.equal(client.table("audit_logs").length, 4);
+
+  const homepage = await backend.getHomepageConfig(operator);
+  assert.equal(homepage.setting_key, "homepage_config");
+  await assert.rejects(
+    () => backend.updateHomepageConfig(operator, {
+      config: { headline: "运营人员不能发布首页" },
+      reason: "operator attempt",
+    }),
+    (error: any) => error.code === "ADMIN_FORBIDDEN",
+  );
+  const updatedHomepage = await backend.updateHomepageConfig(admin, {
+    config: {
+      headline: "后台发布的首页标题",
+      primaryCtaHref: "https://unsafe.example",
+      trustSignals: ["首页可配置", "写入审计"],
+      showcaseCards: [{ label: "视频", title: "后台配置卡片", style: "art-1" }],
+      creationCards: [{ label: "资产", title: "首页作品卡片", style: "art-2" }],
+    },
+    reason: "homepage conversion update",
+  });
+  assert.equal((updatedHomepage.value_json as any).headline, "后台发布的首页标题");
+  assert.equal((updatedHomepage.value_json as any).primaryCtaHref, "./zh/app/generate/");
+  assert.equal(client.table("audit_logs").length, 5);
 });
 
 class FakeAdminSupabaseClient {
@@ -79,6 +102,7 @@ class FakeAdminSupabaseClient {
       { id: "share_1", owner_user_id: "user_1", media_asset_id: "asset_1", token: "demo", visibility_status: "active" },
     ]],
     ["audit_logs", []],
+    ["site_settings", []],
   ]);
 
   from(tableName: string): FakeAdminQuery {
@@ -93,7 +117,7 @@ class FakeAdminSupabaseClient {
 }
 
 class FakeAdminQuery {
-  private action: "select" | "insert" | "update" = "select";
+  private action: "select" | "insert" | "update" | "upsert" = "select";
   private payload: any;
   private filters: Array<(row: any) => boolean> = [];
   private singleResult = false;
@@ -115,6 +139,19 @@ class FakeAdminQuery {
   update(payload: any): this {
     this.action = "update";
     this.payload = payload;
+    return this;
+  }
+
+  upsert(payload: any, options: { onConflict?: string } = {}): this {
+    this.action = "upsert";
+    const conflictKey = options.onConflict || "id";
+    const existing = this.table.find((row) => row[conflictKey] === payload[conflictKey]);
+    if (existing) {
+      Object.assign(existing, payload);
+      this.payload = existing;
+    } else {
+      this.payload = payload;
+    }
     return this;
   }
 
@@ -146,6 +183,11 @@ class FakeAdminQuery {
       const rows = Array.isArray(this.payload) ? this.payload : [this.payload];
       this.table.push(...rows.map((row) => ({ ...row })));
       return { data: this.singleResult ? rows[0] : rows, error: null };
+    }
+    if (this.action === "upsert") {
+      const row = this.payload;
+      if (!this.table.includes(row)) this.table.push({ ...row });
+      return { data: this.singleResult ? row : [row], error: null };
     }
     if (this.action === "update") {
       const rows = this.filteredRows();

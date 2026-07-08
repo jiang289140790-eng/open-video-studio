@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.58.0 |
+| Version | 0.59.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -20,6 +20,23 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Include documentation changes, architecture changes, validation performed, and known follow-ups.
 - Reference relevant document IDs, task IDs, and decision records.
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
+
+## 2026-07-08
+
+### Added
+
+- Added the MVP Admin homepage manager so admins can edit and publish homepage hero copy, CTA links, trust signals, showcase cards, and gallery preview cards without changing source files.
+- Added `site_settings` to the Supabase MVP schema, migration, and verification script for public published settings such as `homepage_config`.
+- Added admin backend and Supabase Edge Function actions for `get-homepage-config` and `update-homepage-config`; operators can read config, while only admins can publish and create audit logs.
+- Updated the public homepage to read published homepage configuration from Supabase with static fallback content and local preview support.
+- Restored `apps/web/admin.html` and `apps/web/index.html` to clean UTF-8 Chinese content while preserving the current dark AI SaaS visual direction.
+- Added automated coverage for admin homepage publishing permissions, unsafe CTA URL sanitization, and audit logging.
+
+### Validation
+
+- Ran `npm run build`; production build completed successfully.
+- Ran `npm run test`; 52 tests passed.
+- Ran `npm run verify:admin`; Supabase database tables including `site_settings` and the existing `admin` function are reachable.
 
 ## 2026-07-07
 

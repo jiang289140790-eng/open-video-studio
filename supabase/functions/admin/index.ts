@@ -82,9 +82,34 @@ Deno.serve(async (req) => {
     if (action === "list-orders") return json({ actor, orders: await select(adminClient, "orders", "created_at", false) });
     if (action === "list-generation-jobs") return json({ actor, jobs: await select(adminClient, "generation_jobs", "created_at", false) });
     if (action === "list-share-links") return json({ actor, shares: await select(adminClient, "share_links", "created_at", false) });
+    if (action === "get-homepage-config") {
+      const homepage = await getHomepageConfig(adminClient);
+      return json({ actor, homepage });
+    }
     if (action === "list-audit-logs") {
       requireAdmin(actor);
       return json({ actor, auditLogs: await select(adminClient, "audit_logs", "created_at", false) });
+    }
+
+    if (action === "update-homepage-config") {
+      requireAdmin(actor);
+      requireReason(body.reason);
+      const config = normalizeHomepageConfig(body.config);
+      const record = {
+        setting_key: "homepage_config",
+        value_json: config,
+        status: "published",
+        updated_by: actor.id,
+        updated_at: new Date().toISOString(),
+      };
+      const { data, error } = await adminClient
+        .from("site_settings")
+        .upsert(record, { onConflict: "setting_key" })
+        .select("*")
+        .single();
+      if (error) throw error;
+      await audit(adminClient, actor, "admin.update_homepage_config", "site_setting", "homepage_config", { reason: body.reason });
+      return json({ actor, homepage: data });
     }
 
     if (action === "adjust-credits") {
@@ -191,6 +216,99 @@ async function select(client: ReturnType<typeof createClient>, table: string, or
   const { data, error } = await query;
   if (error) throw error;
   return data ?? [];
+}
+
+async function getHomepageConfig(client: ReturnType<typeof createClient>) {
+  const { data, error } = await client
+    .from("site_settings")
+    .select("*")
+    .eq("setting_key", "homepage_config")
+    .maybeSingle();
+  if (error) throw error;
+  return data ?? {
+    setting_key: "homepage_config",
+    value_json: defaultHomepageConfig(),
+    status: "default",
+    updated_at: null,
+    updated_by: null,
+  };
+}
+
+function normalizeHomepageConfig(config: unknown) {
+  const fallback = defaultHomepageConfig();
+  const input = typeof config === "object" && config ? config as Record<string, unknown> : {};
+  return {
+    ...fallback,
+    eyebrow: text(input.eyebrow, fallback.eyebrow, 80),
+    headline: text(input.headline, fallback.headline, 120),
+    subheadline: text(input.subheadline, fallback.subheadline, 240),
+    primaryCtaLabel: text(input.primaryCtaLabel, fallback.primaryCtaLabel, 40),
+    primaryCtaHref: href(input.primaryCtaHref, fallback.primaryCtaHref),
+    secondaryCtaLabel: text(input.secondaryCtaLabel, fallback.secondaryCtaLabel, 40),
+    secondaryCtaHref: href(input.secondaryCtaHref, fallback.secondaryCtaHref),
+    galleryTitle: text(input.galleryTitle, fallback.galleryTitle, 80),
+    trustSignals: arrayText(input.trustSignals, fallback.trustSignals, 6, 40),
+    showcaseCards: cardList(input.showcaseCards, fallback.showcaseCards, 8),
+    creationCards: cardList(input.creationCards, fallback.creationCards, 12),
+  };
+}
+
+function defaultHomepageConfig() {
+  return {
+    eyebrow: "可复用角色的 AI 创作平台",
+    headline: "用一致性角色创建 AI 视频",
+    subheadline: "在一个创作空间里生成角色、场景、提示词、图片和视频，并持续复用。",
+    primaryCtaLabel: "免费开始生成",
+    primaryCtaHref: "./zh/app/generate/",
+    secondaryCtaLabel: "探索作品",
+    secondaryCtaHref: "./zh/gallery/",
+    galleryTitle: "看看你可以创建什么",
+    trustSignals: ["无需设计经验", "角色可复用", "提示词到视频", "积分制生成"],
+    showcaseCards: [
+      { label: "视频", title: "生成营销短片", style: "art-1", size: "tall", outputPreview: true },
+      { label: "角色", title: "工作室主持人", style: "art-2" },
+      { label: "图片", title: "发布主视觉", style: "art-3" },
+      { label: "提示词", title: "把发布脚本转成可复用场景", style: "art-4", size: "wide" },
+    ],
+    creationCards: [
+      { label: "AI 角色", title: "带记忆的可复用主持人", style: "art-2" },
+      { label: "产品视频", title: "适合发布的动态概念", style: "art-1" },
+      { label: "时尚场景", title: "杂志感营销画面", style: "art-5" },
+      { label: "电影肖像", title: "统一面孔与风格", style: "art-6" },
+    ],
+  };
+}
+
+function text(value: unknown, fallback: string, max: number) {
+  const normalized = typeof value === "string" ? value.trim() : "";
+  return normalized ? normalized.slice(0, max) : fallback;
+}
+
+function href(value: unknown, fallback: string) {
+  const normalized = typeof value === "string" ? value.trim() : "";
+  if (normalized.startsWith("./") || normalized.startsWith("/") || normalized.startsWith("#")) return normalized.slice(0, 160);
+  return fallback;
+}
+
+function arrayText(value: unknown, fallback: string[], maxItems: number, maxLength: number) {
+  return Array.isArray(value)
+    ? value.map((item) => text(item, "", maxLength)).filter(Boolean).slice(0, maxItems)
+    : fallback;
+}
+
+function cardList(value: unknown, fallback: Array<Record<string, unknown>>, maxItems: number) {
+  if (!Array.isArray(value)) return fallback;
+  const cards = value.map((item, index) => {
+    const card = typeof item === "object" && item ? item as Record<string, unknown> : {};
+    return {
+      label: text(card.label, "", 32),
+      title: text(card.title, "", 80),
+      style: /^art-\d+$/.test(String(card.style ?? "")) ? String(card.style) : `art-${(index % 13) + 1}`,
+      size: ["tall", "wide"].includes(String(card.size ?? "")) ? String(card.size) : "",
+      outputPreview: Boolean(card.outputPreview),
+    };
+  }).filter((card) => card.label && card.title).slice(0, maxItems);
+  return cards.length ? cards : fallback;
 }
 
 async function audit(client: ReturnType<typeof createClient>, actor: { id: string }, action: string, targetType: string, targetId: string, metadata: Record<string, unknown>) {

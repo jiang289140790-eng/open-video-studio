@@ -8,7 +8,7 @@
     <link rel="canonical" href="./index.html">
     <link rel="stylesheet" href="./styles.css">
   </head>
-  <body>
+  <body data-homepage>
     <header class="topbar">
       <a class="brand" href="./index.html" aria-label="Open Video Studio home"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
       <nav class="topnav" aria-label="Primary navigation">
@@ -27,23 +27,23 @@
     </header>
 
     <main>
-      <section class="hero cinematic">
+      <section class="hero cinematic" data-homepage-section="hero">
         <div class="hero-copy">
-          <p class="eyebrow">可复用角色的 AI 创作平台</p>
-          <h1>用一致性角色创建 AI 视频</h1>
-          <p class="lead">在一个创作空间里生成角色、场景、提示词、图片和视频，并持续复用。</p>
+          <p class="eyebrow" data-homepage-text="eyebrow">可复用角色的 AI 创作平台</p>
+          <h1 data-homepage-text="headline">用一致性角色创建 AI 视频</h1>
+          <p class="lead" data-homepage-text="subheadline">在一个创作空间里生成角色、场景、提示词、图片和视频，并持续复用。</p>
           <div class="hero-actions">
-            <a class="btn primary xl" href="./zh/app/generate/">免费开始生成</a>
-            <a class="btn glass xl" href="./zh/gallery/">探索作品</a>
+            <a class="btn primary xl" href="./zh/app/generate/" data-homepage-link="primaryCta">免费开始生成</a>
+            <a class="btn glass xl" href="./zh/gallery/" data-homepage-link="secondaryCta">探索作品</a>
           </div>
-          <div class="signal-row" aria-label="Product signals">
+          <div class="signal-row" aria-label="Product signals" data-homepage-list="trustSignals">
             <span>无需设计经验</span>
             <span>角色可复用</span>
             <span>提示词到视频</span>
             <span>积分制生成</span>
           </div>
         </div>
-        <div class="hero-showcase" aria-label="AI content showcase">
+        <div class="hero-showcase" aria-label="AI content showcase" data-homepage-list="showcaseCards">
           <article class="showcase-card tall art-1 output-preview">
             <span>视频</span>
             <strong>生成营销短片</strong>
@@ -58,15 +58,15 @@
         </div>
       </section>
 
-      <section class="section">
+      <section class="section" data-homepage-section="galleryPreview">
         <div class="section-head">
           <div>
             <p class="eyebrow">作品探索</p>
-            <h2>看看你可以创建什么</h2>
+            <h2 data-homepage-text="galleryTitle">看看你可以创建什么</h2>
           </div>
           <a class="btn glass" href="./zh/app/generate/">免费开始生成</a>
         </div>
-        <div class="creation-grid" aria-label="Creation gallery preview">
+        <div class="creation-grid" aria-label="Creation gallery preview" data-homepage-list="creationCards">
           <article class="creation-card art-2"><span>AI 角色</span><strong>带记忆的可复用主持人</strong></article>
           <article class="creation-card art-1"><span>产品视频</span><strong>适合发布的动态概念</strong></article>
           <article class="creation-card art-5"><span>时尚场景</span><strong>杂志感营销画面</strong></article>
@@ -184,4 +184,3 @@
     <script type="module" src="./app.js"></script>
   </body>
 </html>
-

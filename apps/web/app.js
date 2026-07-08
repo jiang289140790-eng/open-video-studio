@@ -125,6 +125,98 @@ function saveState(state) {
   renderState(state);
 }
 
+function normalizeHomepageConfig(config = {}) {
+  return {
+    ...structuredClone(defaultHomepageConfig),
+    ...config,
+    trustSignals: Array.isArray(config.trustSignals) ? config.trustSignals.filter(Boolean).slice(0, 6) : [...defaultHomepageConfig.trustSignals],
+    showcaseCards: normalizeHomepageCards(config.showcaseCards, defaultHomepageConfig.showcaseCards),
+    creationCards: normalizeHomepageCards(config.creationCards, defaultHomepageConfig.creationCards)
+  };
+}
+
+function normalizeHomepageCards(cards, fallback) {
+  return Array.isArray(cards) && cards.length
+    ? cards.filter((card) => card?.label && card?.title).slice(0, 12).map((card, index) => ({
+      label: String(card.label),
+      title: String(card.title),
+      style: /^art-\d+$/.test(String(card.style || "")) ? String(card.style) : `art-${(index % 13) + 1}`,
+      size: ["tall", "wide"].includes(card.size) ? card.size : "",
+      outputPreview: Boolean(card.outputPreview)
+    }))
+    : structuredClone(fallback);
+}
+
+async function loadHomepageConfig() {
+  if (!document.querySelector("[data-homepage]")) return;
+  try {
+    const localDraft = JSON.parse(localStorage.getItem("ovs_homepage_config_preview") || "null");
+    if (localDraft) {
+      homepageConfig = normalizeHomepageConfig(localDraft);
+      renderHomepageConfig(homepageConfig);
+    }
+  } catch {
+    // Ignore broken local previews; production settings remain authoritative.
+  }
+  if (!supabase) {
+    renderHomepageConfig(homepageConfig);
+    return;
+  }
+  try {
+    const { data, error } = await supabase
+      .from("site_settings")
+      .select("value_json")
+      .eq("setting_key", "homepage_config")
+      .eq("status", "published")
+      .single();
+    if (!error && data?.value_json) {
+      homepageConfig = normalizeHomepageConfig(data.value_json);
+      renderHomepageConfig(homepageConfig);
+    }
+  } catch {
+    renderHomepageConfig(homepageConfig);
+  }
+}
+
+function renderHomepageConfig(config) {
+  const normalized = normalizeHomepageConfig(config);
+  setText("[data-homepage-text='eyebrow']", normalized.eyebrow);
+  setText("[data-homepage-text='headline']", normalized.headline);
+  setText("[data-homepage-text='subheadline']", normalized.subheadline);
+  setText("[data-homepage-text='galleryTitle']", normalized.galleryTitle);
+  setHomepageLink("primaryCta", normalized.primaryCtaLabel, normalized.primaryCtaHref);
+  setHomepageLink("secondaryCta", normalized.secondaryCtaLabel, normalized.secondaryCtaHref);
+
+  const signals = document.querySelector("[data-homepage-list='trustSignals']");
+  if (signals) signals.innerHTML = normalized.trustSignals.map((signal) => `<span>${escapeHtml(signal)}</span>`).join("");
+
+  const showcase = document.querySelector("[data-homepage-list='showcaseCards']");
+  if (showcase) showcase.innerHTML = normalized.showcaseCards.map((card) => homepageShowcaseMarkup(card)).join("");
+
+  const creations = document.querySelector("[data-homepage-list='creationCards']");
+  if (creations) creations.innerHTML = normalized.creationCards.map((card) => `
+    <article class="creation-card ${escapeHtml(card.style)}"><span>${escapeHtml(card.label)}</span><strong>${escapeHtml(card.title)}</strong></article>
+  `).join("");
+}
+
+function homepageShowcaseMarkup(card) {
+  const classes = ["showcase-card", card.size, card.style, card.outputPreview ? "output-preview" : ""].filter(Boolean).join(" ");
+  return `
+    <article class="${escapeHtml(classes)}">
+      <span>${escapeHtml(card.label)}</span>
+      <strong>${escapeHtml(card.title)}</strong>
+      ${card.outputPreview ? `<div class="mock-video-frame"><span class="play-dot small"></span><p>已发布配置</p></div>` : ""}
+    </article>
+  `;
+}
+
+function setHomepageLink(name, label, href) {
+  const target = document.querySelector(`[data-homepage-link='${name}']`);
+  if (!target) return;
+  target.textContent = label || target.textContent;
+  if (href) target.setAttribute("href", href);
+}
+
 const state = loadState();
 state.characters = state.characters.map((character) => ({
   status: "active",
@@ -147,6 +239,35 @@ let adminLoaded = false;
 let adminLoading = false;
 let adminData = null;
 
+const defaultHomepageConfig = {
+  eyebrow: "可复用角色的 AI 创作平台",
+  headline: "用一致性角色创建 AI 视频",
+  subheadline: "在一个创作空间里生成角色、场景、提示词、图片和视频，并持续复用。",
+  primaryCtaLabel: "免费开始生成",
+  primaryCtaHref: "./zh/app/generate/",
+  secondaryCtaLabel: "探索作品",
+  secondaryCtaHref: "./zh/gallery/",
+  galleryTitle: "看看你可以创建什么",
+  trustSignals: ["无需设计经验", "角色可复用", "提示词到视频", "积分制生成"],
+  showcaseCards: [
+    { label: "视频", title: "生成营销短片", style: "art-1", size: "tall", outputPreview: true },
+    { label: "角色", title: "工作室主持人", style: "art-2" },
+    { label: "图片", title: "发布主视觉", style: "art-3" },
+    { label: "提示词", title: "把发布脚本转成可复用场景", style: "art-4", size: "wide" }
+  ],
+  creationCards: [
+    { label: "AI 角色", title: "带记忆的可复用主持人", style: "art-2" },
+    { label: "产品视频", title: "适合发布的动态概念", style: "art-1" },
+    { label: "时尚场景", title: "杂志感营销画面", style: "art-5" },
+    { label: "电影肖像", title: "统一面孔与风格", style: "art-6" },
+    { label: "社媒广告", title: "适合投放的竖屏素材", style: "art-8" },
+    { label: "图片转视频", title: "把参考图变成短片", style: "art-7" },
+    { label: "提示词重混", title: "从一个想法生成多个版本", style: "art-9" },
+    { label: "可复用资产", title: "保存作品用于未来场景", style: "art-10" }
+  ]
+};
+let homepageConfig = structuredClone(defaultHomepageConfig);
+
 injectTopNavigation();
 injectAppShell();
 injectToolWorkbench();
@@ -154,6 +275,7 @@ injectToolDiscovery();
 injectCarouselControls();
 injectFloatingDock();
 injectGlobalFooter();
+loadHomepageConfig();
 applyStoredLanguage();
 renderOAuthReadiness();
 renderToolHomeDirectory();
@@ -824,6 +946,17 @@ document.addEventListener("click", async (event) => {
     });
     return;
   }
+  const adminHomepagePreview = event.target.closest("[data-admin-homepage-preview]");
+  if (adminHomepagePreview) {
+    event.preventDefault();
+    const form = document.querySelector("[data-admin-homepage-form]");
+    if (!form) return;
+    const config = readHomepageForm(new FormData(form));
+    renderAdminHomepagePreview(config);
+    localStorage.setItem("ovs_homepage_config_preview", JSON.stringify(config));
+    showSiteToast("已生成首页预览配置，可打开首页查看本机预览。");
+    return;
+  }
   const carouselButton = event.target.closest("[data-carousel-scroll]");
   if (carouselButton) {
     event.preventDefault();
@@ -932,6 +1065,19 @@ document.addEventListener("click", async (event) => {
 });
 
 document.addEventListener("submit", async (event) => {
+  const homepageForm = event.target.closest("[data-admin-homepage-form]");
+  if (homepageForm) {
+    event.preventDefault();
+    const formData = new FormData(homepageForm);
+    const button = homepageForm.querySelector("button[type='submit']");
+    const config = readHomepageForm(formData);
+    await runAdminAction(button, "update-homepage-config", {
+      config,
+      reason: String(formData.get("reason") || "").trim()
+    });
+    return;
+  }
+
   const creditForm = event.target.closest("[data-admin-credit-form]");
   if (!creditForm) return;
   event.preventDefault();
@@ -1718,6 +1864,9 @@ function renderAdmin(current) {
   setText("[data-admin-health]", "已连接");
   setText("[data-admin-supabase-status]", "Supabase 已配置。后台数据来自安全函数，不从浏览器暴露 service key。");
 
+  const homepage = normalizeHomepageConfig(adminData.homepage?.value_json || adminData.homepage || defaultHomepageConfig);
+  fillHomepageForm(homepage);
+  renderAdminHomepagePreview(homepage, adminData.homepage?.updated_at);
   renderAdminUsers(adminData.users || []);
   renderAdminCredits(adminData.users || []);
   renderAdminOrders(adminData.orders || [], actor);
@@ -1728,6 +1877,8 @@ function renderAdmin(current) {
 }
 
 function renderAdminConfiguration() {
+  fillHomepageForm(defaultHomepageConfig);
+  renderAdminHomepagePreview(defaultHomepageConfig);
   const oauthItems = getOAuthReadiness().map((item) => ({ ...item, detail: item.ready ? "前端可发起真实授权" : item.action }));
   const oauthList = document.querySelector("[data-admin-oauth]");
   if (!oauthList) return;
@@ -1748,7 +1899,8 @@ function fillAdminEmptyState() {
     "[data-admin-assets]",
     "[data-admin-jobs]",
     "[data-admin-shares]",
-    "[data-admin-audit]"
+    "[data-admin-audit]",
+    "[data-admin-homepage-preview-list]"
   ];
   placeholders.forEach((selector) => {
     const target = document.querySelector(selector);
@@ -1770,13 +1922,14 @@ async function loadAdminConsole() {
   if (!document.querySelector("[data-admin-page]") || !supabase || adminLoading) return;
   adminLoading = true;
   try {
-    const [summary, users, orders, assets, jobs, shares, audit] = await Promise.all([
+    const [summary, users, orders, assets, jobs, shares, homepage, audit] = await Promise.all([
       invokeAdmin("dashboard-summary"),
       invokeAdmin("list-users"),
       invokeAdmin("list-orders"),
       invokeAdmin("list-assets"),
       invokeAdmin("list-generation-jobs"),
       invokeAdmin("list-share-links"),
+      invokeAdmin("get-homepage-config"),
       invokeAdmin("list-audit-logs").catch((error) => ({ auditLogs: [], auditError: error.message }))
     ]);
     adminData = {
@@ -1787,6 +1940,7 @@ async function loadAdminConsole() {
       assets: assets.assets || [],
       jobs: jobs.jobs || [],
       shares: shares.shares || [],
+      homepage: homepage.homepage || {},
       auditLogs: audit.auditLogs || [],
       auditError: audit.auditError
     };
@@ -1806,6 +1960,81 @@ async function invokeAdmin(action, body = {}) {
   if (error) throw new Error(error.message || "后台函数调用失败");
   if (data?.error) throw new Error(data.error.message || data.error.code || "后台函数返回错误");
   return data || {};
+}
+
+function readHomepageForm(formData) {
+  return normalizeHomepageConfig({
+    eyebrow: String(formData.get("eyebrow") || defaultHomepageConfig.eyebrow).trim(),
+    headline: String(formData.get("headline") || defaultHomepageConfig.headline).trim(),
+    subheadline: String(formData.get("subheadline") || defaultHomepageConfig.subheadline).trim(),
+    primaryCtaLabel: String(formData.get("primaryCtaLabel") || defaultHomepageConfig.primaryCtaLabel).trim(),
+    primaryCtaHref: sanitizeHomepageHref(String(formData.get("primaryCtaHref") || defaultHomepageConfig.primaryCtaHref).trim()),
+    secondaryCtaLabel: String(formData.get("secondaryCtaLabel") || defaultHomepageConfig.secondaryCtaLabel).trim(),
+    secondaryCtaHref: sanitizeHomepageHref(String(formData.get("secondaryCtaHref") || defaultHomepageConfig.secondaryCtaHref).trim()),
+    trustSignals: splitCommaList(String(formData.get("trustSignals") || "")),
+    showcaseCards: parseHomepageCards(String(formData.get("showcaseCards") || ""), defaultHomepageConfig.showcaseCards),
+    creationCards: parseHomepageCards(String(formData.get("creationCards") || ""), defaultHomepageConfig.creationCards)
+  });
+}
+
+function fillHomepageForm(config) {
+  const form = document.querySelector("[data-admin-homepage-form]");
+  if (!form) return;
+  const normalized = normalizeHomepageConfig(config);
+  setFormValue(form, "eyebrow", normalized.eyebrow);
+  setFormValue(form, "headline", normalized.headline);
+  setFormValue(form, "subheadline", normalized.subheadline);
+  setFormValue(form, "primaryCtaLabel", normalized.primaryCtaLabel);
+  setFormValue(form, "primaryCtaHref", normalized.primaryCtaHref);
+  setFormValue(form, "secondaryCtaLabel", normalized.secondaryCtaLabel);
+  setFormValue(form, "secondaryCtaHref", normalized.secondaryCtaHref);
+  setFormValue(form, "trustSignals", normalized.trustSignals.join(","));
+  setFormValue(form, "showcaseCards", serializeHomepageCards(normalized.showcaseCards));
+  setFormValue(form, "creationCards", serializeHomepageCards(normalized.creationCards));
+}
+
+function renderAdminHomepagePreview(config, updatedAt = "") {
+  const target = document.querySelector("[data-admin-homepage-preview-list]");
+  if (!target) return;
+  const normalized = normalizeHomepageConfig(config);
+  target.innerHTML = `
+    <article class="admin-row homepage-preview-row">
+      <span class="thumb ${escapeHtml(normalized.showcaseCards[0]?.style || "art-1")}"></span>
+      <div>
+        <strong>${escapeHtml(normalized.headline)}</strong>
+        <p>${escapeHtml(normalized.subheadline)}</p>
+        <small>${normalized.trustSignals.map(escapeHtml).join(" / ")}${updatedAt ? ` · 更新于 ${escapeHtml(updatedAt)}` : ""}</small>
+      </div>
+      <a href="./index.html" target="_blank" rel="noreferrer">打开首页</a>
+    </article>
+  `;
+}
+
+function setFormValue(form, name, value) {
+  const field = form.elements.namedItem(name);
+  if (field) field.value = value;
+}
+
+function splitCommaList(value) {
+  return value.split(/[,，\n]/).map((item) => item.trim()).filter(Boolean).slice(0, 6);
+}
+
+function parseHomepageCards(value, fallback) {
+  const cards = value.split(/\n+/).map((line, index) => {
+    const [label, title, style = `art-${(index % 13) + 1}`, size = "", output = ""] = line.split("|").map((part) => part.trim());
+    return label && title ? { label, title, style, size, outputPreview: output === "preview" } : null;
+  }).filter(Boolean);
+  return cards.length ? cards : fallback;
+}
+
+function serializeHomepageCards(cards) {
+  return normalizeHomepageCards(cards, []).map((card) => [card.label, card.title, card.style, card.size, card.outputPreview ? "preview" : ""].filter(Boolean).join("|")).join("\n");
+}
+
+function sanitizeHomepageHref(href) {
+  if (!href) return "./zh/app/generate/";
+  if (href.startsWith("./") || href.startsWith("/") || href.startsWith("#")) return href;
+  return "./zh/app/generate/";
 }
 
 function renderAdminUsers(users) {
