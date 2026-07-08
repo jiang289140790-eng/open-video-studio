@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.82.0 |
+| Version | 0.83.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Admin Workflow Center now includes a visual switchboard for per-workflow provider and rollout status changes. Admins can quickly roll workflows between Fake Worker, Qianwen, DeepSeek, and Qwen Vision, or move a workflow between published/testing/draft/deprecated, while all writes still go through the audited `admin` Edge Function.
 - Production AI verification now proves database persistence for the MVP backend loop. After demo credit purchase, Fake Worker generation, and cancellation refund, `npm run verify:ai` reads `generation_jobs`, `media_assets`, and `credit_transactions` as the authenticated user to confirm Gallery, History, Credits, and refund state can be sourced from production Supabase tables.
 - Admin Console now includes a real Supabase OAuth Provider readiness check through the `admin` Edge Function. It separates visible frontend social-login buttons from actual provider enablement, currently showing Google, X/Twitter, and Discord as not enabled in Supabase.
 - Admin Console now reads live AI Provider status from the `ai` Edge Function. System readiness and Workflow Center rows can show provider blockers such as Qwen Vision `Unauthenticated` instead of only showing that a provider name exists in configuration.

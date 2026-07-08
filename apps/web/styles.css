@@ -3657,6 +3657,67 @@ body.admin-shell-body .admin-console-top h1 {
   justify-content: stretch;
 }
 
+.admin-workflow-switchboard {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.admin-workflow-card {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(255,98,187,0.10), rgba(28,34,48,0.78));
+}
+
+.admin-workflow-card-head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.admin-workflow-card-head p,
+.admin-workflow-card small {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: .78rem;
+  line-height: 1.4;
+}
+
+.admin-workflow-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-workflow-actions.compact button {
+  padding: 6px 10px;
+  font-size: .75rem;
+}
+
+.admin-workflow-actions button {
+  border: 1px solid rgba(255,98,187,0.36);
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: #fff;
+  background: rgba(255,255,255,0.08);
+  cursor: pointer;
+}
+
+.admin-workflow-actions button:not(:disabled):hover {
+  border-color: rgba(255,98,187,0.8);
+  background: rgba(255,98,187,0.22);
+}
+
+.admin-workflow-actions button:disabled {
+  cursor: not-allowed;
+  opacity: .48;
+}
+
 body.admin-shell-body .admin-config-card.admin-tool-config-card {
   min-height: 0;
   gap: 8px;
@@ -3819,7 +3880,8 @@ body.admin-shell-body .admin-config-card.admin-tool-config-card {
   .admin-command-center, .admin-status-grid, .admin-kpi-grid, .admin-operating-grid, .admin-workspace, .admin-system-grid { grid-template-columns: 1fr; }
   .admin-config-page-head,
   .admin-config-card,
-  .admin-config-card.admin-tool-config-card { grid-template-columns: 1fr; }
+  .admin-config-card.admin-tool-config-card,
+  .admin-workflow-switchboard { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {

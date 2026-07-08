@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | OPS-ADMIN-001 |
-| Version | 1.3.0 |
+| Version | 1.4.0 |
 | Status | Active |
 | Owner | CTO / Operations |
 | Dependencies | API-ADMIN-001, DB-AUDIT-LOGS-001, BE-ARCH-SECURITY-001 |
@@ -22,6 +22,7 @@ Define how the MVP Admin console is enabled safely for Open Video Studio.
 - Write audit logs for credit, order, content, and share-link changes.
 - Let admins update MVP homepage content without source-code edits.
 - Let admins manage MVP page modules and AI tool listings without source-code edits.
+- Let admins switch AI Workflow provider and rollout status without raw configuration editing.
 - Keep the admin frontend practical for MVP operations without adding enterprise workspace, team, approval, or organization modules.
 
 ## Admin Modules
@@ -35,6 +36,7 @@ Define how the MVP Admin console is enabled safely for Open Video Studio.
 - Share Links: inspect public links and revoke unsafe or requested links.
 - Page Builder: configure page modules, enabled state, display style, card count, and data source for pages such as Home and Tool Home.
 - Tool Catalog: configure AI tools like product listings, including category, status, provider, model, route, featured state, and credit cost.
+- Workflow Center: switch individual workflows between Fake Worker, Qianwen, DeepSeek, and Qwen Vision providers; change rollout status between published, testing, draft, and deprecated; retain raw row editing for bulk import/export.
 - Homepage Content: publish public homepage copy, CTA links, trust signals, showcase cards, and gallery preview cards.
 - System Configuration: inspect OAuth readiness, Supabase connection, storage bucket, worker mode, and service-key safety posture.
 - Audit Logs: review high-risk admin actions; visible only to admins.
@@ -78,6 +80,7 @@ Expected successful result:
 - Admins can edit and publish homepage hero copy, CTA links, trust signals, showcase cards, and gallery preview cards.
 - Admins can publish page module configuration through `page_builder_config`.
 - Admins can publish AI tool listing configuration through `tool_catalog_config`.
+- Admins can use the Workflow Center switchboard to change provider and rollout status while writes remain audited through the admin function.
 - Operators can read homepage configuration but cannot publish changes.
 - Operators can read page module and tool catalog configuration but cannot publish changes.
 - Every high-risk write has an `audit_logs` row.
@@ -97,6 +100,8 @@ The admin console frontend has been upgraded from a lightweight homepage form in
 The Admin console now includes MVP Shopify-style configuration surfaces backed by `site_settings.page_builder_config` and `site_settings.tool_catalog_config`. These do not add a new architecture layer; they make existing static pages and AI tool routes operationally configurable for page composition and tool merchandising.
 
 Page Builder and Tool Catalog use visual configuration cards for normal operations, with advanced batch text editing retained for fast import/export style updates.
+
+Workflow Center now includes a visual switchboard for normal operations. It shows provider rollout hints, live provider blockers from the AI Provider status check, and quick actions for safe rollback to Fake Worker or grey rollout to Qianwen / DeepSeek / Qwen Vision. These buttons still submit `workflow_center_config` through the `admin` Edge Function, so admin-only permission checks, required reason text, and audit logs are preserved.
 
 The public homepage and tool directory surfaces read the published settings when Supabase is configured. Page Builder can affect section visibility, display style, and card count. Tool Catalog can affect tool visibility, display label, route, provider/model metadata, featured state, and visible credit cost labels.
 

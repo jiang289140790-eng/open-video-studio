@@ -1416,6 +1416,12 @@ document.addEventListener("click", async (event) => {
     showSiteToast("已生成 Workflow 预览");
     return;
   }
+  const adminWorkflowSwitch = event.target.closest("[data-admin-workflow-switch]");
+  if (adminWorkflowSwitch) {
+    event.preventDefault();
+    await runAdminWorkflowSwitch(adminWorkflowSwitch);
+    return;
+  }
   const adminPromptPreview = event.target.closest("[data-admin-prompt-preview]");
   if (adminPromptPreview) {
     event.preventDefault();
@@ -3565,7 +3571,9 @@ function fillToolCatalogForm(config) {
 function fillWorkflowForm(config) {
   const form = document.querySelector("[data-admin-workflow-form]");
   if (!form) return;
-  setFormValue(form, "workflowRows", serializeWorkflowRows(normalizeWorkflowCenterConfig(config)));
+  const normalized = normalizeWorkflowCenterConfig(config);
+  setFormValue(form, "workflowRows", serializeWorkflowRows(normalized));
+  renderAdminWorkflowSwitchboard(normalized, adminData?.aiProviders || []);
 }
 
 function fillPromptForm(config) {
@@ -3653,6 +3661,60 @@ function readWorkflowForm(formData) {
       };
     })
   });
+}
+
+async function runAdminWorkflowSwitch(button) {
+  const form = document.querySelector("[data-admin-workflow-form]");
+  if (!form) return;
+  const workflowId = button.dataset.workflowId || "";
+  const provider = button.dataset.provider || "";
+  const status = button.dataset.status || "";
+  const formData = new FormData(form);
+  const current = readWorkflowForm(formData);
+  const updated = applyWorkflowSwitch(current, { workflowId, provider, status });
+  const target = updated.workflows.find((workflow) => workflow.workflowId === workflowId);
+  setFormValue(form, "workflowRows", serializeWorkflowRows(updated));
+  renderAdminWorkflowSwitchboard(updated, adminData?.aiProviders || []);
+  renderAdminWorkflowPreview(updated, "", adminData?.aiProviders || []);
+  await runAdminAction(button, "update-workflow-center-config", {
+    config: updated,
+    reason: `后台 Workflow 快捷开关：${target?.name || workflowId} -> ${target?.provider || provider} / ${target?.status || status}`
+  });
+}
+
+function applyWorkflowSwitch(config, change) {
+  return normalizeWorkflowCenterConfig({
+    workflows: normalizeWorkflowCenterConfig(config).workflows.map((workflow) => {
+      if (workflow.workflowId !== change.workflowId) return workflow;
+      const next = { ...workflow };
+      if (change.provider) {
+        next.provider = change.provider;
+        next.requiredModels = workflowModelsForProvider(change.provider, workflow.outputType, workflow.requiredModels);
+        next.description = workflowDescriptionForProvider(change.provider, workflow.outputType, workflow.description);
+        next.status = workflow.status === "deprecated" || workflow.status === "draft" ? "testing" : workflow.status;
+      }
+      if (change.status) next.status = change.status;
+      return next;
+    })
+  });
+}
+
+function workflowModelsForProvider(provider, outputType, fallback = []) {
+  if (provider === "fake_worker") return [outputType === "video" ? "local-video-v0" : outputType === "text" ? "local-text-v0" : "local-image-v0"];
+  if (provider === "qianwen_generation") return [outputType === "video" ? "qianwen-video-v1" : "qianwen-image-v1"];
+  if (provider === "deepseek_text") return ["deepseek-chat"];
+  if (provider === "qwen_vision") return ["Qwen/Qwen2.5-VL-7B-Instruct"];
+  return Array.isArray(fallback) && fallback.length ? fallback : [provider];
+}
+
+function workflowDescriptionForProvider(provider, outputType, fallback = "") {
+  if (provider === "fake_worker") return "安全回滚到 Fake Worker：用于演示、灰度验证和真实 provider 异常时保持产品闭环。";
+  if (provider === "qianwen_generation") return outputType === "video"
+    ? "灰度到千问视频生成：任务失败时标记 failed，并通过积分账本退款。"
+    : "灰度到千问图片生成：任务失败时标记 failed，并通过积分账本退款。";
+  if (provider === "deepseek_text") return "使用 DeepSeek 做提示词增强、中文文案和运营文案，不直接生成资产。";
+  if (provider === "qwen_vision") return "使用 Qwen Vision 做上传图片识别、标签、风险和可复用 prompt 建议。";
+  return fallback || "预留真实 provider 工作流，启用前需要先完成 Edge Function 适配和密钥配置。";
 }
 
 function readPromptForm(formData) {
@@ -3953,6 +4015,61 @@ function renderAdminToolVersions(config) {
       <em>${escapeHtml(tool.slug)}</em>
     </article>
   `).join("") : `<article class="admin-row"><div><strong>暂无工具版本</strong><p>工具上架配置保存后会在这里展示版本历史。</p></div></article>`;
+}
+
+function renderAdminWorkflowSwitchboard(config, aiProviders = []) {
+  const target = document.querySelector("[data-admin-workflow-switchboard]");
+  if (!target) return;
+  const actor = adminData?.actor || {};
+  const canWrite = actor.role === "admin";
+  const workflows = normalizeWorkflowCenterConfig(config).workflows;
+  const providerOptions = ["fake_worker", "qianwen_generation", "deepseek_text", "qwen_vision"];
+  target.innerHTML = workflows.length ? workflows.map((workflow) => {
+    const providerStatus = Array.isArray(aiProviders) ? aiProviders.find((item) => item.provider === workflow.provider) : null;
+    const blocked = providerStatus?.configured === false || providerStatus?.probe?.ok === false;
+    const statusClass = workflow.status === "published" && !blocked ? "ready" : blocked || workflow.status === "deprecated" ? "blocked" : "";
+    return `
+      <article class="admin-workflow-card" data-workflow-card="${escapeHtml(workflow.workflowId)}">
+        <div class="admin-workflow-card-head">
+          <span class="status-dot ${statusClass}"></span>
+          <div>
+            <strong>${escapeHtml(workflow.name)}</strong>
+            <p>${escapeHtml(workflow.workflowId)} · ${escapeHtml(workflow.outputType)} · ${workflow.creditPrice} 积分</p>
+          </div>
+          <em>${escapeHtml(workflow.status)}</em>
+        </div>
+        <small>${escapeHtml(workflowRolloutHint(workflow, aiProviders))}</small>
+        <div class="admin-workflow-actions" aria-label="Workflow 快捷开关">
+          ${providerOptions.map((provider) => `
+            <button type="button" data-admin-workflow-switch data-workflow-id="${escapeHtml(workflow.workflowId)}" data-provider="${escapeHtml(provider)}" ${!canWrite || workflow.provider === provider ? "disabled" : ""}>${workflowProviderLabel(provider)}</button>
+          `).join("")}
+        </div>
+        <div class="admin-workflow-actions compact">
+          ${["published", "testing", "draft", "deprecated"].map((status) => `
+            <button type="button" data-admin-workflow-switch data-workflow-id="${escapeHtml(workflow.workflowId)}" data-status="${escapeHtml(status)}" ${!canWrite || workflow.status === status ? "disabled" : ""}>${workflowStatusLabel(status)}</button>
+          `).join("")}
+        </div>
+      </article>
+    `;
+  }).join("") : `<article class="admin-row muted-row"><strong>暂无 Workflow</strong><p>保存 Workflow 配置后会显示快捷开关。</p></article>`;
+}
+
+function workflowProviderLabel(provider) {
+  return {
+    fake_worker: "回滚 Fake",
+    qianwen_generation: "切千问",
+    deepseek_text: "切 DeepSeek",
+    qwen_vision: "切 Qwen"
+  }[provider] || provider;
+}
+
+function workflowStatusLabel(status) {
+  return {
+    published: "发布",
+    testing: "测试",
+    draft: "草稿",
+    deprecated: "停用"
+  }[status] || status;
 }
 
 function renderAdminWorkflowPreview(config, updatedAt = "", aiProviders = []) {

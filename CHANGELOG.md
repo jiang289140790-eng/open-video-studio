@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.78.0 |
+| Version | 0.79.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,17 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Improved
+
+- Added an Admin Workflow Center switchboard so admins can roll individual workflows between Fake Worker, Qianwen, DeepSeek, and Qwen Vision providers, or change workflow status between published, testing, draft, and deprecated without editing raw rows.
+- The switchboard still saves through the existing `admin` Edge Function and therefore preserves admin-only permission checks, required reason text, and audit logging.
+- Added frontend coverage to keep the Workflow switchboard, quick switch handler, and workflow config mutation helper present.
+
+### Validation
+
+- Ran `npm run test`; 59 tests passed.
+- Ran `npm run verify:ai`; Fake Worker generation, Storage/asset persistence, credit debit, cancellation refund, and database readback passed. Qwen Vision still fails with external provider `Unauthenticated`.
 
 ### Improved
 
