@@ -1,0 +1,85 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import test from "node:test";
+import { loadEnvironment } from "../src/index.js";
+
+const root = process.cwd();
+
+test("AI provider environment exposes placeholders without committing secrets", () => {
+  const envExample = readFileSync(join(root, ".env.example"), "utf8");
+  const localExample = readFileSync(join(root, ".env.local.example"), "utf8");
+  const combined = `${envExample}\n${localExample}`;
+
+  for (const key of [
+    "QWEN_VISION_ENDPOINT",
+    "QWEN_VISION_SITE_API_KEY",
+    "QWEN_VISION_MODEL",
+    "DEEPSEEK_API_KEY",
+    "DEEPSEEK_BASE_URL",
+    "DEEPSEEK_MODEL",
+    "QIANWEN_API_KEY",
+    "QIANWEN_BASE_URL",
+    "QIANWEN_IMAGE_MODEL",
+    "QIANWEN_VIDEO_MODEL",
+    "AI_PROVIDER_DEFAULT",
+    "AI_PROVIDER_ROLLOUT_MODE",
+    "AI_PROVIDER_TIMEOUT_MS",
+  ]) {
+    assert.ok(combined.includes(`${key}=`), `${key} should be documented in env examples`);
+  }
+
+  assert.ok(combined.includes("https://47-251-244-196.sslip.io/api/ai/vision/analyze"));
+  assert.ok(combined.includes("Qwen/Qwen2.5-VL-7B-Instruct"));
+  assert.ok(combined.includes("your-image-model"));
+  assert.ok(combined.includes("your-video-model"));
+  assert.equal(combined.includes("c83f9e12-0943-4828-8fec-f00ab3b0d0bd"), false);
+
+  const env = loadEnvironment();
+  assert.equal(env.qwenVisionModel, "Qwen/Qwen2.5-VL-7B-Instruct");
+  assert.equal(env.deepseekBaseUrl, "https://api.deepseek.com/v1");
+  assert.equal(env.aiProviderDefault, "fake_worker");
+});
+
+test("AI Edge Function contains server-only provider actions and no browser-secret path", () => {
+  const edgeFunction = readFileSync(join(root, "supabase", "functions", "ai", "index.ts"), "utf8");
+  for (const action of [
+    "analyze-image",
+    "enhance-prompt",
+    "create-generation-job",
+    "process-generation-job",
+    "check-generation-status",
+    "cancel-generation-job",
+    "provider-status",
+  ]) {
+    assert.ok(edgeFunction.includes(action), `AI Edge Function should include ${action}`);
+  }
+  for (const provider of ["qwen_vision", "deepseek_text", "qianwen_generation", "fake_worker"]) {
+    assert.ok(edgeFunction.includes(provider), `AI Edge Function should include ${provider}`);
+  }
+  assert.ok(edgeFunction.includes("SUPABASE_SERVICE_ROLE_KEY"));
+  assert.ok(edgeFunction.includes("auth.getUser()"));
+  assert.ok(edgeFunction.includes("QWEN_VISION_SITE_API_KEY"));
+  assert.equal(edgeFunction.includes("VITE_QWEN"), false);
+  assert.equal(edgeFunction.includes("VITE_DEEPSEEK"), false);
+  assert.equal(edgeFunction.includes("VITE_QIANWEN"), false);
+});
+
+test("Admin defaults reserve Qwen, DeepSeek, and Qianwen workflows for grey rollout", () => {
+  const adminBackend = readFileSync(join(root, "src", "supabase", "adminBackend.ts"), "utf8");
+  const adminFunction = readFileSync(join(root, "supabase", "functions", "admin", "index.ts"), "utf8");
+  const combined = `${adminBackend}\n${adminFunction}`;
+
+  for (const expected of [
+    "workflow-qwen-vision-v1",
+    "workflow-deepseek-prompt-v1",
+    "workflow-qianwen-image-v1",
+    "workflow-qianwen-video-v1",
+    "qwen_vision",
+    "deepseek_text",
+    "qianwen_generation",
+    "fake_worker",
+  ]) {
+    assert.ok(combined.includes(expected), `Admin defaults should include ${expected}`);
+  }
+});

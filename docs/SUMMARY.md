@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.78.0 |
+| Version | 0.79.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Supabase now includes a server-only `ai` Edge Function for the three-model provider plan: Qwen Vision image analysis, DeepSeek prompt enhancement, Qianwen image/video generation, and Fake Worker fallback. Provider secrets are documented in env templates and must remain in Supabase Secrets.
 - Admin Tool Catalog entries now carry an explicit `workflowId` binding in addition to model and version history, so a listed AI tool can be connected to a Workflow Center record before real worker execution is connected.
 - Agent Center defaults now cover the six MVP agent roles from the imported backend guidance: Director, Content Analyst, Prompt Engineer, Script Writer, Storyboard, and Publisher.
 - Content Intelligence defaults now cover X, TikTok, YouTube, Reddit, Instagram, and Telegram manual-analysis records, preserving the future ingestion shape while keeping MVP data mockable.

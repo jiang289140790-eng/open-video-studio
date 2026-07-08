@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | BE-INDEX-001 |
-| Version | 0.3.0 |
+| Version | 0.4.0 |
 | Status | Active |
 | Owner | Backend Lead |
 | Dependencies | OVSB-001, DOC-STD-001, PRD-INDEX-001, DB-INDEX-001, API-INDEX-001, BE-ARCH-BIBLE-001 |
@@ -36,6 +36,12 @@ Own backend service architecture, domain logic, authorization, billing integrati
 - [BE-ARCH-LOGGING-001 Logging](009-logging.md)
 - [BE-ARCH-MONITORING-001 Monitoring](010-monitoring.md)
 - [BE-ARCH-SECURITY-001 Security](011-security.md)
+
+## Current Implementation Notes
+
+- Supabase now has an `ai` Edge Function for authenticated server-side AI provider orchestration.
+- Provider secrets for Qwen Vision, DeepSeek, and Qianwen must be stored as Supabase secrets, never in browser code.
+- The first rollout keeps `fake_worker` as the default provider and allows Admin Tool/Workflow configuration to move individual tools to `qwen_vision`, `deepseek_text`, or `qianwen_generation`.
 
 ## Acceptance Criteria
 

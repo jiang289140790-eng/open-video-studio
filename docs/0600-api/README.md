@@ -4,7 +4,7 @@
 |---|---|
 | ID | API-BIBLE-001 |
 | Unique ID | API-BIBLE-001 |
-| Version | 1.7.0 |
+| Version | 1.8.0 |
 | Status | Active |
 | Owner | API Platform Lead |
 | Dependencies | PB-010, DB-BIBLE-001, SEC-INDEX-001 |
@@ -53,6 +53,8 @@ Phase 1 implements backend service-layer behavior only. No HTTP API routes, cont
 `ADR-007` adds service-layer workspace, membership, project, and permission behavior. External HTTP API routes for workspace and project are not implemented yet.
 
 MVP Sprint 1 adds a minimal local HTTP API server through `createMvpApiServer`. Implemented routes cover health, signup, login, current user, profile update, credit balance/history, local credit purchase, and order listing. This is the first usable MVP API surface and remains backed by the existing service layer.
+
+The MVP backend now includes a Supabase `ai` Edge Function with authenticated actions for image analysis, prompt enhancement, generation job creation, job processing, job status, cancellation, and provider status. This API is server-side only for third-party provider secrets and keeps frontend contracts provider-neutral.
 
 ## Acceptance Criteria
 

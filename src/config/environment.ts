@@ -8,6 +8,19 @@ export interface AppEnvironment {
   supabaseAnonKey?: string;
   supabaseStorageBucket: string;
   supabaseServiceRoleKey?: string;
+  qwenVisionEndpoint?: string;
+  qwenVisionSiteApiKey?: string;
+  qwenVisionModel?: string;
+  deepseekApiKey?: string;
+  deepseekBaseUrl?: string;
+  deepseekModel?: string;
+  qianwenApiKey?: string;
+  qianwenBaseUrl?: string;
+  qianwenImageModel?: string;
+  qianwenVideoModel?: string;
+  aiProviderDefault?: string;
+  aiProviderRolloutMode?: string;
+  aiProviderTimeoutMs?: number;
 }
 
 export function loadEnvironment(filePath?: string): AppEnvironment {
@@ -21,6 +34,19 @@ export function loadEnvironment(filePath?: string): AppEnvironment {
     supabaseAnonKey: emptyToUndefined(value("SUPABASE_ANON_KEY")),
     supabaseStorageBucket: value("SUPABASE_STORAGE_BUCKET", "open-video-studio-assets"),
     supabaseServiceRoleKey: emptyToUndefined(value("SUPABASE_SERVICE_ROLE_KEY")),
+    qwenVisionEndpoint: value("QWEN_VISION_ENDPOINT", "https://47-251-244-196.sslip.io/api/ai/vision/analyze"),
+    qwenVisionSiteApiKey: emptyToUndefined(value("QWEN_VISION_SITE_API_KEY")),
+    qwenVisionModel: value("QWEN_VISION_MODEL", "Qwen/Qwen2.5-VL-7B-Instruct"),
+    deepseekApiKey: emptyToUndefined(value("DEEPSEEK_API_KEY")),
+    deepseekBaseUrl: value("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1"),
+    deepseekModel: value("DEEPSEEK_MODEL", "deepseek-chat"),
+    qianwenApiKey: emptyToUndefined(value("QIANWEN_API_KEY")),
+    qianwenBaseUrl: emptyToUndefined(value("QIANWEN_BASE_URL")),
+    qianwenImageModel: value("QIANWEN_IMAGE_MODEL", "your-image-model"),
+    qianwenVideoModel: value("QIANWEN_VIDEO_MODEL", "your-video-model"),
+    aiProviderDefault: value("AI_PROVIDER_DEFAULT", "fake_worker"),
+    aiProviderRolloutMode: value("AI_PROVIDER_ROLLOUT_MODE", "admin_config"),
+    aiProviderTimeoutMs: Number(value("AI_PROVIDER_TIMEOUT_MS", "60000")),
   };
 }
 

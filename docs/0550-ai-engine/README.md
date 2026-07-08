@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | AI-INDEX-001 |
-| Version | 1.1.0 |
+| Version | 1.2.0 |
 | Status | Active |
 | Owner | AI Engineering Lead |
 | Dependencies | OVSB-001, DOC-STD-001, PRD-INDEX-001, SEC-INDEX-001, ANALYTICS-INDEX-001 |
@@ -33,7 +33,7 @@ Own AI model orchestration, prompt systems, generation pipelines, evaluation, sa
 
 `ADR-005` implements a provider-independent TypeScript AI Engine foundation under `src/ai/`. It includes a unified provider interface, provider registry, local deterministic stub provider, not-configured future provider adapters, local AI job queue, independent worker, cost tracker, and storage adapter abstraction.
 
-No real AI model, provider SDK, provider credential, or live network call is connected yet.
+The MVP now includes a Supabase `ai` Edge Function for server-only provider orchestration. It reserves `qwen_vision` for Qwen multimodal image analysis, `deepseek_text` for prompt enhancement and Chinese operating copy, and `qianwen_generation` for image/video generation. Real provider use remains behind backend configuration and environment secrets; `fake_worker` remains the default rollback provider.
 
 ## Proposed Provider Plugin Architecture
 

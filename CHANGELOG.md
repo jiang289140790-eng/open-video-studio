@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.74.0 |
+| Version | 0.75.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Added
+
+- Added Supabase `ai` Edge Function with authenticated actions for Qwen Vision image analysis, DeepSeek prompt enhancement, Qianwen/Fake Worker generation jobs, job status, cancellation, and provider status.
+- Added server-only AI provider environment placeholders for Qwen Vision, DeepSeek, Qianwen, rollout mode, and timeout configuration.
+- Added Admin Tool Catalog and Workflow Center defaults for Qwen Vision, DeepSeek prompt enhancement, Qianwen image generation, and Qianwen video generation.
+
+### Validation
+
+- Added AI provider configuration tests for env placeholders, Edge Function actions, secret isolation, and Admin default workflow readiness.
 
 ### Improved
 
