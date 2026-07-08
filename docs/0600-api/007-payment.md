@@ -4,7 +4,7 @@
 |---|---|
 | ID | API-PAYMENT-001 |
 | Unique ID | API-PAYMENT-001 |
-| Version | 1.2.0 |
+| Version | 1.3.0 |
 | Status | Active |
 | Owner | Billing Platform Lead / API Platform Lead |
 | Dependencies | API-AUTH-001, DB-ORDERS-001, DB-CREDITS-001, SEC-INDEX-001 |
@@ -74,6 +74,10 @@ Support enterprise invoices, purchase orders, tax handling, coupons, refunds, re
 No checkout provider, payment intent, subscription provider, webhook verification, refund, dispute, tax, or invoice integration is implemented yet.
 
 MVP Sprint 1 exposes a local HTTP credit purchase route for MVP testing. It is not a real payment provider integration.
+
+Production Supabase now exposes an MVP no-charge demo checkout path through the authenticated `ai` Edge Function action `demo-credit-purchase`. It creates a fulfilled `orders` row and a posted credit ledger grant without storing or processing real payment credentials. `npm run verify:payments` proves the action fails closed without authentication, then verifies order readback, credit ledger readback, and balance correctness for a temporary authenticated user.
+
+This does not replace real payment integration. A real payment gateway still requires provider checkout/session APIs, webhook signature verification, idempotency, refund/reconciliation handling, tax/invoice policy, and fraud controls before any real charge is accepted.
 
 ## Future Plan
 

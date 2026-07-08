@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.84.0 |
+| Version | 0.85.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Production payment-loop verification now has a dedicated `npm run verify:payments` script. It proves the MVP demo checkout path fails closed when unauthenticated, then creates an authenticated temporary user, calls the server-side demo credit purchase action, and reads back `orders` plus `credit_transactions` to confirm order fulfillment and credit balance. This is still a no-charge demo checkout until a real payment gateway is configured.
 - Frontend i18n now has a registered MVP language layer instead of only ad hoc text replacement. `apps/web/app.js` defines supported locales, core terms, per-locale dictionaries, attribute dictionaries, original text preservation, and runtime core-coverage reporting for Chinese, English, Japanese, and Korean.
 - Admin Workflow Center now includes a visual switchboard for per-workflow provider and rollout status changes. Admins can quickly roll workflows between Fake Worker, Qianwen, DeepSeek, and Qwen Vision, or move a workflow between published/testing/draft/deprecated, while all writes still go through the audited `admin` Edge Function.
 - Production AI verification now proves database persistence for the MVP backend loop. After demo credit purchase, Fake Worker generation, and cancellation refund, `npm run verify:ai` reads `generation_jobs`, `media_assets`, and `credit_transactions` as the authenticated user to confirm Gallery, History, Credits, and refund state can be sourced from production Supabase tables.

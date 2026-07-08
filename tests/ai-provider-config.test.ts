@@ -106,9 +106,11 @@ test("production verification scripts cover OAuth and AI function health", () =>
   const packageJson = readFileSync(join(root, "package.json"), "utf8");
   const oauthScript = readFileSync(join(root, "scripts", "verify-oauth.mjs"), "utf8");
   const aiScript = readFileSync(join(root, "scripts", "verify-ai-function.mjs"), "utf8");
+  const paymentScript = readFileSync(join(root, "scripts", "verify-payment-loop.mjs"), "utf8");
 
   assert.ok(packageJson.includes("verify:oauth"));
   assert.ok(packageJson.includes("verify:ai"));
+  assert.ok(packageJson.includes("verify:payments"));
   for (const provider of ["google", "twitter", "discord", "telegram"]) {
     assert.ok(oauthScript.includes(provider), `OAuth verifier should cover ${provider}`);
   }
@@ -129,6 +131,12 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(aiScript.includes("generation_jobs"));
   assert.ok(aiScript.includes("media_assets"));
   assert.ok(aiScript.includes("credit_transactions"));
+  assert.ok(paymentScript.includes("demo-credit-purchase"));
+  assert.ok(paymentScript.includes("orders"));
+  assert.ok(paymentScript.includes("credit_transactions"));
+  assert.ok(paymentScript.includes("creditBalanceCorrect"));
+  assert.ok(paymentScript.includes("SUPABASE_TEST_ACCESS_TOKEN"));
   assert.equal(oauthScript.includes("SUPABASE_SERVICE_ROLE_KEY"), false);
   assert.ok(aiScript.includes("SUPABASE_SERVICE_ROLE_KEY"));
+  assert.ok(paymentScript.includes("SUPABASE_SERVICE_ROLE_KEY"));
 });

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DB-ORDERS-001 |
-| Version | 1.1.0 |
+| Version | 1.2.0 |
 | Status | Active |
 | Owner | Billing Data Owner |
 | Dependencies | DB-USERS-001, DB-CREDITS-001, PB-006 |
@@ -75,6 +75,8 @@ Support enterprise invoices, purchase orders, tax handling, credits bundles, cou
 ## Current Implementation
 
 `ADR-004` adds local order records for completed credit purchases through `BillingService`. These records are workflow foundations only and do not represent production payment provider reconciliation.
+
+Production Supabase now supports MVP no-charge demo checkout records through the `demo-credit-purchase` server action. `npm run verify:payments` creates a temporary authenticated user, writes a fulfilled `orders` record, verifies the linked posted `credit_transactions` grant, confirms the readable credit balance, and removes the temporary records. These records prove the purchase-to-credit path but are not real payment-provider settlement records.
 
 ## Future Plan
 

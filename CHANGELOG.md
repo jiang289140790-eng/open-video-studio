@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.80.0 |
+| Version | 0.81.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -20,6 +20,19 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Include documentation changes, architecture changes, validation performed, and known follow-ups.
 - Reference relevant document IDs, task IDs, and decision records.
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
+
+## 2026-07-09
+
+### Improved
+
+- Added `npm run verify:payments` as a dedicated production payment-loop verifier for the MVP demo checkout path.
+- The verifier proves unauthenticated credit purchase requests fail closed, then creates a temporary authenticated user, calls the server-side `demo-credit-purchase` action, reads the resulting `orders` row, reads the `credit_transactions` ledger grant, verifies the credit balance, and cleans up the temporary records.
+- Added static test coverage so the payment verifier must keep checking `orders`, `credit_transactions`, and balance correctness.
+
+### Validation
+
+- Ran `npm run verify:payments`; production Supabase demo checkout, order readback, credit ledger readback, and balance verification passed.
+- Ran `npm run test`; 59 tests passed.
 
 ## 2026-07-08
 
