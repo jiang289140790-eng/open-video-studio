@@ -48,6 +48,8 @@ Deno.serve(async (req) => {
         select(adminClient, "credit_transactions"),
         select(adminClient, "share_links"),
       ]);
+      const today = new Date().toISOString().slice(0, 10);
+      const paidOrders = orders.filter((order) => ["fulfilled", "paid", "completed"].includes(String(order.status ?? "")));
       return json({
         actor,
         summary: {
@@ -61,6 +63,18 @@ Deno.serve(async (req) => {
             .filter((credit) => Number(credit.balance_impact ?? 0) < 0)
             .reduce((sum, credit) => sum + Math.abs(Number(credit.balance_impact ?? 0)), 0),
           activeShares: shares.filter((share) => share.visibility_status === "active" && !share.revoked_at).length,
+          todayNewUsers: profiles.filter((profile) => isSameDay(profile.created_at, today)).length,
+          todayPaidUsers: new Set(paidOrders.filter((order) => isSameDay(order.created_at, today)).map((order) => order.user_id)).size,
+          todayRevenueCents: paidOrders
+            .filter((order) => isSameDay(order.created_at, today))
+            .reduce((sum, order) => sum + Number(order.amount_cents ?? 0), 0),
+          todayImages: jobs.filter((job) => isSameDay(job.created_at, today) && job.media_type === "image").length,
+          todayVideos: jobs.filter((job) => isSameDay(job.created_at, today) && job.media_type === "video").length,
+          todayFailedJobs: jobs.filter((job) => isSameDay(job.created_at, today) && job.status === "failed").length,
+          weeklyRevenueTrend: weeklyRevenueTrend(paidOrders),
+          popularTools: rankJobsByTool(jobs),
+          highFailureTools: rankFailureByTool(jobs),
+          creditConsumptionRank: rankCreditsByTool(jobs),
         },
       });
     }
@@ -80,7 +94,14 @@ Deno.serve(async (req) => {
 
     if (action === "list-assets") return json({ actor, assets: await select(adminClient, "media_assets", "updated_at", false) });
     if (action === "list-orders") return json({ actor, orders: await select(adminClient, "orders", "created_at", false) });
-    if (action === "list-generation-jobs") return json({ actor, jobs: await select(adminClient, "generation_jobs", "created_at", false) });
+    if (action === "list-generation-jobs") {
+      const jobs = await select(adminClient, "generation_jobs", "created_at", false);
+      return json({ actor, jobs: jobs.map(normalizeGenerationJob) });
+    }
+    if (action === "list-workers") {
+      const jobs = await select(adminClient, "generation_jobs", "created_at", false);
+      return json({ actor, workers: deriveWorkerStatuses(jobs) });
+    }
     if (action === "list-share-links") return json({ actor, shares: await select(adminClient, "share_links", "created_at", false) });
     if (action === "get-homepage-config") {
       const homepage = await getHomepageConfig(adminClient);
@@ -468,6 +489,115 @@ function cardList(value: unknown, fallback: Array<Record<string, unknown>>, maxI
     };
   }).filter((card) => card.label && card.title).slice(0, maxItems);
   return cards.length ? cards : fallback;
+}
+
+function normalizeGenerationJob(job: Record<string, unknown>) {
+  const createdAt = job.created_at ? new Date(String(job.created_at)).getTime() : 0;
+  const completedAt = job.completed_at ? new Date(String(job.completed_at)).getTime() : 0;
+  const latency = Number(job.latency ?? job.latency_ms ?? (createdAt && completedAt ? Math.max(0, completedAt - createdAt) : 0));
+  return {
+    ...job,
+    tool_slug: job.tool_slug ?? toolSlug(job),
+    workflow_id: job.workflow_id ?? `${job.provider || "fake_worker"}_${job.media_type || "generation"}_workflow`,
+    workflow_version: job.workflow_version ?? "v0",
+    input_params: job.input_params ?? { prompt: job.prompt, aspectRatio: job.aspect_ratio, sourceAssetId: job.source_asset_id },
+    output_assets: job.output_assets ?? (job.result_asset_id ? [job.result_asset_id] : []),
+    credit_charged: Number(job.credit_charged ?? job.cost_credits ?? 0),
+    estimated_cost: Number(job.estimated_cost ?? job.estimated_cost_cents ?? 0),
+    latency,
+  };
+}
+
+function deriveWorkerStatuses(jobs: Array<Record<string, unknown>>) {
+  const groups = new Map<string, Array<Record<string, unknown>>>();
+  for (const job of jobs) {
+    const key = `${job.provider || "fake_worker"}|${job.model || job.workflow_id || "local-demo"}|${job.media_type || "image"}`;
+    groups.set(key, [...(groups.get(key) ?? []), job]);
+  }
+  const workers = Array.from(groups.entries()).map(([key, items], index) => {
+    const [provider, workflow, type] = key.split("|");
+    const running = items.filter((job) => ["queued", "running", "pending"].includes(String(job.status))).length;
+    const failed = items.filter((job) => job.status === "failed");
+    const completed = items.filter((job) => job.status === "completed");
+    const latencyValues = items.map((job) => Number(normalizeGenerationJob(job).latency || 0)).filter(Boolean);
+    return {
+      worker_id: `worker_${provider}_${index + 1}`,
+      provider,
+      workflow,
+      type: ["image", "video", "multimodal", "text"].includes(type) ? type : "image",
+      status: failed.length && failed.length >= completed.length ? "failed" : running ? "running" : "idle",
+      queue_count: running,
+      average_latency: latencyValues.length ? Math.round(latencyValues.reduce((sum, value) => sum + value, 0) / latencyValues.length) : 0,
+      success_rate: items.length ? Math.round((completed.length / items.length) * 100) : 100,
+      cost_per_job: items.length ? Math.round(items.reduce((sum, job) => sum + Number(job.estimated_cost_cents ?? job.estimated_cost ?? 0), 0) / items.length) : 0,
+      last_heartbeat: String(items[0]?.updated_at ?? items[0]?.created_at ?? new Date().toISOString()),
+      recent_failure_reason: String(failed[0]?.error_message ?? failed[0]?.error_code ?? "暂无失败记录"),
+    };
+  });
+  return workers.length ? workers : [{
+    worker_id: "worker_fake_1",
+    provider: "fake_worker",
+    workflow: "local-demo",
+    type: "multimodal",
+    status: "idle",
+    queue_count: 0,
+    average_latency: 0,
+    success_rate: 100,
+    cost_per_job: 0,
+    last_heartbeat: new Date().toISOString(),
+    recent_failure_reason: "暂无失败记录",
+  }];
+}
+
+function rankJobsByTool(jobs: Array<Record<string, unknown>>) {
+  const totals = new Map<string, number>();
+  for (const job of jobs) totals.set(toolSlug(job), (totals.get(toolSlug(job)) ?? 0) + 1);
+  return Array.from(totals.entries()).sort((left, right) => right[1] - left[1]).slice(0, 5).map(([toolSlug, jobs]) => ({ toolSlug, jobs }));
+}
+
+function rankCreditsByTool(jobs: Array<Record<string, unknown>>) {
+  const totals = new Map<string, number>();
+  for (const job of jobs) totals.set(toolSlug(job), (totals.get(toolSlug(job)) ?? 0) + Number(job.credit_charged ?? job.cost_credits ?? 0));
+  return Array.from(totals.entries()).sort((left, right) => right[1] - left[1]).slice(0, 5).map(([toolSlug, credits]) => ({ toolSlug, credits }));
+}
+
+function rankFailureByTool(jobs: Array<Record<string, unknown>>) {
+  const totals = new Map<string, { failedJobs: number; totalJobs: number }>();
+  for (const job of jobs) {
+    const key = toolSlug(job);
+    const record = totals.get(key) ?? { failedJobs: 0, totalJobs: 0 };
+    record.totalJobs += 1;
+    if (job.status === "failed") record.failedJobs += 1;
+    totals.set(key, record);
+  }
+  return Array.from(totals.entries())
+    .map(([toolSlug, record]) => ({ toolSlug, ...record, failureRate: record.totalJobs ? Math.round((record.failedJobs / record.totalJobs) * 100) : 0 }))
+    .filter((record) => record.failedJobs > 0)
+    .sort((left, right) => right.failureRate - left.failureRate || right.failedJobs - left.failedJobs)
+    .slice(0, 5);
+}
+
+function weeklyRevenueTrend(orders: Array<Record<string, unknown>>) {
+  const today = new Date();
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(today);
+    date.setDate(today.getDate() - (6 - index));
+    const key = date.toISOString().slice(0, 10);
+    return {
+      date: key,
+      revenueCents: orders
+        .filter((order) => isSameDay(order.created_at, key))
+        .reduce((sum, order) => sum + Number(order.amount_cents ?? 0), 0),
+    };
+  });
+}
+
+function toolSlug(job: Record<string, unknown>) {
+  return String(job.tool_slug ?? job.toolSlug ?? `${job.media_type || "generation"}-${job.provider || "fake_worker"}`);
+}
+
+function isSameDay(value: unknown, dayKey: string) {
+  return typeof value === "string" && value.slice(0, 10) === dayKey;
 }
 
 async function audit(client: ReturnType<typeof createClient>, actor: { id: string }, action: string, targetType: string, targetId: string, metadata: Record<string, unknown>) {

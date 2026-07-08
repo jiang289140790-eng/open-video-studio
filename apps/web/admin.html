@@ -20,6 +20,7 @@
         <a href="#orders">订单履约</a>
         <a href="#moderation">内容审核</a>
         <a href="#jobs">生成任务</a>
+        <a href="#workers">Worker Center</a>
         <a href="#shares">分享链接</a>
         <a href="#page-builder">页面模块</a>
         <a href="#tool-catalog">工具上架</a>
@@ -83,6 +84,34 @@
         <article><span>公开分享</span><strong data-admin-summary-shares>0</strong><p>有效分享链接</p></article>
       </section>
 
+      <section class="admin-kpi-grid" id="operations-kpi" data-admin-kpi>
+        <article><span>今日新增用户</span><strong data-admin-kpi-new-users>0</strong><p>注册增长</p></article>
+        <article><span>今日付费用户</span><strong data-admin-kpi-paid-users>0</strong><p>完成订单用户</p></article>
+        <article><span>今日收入</span><strong data-admin-kpi-revenue>$0.00</strong><p>已履约 / 已支付</p></article>
+        <article><span>今日图片</span><strong data-admin-kpi-images>0</strong><p>Image jobs</p></article>
+        <article><span>今日视频</span><strong data-admin-kpi-videos>0</strong><p>Video jobs</p></article>
+        <article><span>今日失败</span><strong data-admin-kpi-failed>0</strong><p>需要优先排查</p></article>
+      </section>
+
+      <section class="admin-operating-grid" data-admin-operating-insights>
+        <article class="panel">
+          <div class="panel-heading"><div><p class="eyebrow">Revenue</p><h2>本周收入趋势</h2></div><span>Mock ready</span></div>
+          <div class="admin-list compact" data-admin-revenue-trend></div>
+        </article>
+        <article class="panel">
+          <div class="panel-heading"><div><p class="eyebrow">Tools</p><h2>热门工具排行</h2></div><span>Jobs</span></div>
+          <div class="admin-list compact" data-admin-popular-tools></div>
+        </article>
+        <article class="panel">
+          <div class="panel-heading"><div><p class="eyebrow">Reliability</p><h2>高失败率工具</h2></div><span>Failure</span></div>
+          <div class="admin-list compact" data-admin-failure-tools></div>
+        </article>
+        <article class="panel">
+          <div class="panel-heading"><div><p class="eyebrow">Credits</p><h2>积分消耗排行</h2></div><span>Cost</span></div>
+          <div class="admin-list compact" data-admin-credit-rank></div>
+        </article>
+      </section>
+
       <section class="admin-workspace">
         <article class="panel admin-module" id="users">
           <div class="panel-heading">
@@ -135,9 +164,18 @@
         <article class="panel admin-module" id="jobs">
           <div class="panel-heading">
             <div><p class="eyebrow">Generation</p><h2>生成任务</h2></div>
-            <span>Fake Worker</span>
+            <span>Workflow / Cost / Latency</span>
           </div>
           <div class="admin-list" data-admin-jobs></div>
+        </article>
+
+        <article class="panel admin-module" id="workers">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Worker Center</p><h2>Worker 管理</h2></div>
+            <span>Future controls disabled</span>
+          </div>
+          <p class="muted">查看 provider、workflow、队列、延迟、成功率和心跳。启停按钮预留，真实 AI Worker 接入前保持禁用。</p>
+          <div class="admin-list" data-admin-workers></div>
         </article>
 
         <article class="panel admin-module" id="shares">

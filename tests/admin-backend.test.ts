@@ -16,6 +16,22 @@ test("admin backend enforces roles and audits sensitive operations", async () =>
   const operatorSummary = await backend.dashboardSummary(operator);
   assert.equal(operatorSummary.users, 3);
   assert.equal(operatorSummary.pendingAssets, 1);
+  assert.equal(operatorSummary.todayNewUsers, 3);
+  assert.equal(operatorSummary.todayPaidUsers, 1);
+  assert.equal(operatorSummary.todayImages, 1);
+  assert.equal(operatorSummary.todayVideos, 1);
+  assert.equal(operatorSummary.todayFailedJobs, 1);
+  assert.equal(operatorSummary.popularTools[0].toolSlug, "image-editor");
+  assert.equal(operatorSummary.highFailureTools[0].toolSlug, "image-to-video");
+  assert.equal(operatorSummary.creditConsumptionRank[0].credits, 24);
+
+  const workers = await backend.listWorkers(operator);
+  assert.equal(workers.length, 2);
+  assert.equal(workers[0].provider, "fake_worker");
+
+  const generationJobs = await backend.listGenerationJobs(operator);
+  assert.equal(generationJobs[0].workflow_id, "workflow_image_v1");
+  assert.equal(generationJobs[0].credit_charged, 8);
 
   await assert.rejects(
     () => backend.adjustCredits(operator, { userId: "user_1", amount: 20, reason: "support grant" }),
@@ -120,11 +136,12 @@ test("admin backend enforces roles and audits sensitive operations", async () =>
 });
 
 class FakeAdminSupabaseClient {
+  private readonly today = new Date().toISOString();
   private readonly tables = new Map<string, any[]>([
     ["profiles", [
-      { id: "admin_1", email: "admin@example.com", display_name: "Admin", role: "admin", account_status: "active" },
-      { id: "operator_1", email: "operator@example.com", display_name: "Operator", role: "operator", account_status: "active" },
-      { id: "user_1", email: "user@example.com", display_name: "User", role: "user", account_status: "active" },
+      { id: "admin_1", email: "admin@example.com", display_name: "Admin", role: "admin", account_status: "active", created_at: this.today },
+      { id: "operator_1", email: "operator@example.com", display_name: "Operator", role: "operator", account_status: "active", created_at: this.today },
+      { id: "user_1", email: "user@example.com", display_name: "User", role: "user", account_status: "active", created_at: this.today },
     ]],
     ["credit_transactions", [
       { id: "credit_1", user_id: "user_1", status: "posted", balance_impact: 40 },
@@ -134,10 +151,11 @@ class FakeAdminSupabaseClient {
       { id: "asset_1", owner_user_id: "user_1", display_name: "Demo asset", asset_type: "image", moderation_status: "pending", visibility_status: "private" },
     ]],
     ["generation_jobs", [
-      { id: "job_1", user_id: "user_1", status: "completed", cost_credits: 8 },
+      { id: "job_1", user_id: "user_1", media_type: "image", status: "completed", provider: "fake_worker", model: "local-image-v1", tool_slug: "image-editor", workflow_id: "workflow_image_v1", workflow_version: "v1", cost_credits: 8, estimated_cost_cents: 30, latency: 1200, created_at: this.today, completed_at: this.today },
+      { id: "job_2", user_id: "user_1", media_type: "video", status: "failed", provider: "fake_worker", model: "local-video-v1", tool_slug: "image-to-video", workflow_id: "workflow_video_v1", workflow_version: "v1", cost_credits: 24, estimated_cost_cents: 120, latency: 4800, error_message: "worker timeout", created_at: this.today, completed_at: this.today },
     ]],
     ["orders", [
-      { id: "order_1", user_id: "user_1", order_type: "credit_purchase", status: "pending", credits_granted: 1000, amount_cents: 2999 },
+      { id: "order_1", user_id: "user_1", order_type: "credit_purchase", status: "fulfilled", credits_granted: 1000, amount_cents: 2999, created_at: this.today },
     ]],
     ["share_links", [
       { id: "share_1", owner_user_id: "user_1", media_asset_id: "asset_1", token: "demo", visibility_status: "active" },

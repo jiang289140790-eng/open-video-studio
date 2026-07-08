@@ -335,6 +335,11 @@ CREATE TABLE IF NOT EXISTS generation_jobs (
   prompt TEXT NOT NULL,
   provider TEXT NOT NULL DEFAULT 'local_api',
   model TEXT NOT NULL DEFAULT 'local-stub-v0',
+  tool_slug TEXT,
+  workflow_id TEXT,
+  workflow_version TEXT,
+  input_params TEXT NOT NULL DEFAULT '{}',
+  output_assets TEXT NOT NULL DEFAULT '[]',
   aspect_ratio TEXT NOT NULL,
   resolution TEXT,
   duration_seconds INTEGER,
@@ -343,7 +348,10 @@ CREATE TABLE IF NOT EXISTS generation_jobs (
   result_asset_id TEXT,
   credit_transaction_id TEXT,
   cost_credits INTEGER NOT NULL,
+  credit_charged INTEGER,
   estimated_cost_cents INTEGER NOT NULL DEFAULT 0,
+  estimated_cost INTEGER,
+  latency INTEGER,
   progress INTEGER NOT NULL DEFAULT 0,
   safety_status TEXT NOT NULL DEFAULT 'pending_review',
   error_code TEXT,
@@ -365,7 +373,27 @@ CREATE INDEX IF NOT EXISTS idx_generation_jobs_character ON generation_jobs(char
 CREATE INDEX IF NOT EXISTS idx_generation_jobs_status ON generation_jobs(status);
 CREATE INDEX IF NOT EXISTS idx_generation_jobs_media_type ON generation_jobs(media_type);
 CREATE INDEX IF NOT EXISTS idx_generation_jobs_provider_model ON generation_jobs(provider, model);
+CREATE INDEX IF NOT EXISTS idx_generation_jobs_tool_workflow ON generation_jobs(tool_slug, workflow_id, workflow_version);
 CREATE INDEX IF NOT EXISTS idx_generation_jobs_result ON generation_jobs(result_asset_id);
+
+CREATE TABLE IF NOT EXISTS ai_workers (
+  worker_id TEXT PRIMARY KEY,
+  provider TEXT NOT NULL,
+  workflow TEXT NOT NULL,
+  worker_type TEXT NOT NULL DEFAULT 'image',
+  status TEXT NOT NULL DEFAULT 'idle',
+  queue_count INTEGER NOT NULL DEFAULT 0,
+  average_latency INTEGER NOT NULL DEFAULT 0,
+  success_rate INTEGER NOT NULL DEFAULT 100,
+  cost_per_job INTEGER NOT NULL DEFAULT 0,
+  last_heartbeat TEXT NOT NULL,
+  recent_failure_reason TEXT NOT NULL DEFAULT '',
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_workers_provider_status ON ai_workers(provider, status);
 
 CREATE TABLE IF NOT EXISTS images (
   id TEXT PRIMARY KEY,

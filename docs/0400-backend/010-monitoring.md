@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | BE-ARCH-MONITORING-001 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Active |
 | Owner | Infrastructure Lead / Backend Lead |
 | Dependencies | DEVOPS-INDEX-001, BE-ARCH-LOGGING-001 |
@@ -24,12 +24,15 @@ Define backend architecture for service health, metrics, traces, alerts, and ope
 
 Monitoring should collect metrics, traces, health checks, job state, provider status, and error rates from all backend subsystems. Alerts should route by ownership and severity.
 
+MVP Admin P0 monitoring surfaces these signals in the operations console before a dedicated observability vendor is connected: daily generation volume, failed jobs, high-failure tools, credit consumption ranking, Worker Center status, queue count, average latency, success rate, estimated cost per job, and recent worker failure reason.
+
 ## Responsibilities
 
 - Track uptime, latency, error rate, throughput, saturation, and job health.
 - Monitor queue depth, dead-letter counts, GPU utilization, render failures, billing webhook failures, and storage errors.
 - Provide dashboards for operators.
 - Trigger alerts for incidents and degradation.
+- Preserve worker and generation detail fields so future ComfyUI, RunPod, Fal, OpenAI, Gemini, or local workers can emit comparable telemetry.
 
 ## Dependencies
 

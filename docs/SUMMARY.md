@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.74.0 |
+| Version | 0.75.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- The Admin console now includes P0 SaaS operations controls from the latest backend upgrade guidance: daily growth/revenue/generation KPIs, weekly revenue trend, popular/high-failure/credit-consumption tool rankings, Worker Center, and richer generation job detail rows with workflow, cost, latency, input, output, and error context.
 - AI Studio mock output now exposes the full content package shape expected by the imported guidance: research, script, prompt, image placeholder, video placeholder, thumbnail, caption, hashtags, translation, CTA, quality check, and platform-specific versions.
 - The content operations navigation now covers the remaining MVP guidance surfaces: Publishing, Automation, and Settings. These pages are local-state placeholders for publishing readiness, automation rules, and default content-operation configuration.
 - The Dashboard has been upgraded from a personal creation summary into an MVP content-operations command center. It now surfaces active campaigns, content in pipeline, scheduled posts, failed posts, content production volume, social traffic, top performing content, accounts needing attention, and quick routes into the content operating workflow.

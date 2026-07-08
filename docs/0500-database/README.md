@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DB-BIBLE-001 |
-| Version | 1.10.0 |
+| Version | 1.11.0 |
 | Status | Active |
 | Owner | Data Architecture Lead |
 | Dependencies | PB-008, PB-010, SEC-INDEX-001, ANALYTICS-INDEX-001 |
@@ -47,6 +47,7 @@ Define the permanent database architecture source of truth for Open Video Studio
 - [DB-WORKSPACES-001 Workspaces](019-workspaces.md)
 - [DB-PROJECTS-001 Projects](020-projects.md)
 - [DB-PERMISSIONS-001 Permissions](021-permissions.md)
+- [DB-AI-WORKERS-001 AI Workers](022-ai-workers.md)
 
 ## Current Implementation
 
@@ -67,6 +68,8 @@ The imported AI Content Operating System guidance now has a local MVP-compatible
 MVP Admin implementation extends `src/supabase/mvp-schema.sql` with Supabase PostgreSQL tables for `audit_logs`, `orders`, `characters`, `images`, `videos`, and `site_settings`, plus role-aware RLS policies. Admin operations use `profiles.role` for `admin` and `operator` access and must preserve auditability for high-risk writes.
 
 The MVP homepage manager stores published public homepage configuration in `site_settings` under `homepage_config`. Page merchandising stores module composition in `page_builder_config`, and AI tool merchandising stores listing/provider/cost settings in `tool_catalog_config`. Public reads are allowed only for published settings; writes go through the admin backend and create audit logs.
+
+The P0 Admin operations upgrade extends implementation schemas with `ai_workers` and richer `generation_jobs` detail fields: tool slug, workflow id/version, input params, output assets, credit charged, estimated cost, and latency. These fields support Worker Center, failure analysis, cost inspection, and future real provider telemetry without changing frontend contracts.
 
 ## Acceptance Criteria
 

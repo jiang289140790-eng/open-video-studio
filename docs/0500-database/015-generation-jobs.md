@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DB-GENERATION-JOBS-001 |
-| Version | 1.2.0 |
+| Version | 1.3.0 |
 | Status | Active |
 | Owner | AI Platform Data Owner |
 | Dependencies | DB-USERS-001, DB-CREDITS-001, DB-MEDIA-ASSETS-001, DB-CHARACTERS-001 |
@@ -37,6 +37,10 @@ AI Platform Data Owner.
 - Prompt.
 - Provider.
 - Model.
+- Tool slug.
+- Workflow ID and workflow version.
+- Input parameters.
+- Output asset references.
 - Aspect ratio.
 - Resolution.
 - Duration seconds.
@@ -45,7 +49,10 @@ AI Platform Data Owner.
 - Result asset reference.
 - Credit transaction reference.
 - Cost credits.
+- Credit charged.
 - Estimated provider cost.
+- Estimated internal cost.
+- Latency.
 - Progress.
 - Safety status.
 - Error code and message.
@@ -59,6 +66,7 @@ AI Platform Data Owner.
 - Status.
 - Media type.
 - Provider plus model.
+- Tool slug plus workflow ID and version.
 - Result asset reference.
 
 ## Lifecycle
@@ -82,6 +90,8 @@ Support retry counts, idempotency keys, provider references, queue priority, wor
 Sprint 2 records provider, model, project, resolution, estimated cost, character, source asset, result asset, duration, and prompt search context for the first reusable asset workflow.
 
 MVP Backend Loop adds Supabase-compatible generation job persistence in `src/supabase/mvp-schema.sql`. Fake Worker completion updates jobs to `completed`, links `result_asset_id`, and keeps history queryable by user through RLS.
+
+P0 Admin operations extends implemented schemas with `tool_slug`, `workflow_id`, `workflow_version`, `input_params`, `output_assets`, `credit_charged`, `estimated_cost`, and `latency`. These fields let the Admin console inspect failures, worker performance, cost, and workflow provenance before real provider telemetry is connected.
 
 ## Acceptance Criteria
 

@@ -4,7 +4,7 @@
 |---|---|
 | ID | API-ADMIN-001 |
 | Unique ID | API-ADMIN-001 |
-| Version | 1.3.0 |
+| Version | 1.4.0 |
 | Status | Active |
 | Owner | Platform Admin Lead / Security Lead |
 | Dependencies | API-AUTH-001, DB-USERS-001, DB-AUDIT-LOGS-001, SEC-INDEX-001 |
@@ -44,6 +44,7 @@ MVP implementation uses one Supabase Edge Function named `admin` with an `action
 - `list-orders`
 - `list-assets`
 - `list-generation-jobs`
+- `list-workers`
 - `list-share-links`
 - `list-audit-logs`
 - `get-homepage-config`
@@ -62,6 +63,12 @@ Sensitive write actions require a non-empty `reason`. `update-homepage-config` a
 `update-page-builder-config` accepts `page_builder_config` payloads for page modules, enabled state, display style, card count, and module data source.
 
 `update-tool-catalog-config` accepts `tool_catalog_config` payloads for AI tool listing status, category, provider, model, route, featured state, and credit cost.
+
+`dashboard-summary` now returns MVP operating KPIs for daily users, paid users, revenue, image jobs, video jobs, failed jobs, weekly revenue trend, popular tools, high-failure tools, and credit consumption ranking.
+
+`list-workers` returns provider/workflow worker status records with queue count, average latency, success rate, estimated cost per job, last heartbeat, and recent failure reason. Current data can be derived from generation jobs until persistent worker heartbeat records are connected.
+
+`list-generation-jobs` returns normalized generation job detail fields for tool slug, workflow id/version, input params, output assets, credit charged, estimated cost, latency, status, and error message.
 
 ## Response
 
@@ -102,6 +109,8 @@ Define role-based access control and admin audit taxonomy before implementation.
 `SupabaseAdminBackend` and the Supabase `admin` Edge Function implement the MVP operations console. `profiles.role = 'operator'` can read operational data and review non-archival content. `profiles.role = 'admin'` can perform high-risk writes such as credit adjustment, order status update, audit reads, and share revocation. The browser never receives a service role key.
 
 The MVP Admin surface now also supports configurable page merchandising. Operators may read homepage, page builder, and tool catalog settings; only admins may publish updates. Published settings are stored in `site_settings`, and admin publishes write audit logs such as `admin.update_homepage_config`, `admin.update_page_builder_config`, and `admin.update_tool_catalog_config`.
+
+The Admin console has been upgraded from configuration-first to operations-first for P0 SaaS monitoring. It can inspect growth/revenue/generation KPIs, Worker Center status, and enriched generation job details without changing provider architecture or exposing service keys in the browser.
 
 ## AI Context
 

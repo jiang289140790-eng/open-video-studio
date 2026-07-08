@@ -38,6 +38,11 @@ create table if not exists public.generation_jobs (
   prompt text not null,
   provider text not null default 'local_api',
   model text not null default 'local-stub-v0',
+  tool_slug text,
+  workflow_id text,
+  workflow_version text,
+  input_params jsonb not null default '{}'::jsonb,
+  output_assets jsonb not null default '[]'::jsonb,
   aspect_ratio text not null default '16:9',
   resolution text,
   duration_seconds integer,
@@ -45,7 +50,10 @@ create table if not exists public.generation_jobs (
   character_id text,
   result_asset_id text,
   cost_credits integer not null,
+  credit_charged integer,
   estimated_cost_cents integer not null default 0,
+  estimated_cost integer,
+  latency integer,
   progress integer not null default 0,
   safety_status text not null default 'pending_review',
   error_code text,
@@ -53,6 +61,32 @@ create table if not exists public.generation_jobs (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   completed_at timestamptz
+);
+
+alter table public.generation_jobs add column if not exists tool_slug text;
+alter table public.generation_jobs add column if not exists workflow_id text;
+alter table public.generation_jobs add column if not exists workflow_version text;
+alter table public.generation_jobs add column if not exists input_params jsonb not null default '{}'::jsonb;
+alter table public.generation_jobs add column if not exists output_assets jsonb not null default '[]'::jsonb;
+alter table public.generation_jobs add column if not exists credit_charged integer;
+alter table public.generation_jobs add column if not exists estimated_cost integer;
+alter table public.generation_jobs add column if not exists latency integer;
+
+create table if not exists public.ai_workers (
+  worker_id text primary key,
+  provider text not null,
+  workflow text not null,
+  worker_type text not null default 'image',
+  status text not null default 'idle',
+  queue_count integer not null default 0,
+  average_latency integer not null default 0,
+  success_rate integer not null default 100,
+  cost_per_job integer not null default 0,
+  last_heartbeat timestamptz not null default now(),
+  recent_failure_reason text not null default '',
+  metadata_json jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
 create table if not exists public.media_assets (
@@ -192,6 +226,8 @@ create index if not exists idx_profiles_email on public.profiles(email);
 create index if not exists idx_credit_user_time on public.credit_transactions(user_id, created_at desc);
 create index if not exists idx_generation_user_time on public.generation_jobs(user_id, created_at desc);
 create index if not exists idx_generation_status on public.generation_jobs(status);
+create index if not exists idx_generation_tool_workflow on public.generation_jobs(tool_slug, workflow_id, workflow_version);
+create index if not exists idx_ai_workers_provider_status on public.ai_workers(provider, status);
 create index if not exists idx_media_owner_time on public.media_assets(owner_user_id, updated_at desc);
 create index if not exists idx_media_generation_job on public.media_assets(generation_job_id);
 create index if not exists idx_media_visibility on public.media_assets(visibility_status);
@@ -218,6 +254,7 @@ $$;
 alter table public.profiles enable row level security;
 alter table public.credit_transactions enable row level security;
 alter table public.generation_jobs enable row level security;
+alter table public.ai_workers enable row level security;
 alter table public.media_assets enable row level security;
 alter table public.share_links enable row level security;
 alter table public.characters enable row level security;
@@ -246,6 +283,10 @@ create policy "generation owner read" on public.generation_jobs
 drop policy if exists "generation owner write" on public.generation_jobs;
 create policy "generation owner write" on public.generation_jobs
   for insert with check (auth.uid() = user_id);
+
+drop policy if exists "ai workers admin read" on public.ai_workers;
+create policy "ai workers admin read" on public.ai_workers
+  for select using (public.current_profile_role() in ('admin', 'operator'));
 
 drop policy if exists "media owner read" on public.media_assets;
 create policy "media owner read" on public.media_assets

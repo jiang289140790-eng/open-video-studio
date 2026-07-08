@@ -21,6 +21,30 @@ export interface AdminDashboardSummary {
   orders: number;
   creditsConsumed: number;
   activeShares: number;
+  todayNewUsers: number;
+  todayPaidUsers: number;
+  todayRevenueCents: number;
+  todayImages: number;
+  todayVideos: number;
+  todayFailedJobs: number;
+  weeklyRevenueTrend: Array<{ date: string; revenueCents: number }>;
+  popularTools: Array<{ toolSlug: string; jobs: number }>;
+  highFailureTools: Array<{ toolSlug: string; failedJobs: number; totalJobs: number; failureRate: number }>;
+  creditConsumptionRank: Array<{ toolSlug: string; credits: number }>;
+}
+
+export interface AdminWorkerStatus {
+  worker_id: string;
+  provider: string;
+  workflow: string;
+  type: "image" | "video" | "multimodal" | "text";
+  status: "idle" | "running" | "failed" | "offline";
+  queue_count: number;
+  average_latency: number;
+  success_rate: number;
+  cost_per_job: number;
+  last_heartbeat: string;
+  recent_failure_reason: string;
 }
 
 export interface HomepageConfig {
@@ -116,6 +140,8 @@ export class SupabaseAdminBackend {
       this.selectAll("credit_transactions"),
       this.selectAll("share_links"),
     ]);
+    const today = new Date().toISOString().slice(0, 10);
+    const paidOrders = orders.filter((order) => ["fulfilled", "paid", "completed"].includes(String(order.status ?? "")));
     return {
       users: profiles.length,
       assets: assets.filter((asset) => !asset.deleted_at).length,
@@ -127,6 +153,18 @@ export class SupabaseAdminBackend {
         .filter((row) => Number(row.balance_impact ?? 0) < 0)
         .reduce((sum, row) => sum + Math.abs(Number(row.balance_impact ?? 0)), 0),
       activeShares: shares.filter((share) => share.visibility_status === "active" && !share.revoked_at).length,
+      todayNewUsers: profiles.filter((profile) => this.isSameDay(profile.created_at, today)).length,
+      todayPaidUsers: new Set(paidOrders.filter((order) => this.isSameDay(order.created_at, today)).map((order) => order.user_id)).size,
+      todayRevenueCents: paidOrders
+        .filter((order) => this.isSameDay(order.created_at, today))
+        .reduce((sum, order) => sum + Number(order.amount_cents ?? 0), 0),
+      todayImages: jobs.filter((job) => this.isSameDay(job.created_at, today) && job.media_type === "image").length,
+      todayVideos: jobs.filter((job) => this.isSameDay(job.created_at, today) && job.media_type === "video").length,
+      todayFailedJobs: jobs.filter((job) => this.isSameDay(job.created_at, today) && job.status === "failed").length,
+      weeklyRevenueTrend: this.weeklyRevenueTrend(paidOrders),
+      popularTools: this.rankPopularTools(jobs),
+      highFailureTools: this.rankFailureByTool(jobs),
+      creditConsumptionRank: this.rankCreditConsumption(jobs),
     };
   }
 
@@ -266,7 +304,14 @@ export class SupabaseAdminBackend {
 
   async listGenerationJobs(actor: AdminActor): Promise<Array<Record<string, unknown>>> {
     await this.requireOperator(actor);
-    return this.selectAll("generation_jobs", "created_at", false);
+    const jobs = await this.selectAll("generation_jobs", "created_at", false);
+    return jobs.map((job) => this.normalizeGenerationJob(job));
+  }
+
+  async listWorkers(actor: AdminActor): Promise<AdminWorkerStatus[]> {
+    await this.requireOperator(actor);
+    const jobs = await this.selectAll("generation_jobs", "created_at", false);
+    return this.deriveWorkerStatuses(jobs);
   }
 
   async listShareLinks(actor: AdminActor): Promise<Array<Record<string, unknown>>> {
@@ -595,5 +640,126 @@ export class SupabaseAdminBackend {
         { slug: "image-to-video", name: "图片转视频", category: "video", status: "published", provider: "fake_worker", model: "local-video-v0", creditCost: 24, route: "./zh/app/image-to-video/", featured: true },
       ],
     };
+  }
+
+  private normalizeGenerationJob(job: Record<string, any>): Record<string, unknown> {
+    const createdAt = job.created_at ? new Date(job.created_at).getTime() : 0;
+    const completedAt = job.completed_at ? new Date(job.completed_at).getTime() : 0;
+    const latency = Number(job.latency ?? job.latency_ms ?? (createdAt && completedAt ? Math.max(0, completedAt - createdAt) : 0));
+    return {
+      ...job,
+      tool_slug: job.tool_slug ?? this.toolSlug(job),
+      workflow_id: job.workflow_id ?? `${job.provider || "fake_worker"}_${job.media_type || "generation"}_workflow`,
+      workflow_version: job.workflow_version ?? "v0",
+      input_params: job.input_params ?? { prompt: job.prompt, aspectRatio: job.aspect_ratio, sourceAssetId: job.source_asset_id },
+      output_assets: job.output_assets ?? (job.result_asset_id ? [job.result_asset_id] : []),
+      credit_charged: Number(job.credit_charged ?? job.cost_credits ?? 0),
+      estimated_cost: Number(job.estimated_cost ?? job.estimated_cost_cents ?? 0),
+      latency,
+    };
+  }
+
+  private deriveWorkerStatuses(jobs: Array<Record<string, any>>): AdminWorkerStatus[] {
+    const groups = new Map<string, Array<Record<string, any>>>();
+    for (const job of jobs) {
+      const key = `${job.provider || "fake_worker"}|${job.model || job.workflow_id || "local-demo"}|${job.media_type || "image"}`;
+      groups.set(key, [...(groups.get(key) ?? []), job]);
+    }
+    const workers = Array.from(groups.entries()).map(([key, items], index) => {
+      const [provider, workflow, type] = key.split("|");
+      const running = items.filter((job) => ["queued", "running", "pending"].includes(String(job.status))).length;
+      const failed = items.filter((job) => job.status === "failed");
+      const completed = items.filter((job) => job.status === "completed");
+      const latencyValues = items.map((job) => Number(this.normalizeGenerationJob(job).latency || 0)).filter(Boolean);
+      return {
+        worker_id: `worker_${provider}_${index + 1}`,
+        provider,
+        workflow,
+        type: ["image", "video", "multimodal", "text"].includes(type) ? type as AdminWorkerStatus["type"] : "image",
+        status: (failed.length && failed.length >= completed.length ? "failed" : running ? "running" : "idle") as AdminWorkerStatus["status"],
+        queue_count: running,
+        average_latency: latencyValues.length ? Math.round(latencyValues.reduce((sum, value) => sum + value, 0) / latencyValues.length) : 0,
+        success_rate: items.length ? Math.round((completed.length / items.length) * 100) : 100,
+        cost_per_job: items.length ? Math.round(items.reduce((sum, job) => sum + Number(job.estimated_cost_cents ?? job.estimated_cost ?? 0), 0) / items.length) : 0,
+        last_heartbeat: String(items[0]?.updated_at ?? items[0]?.created_at ?? nowIso()),
+        recent_failure_reason: String(failed[0]?.error_message ?? failed[0]?.error_code ?? "暂无失败记录"),
+      };
+    });
+    return workers.length ? workers : [{
+      worker_id: "worker_fake_1",
+      provider: "fake_worker",
+      workflow: "local-demo",
+      type: "multimodal",
+      status: "idle",
+      queue_count: 0,
+      average_latency: 0,
+      success_rate: 100,
+      cost_per_job: 0,
+      last_heartbeat: nowIso(),
+      recent_failure_reason: "暂无失败记录",
+    }];
+  }
+
+  private rankPopularTools(jobs: Array<Record<string, any>>): Array<{ toolSlug: string; jobs: number }> {
+    const totals = new Map<string, number>();
+    for (const job of jobs) {
+      const key = this.toolSlug(job);
+      totals.set(key, (totals.get(key) ?? 0) + 1);
+    }
+    return Array.from(totals.entries())
+      .sort((left, right) => right[1] - left[1])
+      .slice(0, 5)
+      .map(([toolSlug, jobs]) => ({ toolSlug, jobs }));
+  }
+
+  private rankCreditConsumption(jobs: Array<Record<string, any>>): Array<{ toolSlug: string; credits: number }> {
+    const totals = new Map<string, number>();
+    for (const job of jobs) {
+      const key = this.toolSlug(job);
+      totals.set(key, (totals.get(key) ?? 0) + Number(job.credit_charged ?? job.cost_credits ?? 0));
+    }
+    return Array.from(totals.entries())
+      .sort((left, right) => right[1] - left[1])
+      .slice(0, 5)
+      .map(([toolSlug, credits]) => ({ toolSlug, credits }));
+  }
+
+  private rankFailureByTool(jobs: Array<Record<string, any>>): Array<{ toolSlug: string; failedJobs: number; totalJobs: number; failureRate: number }> {
+    const totals = new Map<string, { failedJobs: number; totalJobs: number }>();
+    for (const job of jobs) {
+      const key = this.toolSlug(job);
+      const record = totals.get(key) ?? { failedJobs: 0, totalJobs: 0 };
+      record.totalJobs += 1;
+      if (job.status === "failed") record.failedJobs += 1;
+      totals.set(key, record);
+    }
+    return Array.from(totals.entries())
+      .map(([toolSlug, record]) => ({ toolSlug, ...record, failureRate: record.totalJobs ? Math.round((record.failedJobs / record.totalJobs) * 100) : 0 }))
+      .filter((record) => record.failedJobs > 0)
+      .sort((left, right) => right.failureRate - left.failureRate || right.failedJobs - left.failedJobs)
+      .slice(0, 5);
+  }
+
+  private weeklyRevenueTrend(orders: Array<Record<string, any>>): Array<{ date: string; revenueCents: number }> {
+    const today = new Date();
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - (6 - index));
+      const key = date.toISOString().slice(0, 10);
+      return {
+        date: key,
+        revenueCents: orders
+          .filter((order) => this.isSameDay(order.created_at, key))
+          .reduce((sum, order) => sum + Number(order.amount_cents ?? 0), 0),
+      };
+    });
+  }
+
+  private toolSlug(job: Record<string, any>): string {
+    return String(job.tool_slug ?? job.toolSlug ?? `${job.media_type || "generation"}-${job.provider || "fake_worker"}`);
+  }
+
+  private isSameDay(value: unknown, dayKey: string): boolean {
+    return typeof value === "string" && value.slice(0, 10) === dayKey;
   }
 }

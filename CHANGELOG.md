@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.67.0 |
+| Version | 0.68.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,17 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Added
+
+- Added P0 Admin operations console upgrades: daily growth/revenue/generation KPIs, weekly revenue trend, popular tools, high-failure tools, credit consumption ranking, Worker Center, and richer generation job detail rows.
+- Extended `SupabaseAdminBackend` and the Supabase `admin` Edge Function with enhanced `dashboard-summary`, `list-workers`, and normalized generation job outputs for workflow, cost, latency, input, output, and error inspection.
+- Added schema readiness for `ai_workers` and generation job workflow/cost/detail fields in local SQLite and Supabase MVP schemas.
+- Added admin backend and static frontend test coverage for KPI fields, worker status derivation, and new admin UI hooks.
+
+### Validation
+
+- Ran `npm run test`; production build completed and 53 tests passed.
 
 ### Improved
 

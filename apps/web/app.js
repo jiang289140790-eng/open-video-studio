@@ -2720,8 +2720,15 @@ function renderAdmin(current) {
   setText("[data-admin-summary-orders]", summary.orders ?? 0);
   setText("[data-admin-summary-shares]", summary.activeShares ?? 0);
   setText("[data-admin-moderation-count]", summary.pendingAssets ?? 0);
+  setText("[data-admin-kpi-new-users]", summary.todayNewUsers ?? 0);
+  setText("[data-admin-kpi-paid-users]", summary.todayPaidUsers ?? 0);
+  setText("[data-admin-kpi-revenue]", formatMoney(summary.todayRevenueCents ?? 0));
+  setText("[data-admin-kpi-images]", summary.todayImages ?? 0);
+  setText("[data-admin-kpi-videos]", summary.todayVideos ?? 0);
+  setText("[data-admin-kpi-failed]", summary.todayFailedJobs ?? 0);
   setText("[data-admin-health]", "已连接");
   setText("[data-admin-supabase-status]", "Supabase 已配置。后台数据来自安全函数，不从浏览器暴露 service key。");
+  renderAdminOperatingInsights(summary);
 
   const homepage = normalizeHomepageConfig(adminData.homepage?.value_json || adminData.homepage || defaultHomepageConfig);
   fillHomepageForm(homepage);
@@ -2737,6 +2744,7 @@ function renderAdmin(current) {
   renderAdminOrders(adminData.orders || [], actor);
   renderAdminAssets(adminData.assets || [], actor);
   renderAdminJobs(adminData.jobs || []);
+  renderAdminWorkers(adminData.workers || []);
   renderAdminShares(adminData.shares || [], actor);
   renderAdminAudit(adminData.auditLogs || [], actor);
 }
@@ -2767,6 +2775,7 @@ function fillAdminEmptyState() {
     "[data-admin-orders]",
     "[data-admin-assets]",
     "[data-admin-jobs]",
+    "[data-admin-workers]",
     "[data-admin-shares]",
     "[data-admin-audit]",
     "[data-admin-homepage-preview-list]",
@@ -2793,12 +2802,13 @@ async function loadAdminConsole() {
   if (!document.querySelector("[data-admin-page]") || !supabase || adminLoading) return;
   adminLoading = true;
   try {
-    const [summary, users, orders, assets, jobs, shares, homepage, pageBuilder, toolCatalog, audit] = await Promise.all([
+    const [summary, users, orders, assets, jobs, workers, shares, homepage, pageBuilder, toolCatalog, audit] = await Promise.all([
       invokeAdmin("dashboard-summary"),
       invokeAdmin("list-users"),
       invokeAdmin("list-orders"),
       invokeAdmin("list-assets"),
       invokeAdmin("list-generation-jobs"),
+      invokeAdmin("list-workers").catch(() => ({ workers: [] })),
       invokeAdmin("list-share-links"),
       invokeAdmin("get-homepage-config"),
       invokeAdmin("get-page-builder-config"),
@@ -2812,6 +2822,7 @@ async function loadAdminConsole() {
       orders: orders.orders || [],
       assets: assets.assets || [],
       jobs: jobs.jobs || [],
+      workers: workers.workers || deriveAdminWorkers(jobs.jobs || []),
       shares: shares.shares || [],
       homepage: homepage.homepage || {},
       pageBuilder: pageBuilder.pageBuilder || {},
@@ -3140,6 +3151,44 @@ function renderAdminToolCatalogPreview(config, updatedAt = "") {
   `).join("");
 }
 
+function renderAdminOperatingInsights(summary) {
+  renderAdminRankList("[data-admin-revenue-trend]", summary.weeklyRevenueTrend || [], (item) => ({
+    title: item.date || "日期",
+    detail: formatMoney(item.revenueCents || 0),
+    value: "收入"
+  }));
+  renderAdminRankList("[data-admin-popular-tools]", summary.popularTools || [], (item) => ({
+    title: item.toolSlug || "unknown-tool",
+    detail: `${Number(item.jobs || 0)} 个生成任务`,
+    value: "热门"
+  }));
+  renderAdminRankList("[data-admin-failure-tools]", summary.highFailureTools || [], (item) => ({
+    title: item.toolSlug || "unknown-tool",
+    detail: `${Number(item.failedJobs || 0)} / ${Number(item.totalJobs || 0)} 失败`,
+    value: `${Number(item.failureRate || 0)}%`
+  }));
+  renderAdminRankList("[data-admin-credit-rank]", summary.creditConsumptionRank || [], (item) => ({
+    title: item.toolSlug || "unknown-tool",
+    detail: `${Number(item.credits || 0)} 积分`,
+    value: "消耗"
+  }));
+}
+
+function renderAdminRankList(selector, items, mapper) {
+  const target = document.querySelector(selector);
+  if (!target) return;
+  target.innerHTML = items.length ? items.slice(0, 7).map((item) => {
+    const mapped = mapper(item);
+    return `
+      <article class="admin-row compact-row">
+        <span class="status-dot ready"></span>
+        <div><strong>${escapeHtml(mapped.title)}</strong><p>${escapeHtml(mapped.detail)}</p></div>
+        <em>${escapeHtml(mapped.value)}</em>
+      </article>
+    `;
+  }).join("") : `<article class="admin-row muted-row"><div><strong>等待真实数据</strong><p>生成、订单和积分流水出现后这里会自动汇总。</p></div></article>`;
+}
+
 function splitCommaList(value) {
   return value.split(/[,，\n]/).map((item) => item.trim()).filter(Boolean).slice(0, 6);
 }
@@ -3214,12 +3263,35 @@ function renderAdminJobs(jobs) {
   const target = document.querySelector("[data-admin-jobs]");
   if (!target) return;
   target.innerHTML = jobs.length ? jobs.slice(0, 8).map((job) => `
-    <article class="admin-row">
+    <article class="admin-row admin-job-row">
       <span class="status-dot ${job.status === "completed" ? "ready" : job.status === "failed" ? "blocked" : ""}"></span>
-      <div><strong>${escapeHtml(job.media_type)} · ${escapeHtml(job.model)}</strong><p>${escapeHtml(job.status)} · ${Number(job.cost_credits || 0)} 积分 · ${escapeHtml(job.provider)}</p></div>
+      <div>
+        <strong>${escapeHtml(job.tool_slug || job.media_type || "generation")} · ${escapeHtml(job.model || job.workflow_id || "local-demo")}</strong>
+        <p>${escapeHtml(job.status)} · ${Number(job.credit_charged ?? job.cost_credits ?? 0)} 积分 · ${formatMoney(job.estimated_cost ?? job.estimated_cost_cents ?? 0)} 成本 · ${formatLatency(job.latency)} 延迟</p>
+        <small>用户 ${escapeHtml(job.user_id || "unknown")} · workflow ${escapeHtml(job.workflow_id || "fake_worker_workflow")}@${escapeHtml(job.workflow_version || "v0")}</small>
+        <small>输入 ${escapeHtml(formatAdminJson(job.input_params || { prompt: job.prompt }))}</small>
+        <small>输出 ${escapeHtml(formatAdminJson(job.output_assets || job.result_asset_id || []))}${job.error_message ? ` · 错误 ${escapeHtml(job.error_message)}` : ""}</small>
+      </div>
       <em>${Number(job.progress || 0)}%</em>
     </article>
   `).join("") : `<article class="admin-row"><div><strong>暂无生成任务</strong><p>Fake Worker 生成任务会显示状态、成本和失败原因。</p></div></article>`;
+}
+
+function renderAdminWorkers(workers) {
+  const target = document.querySelector("[data-admin-workers]");
+  if (!target) return;
+  target.innerHTML = workers.length ? workers.slice(0, 8).map((worker) => `
+    <article class="admin-row admin-worker-row">
+      <span class="status-dot ${worker.status === "failed" || worker.status === "offline" ? "blocked" : worker.status === "idle" ? "ready" : ""}"></span>
+      <div>
+        <strong>${escapeHtml(worker.worker_id)} · ${escapeHtml(worker.provider)}</strong>
+        <p>${escapeHtml(worker.workflow)} · ${escapeHtml(worker.type)} · 队列 ${Number(worker.queue_count || 0)} · 成功率 ${Number(worker.success_rate || 0)}%</p>
+        <small>平均延迟 ${formatLatency(worker.average_latency)} · 单次成本 ${formatMoney(worker.cost_per_job || 0)} · 心跳 ${escapeHtml(worker.last_heartbeat || "unknown")}</small>
+        <small>最近失败：${escapeHtml(worker.recent_failure_reason || "暂无失败记录")}</small>
+      </div>
+      <button type="button" disabled title="真实 Worker 接入后启用">启停预留</button>
+    </article>
+  `).join("") : `<article class="admin-row"><div><strong>暂无 Worker</strong><p>当前使用 Fake Worker；真实 ComfyUI / RunPod / Fal Worker 接入后会在这里显示。</p></div></article>`;
 }
 
 function renderAdminShares(shares, actor) {
@@ -3248,6 +3320,67 @@ function renderAdminAudit(logs, actor) {
       <em>${escapeHtml(log.outcome)}</em>
     </article>
   `).join("") : `<article class="admin-row"><div><strong>暂无审计日志</strong><p>后台写操作完成后会自动留下记录。</p></div></article>`;
+}
+
+function deriveAdminWorkers(jobs) {
+  const groups = new Map();
+  for (const job of jobs) {
+    const key = `${job.provider || "fake_worker"}|${job.model || job.workflow_id || "local-demo"}|${job.media_type || "image"}`;
+    groups.set(key, [...(groups.get(key) || []), job]);
+  }
+  const workers = Array.from(groups.entries()).map(([key, items], index) => {
+    const [provider, workflow, type] = key.split("|");
+    const running = items.filter((job) => ["queued", "running", "pending"].includes(String(job.status))).length;
+    const failed = items.filter((job) => job.status === "failed");
+    const completed = items.filter((job) => job.status === "completed");
+    const latencyValues = items.map((job) => Number(job.latency || 0)).filter(Boolean);
+    return {
+      worker_id: `worker_${provider}_${index + 1}`,
+      provider,
+      workflow,
+      type,
+      status: failed.length && failed.length >= completed.length ? "failed" : running ? "running" : "idle",
+      queue_count: running,
+      average_latency: latencyValues.length ? Math.round(latencyValues.reduce((sum, value) => sum + value, 0) / latencyValues.length) : 0,
+      success_rate: items.length ? Math.round((completed.length / items.length) * 100) : 100,
+      cost_per_job: items.length ? Math.round(items.reduce((sum, job) => sum + Number(job.estimated_cost_cents || job.estimated_cost || 0), 0) / items.length) : 0,
+      last_heartbeat: items[0]?.updated_at || items[0]?.created_at || new Date().toISOString(),
+      recent_failure_reason: failed[0]?.error_message || failed[0]?.error_code || "暂无失败记录"
+    };
+  });
+  return workers.length ? workers : [{
+    worker_id: "worker_fake_1",
+    provider: "fake_worker",
+    workflow: "local-demo",
+    type: "multimodal",
+    status: "idle",
+    queue_count: 0,
+    average_latency: 0,
+    success_rate: 100,
+    cost_per_job: 0,
+    last_heartbeat: new Date().toISOString(),
+    recent_failure_reason: "暂无失败记录"
+  }];
+}
+
+function formatAdminJson(value) {
+  if (typeof value === "string") return value.slice(0, 120);
+  try {
+    return JSON.stringify(value).slice(0, 160);
+  } catch {
+    return String(value).slice(0, 120);
+  }
+}
+
+function formatLatency(value) {
+  const ms = Number(value || 0);
+  if (!ms) return "0ms";
+  if (ms < 1000) return `${ms}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
+}
+
+function formatMoney(cents) {
+  return `$${(Number(cents || 0) / 100).toFixed(2)}`;
 }
 
 function setText(selector, value) {
