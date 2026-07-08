@@ -25,6 +25,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Extended the Supabase `ai` Edge Function cancellation response to return explicit refund metadata for non-completed generation jobs.
+- Expanded `npm run verify:ai` to prove the production credit refund loop by creating a generation job, cancelling it, and verifying the cancellation refund amount.
+
+### Validation
+
+- Ran `npm run verify:ai`; the deployed `ai` function now passes provider status, DeepSeek prompt enhancement, successful generation asset creation, and cancellation refund verification.
+- Ran `npm run test`; 59 tests passed.
+
+### Improved
+
 - Applied the remote Supabase MVP schema alignment migration so production tables now match the current Auth -> Credits -> Generation Job -> Storage -> Asset -> Gallery/History loop while preserving existing rows.
 - Updated the Supabase `ai` Edge Function asset write path to populate both legacy media columns and the current `media_assets` fields, keeping old MVP records compatible with the current backend loop.
 - Expanded `npm run verify:ai` from a fail-closed endpoint check into an authenticated production smoke test covering provider status, DeepSeek prompt enhancement, demo credit purchase, generation job creation, Fake Worker processing, Supabase Storage upload, and asset creation.

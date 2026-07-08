@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Production AI verification now covers both success and cancellation paths. `npm run verify:ai` proves demo credit purchase, generation job creation, Fake Worker asset creation, and a separate cancellation path where a queued job is cancelled and the consumed 8 credits are refunded.
 - Remote Supabase schema is now aligned with the current MVP backend loop through `supabase/migrations/202607080001_remote_mvp_schema_alignment.sql`. Existing rows are preserved while text generation IDs, current media asset fields, credit ledger fields, orders, share links, characters, audit logs, site settings, and worker status support are available in production.
 - `npm run verify:ai` now performs a real authenticated smoke test: provider-status, DeepSeek prompt enhancement, demo credit purchase, generation job creation, Fake Worker processing, Storage upload, and asset creation. The latest verification passed against the deployed Supabase `ai` Edge Function.
 - OAuth verification is accurate but not yet green: Google, X/Twitter, and Discord are reachable from local config but Supabase reports those providers are not enabled; Telegram still needs Bot username and auth callback configuration.

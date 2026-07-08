@@ -59,6 +59,14 @@ const report = {
     jobStatus: "",
     error: "",
   },
+  creditRefundLoop: {
+    ok: null,
+    jobCreated: false,
+    jobStatus: "",
+    refunded: false,
+    refundAmount: 0,
+    error: "",
+  },
 };
 
 const temporaryAccess = env.SUPABASE_TEST_ACCESS_TOKEN
@@ -90,7 +98,12 @@ if (accessToken) {
     if (report.optionalAuthenticatedProbe.ok) {
       await probePromptEnhancement(accessToken);
       await probeGenerationLoop(accessToken);
-      report.ok = report.ok && report.promptEnhancement.ok !== false && report.generationLoop.ok === true;
+      await probeCreditRefundLoop(accessToken);
+      report.ok =
+        report.ok &&
+        report.promptEnhancement.ok !== false &&
+        report.generationLoop.ok === true &&
+        report.creditRefundLoop.ok === true;
     }
   } finally {
     await temporaryAccess.cleanup();
@@ -243,6 +256,36 @@ async function probeGenerationLoop(accessToken) {
   } catch (error) {
     report.generationLoop.ok = false;
     report.generationLoop.error = error instanceof Error ? error.message : "generation_loop_failed";
+  }
+}
+
+async function probeCreditRefundLoop(accessToken) {
+  try {
+    const created = await invokeAi(accessToken, {
+      action: "create-generation-job",
+      mediaType: "image",
+      provider: "fake_worker",
+      workflowId: "workflow-qianwen-image-v1",
+      prompt: "Verification cancellation refund for Open Video Studio",
+      aspectRatio: "16:9",
+    });
+    report.creditRefundLoop.jobCreated = Boolean(created.job?.id);
+
+    const cancelled = await invokeAi(accessToken, {
+      action: "cancel-generation-job",
+      jobId: created.job?.id,
+    });
+    report.creditRefundLoop.jobStatus = String(cancelled.job?.status || "");
+    report.creditRefundLoop.refunded = Boolean(cancelled.refund?.refunded);
+    report.creditRefundLoop.refundAmount = Number(cancelled.refund?.amount || 0);
+    report.creditRefundLoop.ok =
+      report.creditRefundLoop.jobCreated &&
+      report.creditRefundLoop.jobStatus === "cancelled" &&
+      report.creditRefundLoop.refunded &&
+      report.creditRefundLoop.refundAmount > 0;
+  } catch (error) {
+    report.creditRefundLoop.ok = false;
+    report.creditRefundLoop.error = error instanceof Error ? error.message : "credit_refund_loop_failed";
   }
 }
 

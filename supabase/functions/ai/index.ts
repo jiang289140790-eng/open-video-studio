@@ -72,13 +72,13 @@ Deno.serve(async (req) => {
     if (action === "cancel-generation-job") {
       const jobId = requireText(body.jobId, "JOB_ID_REQUIRED");
       const existingJob = await getOwnedJob(adminClient, user.id, jobId);
-      await refundGenerationCredits(adminClient, user.id, existingJob, "Generation cancelled before completion");
+      const refund = await refundGenerationCredits(adminClient, user.id, existingJob, "Generation cancelled before completion");
       const job = await updateOwnedJob(adminClient, user.id, jobId, {
         status: "cancelled",
         progress: 0,
         updated_at: new Date().toISOString(),
       });
-      return json({ job });
+      return json({ job, refund });
     }
 
     if (action === "demo-credit-purchase") {
@@ -221,8 +221,8 @@ async function processGenerationJob(adminClient: any, env: AiEnv, userId: string
       error_message: error instanceof Error ? error.message : "AI provider failed.",
       updated_at: new Date().toISOString(),
     });
-    await refundGenerationCredits(adminClient, userId, job, error instanceof Error ? error.message : "AI provider failed");
-    return { job: failed, asset: null, error: { code: failed.error_code, message: failed.error_message } };
+    const refund = await refundGenerationCredits(adminClient, userId, job, error instanceof Error ? error.message : "AI provider failed");
+    return { job: failed, asset: null, refund, error: { code: failed.error_code, message: failed.error_message } };
   }
 }
 
@@ -477,11 +477,11 @@ async function createDemoCreditPurchase(adminClient: any, userId: string, body: 
 
 async function refundGenerationCredits(adminClient: any, userId: string, job: Record<string, any>, reason: string) {
   const status = String(job.status ?? "");
-  if (status === "completed") return;
+  if (status === "completed") return { refunded: false, amount: 0, reason: "completed_job" };
   const amount = Number(job.cost_credits ?? job.credit_charged ?? 0);
-  if (!Number.isFinite(amount) || amount <= 0) return;
+  if (!Number.isFinite(amount) || amount <= 0) return { refunded: false, amount: 0, reason: "no_credit_charge" };
   const sourceId = String(job.id ?? "");
-  if (!sourceId) return;
+  if (!sourceId) return { refunded: false, amount: 0, reason: "missing_job_id" };
   const existing = await adminClient
     .from("credit_transactions")
     .select("id")
@@ -492,7 +492,7 @@ async function refundGenerationCredits(adminClient: any, userId: string, job: Re
     .eq("status", "posted")
     .limit(1);
   if (existing.error) throw new AiFunctionError("CREDITS_REFUND_CHECK_FAILED", existing.error.message, 502);
-  if ((existing.data ?? []).length > 0) return;
+  if ((existing.data ?? []).length > 0) return { refunded: false, amount, reason: "already_refunded" };
   const inserted = await adminClient.from("credit_transactions").insert({
     id: createId("ctx"),
     account_id: userId,
@@ -507,6 +507,7 @@ async function refundGenerationCredits(adminClient: any, userId: string, job: Re
     created_at: new Date().toISOString(),
   });
   if (inserted.error) throw new AiFunctionError("CREDITS_REFUND_FAILED", inserted.error.message, 502);
+  return { refunded: true, amount, reason: "refunded" };
 }
 
 async function resolveWorkflowConfig(adminClient: any, workflowId: string): Promise<Record<string, any> | null> {

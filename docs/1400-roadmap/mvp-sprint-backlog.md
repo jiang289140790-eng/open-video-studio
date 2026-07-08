@@ -243,6 +243,7 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Sprint 1 and Sprint 2 are completed.
 - MVP Backend Loop is completed with authenticated Supabase generation jobs, storage-backed assets, Gallery/History sync, failure/cancellation credit refunds, and server-side demo credit purchase records.
 - Production backend smoke verification now passes for provider status, DeepSeek prompt enhancement, demo credit purchase, generation job creation, Fake Worker processing, Supabase Storage upload, and asset creation through the deployed `ai` Edge Function.
+- Production refund smoke verification now passes for queued-job cancellation and confirms the consumed 8 credits are refunded.
 - Real payment gateway execution remains deferred; current checkout can create a non-charging demo order and grant credits for MVP operations testing.
 - Admin Workflow Center can control eligible AI provider rollout without changing frontend generation code.
 - OAuth remains a launch blocker until Supabase Auth Providers are enabled for Google, X/Twitter, and Discord and Telegram public login configuration is supplied.

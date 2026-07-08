@@ -58,7 +58,7 @@ Audit logs are recorded for billing purchase completion, character creation, gen
 
 ## Cost Impact
 
-Credit estimates are fixed local policy values for now. Real provider cost models, reservations, refunds, retries, failed-job credit handling, and margin controls remain future billing and AI platform work.
+Credit estimates are fixed local policy values for now. MVP Supabase execution refunds failed or cancelled non-completed generation jobs through `generation_refund` credit ledger entries. Real provider cost reconciliation, reservations, retry pricing, payment-provider refunds, and margin controls remain future billing and AI platform work.
 
 ## Disaster Recovery Impact
 
@@ -76,7 +76,7 @@ No production persistence or backup system is introduced. Local SQLite and files
 - Add HTTP API routes for authentication, profile, credits, storage, generation, gallery, characters, and billing.
 - Add real AI provider adapters and worker execution.
 - Add payment provider checkout and webhook reconciliation.
-- Add credit reservation, refund, retry, and failed-job policy.
+- Add advanced credit reservation, retry pricing, provider reconciliation, and payment refund policy.
 - Add production authorization, rate limits, observability, and deployment readiness.
 
 ## AI Context

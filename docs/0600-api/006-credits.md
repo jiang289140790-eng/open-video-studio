@@ -70,7 +70,7 @@ Support alerts, budget limits, credit reservations, pooled credits, enterprise c
 
 `ADR-002` implements the local credit ledger. `ADR-004` extends workflow usage so local credit purchases grant credits through `BillingService`, and image/video generation jobs consume credits before they are queued.
 
-Credit reservation, refunds, failed-job credit policy, provider reconciliation, and subscription entitlements remain future work.
+MVP Supabase AI execution now records `generation_refund` ledger entries for failed or cancelled non-completed generation jobs. `npm run verify:ai` verifies the production cancellation refund path by cancelling a queued job and confirming the consumed credits are restored. Advanced reservation policy, provider reconciliation, payment refunds, and subscription entitlements remain future work.
 
 MVP Sprint 1 exposes local HTTP routes for credit balance/history and local test credit purchase through `createMvpApiServer`.
 
