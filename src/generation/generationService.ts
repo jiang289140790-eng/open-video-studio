@@ -273,6 +273,10 @@ export class GenerationService {
   }
 
   failJob(jobId: string, userId: string, errorCode: string, errorMessage: string): GenerationJob {
+    const job = this.getJob(jobId, userId);
+    if (!["failed", "canceled", "restricted"].includes(job.status) && job.costCredits > 0) {
+      this.refundJobCredits(job);
+    }
     return this.updateJob(jobId, userId, {
       status: "failed",
       errorCode,
@@ -364,6 +368,29 @@ export class GenerationService {
       userId,
     );
     return this.getJob(jobId, userId);
+  }
+
+  private refundJobCredits(job: GenerationJob): void {
+    if (this.credits.hasPostedRefund(job.userId, "generation_refund", job.id)) {
+      return;
+    }
+    this.credits.refund({
+      accountId: job.userId,
+      userId: job.userId,
+      amount: job.costCredits,
+      sourceType: "generation_refund",
+      sourceId: job.id,
+      reason: `Refund failed ${job.mediaType} generation`,
+    });
+    this.audit.record({
+      actorType: "system",
+      action: "generation.credits_refunded",
+      targetType: "generation_job",
+      targetId: job.id,
+      outcome: "success",
+      riskClassification: "medium",
+      metadata: { costCredits: job.costCredits, provider: job.provider, model: job.model },
+    });
   }
 }
 

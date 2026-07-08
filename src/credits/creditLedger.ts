@@ -79,6 +79,27 @@ export class CreditLedger {
     });
   }
 
+  refund(input: {
+    accountId: string;
+    userId?: string;
+    amount: number;
+    sourceType: string;
+    sourceId?: string;
+    reason: string;
+  }): CreditTransaction {
+    if (input.amount <= 0) {
+      throw new AppError("CREDITS_INVALID_AMOUNT", "Refund amount must be positive.");
+    }
+    if (input.sourceId && this.hasPostedRefund(input.accountId, input.sourceType, input.sourceId)) {
+      throw new AppError("CREDITS_REFUND_ALREADY_POSTED", "Credits were already refunded for this source.");
+    }
+    return this.record({
+      ...input,
+      balanceImpact: input.amount,
+      operationCategory: "refund",
+    });
+  }
+
   getBalance(accountId: string): number {
     const row = this.db.prepare(`
       SELECT COALESCE(SUM(balance_impact), 0) AS balance
@@ -96,6 +117,20 @@ export class CreditLedger {
       ORDER BY created_at DESC
     `).all(accountId) as unknown as CreditTransactionRow[];
     return rows.map(mapTransaction);
+  }
+
+  hasPostedRefund(accountId: string, sourceType: string, sourceId: string): boolean {
+    const row = this.db.prepare(`
+      SELECT id
+      FROM credit_transactions
+      WHERE account_id = ?
+        AND source_type = ?
+        AND source_id = ?
+        AND operation_category = 'refund'
+        AND status = 'posted'
+      LIMIT 1
+    `).get(accountId, sourceType, sourceId) as { id: string } | undefined;
+    return Boolean(row);
   }
 
   private record(input: {

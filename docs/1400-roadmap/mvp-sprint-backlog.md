@@ -241,7 +241,9 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - MVP work is limited to the approved 10 product areas.
 - Platform and enterprise expansion are deferred.
 - Sprint 1 and Sprint 2 are completed.
-- MVP Backend Loop is completed without adding payment or real AI provider execution.
+- MVP Backend Loop is completed with authenticated Supabase generation jobs, storage-backed assets, Gallery/History sync, failure/cancellation credit refunds, and server-side demo credit purchase records.
+- Real payment gateway execution remains deferred; current checkout can create a non-charging demo order and grant credits for MVP operations testing.
+- Admin Workflow Center can control eligible AI provider rollout without changing frontend generation code.
 
 ## Future Plan
 

@@ -71,12 +71,19 @@ Deno.serve(async (req) => {
 
     if (action === "cancel-generation-job") {
       const jobId = requireText(body.jobId, "JOB_ID_REQUIRED");
+      const existingJob = await getOwnedJob(adminClient, user.id, jobId);
+      await refundGenerationCredits(adminClient, user.id, existingJob, "Generation cancelled before completion");
       const job = await updateOwnedJob(adminClient, user.id, jobId, {
         status: "cancelled",
         progress: 0,
         updated_at: new Date().toISOString(),
       });
       return json({ job });
+    }
+
+    if (action === "demo-credit-purchase") {
+      const order = await createDemoCreditPurchase(adminClient, user.id, body);
+      return json({ order });
     }
 
     return json({ error: { code: "AI_ACTION_UNKNOWN", message: `Unknown AI action: ${action}` } }, 400);
@@ -129,7 +136,9 @@ async function createGenerationJob(adminClient: any, env: AiEnv, userId: string,
   const mediaType = normalizeMediaType(body.mediaType);
   const prompt = requireText(body.prompt, "PROMPT_REQUIRED");
   const durationSeconds = mediaType === "video" ? clampNumber(body.durationSeconds, 6, 1, 60) : null;
-  const provider = safeProvider(body.provider) || env.aiProviderDefault;
+  const workflowId = String(body.workflowId ?? (mediaType === "image" ? "workflow-qianwen-image-v1" : "workflow-qianwen-video-v1")).trim();
+  const workflow = await resolveWorkflowConfig(adminClient, workflowId);
+  const provider = safeProvider(body.provider) || safeProvider(workflow?.provider) || env.aiProviderDefault;
   const model = String(body.model || defaultModel(env, mediaType, provider)).trim();
   const costCredits = estimateCredits(mediaType, durationSeconds ?? undefined);
   const timestamp = new Date().toISOString();
@@ -143,8 +152,8 @@ async function createGenerationJob(adminClient: any, env: AiEnv, userId: string,
     provider,
     model,
     tool_slug: body.toolSlug ?? null,
-    workflow_id: body.workflowId ?? (mediaType === "image" ? "workflow-qianwen-image-v1" : "workflow-qianwen-video-v1"),
-    workflow_version: body.workflowVersion ?? "v1",
+    workflow_id: workflowId,
+    workflow_version: body.workflowVersion ?? workflow?.version ?? "v1",
     input_params: {
       prompt,
       sourceAssetId: body.sourceAssetId ?? null,
@@ -153,6 +162,7 @@ async function createGenerationJob(adminClient: any, env: AiEnv, userId: string,
       resolution: body.resolution ?? null,
       durationSeconds,
       providerRequested: provider,
+      workflowStatus: workflow?.status ?? "default",
     },
     output_assets: [],
     aspect_ratio: body.aspectRatio ?? "16:9",
@@ -211,6 +221,7 @@ async function processGenerationJob(adminClient: any, env: AiEnv, userId: string
       error_message: error instanceof Error ? error.message : "AI provider failed.",
       updated_at: new Date().toISOString(),
     });
+    await refundGenerationCredits(adminClient, userId, job, error instanceof Error ? error.message : "AI provider failed");
     return { job: failed, asset: null, error: { code: failed.error_code, message: failed.error_message } };
   }
 }
@@ -417,6 +428,97 @@ async function consumeCredits(adminClient: any, userId: string, amount: number, 
   };
   const inserted = await adminClient.from("credit_transactions").insert(tx);
   if (inserted.error) throw new AiFunctionError("CREDITS_CONSUME_FAILED", inserted.error.message, 502);
+}
+
+async function createDemoCreditPurchase(adminClient: any, userId: string, body: Record<string, unknown>) {
+  const credits = clampNumber(body.credits, 0, 1, 200000);
+  const amountCents = clampNumber(body.amountCents, 0, 0, 100000000);
+  const currency = String(body.currency || "USD").trim().slice(0, 8) || "USD";
+  const method = String(body.method || "demo_checkout").trim().slice(0, 80) || "demo_checkout";
+  const timestamp = new Date().toISOString();
+  const orderId = createId("order");
+  const creditTransactionId = createId("ctx");
+  const creditInsert = await adminClient.from("credit_transactions").insert({
+    id: creditTransactionId,
+    account_id: userId,
+    user_id: userId,
+    source_type: "order",
+    source_id: orderId,
+    amount: credits,
+    balance_impact: credits,
+    operation_category: "grant",
+    status: "posted",
+    reason: "Demo credit purchase fulfilled before real payment gateway is connected",
+    created_at: timestamp,
+  });
+  if (creditInsert.error) throw new AiFunctionError("DEMO_PURCHASE_CREDIT_FAILED", creditInsert.error.message, 502);
+  const orderInsert = await adminClient.from("orders").insert({
+    id: orderId,
+    account_id: userId,
+    user_id: userId,
+    provider_reference: `demo_${method}`,
+    order_type: "credit_purchase",
+    status: "fulfilled",
+    currency,
+    amount_cents: amountCents,
+    credits_granted: credits,
+    credit_transaction_id: creditTransactionId,
+    created_at: timestamp,
+    updated_at: timestamp,
+    completed_at: timestamp,
+  }).select("*").single();
+  if (orderInsert.error) throw new AiFunctionError("DEMO_PURCHASE_ORDER_FAILED", orderInsert.error.message, 502);
+  return orderInsert.data;
+}
+
+async function refundGenerationCredits(adminClient: any, userId: string, job: Record<string, any>, reason: string) {
+  const status = String(job.status ?? "");
+  if (status === "completed") return;
+  const amount = Number(job.cost_credits ?? job.credit_charged ?? 0);
+  if (!Number.isFinite(amount) || amount <= 0) return;
+  const sourceId = String(job.id ?? "");
+  if (!sourceId) return;
+  const existing = await adminClient
+    .from("credit_transactions")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("source_type", "generation_refund")
+    .eq("source_id", sourceId)
+    .eq("operation_category", "refund")
+    .eq("status", "posted")
+    .limit(1);
+  if (existing.error) throw new AiFunctionError("CREDITS_REFUND_CHECK_FAILED", existing.error.message, 502);
+  if ((existing.data ?? []).length > 0) return;
+  const inserted = await adminClient.from("credit_transactions").insert({
+    id: createId("ctx"),
+    account_id: userId,
+    user_id: userId,
+    source_type: "generation_refund",
+    source_id: sourceId,
+    amount,
+    balance_impact: amount,
+    operation_category: "refund",
+    status: "posted",
+    reason,
+    created_at: new Date().toISOString(),
+  });
+  if (inserted.error) throw new AiFunctionError("CREDITS_REFUND_FAILED", inserted.error.message, 502);
+}
+
+async function resolveWorkflowConfig(adminClient: any, workflowId: string): Promise<Record<string, any> | null> {
+  if (!workflowId) return null;
+  const { data: row, error } = await adminClient
+    .from("site_settings")
+    .select("value_json")
+    .eq("setting_key", "workflow_center_config")
+    .maybeSingle();
+  if (error || !row?.value_json) return null;
+  const workflows = Array.isArray(row.value_json?.workflows) ? row.value_json.workflows : [];
+  const workflow = workflows.find((item: Record<string, unknown>) => String(item.workflowId ?? item.workflow_id ?? "") === workflowId);
+  if (!workflow) return null;
+  const status = String(workflow.status ?? "draft");
+  if (!["published", "testing"].includes(status)) return null;
+  return workflow;
 }
 
 async function getOwnedJob(adminClient: any, userId: string, jobId: string) {

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.79.0 |
+| Version | 0.80.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,12 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- The Generate page now attempts the authenticated Supabase `ai` Edge Function first, creating and processing generation jobs that save outputs to Supabase Storage and `media_assets`, then syncing Gallery, History, and Credits from real Supabase tables. Local demo generation remains as fallback when auth or Supabase is unavailable.
+- The `ai` Edge Function now reads Admin Workflow Center configuration to choose the active generation provider, so admins can switch eligible workflows between `fake_worker` and `qianwen_generation` without changing frontend code.
+- Failed or cancelled generation jobs now refund consumed credits through explicit `generation_refund` ledger entries with duplicate-refund protection in both local service tests and the Supabase Edge Function path.
+- Prompt enhancement now uses the server-side DeepSeek provider path when available, with local prompt enhancement fallback.
+- Demo checkout for logged-in users can create Supabase order and credit ledger records through the server-side `ai` function while real payment gateway integration remains deferred.
+- OAuth test coverage now includes Google, X/Twitter, Telegram Login Widget entry, and Discord.
 - Supabase now includes a server-only `ai` Edge Function for the three-model provider plan: Qwen Vision image analysis, DeepSeek prompt enhancement, Qianwen image/video generation, and Fake Worker fallback. Provider secrets are documented in env templates and must remain in Supabase Secrets.
 - Admin Tool Catalog entries now carry an explicit `workflowId` binding in addition to model and version history, so a listed AI tool can be connected to a Workflow Center record before real worker execution is connected.
 - Agent Center defaults now cover the six MVP agent roles from the imported backend guidance: Director, Content Analyst, Prompt Engineer, Script Writer, Storyboard, and Publisher.

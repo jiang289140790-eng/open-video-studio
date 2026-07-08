@@ -6,7 +6,7 @@ import { nowIso } from "../shared/time.js";
 import { STARTER_CREDITS } from "../credits/starterCredits.js";
 
 export type SupabaseGenerationMediaType = "image" | "video";
-export type SupabaseOAuthProvider = "google" | "twitter" | "discord";
+export type SupabaseOAuthProvider = "google" | "twitter" | "discord" | "telegram";
 
 export interface SupabaseBackendLoopOptions {
   storageBucket: string;
@@ -77,6 +77,13 @@ export class SupabaseMvpBackendLoop {
     provider: SupabaseOAuthProvider;
     redirectTo?: string;
   }): Promise<{ provider: SupabaseOAuthProvider; url: string }> {
+    if (input.provider === "telegram") {
+      const redirect = encodeURIComponent(input.redirectTo ?? "/zh/dashboard/");
+      return {
+        provider: "telegram",
+        url: `/zh/login/?provider=telegram&next=${redirect}`,
+      };
+    }
     const auth = await this.client.auth.signInWithOAuth({
       provider: input.provider,
       options: input.redirectTo ? { redirectTo: input.redirectTo } : undefined,
@@ -106,19 +113,20 @@ export class SupabaseMvpBackendLoop {
     if (!input.prompt.trim()) {
       throw new AppError("GENERATION_PROMPT_REQUIRED", "Prompt is required.");
     }
+    const jobId = createId("job");
     const costCredits = estimateCredits(input.mediaType, input.durationSeconds);
     await this.consumeCredits({
       userId: input.userId,
       amount: costCredits,
       sourceType: "generation_job",
-      sourceId: "pending",
+      sourceId: jobId,
       operationCategory: `${input.mediaType}_generation`,
       reason: `Queued ${input.mediaType} generation`,
     });
 
     const timestamp = nowIso();
     const job = {
-      id: createId("job"),
+      id: jobId,
       user_id: input.userId,
       media_type: input.mediaType,
       status: "queued",
@@ -143,12 +151,6 @@ export class SupabaseMvpBackendLoop {
     if (inserted.error) {
       throw new AppError("SUPABASE_GENERATION_JOB_CREATE_FAILED", inserted.error.message, 502);
     }
-    await this.client
-      .from("credit_transactions")
-      .update({ source_id: job.id })
-      .eq("user_id", input.userId)
-      .eq("source_type", "generation_job")
-      .eq("source_id", "pending");
     return inserted.data as Record<string, unknown>;
   }
 
@@ -232,6 +234,53 @@ export class SupabaseMvpBackendLoop {
       job: completed.data as Record<string, unknown>,
       asset: assetResult.data as Record<string, unknown>,
     };
+  }
+
+  async failGenerationJob(input: {
+    userId: string;
+    jobId: string;
+    errorCode: string;
+    errorMessage: string;
+  }): Promise<Record<string, unknown>> {
+    const jobResult = await this.client
+      .from("generation_jobs")
+      .select("*")
+      .eq("id", input.jobId)
+      .eq("user_id", input.userId)
+      .single();
+    if (jobResult.error || !jobResult.data) {
+      throw new AppError("SUPABASE_GENERATION_JOB_NOT_FOUND", jobResult.error?.message ?? "Generation job not found.", 404);
+    }
+
+    const job = jobResult.data as Record<string, any>;
+    if (!["failed", "cancelled", "canceled", "completed"].includes(String(job.status))) {
+      await this.refundCredits({
+        userId: input.userId,
+        amount: Number(job.cost_credits ?? 0),
+        sourceType: "generation_refund",
+        sourceId: input.jobId,
+        operationCategory: "refund",
+        reason: `Refund failed ${job.media_type} generation`,
+      });
+    }
+
+    const updated = await this.client
+      .from("generation_jobs")
+      .update({
+        status: "failed",
+        progress: 0,
+        error_code: input.errorCode,
+        error_message: input.errorMessage,
+        updated_at: nowIso(),
+      })
+      .eq("id", input.jobId)
+      .eq("user_id", input.userId)
+      .select("*")
+      .single();
+    if (updated.error) {
+      throw new AppError("SUPABASE_GENERATION_FAIL_FAILED", updated.error.message, 502);
+    }
+    return updated.data as Record<string, unknown>;
   }
 
   async listGallery(userId: string): Promise<Record<string, unknown>[]> {
@@ -342,15 +391,52 @@ export class SupabaseMvpBackendLoop {
     sourceId: string;
     operationCategory: string;
     reason: string;
-  }): Promise<void> {
+  }): Promise<string> {
     const balance = await this.getBalance(input.userId);
     if (balance < input.amount) {
       throw new AppError("CREDITS_INSUFFICIENT_BALANCE", "Insufficient credits.", 402);
     }
-    await this.recordCreditTransaction({
+    return this.recordCreditTransaction({
       userId: input.userId,
       amount: input.amount,
       balanceImpact: -input.amount,
+      sourceType: input.sourceType,
+      sourceId: input.sourceId,
+      operationCategory: input.operationCategory,
+      reason: input.reason,
+    });
+  }
+
+  private async refundCredits(input: {
+    userId: string;
+    amount: number;
+    sourceType: string;
+    sourceId: string;
+    operationCategory: string;
+    reason: string;
+  }): Promise<string | undefined> {
+    if (input.amount <= 0) {
+      return undefined;
+    }
+    const existing = await this.client
+      .from("credit_transactions")
+      .select("id")
+      .eq("user_id", input.userId)
+      .eq("source_type", input.sourceType)
+      .eq("source_id", input.sourceId)
+      .eq("operation_category", input.operationCategory)
+      .eq("status", "posted")
+      .limit(1);
+    if (existing.error) {
+      throw new AppError("SUPABASE_CREDITS_REFUND_CHECK_FAILED", existing.error.message, 502);
+    }
+    if ((existing.data ?? []).length > 0) {
+      return undefined;
+    }
+    return this.recordCreditTransaction({
+      userId: input.userId,
+      amount: input.amount,
+      balanceImpact: input.amount,
       sourceType: input.sourceType,
       sourceId: input.sourceId,
       operationCategory: input.operationCategory,
@@ -378,9 +464,10 @@ export class SupabaseMvpBackendLoop {
     sourceId: string;
     operationCategory: string;
     reason: string;
-  }): Promise<void> {
+  }): Promise<string> {
+    const id = createId("credit");
     const result = await this.client.from("credit_transactions").insert({
-      id: createId("credit"),
+      id,
       account_id: input.userId,
       user_id: input.userId,
       source_type: input.sourceType,
@@ -395,6 +482,7 @@ export class SupabaseMvpBackendLoop {
     if (result.error) {
       throw new AppError("SUPABASE_CREDITS_RECORD_FAILED", result.error.message, 502);
     }
+    return id;
   }
 }
 

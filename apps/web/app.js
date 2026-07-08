@@ -1093,9 +1093,71 @@ async function hydrateAuthSession() {
       provider: "supabase",
       createdAt: data.session.user.created_at || new Date().toISOString()
     };
+    await syncRemoteProductData();
     saveState(state);
   } else {
     renderState(state);
+  }
+}
+
+async function syncRemoteProductData() {
+  if (!supabase || !state.user?.id) return;
+  const [assetsResult, jobsResult, creditsResult] = await Promise.all([
+    supabase.from("media_assets").select("*").eq("owner_user_id", state.user.id).is("deleted_at", null).order("updated_at", { ascending: false }).limit(80),
+    supabase.from("generation_jobs").select("*").eq("user_id", state.user.id).order("created_at", { ascending: false }).limit(80),
+    supabase.from("credit_transactions").select("balance_impact,status").eq("user_id", state.user.id)
+  ]);
+  if (!assetsResult.error && Array.isArray(assetsResult.data)) {
+    state.assets = assetsResult.data.map(mapRemoteAsset);
+  }
+  if (!jobsResult.error && Array.isArray(jobsResult.data)) {
+    state.history = jobsResult.data.map(mapRemoteJob);
+  }
+  if (!creditsResult.error && Array.isArray(creditsResult.data)) {
+    state.credits = creditsResult.data
+      .filter((row) => row.status === "posted")
+      .reduce((sum, row) => sum + Number(row.balance_impact || 0), 0);
+  }
+}
+
+function mapRemoteAsset(asset, index = 0) {
+  const metadata = parseMaybeJson(asset.metadata_json);
+  return {
+    id: String(asset.id),
+    type: asset.asset_type === "video" ? "video" : "image",
+    title: String(asset.display_name || `${asset.asset_type || "image"}-${index + 1}`),
+    prompt: String(metadata.prompt || ""),
+    character: String(asset.character_id || metadata.character || "Mira"),
+    credits: Number(metadata.credits || 0),
+    status: String(asset.processing_status || "ready"),
+    visibility: String(asset.visibility_status || "private"),
+    favorite: Boolean(asset.is_favorite),
+    remote: true
+  };
+}
+
+function mapRemoteJob(job) {
+  return {
+    id: String(job.id),
+    type: job.media_type === "video" ? "video" : "image",
+    title: job.media_type === "video" ? "生成视频场景" : "生成图片作品",
+    prompt: String(job.prompt || ""),
+    provider: String(job.provider || "fake_worker"),
+    model: String(job.model || "local-demo"),
+    status: String(job.status || "queued"),
+    credits: Number(job.cost_credits || job.credit_charged || 0),
+    duration: job.latency ? `${Math.round(Number(job.latency) / 1000)}s` : String(job.duration_seconds ? `${job.duration_seconds}s` : "等待中"),
+    assetId: String(job.result_asset_id || "")
+  };
+}
+
+function parseMaybeJson(value) {
+  if (!value) return {};
+  if (typeof value === "object") return value;
+  try {
+    return JSON.parse(String(value));
+  } catch {
+    return {};
   }
 }
 
@@ -2089,9 +2151,35 @@ function openCheckoutModal({ credits, planName, price, promo = "" }) {
       button.classList.add("active");
     });
   });
-  overlay.querySelector("[data-confirm-checkout]")?.addEventListener("click", () => {
-    ensureUser("checkout");
+  overlay.querySelector("[data-confirm-checkout]")?.addEventListener("click", async () => {
+    const confirmButton = overlay.querySelector("[data-confirm-checkout]");
     const method = overlay.querySelector("[data-checkout-method].active")?.dataset.checkoutMethod || "paypal";
+    confirmButton.disabled = true;
+    confirmButton.textContent = "正在发放积分";
+    try {
+      const remoteOrder = await runRemoteDemoCreditPurchase({
+        credits,
+        method,
+        amountCents: parsePriceToCents(price)
+      });
+      if (remoteOrder) {
+        state.orders = [mapRemoteOrder(remoteOrder), ...(state.orders || []).filter((order) => order.id !== remoteOrder.id)];
+        state.rewards.taskClaims = Array.from(new Set([...state.rewards.taskClaims, "purchase"]));
+        await syncRemoteProductData();
+        saveState(state);
+        confirmButton.textContent = `已到账 ${credits} 积分`;
+        overlay.querySelector(".checkout-note").textContent = "演示订单已写入 Supabase，真实支付 API 接入前不会产生扣款。";
+        window.setTimeout(() => {
+          window.location.href = "./zh/dashboard/";
+        }, 650);
+        return;
+      }
+    } catch (error) {
+      overlay.querySelector(".checkout-note").textContent = `${error.message || "服务端演示结账暂不可用"}，已切回本地演示。`;
+    } finally {
+      confirmButton.disabled = false;
+    }
+    ensureUser("checkout");
     state.credits += credits;
     state.orders = [
       {
@@ -2113,6 +2201,37 @@ function openCheckoutModal({ credits, planName, price, promo = "" }) {
       window.location.href = "./zh/dashboard/";
     }, 650);
   });
+}
+
+async function runRemoteDemoCreditPurchase(input) {
+  if (!supabase) return null;
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData.session?.user) return null;
+  const result = await invokeAi("demo-credit-purchase", {
+    credits: input.credits,
+    amountCents: input.amountCents,
+    currency: "USD",
+    method: input.method
+  });
+  return result.order || null;
+}
+
+function parsePriceToCents(value) {
+  const match = String(value || "").match(/([0-9]+(?:\.[0-9]{1,2})?)/);
+  return match ? Math.round(Number(match[1]) * 100) : 0;
+}
+
+function mapRemoteOrder(order) {
+  return {
+    id: String(order.id),
+    planName: "积分套餐",
+    credits: Number(order.credits_granted || 0),
+    price: `${order.currency || "USD"} ${(Number(order.amount_cents || 0) / 100).toFixed(2)}`,
+    method: String(order.provider_reference || "demo_checkout"),
+    status: String(order.status || "fulfilled"),
+    createdAt: String(order.created_at || new Date().toISOString()).slice(0, 10),
+    remote: true
+  };
 }
 
 const modeButtons = document.querySelectorAll("[data-mode]");
@@ -2138,27 +2257,67 @@ modeButtons.forEach((button) => {
 });
 
 if (enhanceButton && promptBox) {
-  enhanceButton.addEventListener("click", () => {
+  enhanceButton.addEventListener("click", async () => {
+    const original = promptBox.value.trim();
+    if (supabase && original) {
+      enhanceButton.disabled = true;
+      enhanceButton.textContent = "增强中";
+      try {
+        const enhanced = await invokeAi("enhance-prompt", {
+          prompt: original,
+          context: { page: "generate", locale: getStoredLanguage() }
+        });
+        promptBox.value = enhanced.enhancedPrompt || enhanced.prompt || original;
+        showSiteToast(enhanced.fallback ? "已使用本地提示词增强" : "已使用 DeepSeek 增强提示词");
+      } catch (error) {
+        showSiteToast(`${error.message || "提示词增强失败"}，已保留原提示词。`);
+      } finally {
+        enhanceButton.disabled = false;
+        enhanceButton.textContent = "优化提示词";
+      }
+      return;
+    }
     if (!promptBox.value.includes("ultra-detailed")) {
-      promptBox.value = `${promptBox.value.trim()} ultra-detailed, cinematic composition, reusable reference metadata`;
+      promptBox.value = `${original} ultra-detailed, cinematic composition, reusable reference metadata`;
     }
   });
 }
 
 if (generateButton && queueTarget) {
-  generateButton.addEventListener("click", () => {
-    ensureUser("email");
+  generateButton.addEventListener("click", async () => {
     const activeMode = document.querySelector("[data-mode].active")?.dataset.mode || "image";
     const cost = modeCosts[activeMode] || 8;
+    const title = activeMode === "video" ? "生成视频场景" : activeMode === "character" ? "生成角色种子" : "生成图片作品";
+    const prompt = promptBox?.value.trim() || "生成 AI 场景";
+    const character = document.querySelector(".selector-grid select")?.value?.split(" - ")[0] || "Mira";
+    generateButton.disabled = true;
+    generateButton.textContent = "生成中";
+    try {
+      const remoteResult = await runRemoteGeneration({
+        mode: activeMode,
+        prompt,
+        title,
+        character,
+        cost
+      });
+      if (remoteResult) {
+        queueTarget.prepend(statusRow(`${title}已完成`, "真实任务已保存到 Supabase 资产库和生成历史。", "./zh/assets/", "打开作品"));
+        return;
+      }
+    } catch (error) {
+      queueTarget.prepend(statusRow("真实生成暂不可用", `${error.message || "已切回本地演示生成。"} 未重复扣除远端积分。`, "./zh/admin/", "检查后台"));
+    } finally {
+      generateButton.disabled = false;
+      generateButton.textContent = "生成";
+    }
+
+    ensureUser("email");
     if (state.credits < cost) {
     queueTarget.prepend(statusRow("积分不足", "请先购买积分再生成这个作品。", "./zh/pricing/", "购买积分"));
       return;
     }
     state.credits -= cost;
     const id = `asset_${Date.now()}`;
-    const title = activeMode === "video" ? "生成视频场景" : activeMode === "character" ? "生成角色种子" : "生成图片作品";
-    const prompt = promptBox?.value.trim() || "生成 AI 场景";
-    const character = document.querySelector(".selector-grid select")?.value?.split(" - ")[0] || "Mira";
     const asset = { id, type: activeMode === "video" ? "video" : "image", title, prompt, character, credits: cost, status: "completed", visibility: "private", favorite: false };
     const job = { id: `job_${Date.now()}`, type: asset.type, title, prompt, provider: "local_api", model: activeMode === "video" ? "local-video-v0" : "local-image-v0", status: "completed", credits: cost, duration: activeMode === "video" ? "8s" : "12s", assetId: id };
     state.assets.unshift(asset);
@@ -2166,6 +2325,81 @@ if (generateButton && queueTarget) {
     saveState(state);
     queueTarget.prepend(statusRow(`${title}已完成`, "已保存到资产库和生成历史。", "./zh/assets/", "打开作品"));
   });
+}
+
+async function runRemoteGeneration(input) {
+  if (!supabase) return null;
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData.session?.user) {
+    openUnlockModal("./zh/app/generate/");
+    throw new Error("请先登录后使用真实生成。");
+  }
+  const mediaType = input.mode === "video" ? "video" : "image";
+  const workflowId = mediaType === "video" ? "workflow-qianwen-video-v1" : "workflow-qianwen-image-v1";
+  const createResult = await invokeAi("create-generation-job", {
+    mediaType,
+    prompt: input.prompt,
+    workflowId,
+    toolSlug: mediaType === "video" ? "image-to-video" : "generate",
+    durationSeconds: mediaType === "video" ? 6 : undefined
+  });
+  const job = createResult.job;
+  const processed = await invokeAi("process-generation-job", { jobId: job.id });
+  if (processed.error) {
+    throw new Error(processed.error.message || "AI 生成失败，积分已自动退回。");
+  }
+  mergeRemoteGenerationResult(processed.job, processed.asset, input);
+  await syncRemoteProductData();
+  return processed;
+}
+
+async function invokeAi(action, body = {}) {
+  const { data, error } = await supabase.functions.invoke("ai", { body: { action, ...body } });
+  if (error) throw new Error(error.message || "AI 服务调用失败。");
+  if (data?.error) throw new Error(data.error.message || data.error.code || "AI 服务调用失败。");
+  return data;
+}
+
+function mergeRemoteGenerationResult(job, asset, input = {}) {
+  if (!job || !asset) return;
+  const assetId = String(asset.id || job.result_asset_id || `asset_${Date.now()}`);
+  const mediaType = String(asset.asset_type || job.media_type || input.mode || "image");
+  const mappedAsset = {
+    id: assetId,
+    type: mediaType === "video" ? "video" : "image",
+    title: String(asset.display_name || input.title || "生成作品"),
+    prompt: String(job.prompt || input.prompt || ""),
+    character: input.character || "Mira",
+    credits: Number(job.cost_credits || input.cost || 0),
+    status: String(job.status || "completed"),
+    visibility: String(asset.visibility_status || "private"),
+    favorite: Boolean(asset.is_favorite),
+    remote: true
+  };
+  const mappedJob = {
+    id: String(job.id || `job_${Date.now()}`),
+    type: mappedAsset.type,
+    title: mappedAsset.title,
+    prompt: mappedAsset.prompt,
+    provider: String(job.provider || "fake_worker"),
+    model: String(job.model || "local-demo"),
+    status: String(job.status || "completed"),
+    credits: mappedAsset.credits,
+    duration: job.latency ? `${Math.round(Number(job.latency) / 1000)}s` : "实时",
+    assetId
+  };
+  upsertById(state.assets, mappedAsset);
+  upsertById(state.history, mappedJob);
+  saveState(state);
+}
+
+function upsertById(list, item) {
+  const index = list.findIndex((entry) => entry.id === item.id);
+  if (index >= 0) {
+    list[index] = { ...list[index], ...item };
+  } else {
+    list.unshift(item);
+  }
 }
 
 const characterForm = document.querySelector("[data-character-form]");
@@ -3430,7 +3664,7 @@ function renderToolCatalogVisualEditor(config) {
       <label><span>工具名称</span><input data-tool-name value="${escapeHtml(tool.name)}"></label>
       <label><span>分类</span><select data-tool-category>${optionMarkup(["image", "video", "character", "asset", "prompt"], tool.category)}</select></label>
       <label><span>状态</span><select data-tool-status>${optionMarkup(["published", "draft", "hidden"], tool.status)}</select></label>
-      <label><span>服务商</span><select data-tool-provider>${optionMarkup(["fake_worker", "openai", "gemini", "fal", "replicate", "comfyui", "runpod", "local_api"], tool.provider)}</select></label>
+      <label><span>服务商</span><select data-tool-provider>${optionMarkup(["fake_worker", "qwen_vision", "deepseek_text", "qianwen_generation", "openai", "gemini", "fal", "replicate", "comfyui", "runpod", "local_api"], tool.provider)}</select></label>
       <label><span>模型 / 工作流</span><input data-tool-model value="${escapeHtml(tool.model)}"></label>
       <label><span>绑定 Workflow</span><input data-tool-workflow value="${escapeHtml(tool.workflowId)}"></label>
       <label><span>积分价格</span><input data-tool-cost type="number" min="0" max="999" value="${tool.creditCost}"></label>

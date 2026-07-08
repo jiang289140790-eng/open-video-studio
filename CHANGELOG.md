@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.75.0 |
+| Version | 0.76.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,22 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Improved
+
+- Connected the Generate page to the authenticated Supabase `ai` Edge Function before falling back to local demo generation, so real jobs can flow through Prompt -> AI provider -> Supabase Storage -> Asset -> Gallery/History.
+- Added remote product-state sync for Supabase `media_assets`, `generation_jobs`, and `credit_transactions` after login and generation completion.
+- Added DeepSeek-backed prompt enhancement through the `ai` Edge Function with local fallback when the provider or auth is unavailable.
+- Added generation failure and cancellation credit refunds in the local service layer and Supabase `ai` Edge Function, with duplicate-refund protection.
+- Updated the `ai` Edge Function to read Admin Workflow Center configuration when choosing generation providers, enabling backend `fake_worker` / `qianwen_generation` rollout switches without frontend changes.
+- Added a logged-in demo credit purchase action through the `ai` Edge Function so non-real-payment checkout can still create Supabase orders and credit ledger entries visible in Admin.
+- Expanded OAuth test coverage to include the Telegram Login Widget entry alongside Google, X/Twitter, and Discord.
+- Added Qwen Vision, DeepSeek Text, and Qianwen Generation as selectable Admin Tool Catalog providers.
+
+### Validation
+
+- Ran `npm run build`; production build completed successfully.
+- Ran `npm run test`; 58 tests passed.
 
 ### Added
 

@@ -128,6 +128,20 @@ test("one user can register, buy credits, generate, store, review, share, and in
     assert.equal(history.length, 2);
     assert.equal(history[0].mediaType, "video");
 
+    const failedJob = generation.enqueue({
+      userId: user.id,
+      mediaType: "image",
+      prompt: "Create a frame that fails during provider processing.",
+      aspectRatio: "16:9",
+      characterId: character.id,
+    });
+    assert.equal(credits.getBalance(user.id), STARTER_CREDITS + 80);
+    const failed = generation.failJob(failedJob.id, user.id, "PROVIDER_TIMEOUT", "Provider timed out.");
+    assert.equal(failed.status, "failed");
+    assert.equal(credits.getBalance(user.id), STARTER_CREDITS + 88);
+    generation.failJob(failedJob.id, user.id, "PROVIDER_TIMEOUT", "Provider timed out again.");
+    assert.equal(credits.getBalance(user.id), STARTER_CREDITS + 88);
+
     const galleryItems = gallery.listUserGallery(user.id);
     assert.equal(galleryItems.length, 3);
     assert.ok(galleryItems.some((asset) => asset.id === approvedAsset.id));

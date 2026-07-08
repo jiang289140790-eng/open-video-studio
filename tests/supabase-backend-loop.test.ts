@@ -25,13 +25,17 @@ test("Supabase MVP backend loop signs up, grants credits, generates, stores, lis
   assert.equal(login.user.id, user.id);
   assert.equal(login.accessToken, "test-access-token");
 
-  for (const provider of ["google", "twitter", "discord"] as const) {
+  for (const provider of ["google", "twitter", "discord", "telegram"] as const) {
     const oauth = await backend.createOAuthSignInUrl({
       provider,
       redirectTo: "https://example.com/auth/callback",
     });
     assert.equal(oauth.provider, provider);
-    assert.equal(oauth.url, `https://auth.example.com/${provider}`);
+    if (provider === "telegram") {
+      assert.ok(oauth.url.includes("provider=telegram"));
+    } else {
+      assert.equal(oauth.url, `https://auth.example.com/${provider}`);
+    }
   }
 
   const job = await backend.createGenerationJob({
@@ -69,6 +73,29 @@ test("Supabase MVP backend loop signs up, grants credits, generates, stores, lis
 
   const publicShare = await backend.getPublicShare(String(share.token));
   assert.equal(publicShare.token, share.token);
+
+  const failingJob = await backend.createGenerationJob({
+    userId: user.id,
+    mediaType: "video",
+    prompt: "Generate a video that will fail safely.",
+    durationSeconds: 6,
+  });
+  assert.equal(client.balance(user.id), STARTER_CREDITS - 8 - 24);
+  const failed = await backend.failGenerationJob({
+    userId: user.id,
+    jobId: String(failingJob.id),
+    errorCode: "PROVIDER_TIMEOUT",
+    errorMessage: "Provider timed out.",
+  });
+  assert.equal(failed.status, "failed");
+  assert.equal(client.balance(user.id), STARTER_CREDITS - 8);
+  await backend.failGenerationJob({
+    userId: user.id,
+    jobId: String(failingJob.id),
+    errorCode: "PROVIDER_TIMEOUT",
+    errorMessage: "Provider timed out again.",
+  });
+  assert.equal(client.balance(user.id), STARTER_CREDITS - 8);
 });
 
 class FakeSupabaseClient {

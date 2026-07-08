@@ -51,6 +51,7 @@ test("AI Edge Function contains server-only provider actions and no browser-secr
     "check-generation-status",
     "cancel-generation-job",
     "provider-status",
+    "demo-credit-purchase",
   ]) {
     assert.ok(edgeFunction.includes(action), `AI Edge Function should include ${action}`);
   }
@@ -60,6 +61,10 @@ test("AI Edge Function contains server-only provider actions and no browser-secr
   assert.ok(edgeFunction.includes("SUPABASE_SERVICE_ROLE_KEY"));
   assert.ok(edgeFunction.includes("auth.getUser()"));
   assert.ok(edgeFunction.includes("QWEN_VISION_SITE_API_KEY"));
+  assert.ok(edgeFunction.includes("resolveWorkflowConfig"));
+  assert.ok(edgeFunction.includes("refundGenerationCredits"));
+  assert.ok(edgeFunction.includes("generation_refund"));
+  assert.ok(edgeFunction.includes("createDemoCreditPurchase"));
   assert.equal(edgeFunction.includes("VITE_QWEN"), false);
   assert.equal(edgeFunction.includes("VITE_DEEPSEEK"), false);
   assert.equal(edgeFunction.includes("VITE_QIANWEN"), false);
@@ -82,4 +87,17 @@ test("Admin defaults reserve Qwen, DeepSeek, and Qianwen workflows for grey roll
   ]) {
     assert.ok(combined.includes(expected), `Admin defaults should include ${expected}`);
   }
+});
+
+test("frontend routes generation through AI Edge Function before local fallback", () => {
+  const appScript = readFileSync(join(root, "apps", "web", "app.js"), "utf8");
+  assert.ok(appScript.includes("runRemoteGeneration"));
+  assert.ok(appScript.includes("create-generation-job"));
+  assert.ok(appScript.includes("process-generation-job"));
+  assert.ok(appScript.includes("syncRemoteProductData"));
+  assert.ok(appScript.includes("demo-credit-purchase"));
+  assert.ok(appScript.includes("runRemoteDemoCreditPurchase"));
+  assert.ok(appScript.includes("qianwen_generation"));
+  assert.ok(appScript.includes("qwen_vision"));
+  assert.ok(appScript.includes("deepseek_text"));
 });
