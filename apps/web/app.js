@@ -151,11 +151,16 @@ const defaultState = {
       research: "关注创作者从提示词到可发布内容的断点：脚本、提示词、封面、字幕、CTA 和平台适配。",
       script: "Hook：一个提示词不该只生成一张图。展示如何把它变成图片、视频、Caption 和多平台版本。",
       prompt: "深色高级 AI 创作平台界面，角色主持人展示可复用视频资产，电影感灯光，适合竖屏短视频。",
+      imagePlaceholder: "发布主视觉占位：角色主持人 + 深色 AI Studio 背景",
+      videoPlaceholder: "8 秒竖屏视频占位：镜头推进 + Caption 动效",
+      thumbnailPlaceholder: "缩略图占位：强标题 + 高对比主体",
       caption: "把一个创意变成完整内容包，并保存为可复用资产。",
+      cta: "免费开始生成",
       hashtags: ["AIContent", "OpenVideoStudio", "VideoAI", "CreatorTools"],
+      translations: { zh: "把一个创意变成完整内容包。", en: "Turn one idea into a full content package." },
       variants: [
-        { id: "variant_x", platform: "X", caption: "一个提示词，也可以变成完整内容包。", status: "needs_review", format: "image_or_video_with_caption" },
-        { id: "variant_tiktok", platform: "TikTok", caption: "从提示词到短视频内容包。", status: "scheduled", format: "vertical_video_9_16" }
+        { id: "variant_x", platform: "X", caption: "一个提示词，也可以变成完整内容包。", hashtags: ["AIContent", "VideoAI"], cta: "免费开始生成", status: "needs_review", format: "image_or_video_with_caption", account: "@openvideostudio", scheduledAt: "" },
+        { id: "variant_tiktok", platform: "TikTok", caption: "从提示词到短视频内容包。", hashtags: ["CreatorTools", "OpenVideoStudio"], cta: "免费开始生成", status: "scheduled", format: "vertical_video_9_16", account: "@ovs.creator", scheduledAt: "2026-07-09 09:00" }
       ]
     }
   ],
@@ -2373,15 +2378,35 @@ function renderAiStudioOutput(current) {
     ["Research", item.research],
     ["Script", item.script],
     ["Prompt", item.prompt],
+    ["Image Placeholder", item.imagePlaceholder],
+    ["Video Placeholder", item.videoPlaceholder],
+    ["Thumbnail", item.thumbnailPlaceholder],
     ["Caption", item.caption],
+    ["CTA", item.cta],
     ["Hashtags", (item.hashtags || []).map((tag) => `#${tag}`).join(" ")],
+    ["Translation", Object.entries(item.translations || {}).map(([locale, value]) => `${locale}: ${value}`).join(" / ")],
     ["Quality Check", `阶段：${stageLabel(item.stage)} · 审核：${reviewLabel(item.reviewStatus)}`]
   ].map(([label, value]) => `
     <article>
       <span>${escapeHtml(label)}</span>
       <p>${escapeHtml(value || "等待 AI Studio 输出")}</p>
     </article>
-  `).join("");
+  `).join("") + `
+    <article class="studio-platform-variants">
+      <span>Platform Versions</span>
+      <div class="platform-version-list">
+        ${(item.variants || []).map((variant) => `
+          <section class="platform-version-card">
+            <strong>${escapeHtml(variant.platform)}</strong>
+            <p>${escapeHtml(variant.caption)}</p>
+            <small>${escapeHtml(variant.format)} · ${escapeHtml(reviewLabel(variant.status))} · ${escapeHtml(variant.account || "未选择账号")}</small>
+            <em>${(variant.hashtags || []).map((tag) => `#${escapeHtml(tag)}`).join(" ")}</em>
+            <b>${escapeHtml(variant.cta || item.cta || "开始创作")}</b>
+          </section>
+        `).join("")}
+      </div>
+    </article>
+  `;
 }
 
 function renderPipelineBoard(current) {
@@ -2444,14 +2469,22 @@ function createMockContentItem(campaign, topic, character) {
     research: `围绕「${topic}」分析受众痛点、视觉钩子、平台节奏和转化 CTA。`,
     script: `Hook：${topic}。Problem：内容生产不能只停在单张图。Solution：生成脚本、提示词、资产、Caption 和平台版本。CTA：${campaign?.cta || "免费开始生成"}。`,
     prompt: `${campaign?.style || "高级 AI 创作平台"}，${character} 展示 ${topic}，电影感光影，竖屏友好，适合社媒发布。`,
+    imagePlaceholder: `${topic} 主视觉占位：${character}、品牌场景、可复用资产构图。`,
+    videoPlaceholder: `${topic} 视频占位：8 秒竖屏镜头、字幕节奏、开头 2 秒强钩子。`,
+    thumbnailPlaceholder: `${topic} 缩略图占位：高对比标题、安全裁切、清晰主体。`,
     caption,
+    cta: campaign?.cta || "免费开始生成",
     hashtags: ["AIContent", "OpenVideoStudio", "CreatorTools", "VideoAI"],
+    translations: { zh: caption, en: `${topic}: turn one idea into a reusable content package.` },
     variants: platforms.map((platform) => ({
       id: `variant_${platform.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_${Date.now()}`,
       platform,
       caption: `${caption} · ${platform}`,
+      hashtags: ["AIContent", "OpenVideoStudio"],
+      cta: campaign?.cta || "免费开始生成",
       status: "needs_review",
-      format: platform.toLowerCase().includes("tiktok") || platform.toLowerCase().includes("shorts") ? "vertical_video_9_16" : "image_or_video_with_caption"
+      format: platform.toLowerCase().includes("tiktok") || platform.toLowerCase().includes("shorts") ? "vertical_video_9_16" : "image_or_video_with_caption",
+      account: ""
     }))
   };
 }

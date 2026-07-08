@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.66.0 |
+| Version | 0.67.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Improved
+
+- Expanded AI Studio output to match the imported content lifecycle guidance more closely. Mock content packages now surface image placeholder, video placeholder, thumbnail placeholder, CTA, translation, quality check, and platform-specific versions.
+- Platform version cards now show platform, caption, media format, review status, account, hashtags, and CTA so users can see how one content item adapts across channels.
+- Added static frontend coverage for AI Studio asset placeholders and platform-version output.
+
+### Validation
+
+- Ran `npm run test`; production build completed and 53 tests passed.
 
 ### Added
 
