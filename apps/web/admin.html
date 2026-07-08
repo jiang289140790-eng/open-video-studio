@@ -4,38 +4,47 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>管理后台 | Open Video Studio</title>
-    <meta name="description" content="Open Video Studio 管理后台，用于管理首页内容、用户、积分、订单、内容审核、生成任务、分享链接和系统配置。">
+    <meta name="description" content="Open Video Studio 运营管理后台，用于管理用户、积分、订单、作品、生成任务、分享链接、首页内容和系统配置。">
     <link rel="stylesheet" href="./styles.css">
   </head>
-  <body>
-    <header class="topbar">
-      <a class="brand" href="./zh/app/"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
-      <nav class="topnav" aria-label="Primary navigation">
-        <a href="./zh/app/generate/">图像工具</a>
-        <a href="./zh/app/image-to-video/">视频工具</a>
-        <a href="./zh/pricing/">购买积分</a>
-        <a href="./zh/free-coins/">免费硬币</a>
-        <a href="./zh/my-creations/">我的创作</a>
+  <body class="admin-shell-body">
+    <aside class="admin-sidebar" aria-label="后台导航">
+      <a class="admin-brand" href="./zh/app/">
+        <span>ovs.ai</span>
+        <small>Open Video Studio</small>
+      </a>
+      <nav class="admin-side-nav">
+        <a href="#overview" class="active">总览</a>
+        <a href="#users">用户管理</a>
+        <a href="#credits">积分管理</a>
+        <a href="#orders">订单履约</a>
+        <a href="#moderation">内容审核</a>
+        <a href="#jobs">生成任务</a>
+        <a href="#shares">分享链接</a>
+        <a href="#homepage">首页内容</a>
+        <a href="#system">系统配置</a>
+        <a href="#audit">审计日志</a>
       </nav>
-      <nav class="accountnav" aria-label="Account navigation">
-        <a class="daily-check" href="./zh/free-coins/">每日签到</a>
-        <a href="./zh/login/">登录</a>
-      </nav>
-      <a class="btn primary" href="./zh/dashboard/">返回控制台</a>
-    </header>
+      <div class="admin-sidebar-card">
+        <strong>安全规则</strong>
+        <p>普通用户不能进入后台。所有高风险写操作必须由 admin 执行，并写入审计日志。</p>
+      </div>
+      <a class="btn primary full" href="./zh/dashboard/">返回用户端</a>
+    </aside>
 
-    <main class="app-surface admin-page" data-admin-page>
-      <section class="page-hero compact admin-hero">
+    <main class="admin-console" data-admin-page>
+      <header class="admin-console-top">
         <div>
           <p class="eyebrow">Admin Console</p>
           <h1>运营管理后台</h1>
-          <p class="lead">管理真实用户、首页内容、积分、订单、生成内容、分享链接和系统状态。敏感操作必须通过安全后台接口执行，并写入审计日志。</p>
+          <p>管理真实用户、积分、订单、公开作品、生成任务、分享链接和首页配置。</p>
         </div>
-        <div class="admin-hero-actions">
-          <button class="btn primary" type="button" data-admin-refresh>刷新后台数据</button>
+        <div class="admin-top-actions">
+          <button class="btn glass" type="button" data-admin-refresh>刷新数据</button>
           <a class="btn glass" href="./zh/login/">切换账号</a>
+          <a class="btn primary" href="./zh/app/generate/">打开创作台</a>
         </div>
-      </section>
+      </header>
 
       <section class="admin-access-panel" data-admin-access>
         <span class="status-dot blocked"></span>
@@ -45,51 +54,47 @@
         </div>
       </section>
 
-      <section class="admin-status-grid" data-admin-summary>
-        <article><span>用户</span><strong data-admin-summary-users>0</strong><p>注册账号总数</p></article>
-        <article><span>资产</span><strong data-admin-summary-assets>0</strong><p><b data-admin-summary-pending>0</b> 个待审核</p></article>
-        <article><span>生成任务</span><strong data-admin-summary-jobs>0</strong><p><b data-admin-summary-failed>0</b> 个失败</p></article>
-        <article><span>积分消耗</span><strong data-admin-summary-credits>0</strong><p>已消耗积分</p></article>
+      <section class="admin-command-center" id="overview">
+        <article>
+          <span>今日重点</span>
+          <strong>先看异常，再看增长</strong>
+          <p>失败任务、待审作品、未履约订单和积分异常应该优先处理。</p>
+        </article>
+        <article>
+          <span>权限状态</span>
+          <strong data-admin-role>未验证</strong>
+          <p>admin 可执行所有操作，operator 只能查看和审核内容。</p>
+        </article>
+        <article>
+          <span>系统状态</span>
+          <strong data-admin-health>检查中</strong>
+          <p data-admin-supabase-status>等待 Supabase 后台连接验证。</p>
+        </article>
       </section>
 
-      <section class="admin-grid wide">
-        <article class="panel admin-home-builder">
-          <div class="panel-heading">
-            <div><p class="eyebrow">Homepage Builder</p><h2>首页内容管理</h2></div>
-            <span>Admin only</span>
-          </div>
-          <p class="muted">像 Shopify 首页模块一样，先管理首页首屏、CTA、信任标签和展示卡片。保存后前台首页会读取已发布配置。</p>
-          <form class="admin-home-form" data-admin-homepage-form>
-            <div class="admin-form-grid">
-              <label><span>首屏标签</span><input name="eyebrow" data-homepage-field="eyebrow" placeholder="可复用角色的 AI 创作平台"></label>
-              <label><span>主标题</span><input name="headline" data-homepage-field="headline" placeholder="用一致性角色创建 AI 视频"></label>
-              <label class="wide-field"><span>副标题</span><textarea name="subheadline" data-homepage-field="subheadline" rows="3" placeholder="在一个创作空间里生成角色、场景、提示词、图片和视频，并持续复用。"></textarea></label>
-              <label><span>主按钮文案</span><input name="primaryCtaLabel" data-homepage-field="primaryCtaLabel" placeholder="免费开始生成"></label>
-              <label><span>主按钮链接</span><input name="primaryCtaHref" data-homepage-field="primaryCtaHref" placeholder="./zh/app/generate/"></label>
-              <label><span>副按钮文案</span><input name="secondaryCtaLabel" data-homepage-field="secondaryCtaLabel" placeholder="探索作品"></label>
-              <label><span>副按钮链接</span><input name="secondaryCtaHref" data-homepage-field="secondaryCtaHref" placeholder="./zh/gallery/"></label>
-              <label class="wide-field"><span>信任标签，使用逗号分隔</span><input name="trustSignals" data-homepage-field="trustSignals" placeholder="无需设计经验,角色可复用,提示词到视频,积分制生成"></label>
-              <label class="wide-field"><span>展示卡片，格式：标签|标题|样式；每行一个</span><textarea name="showcaseCards" data-homepage-field="showcaseCards" rows="5" placeholder="视频|生成营销短片|art-1&#10;角色|工作室主持人|art-2"></textarea></label>
-              <label class="wide-field"><span>作品预览卡片，格式：标签|标题|样式；每行一个</span><textarea name="creationCards" data-homepage-field="creationCards" rows="6" placeholder="AI 角色|带记忆的可复用主持人|art-2&#10;产品视频|适合发布的动态概念|art-1"></textarea></label>
-              <label class="wide-field"><span>发布原因</span><input name="reason" placeholder="例如：首页转化文案优化" required></label>
-            </div>
-            <div class="admin-home-actions">
-              <button class="btn glass" type="button" data-admin-homepage-preview>预览当前配置</button>
-              <button class="btn primary" type="submit">发布首页配置</button>
-            </div>
-          </form>
-          <div class="admin-list" data-admin-homepage-preview-list></div>
-        </article>
+      <section class="admin-status-grid" data-admin-summary>
+        <article><span>用户总数</span><strong data-admin-summary-users>0</strong><p>注册账号</p></article>
+        <article><span>资产总数</span><strong data-admin-summary-assets>0</strong><p><b data-admin-summary-pending>0</b> 个待审核</p></article>
+        <article><span>生成任务</span><strong data-admin-summary-jobs>0</strong><p><b data-admin-summary-failed>0</b> 个失败</p></article>
+        <article><span>积分消耗</span><strong data-admin-summary-credits>0</strong><p>已消耗积分</p></article>
+        <article><span>订单</span><strong data-admin-summary-orders>0</strong><p>待履约/已履约订单</p></article>
+        <article><span>公开分享</span><strong data-admin-summary-shares>0</strong><p>有效分享链接</p></article>
+      </section>
 
-        <article class="panel">
+      <section class="admin-workspace">
+        <article class="panel admin-module" id="users">
           <div class="panel-heading">
             <div><p class="eyebrow">Users</p><h2>用户管理</h2></div>
-            <span data-admin-role>未验证</span>
+            <span>真实 Profile</span>
+          </div>
+          <div class="admin-toolbar">
+            <input type="search" placeholder="搜索用户邮箱、昵称或 ID">
+            <button type="button">导出列表</button>
           </div>
           <div class="admin-list" data-admin-users></div>
         </article>
 
-        <article class="panel">
+        <article class="panel admin-module" id="credits">
           <div class="panel-heading">
             <div><p class="eyebrow">Credits</p><h2>积分管理</h2></div>
             <span>Admin only</span>
@@ -103,52 +108,89 @@
           <div class="admin-list" data-admin-credits></div>
         </article>
 
-        <article class="panel">
+        <article class="panel admin-module" id="orders">
           <div class="panel-heading">
             <div><p class="eyebrow">Orders</p><h2>订单履约</h2></div>
-            <span data-admin-summary-orders>0</span>
+            <span>支付 MVP</span>
           </div>
           <div class="admin-list" data-admin-orders></div>
         </article>
 
-        <article class="panel">
+        <article class="panel admin-module" id="moderation">
           <div class="panel-heading">
             <div><p class="eyebrow">Moderation</p><h2>内容审核</h2></div>
-            <span data-admin-moderation-count>0</span>
+            <span><b data-admin-moderation-count>0</b> 待处理</span>
+          </div>
+          <div class="admin-moderation-tabs">
+            <button class="active" type="button">待审</button>
+            <button type="button">公开</button>
+            <button type="button">私密</button>
+            <button type="button">已归档</button>
           </div>
           <div class="admin-list" data-admin-assets></div>
         </article>
 
-        <article class="panel">
+        <article class="panel admin-module" id="jobs">
           <div class="panel-heading">
-            <div><p class="eyebrow">Jobs</p><h2>生成任务</h2></div>
+            <div><p class="eyebrow">Generation</p><h2>生成任务</h2></div>
             <span>Fake Worker</span>
           </div>
           <div class="admin-list" data-admin-jobs></div>
         </article>
 
-        <article class="panel">
+        <article class="panel admin-module" id="shares">
           <div class="panel-heading">
             <div><p class="eyebrow">Share</p><h2>分享链接</h2></div>
-            <span data-admin-summary-shares>0</span>
+            <span>Public Links</span>
           </div>
           <div class="admin-list" data-admin-shares></div>
         </article>
 
-        <article class="panel">
+        <article class="panel admin-home-builder admin-module" id="homepage">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Homepage Builder</p><h2>首页内容管理</h2></div>
+            <span>Admin only</span>
+          </div>
+          <p class="muted">像 Shopify 首页模块一样，管理首页首屏、CTA、信任标签和展示卡片。保存后，前台首页会读取已发布配置。</p>
+          <form class="admin-home-form" data-admin-homepage-form>
+            <div class="admin-form-grid">
+              <label><span>首屏标签</span><input name="eyebrow" data-homepage-field="eyebrow" placeholder="可复用角色的 AI 创作平台"></label>
+              <label><span>主标题</span><input name="headline" data-homepage-field="headline" placeholder="用一致性角色创建 AI 视频"></label>
+              <label class="wide-field"><span>副标题</span><textarea name="subheadline" data-homepage-field="subheadline" rows="3" placeholder="在一个创作空间里生成角色、场景、提示词、图片和视频，并持续复用。"></textarea></label>
+              <label><span>主按钮文案</span><input name="primaryCtaLabel" data-homepage-field="primaryCtaLabel" placeholder="免费开始生成"></label>
+              <label><span>主按钮链接</span><input name="primaryCtaHref" data-homepage-field="primaryCtaHref" placeholder="./zh/app/generate/"></label>
+              <label><span>副按钮文案</span><input name="secondaryCtaLabel" data-homepage-field="secondaryCtaLabel" placeholder="探索作品"></label>
+              <label><span>副按钮链接</span><input name="secondaryCtaHref" data-homepage-field="secondaryCtaHref" placeholder="./zh/gallery/"></label>
+              <label class="wide-field"><span>信任标签，使用逗号分隔</span><input name="trustSignals" data-homepage-field="trustSignals" placeholder="无需设计经验,角色可复用,提示词到视频,积分制生成"></label>
+              <label class="wide-field"><span>展示卡片，格式：标签|标题|样式|尺寸|preview，每行一个</span><textarea name="showcaseCards" data-homepage-field="showcaseCards" rows="5" placeholder="视频|生成营销短片|art-1|tall|preview&#10;角色|工作室主持人|art-2"></textarea></label>
+              <label class="wide-field"><span>作品预览卡片，格式：标签|标题|样式，每行一个</span><textarea name="creationCards" data-homepage-field="creationCards" rows="6" placeholder="AI 角色|带记忆的可复用主持人|art-2&#10;产品视频|适合发布的动态概念|art-1"></textarea></label>
+              <label class="wide-field"><span>发布原因</span><input name="reason" placeholder="例如：首页转化文案优化" required></label>
+            </div>
+            <div class="admin-home-actions">
+              <button class="btn glass" type="button" data-admin-homepage-preview>预览当前配置</button>
+              <button class="btn primary" type="submit">发布首页配置</button>
+            </div>
+          </form>
+          <div class="admin-list" data-admin-homepage-preview-list></div>
+        </article>
+
+        <article class="panel admin-module" id="system">
           <div class="panel-heading">
             <div><p class="eyebrow">System</p><h2>系统配置</h2></div>
-            <span data-admin-health>检查中</span>
+            <span>Readiness</span>
           </div>
-          <div class="admin-list" data-admin-oauth></div>
-          <div class="admin-rule-list">
-            <div><strong>Supabase</strong><p data-admin-supabase-status>等待检测</p></div>
-            <div><strong>Storage</strong><p>生产 Bucket：open-video-studio-assets</p></div>
-            <div><strong>Worker</strong><p>当前仍使用 Fake Worker，不连接真实 AI 模型。</p></div>
+          <div class="admin-system-grid">
+            <div class="admin-list" data-admin-oauth></div>
+            <div class="admin-rule-list">
+              <div><strong>Supabase</strong><p data-admin-supabase-status>等待检测</p></div>
+              <div><strong>Storage</strong><p>生产 Bucket：open-video-studio-assets</p></div>
+              <div><strong>Worker</strong><p>当前仍使用 Fake Worker，不连接真实 AI 模型。</p></div>
+              <div><strong>安全接口</strong><p>后台写操作通过 Supabase Edge Function 执行，浏览器不暴露 service key。</p></div>
+            </div>
           </div>
         </article>
 
-        <article class="panel">
+        <article class="panel admin-module" id="audit">
           <div class="panel-heading">
             <div><p class="eyebrow">Audit</p><h2>审计日志</h2></div>
             <span>Admin only</span>

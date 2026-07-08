@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | OPS-ADMIN-001 |
-| Version | 1.1.0 |
+| Version | 1.2.0 |
 | Status | Active |
 | Owner | CTO / Operations |
 | Dependencies | API-ADMIN-001, DB-AUDIT-LOGS-001, BE-ARCH-SECURITY-001 |
@@ -21,6 +21,20 @@ Define how the MVP Admin console is enabled safely for Open Video Studio.
 - Require a reason for high-risk actions.
 - Write audit logs for credit, order, content, and share-link changes.
 - Let admins update MVP homepage content without source-code edits.
+- Keep the admin frontend practical for MVP operations without adding enterprise workspace, team, approval, or organization modules.
+
+## Admin Modules
+
+- Overview: command center, admin role state, Supabase status, and KPI cards.
+- Users: view real profiles, roles, account state, credit balance, and copy user IDs for support.
+- Credits: submit audited manual credit grants or deductions for admins only.
+- Orders: inspect credit purchase orders and mark fulfillment state through the admin function.
+- Moderation: review generated assets and approve public visibility where allowed.
+- Generation Jobs: inspect Fake Worker job status, provider, model, cost, and progress.
+- Share Links: inspect public links and revoke unsafe or requested links.
+- Homepage Content: publish public homepage copy, CTA links, trust signals, showcase cards, and gallery preview cards.
+- System Configuration: inspect OAuth readiness, Supabase connection, storage bucket, worker mode, and service-key safety posture.
+- Audit Logs: review high-risk admin actions; visible only to admins.
 
 ## Deployment Steps
 
@@ -68,7 +82,9 @@ As of the first MVP Admin implementation, database tables are reachable from the
 
 Supabase Auth currently has no users in this project, so the first admin role can only be assigned after the first real account signs up.
 
-The admin console now includes a lightweight homepage manager backed by `site_settings.homepage_config`. This is the MVP version of a Shopify-style site editor: it supports public homepage content changes while keeping high-risk writes behind admin permission and audit logging.
+The admin console frontend has been upgraded from a lightweight homepage form into a multi-module MVP operations console. It now presents the operating map an internal admin needs: overview, users, credits, orders, moderation, jobs, shares, homepage content, system readiness, and audit logs.
+
+The homepage manager remains backed by `site_settings.homepage_config`. This is the MVP version of a Shopify-style site editor: it supports public homepage content changes while keeping high-risk writes behind admin permission and audit logging.
 
 ## AI Context
 

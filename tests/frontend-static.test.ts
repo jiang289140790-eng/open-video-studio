@@ -525,9 +525,24 @@ describe("MVP static frontend", () => {
     assert.ok(supabaseConfig.includes("[functions.admin]"));
     assert.ok(adminMigration.includes("create table if not exists public.audit_logs"));
     assert.ok(adminMigration.includes("current_profile_role"));
-    assert.ok(admin.includes("管理后台"));
-    assert.ok(admin.includes("运营管理后台"));
-    assert.ok(admin.includes("用户管理"));
+    for (const expected of [
+      "管理后台",
+      "运营管理后台",
+      "用户管理",
+      "积分管理",
+      "订单履约",
+      "内容审核",
+      "生成任务",
+      "分享链接",
+      "首页内容管理",
+      "系统配置",
+      "审计日志",
+      "admin-sidebar",
+      "admin-command-center",
+      "admin-workspace"
+    ]) {
+      assert.ok(admin.includes(expected), `admin page should include ${expected}`);
+    }
     assert.equal(admin.includes("绠＄悊"), false);
   });
 

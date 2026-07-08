@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.59.0 |
+| Version | 0.60.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,17 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Improved
+
+- Upgraded `apps/web/admin.html` from a simple homepage form into a richer Chinese MVP operations console with left navigation, command center, KPI cards, and dedicated modules for users, credits, orders, moderation, generation jobs, share links, homepage content, system readiness, and audit logs.
+- Restored the Admin page source to clean UTF-8 Chinese text and added static regression coverage for the expanded admin module map.
+- Added final Admin console styling overrides for the black / charcoal / pink product direction, including responsive navigation and denser operations layouts.
+
+### Validation
+
+- Ran `npm run build`; production build completed successfully.
+- Ran `node --test dist/tests/frontend-static.test.js`; 33 static frontend tests passed.
 
 ### Added
 
