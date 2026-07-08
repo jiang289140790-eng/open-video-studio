@@ -336,6 +336,10 @@ async function saveGeneratedAsset(adminClient: any, env: AiEnv, userId: string, 
   const timestamp = new Date().toISOString();
   const asset = {
     id: assetId,
+    user_id: userId,
+    file_url: storageKey,
+    file_type: mediaType,
+    consent_confirmed: true,
     owner_user_id: userId,
     project_id: job.project_id ?? null,
     character_id: job.character_id ?? null,

@@ -25,6 +25,20 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Applied the remote Supabase MVP schema alignment migration so production tables now match the current Auth -> Credits -> Generation Job -> Storage -> Asset -> Gallery/History loop while preserving existing rows.
+- Updated the Supabase `ai` Edge Function asset write path to populate both legacy media columns and the current `media_assets` fields, keeping old MVP records compatible with the current backend loop.
+- Expanded `npm run verify:ai` from a fail-closed endpoint check into an authenticated production smoke test covering provider status, DeepSeek prompt enhancement, demo credit purchase, generation job creation, Fake Worker processing, Supabase Storage upload, and asset creation.
+- Registered the applied Supabase migrations in remote migration history to avoid future duplicate migration attempts.
+
+### Validation
+
+- Ran `npm run verify:ai`; the deployed `ai` function passed unauthenticated auth-gate verification, authenticated provider-status verification, DeepSeek prompt enhancement, and the demo credit -> job -> asset generation loop.
+- Ran `npm run verify:oauth`; Google, X/Twitter, and Discord still fail with Supabase `Unsupported provider: provider is not enabled`, and Telegram remains unconfigured until Bot username/auth URL are provided.
+- Ran `npm run build`; production build completed successfully.
+- Ran `npm run test`; 59 tests passed.
+
+### Improved
+
 - Added `npm run verify:oauth` to create non-redirecting Supabase OAuth authorization URLs for Google, X/Twitter, and Discord, while checking Telegram Login Widget public configuration.
 - Added `npm run verify:ai` to verify the Supabase `ai` Edge Function endpoint and its unauthenticated fail-closed behavior.
 - Added Admin Workflow Center rollout hints so operators can see whether a workflow will route to Qianwen generation, Fake Worker fallback, DeepSeek prompt enhancement, Qwen Vision analysis, or a reserved provider path.

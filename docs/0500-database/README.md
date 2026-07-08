@@ -58,7 +58,9 @@ Define the permanent database architecture source of truth for Open Video Studio
 
 Phase 1 uses a local SQLite schema at `src/db/schema.sql` for development and automated tests. This is an implementation foundation recorded in `ADR-002`.
 
-The production database target is Supabase PostgreSQL. The repository includes environment-based Supabase client creation and a live verification script. Exact PostgreSQL migrations are not generated yet and must be created before replacing the local SQLite test schema in production workflows.
+The production database target is Supabase PostgreSQL. The repository includes environment-based Supabase client creation and live verification scripts.
+
+Remote Supabase has been aligned with the current MVP schema using `supabase/migrations/202607080001_remote_mvp_schema_alignment.sql`. The migration preserves old rows, converts production generation/asset/credit IDs to text where needed, adds missing MVP columns, creates missing operational tables, and reapplies role-aware RLS policies. Remote migration history now marks `202607070001` and `202607080001` as applied.
 
 `ADR-004` extends the local schema for the one-user product workflow with characters, generation jobs, images, videos, orders, and share links. Production database selection, migration policy, backup, restore, RTO, RPO, and storage growth controls remain future architecture work.
 

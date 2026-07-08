@@ -39,6 +39,8 @@ Own backend service architecture, domain logic, authorization, billing integrati
 
 ## Current Implementation Notes
 
+- The production Supabase `ai` Edge Function now passes an authenticated smoke test for provider status, DeepSeek prompt enhancement, demo credit purchase, generation job creation, Fake Worker processing, Storage upload, and `media_assets` creation.
+- Asset creation writes both current backend fields and legacy MVP media fields so the remote database can support the live product loop while older rows remain readable.
 - Supabase now has an `ai` Edge Function for authenticated server-side AI provider orchestration.
 - Provider secrets for Qwen Vision, DeepSeek, and Qianwen must be stored as Supabase secrets, never in browser code.
 - The first rollout keeps `fake_worker` as the default provider and allows Admin Tool/Workflow configuration to move individual tools to `qwen_vision`, `deepseek_text`, or `qianwen_generation`.

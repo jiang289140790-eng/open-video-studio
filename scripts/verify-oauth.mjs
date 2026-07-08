@@ -39,11 +39,18 @@ if (missing.length === 0) {
         skipBrowserRedirect: true,
       },
     });
+    const authorizationProbe = result.data?.url
+      ? await probeAuthorizationUrl(result.data.url)
+      : { ok: false, status: 0, locationHost: "", error: "authorization_url_missing" };
     report.supabase.providers.push({
       provider,
-      ok: Boolean(result.data?.url && !result.error),
+      ok: Boolean(result.data?.url && !result.error && authorizationProbe.ok),
       authorizationUrlCreated: Boolean(result.data?.url),
+      authorizationEndpointReachable: authorizationProbe.ok,
+      authorizationStatus: authorizationProbe.status,
+      authorizationLocationHost: authorizationProbe.locationHost,
       error: result.error?.message ?? "",
+      probeError: authorizationProbe.error,
     });
   }
 }
@@ -81,4 +88,32 @@ function trimSlash(value) {
 function mask(value = "") {
   if (!value) return "";
   return value.length <= 4 ? "****" : `${value.slice(0, 2)}***${value.slice(-2)}`;
+}
+
+async function probeAuthorizationUrl(url) {
+  try {
+    const response = await fetch(url, { redirect: "manual" });
+    const location = response.headers.get("location") || "";
+    const locationHost = location ? new URL(location).host : "";
+    const text = response.status >= 300 && response.status < 400 ? "" : await response.text().catch(() => "");
+    return {
+      ok: response.status >= 300 && response.status < 400 && Boolean(locationHost),
+      status: response.status,
+      locationHost,
+      error: summarizeError(text),
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      locationHost: "",
+      error: error instanceof Error ? error.message : "authorization_probe_failed",
+    };
+  }
+}
+
+function summarizeError(text = "") {
+  if (!text) return "";
+  const clean = text.replace(/\s+/g, " ").trim();
+  return clean.slice(0, 240);
 }
