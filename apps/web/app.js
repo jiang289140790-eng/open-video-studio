@@ -217,6 +217,135 @@ function setHomepageLink(name, label, href) {
   if (href) target.setAttribute("href", href);
 }
 
+async function loadPageBuilderConfig() {
+  if (!document.querySelector("[data-homepage]") && !document.querySelector(".tool-home")) return;
+  if (!supabase) {
+    applyPageBuilderConfig(pageBuilderConfig);
+    return;
+  }
+  try {
+    const { data, error } = await supabase
+      .from("site_settings")
+      .select("value_json")
+      .eq("setting_key", "page_builder_config")
+      .eq("status", "published")
+      .single();
+    if (!error && data?.value_json) {
+      pageBuilderConfig = normalizePageBuilderConfig(data.value_json);
+    }
+  } catch {
+    // Static fallback remains authoritative when remote settings are unavailable.
+  }
+  applyPageBuilderConfig(pageBuilderConfig);
+}
+
+async function loadToolCatalogConfig() {
+  if (!document.querySelector("[data-tool-home-card]")) return;
+  if (!supabase) {
+    applyToolCatalogConfig(toolCatalogConfig);
+    return;
+  }
+  try {
+    const { data, error } = await supabase
+      .from("site_settings")
+      .select("value_json")
+      .eq("setting_key", "tool_catalog_config")
+      .eq("status", "published")
+      .single();
+    if (!error && data?.value_json) {
+      toolCatalogConfig = normalizeToolCatalogConfig(data.value_json);
+    }
+  } catch {
+    // Keep static tool catalog if remote settings fail.
+  }
+  applyToolCatalogConfig(toolCatalogConfig);
+}
+
+function applyPageBuilderConfig(config) {
+  const normalized = normalizePageBuilderConfig(config);
+  const pageSlug = document.querySelector("[data-homepage]") ? "home" : document.querySelector(".tool-home") ? "app" : "";
+  const page = normalized.pages.find((item) => item.slug === pageSlug);
+  if (!page) return;
+  if (pageSlug === "home") applyHomepageModules(page.modules);
+  if (pageSlug === "app") applyToolHomeModules(page.modules);
+}
+
+function applyHomepageModules(modules) {
+  const heroModule = modules.find((module) => module.id === "hero" || module.type === "hero");
+  applySectionState("[data-homepage-section='hero']", heroModule);
+  const galleryModule = modules.find((module) => module.id === "explore" || module.type === "gallery");
+  applySectionState("[data-homepage-section='galleryPreview']", galleryModule);
+  if (galleryModule) {
+    const grid = document.querySelector("[data-homepage-list='creationCards']");
+    limitChildren(grid, galleryModule.cardCount);
+    applyDisplayStyle(grid, galleryModule.displayStyle);
+  }
+  if (heroModule) {
+    const showcase = document.querySelector("[data-homepage-list='showcaseCards']");
+    limitChildren(showcase, heroModule.cardCount);
+  }
+}
+
+function applyToolHomeModules(modules) {
+  document.querySelectorAll("[data-tool-home-section]").forEach((section) => {
+    const sectionKey = section.dataset.toolHomeSection || "";
+    const module = modules.find((item) => sectionKey.includes(item.source.replace("category:", "")) || sectionKey.includes(item.id.replace("-tools", "")) || item.type === "tools" && item.source === "tool_catalog_config.tools");
+    if (!module) return;
+    section.hidden = module.enabled === false;
+    const row = section.querySelector(".card-carousel");
+    limitChildren(row, module.cardCount);
+    applyDisplayStyle(row, module.displayStyle);
+  });
+}
+
+function applyToolCatalogConfig(config) {
+  const normalized = normalizeToolCatalogConfig(config);
+  const toolMap = new Map(normalized.tools.map((tool) => [tool.slug, tool]));
+  document.querySelectorAll("[data-tool-home-card]").forEach((card) => {
+    const slug = toolSlugFromHref(card.getAttribute("href") || "");
+    const tool = toolMap.get(slug);
+    if (!tool) return;
+    card.hidden = tool.status !== "published";
+    card.setAttribute("href", tool.route);
+    card.dataset.toolTags = `${tool.category} ${tool.status} ${tool.featured ? "hot featured" : ""} ${tool.provider} ${tool.model} ${tool.name}`;
+    const strong = card.querySelector("strong");
+    if (strong) strong.textContent = tool.name;
+    let meta = card.querySelector("[data-tool-config-meta]");
+    if (!meta) {
+      meta = document.createElement("small");
+      meta.dataset.toolConfigMeta = "true";
+      card.append(meta);
+    }
+    meta.textContent = `${tool.provider} · ${tool.creditCost} 积分`;
+    card.classList.toggle("featured", tool.featured);
+  });
+  renderToolHomeDirectory();
+}
+
+function applySectionState(selector, module) {
+  const target = document.querySelector(selector);
+  if (!target || !module) return;
+  target.hidden = module.enabled === false;
+}
+
+function limitChildren(container, count) {
+  if (!container || !count) return;
+  Array.from(container.children).forEach((child, index) => {
+    child.hidden = index >= count;
+  });
+}
+
+function applyDisplayStyle(container, style) {
+  if (!container) return;
+  container.dataset.adminDisplayStyle = style || "grid";
+}
+
+function toolSlugFromHref(href) {
+  const clean = href.replace(/\/$/, "");
+  const parts = clean.split("/").filter(Boolean);
+  return parts[parts.length - 1] || "";
+}
+
 const state = loadState();
 state.characters = state.characters.map((character) => ({
   status: "active",
@@ -268,6 +397,41 @@ const defaultHomepageConfig = {
 };
 let homepageConfig = structuredClone(defaultHomepageConfig);
 
+const defaultPageBuilderConfig = {
+  pages: [
+    {
+      slug: "home",
+      name: "首页",
+      status: "published",
+      modules: [
+        { id: "hero", type: "hero", title: "首屏视觉", enabled: true, displayStyle: "hero", cardCount: 4, source: "homepage_config.showcaseCards" },
+        { id: "explore", type: "gallery", title: "探索你能创作什么", enabled: true, displayStyle: "masonry", cardCount: 8, source: "featured_assets" },
+        { id: "characters", type: "characters", title: "角色示例", enabled: true, displayStyle: "carousel", cardCount: 6, source: "character_templates" }
+      ]
+    },
+    {
+      slug: "app",
+      name: "工具首页",
+      status: "published",
+      modules: [
+        { id: "featured-tools", type: "tools", title: "推荐工具", enabled: true, displayStyle: "grid", cardCount: 8, source: "tool_catalog_config.tools" },
+        { id: "image-tools", type: "tools", title: "图像工具", enabled: true, displayStyle: "carousel", cardCount: 12, source: "category:image" },
+        { id: "video-tools", type: "tools", title: "视频工具", enabled: true, displayStyle: "carousel", cardCount: 8, source: "category:video" }
+      ]
+    }
+  ]
+};
+
+const defaultToolCatalogConfig = {
+  tools: [
+    { slug: "image-editor", name: "图片编辑器", category: "image", status: "published", provider: "fake_worker", model: "local-image-edit-v0", creditCost: 8, route: "./zh/app/image-editor/", featured: true },
+    { slug: "outfit-studio", name: "AI 换装", category: "image", status: "published", provider: "fake_worker", model: "local-outfit-v0", creditCost: 12, route: "./zh/app/outfit-studio/", featured: true },
+    { slug: "image-to-video", name: "图片转视频", category: "video", status: "published", provider: "fake_worker", model: "local-video-v0", creditCost: 24, route: "./zh/app/image-to-video/", featured: true }
+  ]
+};
+let pageBuilderConfig = structuredClone(defaultPageBuilderConfig);
+let toolCatalogConfig = structuredClone(defaultToolCatalogConfig);
+
 injectTopNavigation();
 injectAppShell();
 injectToolWorkbench();
@@ -276,6 +440,8 @@ injectCarouselControls();
 injectFloatingDock();
 injectGlobalFooter();
 loadHomepageConfig();
+loadPageBuilderConfig();
+loadToolCatalogConfig();
 applyStoredLanguage();
 renderOAuthReadiness();
 renderToolHomeDirectory();
@@ -957,6 +1123,24 @@ document.addEventListener("click", async (event) => {
     showSiteToast("已生成首页预览配置，可打开首页查看本机预览。");
     return;
   }
+  const adminPageBuilderPreview = event.target.closest("[data-admin-page-builder-preview]");
+  if (adminPageBuilderPreview) {
+    event.preventDefault();
+    const form = document.querySelector("[data-admin-page-builder-form]");
+    if (!form) return;
+    renderAdminPageBuilderPreview(readPageBuilderForm(new FormData(form)));
+    showSiteToast("已生成页面模块预览");
+    return;
+  }
+  const adminToolCatalogPreview = event.target.closest("[data-admin-tool-catalog-preview]");
+  if (adminToolCatalogPreview) {
+    event.preventDefault();
+    const form = document.querySelector("[data-admin-tool-catalog-form]");
+    if (!form) return;
+    renderAdminToolCatalogPreview(readToolCatalogForm(new FormData(form)));
+    showSiteToast("已生成工具上架预览");
+    return;
+  }
   const carouselButton = event.target.closest("[data-carousel-scroll]");
   if (carouselButton) {
     event.preventDefault();
@@ -1073,6 +1257,30 @@ document.addEventListener("submit", async (event) => {
     const config = readHomepageForm(formData);
     await runAdminAction(button, "update-homepage-config", {
       config,
+      reason: String(formData.get("reason") || "").trim()
+    });
+    return;
+  }
+
+  const pageBuilderForm = event.target.closest("[data-admin-page-builder-form]");
+  if (pageBuilderForm) {
+    event.preventDefault();
+    const formData = new FormData(pageBuilderForm);
+    const button = pageBuilderForm.querySelector("button[type='submit']");
+    await runAdminAction(button, "update-page-builder-config", {
+      config: readPageBuilderForm(formData),
+      reason: String(formData.get("reason") || "").trim()
+    });
+    return;
+  }
+
+  const toolCatalogForm = event.target.closest("[data-admin-tool-catalog-form]");
+  if (toolCatalogForm) {
+    event.preventDefault();
+    const formData = new FormData(toolCatalogForm);
+    const button = toolCatalogForm.querySelector("button[type='submit']");
+    await runAdminAction(button, "update-tool-catalog-config", {
+      config: readToolCatalogForm(formData),
       reason: String(formData.get("reason") || "").trim()
     });
     return;
@@ -1867,6 +2075,12 @@ function renderAdmin(current) {
   const homepage = normalizeHomepageConfig(adminData.homepage?.value_json || adminData.homepage || defaultHomepageConfig);
   fillHomepageForm(homepage);
   renderAdminHomepagePreview(homepage, adminData.homepage?.updated_at);
+  const pageBuilder = normalizePageBuilderConfig(adminData.pageBuilder?.value_json || adminData.pageBuilder || defaultPageBuilderConfig);
+  fillPageBuilderForm(pageBuilder);
+  renderAdminPageBuilderPreview(pageBuilder, adminData.pageBuilder?.updated_at);
+  const toolCatalog = normalizeToolCatalogConfig(adminData.toolCatalog?.value_json || adminData.toolCatalog || defaultToolCatalogConfig);
+  fillToolCatalogForm(toolCatalog);
+  renderAdminToolCatalogPreview(toolCatalog, adminData.toolCatalog?.updated_at);
   renderAdminUsers(adminData.users || []);
   renderAdminCredits(adminData.users || []);
   renderAdminOrders(adminData.orders || [], actor);
@@ -1879,6 +2093,10 @@ function renderAdmin(current) {
 function renderAdminConfiguration() {
   fillHomepageForm(defaultHomepageConfig);
   renderAdminHomepagePreview(defaultHomepageConfig);
+  fillPageBuilderForm(defaultPageBuilderConfig);
+  renderAdminPageBuilderPreview(defaultPageBuilderConfig);
+  fillToolCatalogForm(defaultToolCatalogConfig);
+  renderAdminToolCatalogPreview(defaultToolCatalogConfig);
   const oauthItems = getOAuthReadiness().map((item) => ({ ...item, detail: item.ready ? "前端可发起真实授权" : item.action }));
   const oauthList = document.querySelector("[data-admin-oauth]");
   if (!oauthList) return;
@@ -1900,7 +2118,9 @@ function fillAdminEmptyState() {
     "[data-admin-jobs]",
     "[data-admin-shares]",
     "[data-admin-audit]",
-    "[data-admin-homepage-preview-list]"
+    "[data-admin-homepage-preview-list]",
+    "[data-admin-page-builder-preview-list]",
+    "[data-admin-tool-catalog-preview-list]"
   ];
   placeholders.forEach((selector) => {
     const target = document.querySelector(selector);
@@ -1922,7 +2142,7 @@ async function loadAdminConsole() {
   if (!document.querySelector("[data-admin-page]") || !supabase || adminLoading) return;
   adminLoading = true;
   try {
-    const [summary, users, orders, assets, jobs, shares, homepage, audit] = await Promise.all([
+    const [summary, users, orders, assets, jobs, shares, homepage, pageBuilder, toolCatalog, audit] = await Promise.all([
       invokeAdmin("dashboard-summary"),
       invokeAdmin("list-users"),
       invokeAdmin("list-orders"),
@@ -1930,6 +2150,8 @@ async function loadAdminConsole() {
       invokeAdmin("list-generation-jobs"),
       invokeAdmin("list-share-links"),
       invokeAdmin("get-homepage-config"),
+      invokeAdmin("get-page-builder-config"),
+      invokeAdmin("get-tool-catalog-config"),
       invokeAdmin("list-audit-logs").catch((error) => ({ auditLogs: [], auditError: error.message }))
     ]);
     adminData = {
@@ -1941,6 +2163,8 @@ async function loadAdminConsole() {
       jobs: jobs.jobs || [],
       shares: shares.shares || [],
       homepage: homepage.homepage || {},
+      pageBuilder: pageBuilder.pageBuilder || {},
+      toolCatalog: toolCatalog.toolCatalog || {},
       auditLogs: audit.auditLogs || [],
       auditError: audit.auditError
     };
@@ -2013,6 +2237,256 @@ function renderAdminHomepagePreview(config, updatedAt = "") {
 function setFormValue(form, name, value) {
   const field = form.elements.namedItem(name);
   if (field) field.value = value;
+}
+
+function normalizePageBuilderConfig(config) {
+  const pages = Array.isArray(config?.pages) ? config.pages : defaultPageBuilderConfig.pages;
+  return {
+    pages: pages.map((page, pageIndex) => ({
+      slug: String(page.slug || (pageIndex === 0 ? "home" : `page-${pageIndex + 1}`)).trim(),
+      name: String(page.name || "页面").trim(),
+      status: ["published", "draft", "hidden"].includes(page.status) ? page.status : "published",
+      modules: normalizePageModules(page.modules)
+    })).filter((page) => page.slug && page.name).slice(0, 12)
+  };
+}
+
+function normalizePageModules(modules) {
+  const source = Array.isArray(modules) && modules.length ? modules : defaultPageBuilderConfig.pages[0].modules;
+  return source.map((module, index) => ({
+    id: String(module.id || `module-${index + 1}`).trim(),
+    type: String(module.type || "gallery").trim(),
+    title: String(module.title || "内容模块").trim(),
+    enabled: module.enabled !== false,
+    displayStyle: ["masonry", "carousel", "grid", "hero", "list"].includes(module.displayStyle) ? module.displayStyle : "grid",
+    cardCount: Math.max(1, Math.min(24, Number(module.cardCount || 6))),
+    source: String(module.source || "manual").trim()
+  })).filter((module) => module.id && module.type).slice(0, 16);
+}
+
+function normalizeToolCatalogConfig(config) {
+  const tools = Array.isArray(config?.tools) ? config.tools : defaultToolCatalogConfig.tools;
+  return {
+    tools: tools.map((tool) => ({
+      slug: String(tool.slug || "").trim(),
+      name: String(tool.name || "").trim(),
+      category: ["image", "video", "character", "asset", "prompt"].includes(tool.category) ? tool.category : "image",
+      status: ["published", "draft", "hidden"].includes(tool.status) ? tool.status : "published",
+      provider: String(tool.provider || "fake_worker").trim(),
+      model: String(tool.model || "local-demo").trim(),
+      creditCost: Math.max(0, Math.min(999, Number(tool.creditCost || 0))),
+      route: sanitizeHomepageHref(String(tool.route || "./zh/app/generate/")),
+      featured: Boolean(tool.featured)
+    })).filter((tool) => tool.slug && tool.name).slice(0, 80)
+  };
+}
+
+function fillPageBuilderForm(config) {
+  const form = document.querySelector("[data-admin-page-builder-form]");
+  if (!form) return;
+  const normalized = normalizePageBuilderConfig(config);
+  setFormValue(form, "pageBuilderRows", serializePageBuilderRows(normalized));
+  renderPageBuilderVisualEditor(normalized);
+}
+
+function fillToolCatalogForm(config) {
+  const form = document.querySelector("[data-admin-tool-catalog-form]");
+  if (!form) return;
+  const normalized = normalizeToolCatalogConfig(config);
+  setFormValue(form, "toolCatalogRows", serializeToolCatalogRows(normalized));
+  renderToolCatalogVisualEditor(normalized);
+}
+
+function readPageBuilderForm(formData) {
+  const visual = readPageBuilderVisualEditor();
+  if (visual.pages.length) return normalizePageBuilderConfig(visual);
+  const rows = String(formData.get("pageBuilderRows") || "");
+  const pageMap = new Map();
+  for (const line of rows.split(/\n+/)) {
+    const parts = line.split("|").map((part) => part.trim());
+    if (parts.length < 9) continue;
+    const [slug, name, moduleId, type, title, enabled, displayStyle, cardCount, source] = parts;
+    if (!pageMap.has(slug)) pageMap.set(slug, { slug, name, status: "published", modules: [] });
+    pageMap.get(slug).modules.push({
+      id: moduleId,
+      type,
+      title,
+      enabled: !["off", "false", "hidden", "0"].includes(enabled.toLowerCase()),
+      displayStyle,
+      cardCount: Number(cardCount),
+      source
+    });
+  }
+  return normalizePageBuilderConfig({ pages: Array.from(pageMap.values()) });
+}
+
+function readToolCatalogForm(formData) {
+  const visual = readToolCatalogVisualEditor();
+  if (visual.tools.length) return normalizeToolCatalogConfig(visual);
+  const rows = String(formData.get("toolCatalogRows") || "");
+  return normalizeToolCatalogConfig({
+    tools: rows.split(/\n+/).map((line) => {
+      const [slug, name, category, status, provider, model, creditCost, route, featured] = line.split("|").map((part) => part.trim());
+      return {
+        slug,
+        name,
+        category,
+        status,
+        provider,
+        model,
+        creditCost: Number(creditCost),
+        route,
+        featured: ["yes", "true", "on", "1", "推荐"].includes(String(featured || "").toLowerCase())
+      };
+    })
+  });
+}
+
+function renderPageBuilderVisualEditor(config) {
+  const target = document.querySelector("[data-admin-page-builder-visual]");
+  if (!target) return;
+  const normalized = normalizePageBuilderConfig(config);
+  target.innerHTML = normalized.pages.map((page) => `
+    <section class="admin-config-page" data-page-builder-page>
+      <div class="admin-config-page-head">
+        <label><span>页面</span><input data-page-slug value="${escapeHtml(page.slug)}"></label>
+        <label><span>页面名称</span><input data-page-name value="${escapeHtml(page.name)}"></label>
+        <label><span>状态</span><select data-page-status>${optionMarkup(["published", "draft", "hidden"], page.status)}</select></label>
+      </div>
+      <div class="admin-config-module-list">
+        ${page.modules.map((module) => `
+          <article class="admin-config-card" data-page-builder-module>
+            <label><span>模块 ID</span><input data-module-id value="${escapeHtml(module.id)}"></label>
+            <label><span>模块类型</span><select data-module-type>${optionMarkup(["hero", "gallery", "characters", "tools", "pricing", "faq", "custom"], module.type)}</select></label>
+            <label class="wide"><span>模块标题</span><input data-module-title value="${escapeHtml(module.title)}"></label>
+            <label><span>是否启用</span><select data-module-enabled>${optionMarkup(["on", "off"], module.enabled ? "on" : "off")}</select></label>
+            <label><span>展示方式</span><select data-module-style>${optionMarkup(["hero", "masonry", "carousel", "grid", "list"], module.displayStyle)}</select></label>
+            <label><span>展示卡片数</span><input data-module-count type="number" min="1" max="24" value="${module.cardCount}"></label>
+            <label class="wide"><span>数据来源</span><input data-module-source value="${escapeHtml(module.source)}"></label>
+          </article>
+        `).join("")}
+      </div>
+    </section>
+  `).join("");
+}
+
+function renderToolCatalogVisualEditor(config) {
+  const target = document.querySelector("[data-admin-tool-catalog-visual]");
+  if (!target) return;
+  const normalized = normalizeToolCatalogConfig(config);
+  target.innerHTML = normalized.tools.map((tool) => `
+    <article class="admin-config-card tool-card" data-tool-catalog-item>
+      <label><span>Slug</span><input data-tool-slug value="${escapeHtml(tool.slug)}"></label>
+      <label><span>工具名称</span><input data-tool-name value="${escapeHtml(tool.name)}"></label>
+      <label><span>分类</span><select data-tool-category>${optionMarkup(["image", "video", "character", "asset", "prompt"], tool.category)}</select></label>
+      <label><span>状态</span><select data-tool-status>${optionMarkup(["published", "draft", "hidden"], tool.status)}</select></label>
+      <label><span>服务商</span><select data-tool-provider>${optionMarkup(["fake_worker", "openai", "gemini", "fal", "replicate", "comfyui", "runpod", "local_api"], tool.provider)}</select></label>
+      <label><span>模型 / 工作流</span><input data-tool-model value="${escapeHtml(tool.model)}"></label>
+      <label><span>积分价格</span><input data-tool-cost type="number" min="0" max="999" value="${tool.creditCost}"></label>
+      <label><span>是否推荐</span><select data-tool-featured>${optionMarkup(["yes", "no"], tool.featured ? "yes" : "no")}</select></label>
+      <label class="wide"><span>入口路径</span><input data-tool-route value="${escapeHtml(tool.route)}"></label>
+    </article>
+  `).join("");
+}
+
+function readPageBuilderVisualEditor() {
+  const pages = Array.from(document.querySelectorAll("[data-page-builder-page]")).map((pageNode) => ({
+    slug: pageNode.querySelector("[data-page-slug]")?.value.trim() || "",
+    name: pageNode.querySelector("[data-page-name]")?.value.trim() || "",
+    status: pageNode.querySelector("[data-page-status]")?.value || "published",
+    modules: Array.from(pageNode.querySelectorAll("[data-page-builder-module]")).map((moduleNode) => ({
+      id: moduleNode.querySelector("[data-module-id]")?.value.trim() || "",
+      type: moduleNode.querySelector("[data-module-type]")?.value || "gallery",
+      title: moduleNode.querySelector("[data-module-title]")?.value.trim() || "",
+      enabled: moduleNode.querySelector("[data-module-enabled]")?.value !== "off",
+      displayStyle: moduleNode.querySelector("[data-module-style]")?.value || "grid",
+      cardCount: Number(moduleNode.querySelector("[data-module-count]")?.value || 6),
+      source: moduleNode.querySelector("[data-module-source]")?.value.trim() || "manual"
+    }))
+  }));
+  return { pages: pages.filter((page) => page.slug && page.name) };
+}
+
+function readToolCatalogVisualEditor() {
+  const tools = Array.from(document.querySelectorAll("[data-tool-catalog-item]")).map((node) => ({
+    slug: node.querySelector("[data-tool-slug]")?.value.trim() || "",
+    name: node.querySelector("[data-tool-name]")?.value.trim() || "",
+    category: node.querySelector("[data-tool-category]")?.value || "image",
+    status: node.querySelector("[data-tool-status]")?.value || "published",
+    provider: node.querySelector("[data-tool-provider]")?.value || "fake_worker",
+    model: node.querySelector("[data-tool-model]")?.value.trim() || "local-demo",
+    creditCost: Number(node.querySelector("[data-tool-cost]")?.value || 0),
+    route: node.querySelector("[data-tool-route]")?.value.trim() || "./zh/app/generate/",
+    featured: node.querySelector("[data-tool-featured]")?.value === "yes"
+  }));
+  return { tools: tools.filter((tool) => tool.slug && tool.name) };
+}
+
+function optionMarkup(options, selected) {
+  return options.map((option) => `<option value="${escapeHtml(option)}" ${option === selected ? "selected" : ""}>${escapeHtml(option)}</option>`).join("");
+}
+
+function serializePageBuilderRows(config) {
+  return normalizePageBuilderConfig(config).pages.flatMap((page) =>
+    page.modules.map((module) => [
+      page.slug,
+      page.name,
+      module.id,
+      module.type,
+      module.title,
+      module.enabled ? "on" : "off",
+      module.displayStyle,
+      module.cardCount,
+      module.source
+    ].join("|"))
+  ).join("\n");
+}
+
+function serializeToolCatalogRows(config) {
+  return normalizeToolCatalogConfig(config).tools.map((tool) => [
+    tool.slug,
+    tool.name,
+    tool.category,
+    tool.status,
+    tool.provider,
+    tool.model,
+    tool.creditCost,
+    tool.route,
+    tool.featured ? "yes" : "no"
+  ].join("|")).join("\n");
+}
+
+function renderAdminPageBuilderPreview(config, updatedAt = "") {
+  const target = document.querySelector("[data-admin-page-builder-preview-list]");
+  if (!target) return;
+  const normalized = normalizePageBuilderConfig(config);
+  target.innerHTML = normalized.pages.map((page) => `
+    <article class="admin-row admin-config-row">
+      <span class="status-dot ${page.status === "published" ? "ready" : "blocked"}"></span>
+      <div>
+        <strong>${escapeHtml(page.name)} · ${escapeHtml(page.slug)}</strong>
+        <p>${page.modules.length} 个模块 · ${page.modules.filter((module) => module.enabled).length} 个启用${updatedAt ? ` · 更新于 ${escapeHtml(updatedAt)}` : ""}</p>
+        <small>${page.modules.map((module) => `${escapeHtml(module.title)} / ${escapeHtml(module.displayStyle)} / ${module.cardCount} 张`).join(" ｜ ")}</small>
+      </div>
+      <em>${escapeHtml(page.status)}</em>
+    </article>
+  `).join("");
+}
+
+function renderAdminToolCatalogPreview(config, updatedAt = "") {
+  const target = document.querySelector("[data-admin-tool-catalog-preview-list]");
+  if (!target) return;
+  const normalized = normalizeToolCatalogConfig(config);
+  target.innerHTML = normalized.tools.map((tool) => `
+    <article class="admin-row admin-config-row">
+      <span class="status-dot ${tool.status === "published" ? "ready" : "blocked"}"></span>
+      <div>
+        <strong>${escapeHtml(tool.name)} · ${escapeHtml(tool.category)}</strong>
+        <p>${escapeHtml(tool.provider)} / ${escapeHtml(tool.model)} · ${tool.creditCost} 积分 · ${escapeHtml(tool.route)}${updatedAt ? ` · 更新于 ${escapeHtml(updatedAt)}` : ""}</p>
+      </div>
+      <em>${tool.featured ? "推荐" : escapeHtml(tool.status)}</em>
+    </article>
+  `).join("");
 }
 
 function splitCommaList(value) {

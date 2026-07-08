@@ -45,6 +45,43 @@ export interface HomepageCard {
   outputPreview?: boolean;
 }
 
+export interface PageBuilderConfig {
+  pages: PageBuilderPage[];
+}
+
+export interface PageBuilderPage {
+  slug: string;
+  name: string;
+  status: string;
+  modules: PageBuilderModule[];
+}
+
+export interface PageBuilderModule {
+  id: string;
+  type: string;
+  title: string;
+  enabled: boolean;
+  displayStyle: string;
+  cardCount: number;
+  source: string;
+}
+
+export interface ToolCatalogConfig {
+  tools: ToolCatalogItem[];
+}
+
+export interface ToolCatalogItem {
+  slug: string;
+  name: string;
+  category: string;
+  status: string;
+  provider: string;
+  model: string;
+  creditCost: number;
+  route: string;
+  featured: boolean;
+}
+
 export class SupabaseAdminBackend {
   constructor(private readonly client: SupabaseClient) {}
 
@@ -278,6 +315,36 @@ export class SupabaseAdminBackend {
     return result.data as Record<string, unknown>;
   }
 
+  async getPageBuilderConfig(actor: AdminActor): Promise<Record<string, unknown>> {
+    await this.requireOperator(actor);
+    return this.getSetting("page_builder_config", this.defaultPageBuilderConfig());
+  }
+
+  async updatePageBuilderConfig(actor: AdminActor, input: { config: Partial<PageBuilderConfig>; reason: string }): Promise<Record<string, unknown>> {
+    this.requireAdmin(actor);
+    this.requireReason(input.reason);
+    const record = await this.upsertSetting("page_builder_config", this.normalizePageBuilderConfig(input.config), actor.id);
+    await this.audit(actor, "admin.update_page_builder_config", "site_setting", "page_builder_config", "success", {
+      reason: input.reason.trim(),
+    });
+    return record;
+  }
+
+  async getToolCatalogConfig(actor: AdminActor): Promise<Record<string, unknown>> {
+    await this.requireOperator(actor);
+    return this.getSetting("tool_catalog_config", this.defaultToolCatalogConfig());
+  }
+
+  async updateToolCatalogConfig(actor: AdminActor, input: { config: Partial<ToolCatalogConfig>; reason: string }): Promise<Record<string, unknown>> {
+    this.requireAdmin(actor);
+    this.requireReason(input.reason);
+    const record = await this.upsertSetting("tool_catalog_config", this.normalizeToolCatalogConfig(input.config), actor.id);
+    await this.audit(actor, "admin.update_tool_catalog_config", "site_setting", "tool_catalog_config", "success", {
+      reason: input.reason.trim(),
+    });
+    return record;
+  }
+
   async revokeShareLink(actor: AdminActor, input: { shareId: string; reason: string }): Promise<Record<string, unknown>> {
     this.requireAdmin(actor);
     this.requireReason(input.reason);
@@ -311,6 +378,40 @@ export class SupabaseAdminBackend {
       throw new AppError("ADMIN_TABLE_READ_FAILED", result.error.message, 502);
     }
     return (result.data ?? []) as Array<Record<string, any>>;
+  }
+
+  private async getSetting(settingKey: string, fallback: unknown): Promise<Record<string, unknown>> {
+    const result = await this.client
+      .from("site_settings")
+      .select("*")
+      .eq("setting_key", settingKey)
+      .single();
+    if (result.error || !result.data) {
+      return {
+        setting_key: settingKey,
+        value_json: fallback,
+        status: "default",
+      };
+    }
+    return result.data as Record<string, unknown>;
+  }
+
+  private async upsertSetting(settingKey: string, valueJson: unknown, actorId: string): Promise<Record<string, unknown>> {
+    const result = await this.client
+      .from("site_settings")
+      .upsert({
+        setting_key: settingKey,
+        value_json: valueJson,
+        status: "published",
+        updated_by: actorId,
+        updated_at: nowIso(),
+      }, { onConflict: "setting_key" })
+      .select("*")
+      .single();
+    if (result.error) {
+      throw new AppError("ADMIN_SETTING_UPDATE_FAILED", result.error.message, 502);
+    }
+    return result.data as Record<string, unknown>;
   }
 
   private async audit(
@@ -404,5 +505,95 @@ export class SupabaseAdminBackend {
     return Array.isArray(cards) && cards.length
       ? cards.filter((card) => card.label && card.title).slice(0, max)
       : fallback;
+  }
+
+  private normalizePageBuilderConfig(config: Partial<PageBuilderConfig>): PageBuilderConfig {
+    const fallback = this.defaultPageBuilderConfig();
+    const pages = Array.isArray(config.pages) ? config.pages : fallback.pages;
+    return {
+      pages: pages
+        .filter((page) => page.slug && page.name)
+        .slice(0, 12)
+        .map((page) => ({
+          slug: String(page.slug).trim().slice(0, 48),
+          name: String(page.name).trim().slice(0, 80),
+          status: ["published", "draft", "hidden"].includes(page.status) ? page.status : "published",
+          modules: this.safePageModules(page.modules, fallback.pages[0]?.modules ?? []),
+        })),
+    };
+  }
+
+  private safePageModules(modules: PageBuilderModule[] | undefined, fallback: PageBuilderModule[]): PageBuilderModule[] {
+    const source = Array.isArray(modules) && modules.length ? modules : fallback;
+    return source
+      .filter((module) => module.id && module.type)
+      .slice(0, 16)
+      .map((module) => ({
+        id: String(module.id).trim().slice(0, 48),
+        type: String(module.type).trim().slice(0, 40),
+        title: String(module.title ?? "").trim().slice(0, 80),
+        enabled: module.enabled !== false,
+        displayStyle: ["masonry", "carousel", "grid", "hero", "list"].includes(module.displayStyle) ? module.displayStyle : "grid",
+        cardCount: Math.max(1, Math.min(24, Number(module.cardCount || 6))),
+        source: String(module.source ?? "manual").trim().slice(0, 80),
+      }));
+  }
+
+  private defaultPageBuilderConfig(): PageBuilderConfig {
+    return {
+      pages: [
+        {
+          slug: "home",
+          name: "首页",
+          status: "published",
+          modules: [
+            { id: "hero", type: "hero", title: "首屏视觉", enabled: true, displayStyle: "hero", cardCount: 4, source: "homepage_config.showcaseCards" },
+            { id: "explore", type: "gallery", title: "探索你能创作什么", enabled: true, displayStyle: "masonry", cardCount: 8, source: "featured_assets" },
+            { id: "characters", type: "characters", title: "角色示例", enabled: true, displayStyle: "carousel", cardCount: 6, source: "character_templates" },
+          ],
+        },
+        {
+          slug: "app",
+          name: "工具首页",
+          status: "published",
+          modules: [
+            { id: "featured-tools", type: "tools", title: "推荐工具", enabled: true, displayStyle: "grid", cardCount: 8, source: "tool_catalog_config.tools" },
+            { id: "image-tools", type: "tools", title: "图像工具", enabled: true, displayStyle: "carousel", cardCount: 12, source: "category:image" },
+            { id: "video-tools", type: "tools", title: "视频工具", enabled: true, displayStyle: "carousel", cardCount: 8, source: "category:video" },
+          ],
+        },
+      ],
+    };
+  }
+
+  private normalizeToolCatalogConfig(config: Partial<ToolCatalogConfig>): ToolCatalogConfig {
+    const fallback = this.defaultToolCatalogConfig();
+    const tools = Array.isArray(config.tools) ? config.tools : fallback.tools;
+    return {
+      tools: tools
+        .filter((tool) => tool.slug && tool.name)
+        .slice(0, 80)
+        .map((tool) => ({
+          slug: String(tool.slug).trim().slice(0, 64),
+          name: String(tool.name).trim().slice(0, 80),
+          category: ["image", "video", "character", "asset", "prompt"].includes(tool.category) ? tool.category : "image",
+          status: ["published", "draft", "hidden"].includes(tool.status) ? tool.status : "published",
+          provider: String(tool.provider || "fake_worker").trim().slice(0, 40),
+          model: String(tool.model || "local-demo").trim().slice(0, 80),
+          creditCost: Math.max(0, Math.min(999, Number(tool.creditCost || 0))),
+          route: this.safeHref(tool.route, "./zh/app/generate/"),
+          featured: Boolean(tool.featured),
+        })),
+    };
+  }
+
+  private defaultToolCatalogConfig(): ToolCatalogConfig {
+    return {
+      tools: [
+        { slug: "image-editor", name: "图片编辑器", category: "image", status: "published", provider: "fake_worker", model: "local-image-edit-v0", creditCost: 8, route: "./zh/app/image-editor/", featured: true },
+        { slug: "outfit-studio", name: "AI 换装", category: "image", status: "published", provider: "fake_worker", model: "local-outfit-v0", creditCost: 12, route: "./zh/app/outfit-studio/", featured: true },
+        { slug: "image-to-video", name: "图片转视频", category: "video", status: "published", provider: "fake_worker", model: "local-video-v0", creditCost: 24, route: "./zh/app/image-to-video/", featured: true },
+      ],
+    };
   }
 }

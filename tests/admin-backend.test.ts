@@ -58,24 +58,65 @@ test("admin backend enforces roles and audits sensitive operations", async () =>
   assert.equal(homepage.setting_key, "homepage_config");
   await assert.rejects(
     () => backend.updateHomepageConfig(operator, {
-      config: { headline: "运营人员不能发布首页" },
+      config: { headline: "operator cannot publish homepage" },
       reason: "operator attempt",
     }),
     (error: any) => error.code === "ADMIN_FORBIDDEN",
   );
   const updatedHomepage = await backend.updateHomepageConfig(admin, {
     config: {
-      headline: "后台发布的首页标题",
+      headline: "Admin published homepage headline",
       primaryCtaHref: "https://unsafe.example",
-      trustSignals: ["首页可配置", "写入审计"],
-      showcaseCards: [{ label: "视频", title: "后台配置卡片", style: "art-1" }],
-      creationCards: [{ label: "资产", title: "首页作品卡片", style: "art-2" }],
+      trustSignals: ["configurable homepage", "audited publish"],
+      showcaseCards: [{ label: "Video", title: "Configured card", style: "art-1" }],
+      creationCards: [{ label: "Asset", title: "Homepage creation card", style: "art-2" }],
     },
     reason: "homepage conversion update",
   });
-  assert.equal((updatedHomepage.value_json as any).headline, "后台发布的首页标题");
+  assert.equal((updatedHomepage.value_json as any).headline, "Admin published homepage headline");
   assert.equal((updatedHomepage.value_json as any).primaryCtaHref, "./zh/app/generate/");
   assert.equal(client.table("audit_logs").length, 5);
+
+  const pageBuilder = await backend.getPageBuilderConfig(operator);
+  assert.equal(pageBuilder.setting_key, "page_builder_config");
+  await assert.rejects(
+    () => backend.updatePageBuilderConfig(operator, {
+      config: { pages: [] },
+      reason: "operator attempt",
+    }),
+    (error: any) => error.code === "ADMIN_FORBIDDEN",
+  );
+  const updatedPageBuilder = await backend.updatePageBuilderConfig(admin, {
+    config: {
+      pages: [
+        {
+          slug: "home",
+          name: "Home",
+          status: "published",
+          modules: [
+            { id: "explore", type: "gallery", title: "Explore module", enabled: true, displayStyle: "masonry", cardCount: 99, source: "featured_assets" },
+          ],
+        },
+      ],
+    },
+    reason: "page module merchandising",
+  });
+  assert.equal((updatedPageBuilder.value_json as any).pages[0].modules[0].cardCount, 24);
+  assert.equal(client.table("audit_logs").length, 6);
+
+  const toolCatalog = await backend.getToolCatalogConfig(operator);
+  assert.equal(toolCatalog.setting_key, "tool_catalog_config");
+  const updatedToolCatalog = await backend.updateToolCatalogConfig(admin, {
+    config: {
+      tools: [
+        { slug: "outfit-studio", name: "AI Outfit", category: "image", status: "published", provider: "fal", model: "tryon-v1", creditCost: 12, route: "https://unsafe.example", featured: true },
+      ],
+    },
+    reason: "tool listing update",
+  });
+  assert.equal((updatedToolCatalog.value_json as any).tools[0].route, "./zh/app/generate/");
+  assert.equal((updatedToolCatalog.value_json as any).tools[0].provider, "fal");
+  assert.equal(client.table("audit_logs").length, 7);
 });
 
 class FakeAdminSupabaseClient {
@@ -150,7 +191,9 @@ class FakeAdminQuery {
       Object.assign(existing, payload);
       this.payload = existing;
     } else {
-      this.payload = payload;
+      const row = { ...payload };
+      this.table.push(row);
+      this.payload = row;
     }
     return this;
   }
@@ -185,9 +228,7 @@ class FakeAdminQuery {
       return { data: this.singleResult ? rows[0] : rows, error: null };
     }
     if (this.action === "upsert") {
-      const row = this.payload;
-      if (!this.table.includes(row)) this.table.push({ ...row });
-      return { data: this.singleResult ? row : [row], error: null };
+      return { data: this.singleResult ? this.payload : [this.payload], error: null };
     }
     if (this.action === "update") {
       const rows = this.filteredRows();

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.67.0 |
+| Version | 0.68.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -22,6 +22,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 ## Current Implementation Notes
 
 - The MVP Admin console is now a real Supabase-backed operations surface. Admin/operator access is based on `profiles.role`, sensitive write actions go through the Supabase `admin` Edge Function, and admin credit/order/content/share actions write audit logs.
+- The Admin console now supports Shopify-style MVP merchandising controls through `site_settings`: `page_builder_config` controls page modules, display style, card counts, and module data sources; `tool_catalog_config` controls AI tool listing status, category, provider, model, route, featured state, and credit cost.
 - The Admin frontend has been upgraded into a multi-module MVP operations console with a left navigation shell, command center, KPI cards, and modules for users, credits, orders, moderation, jobs, shares, homepage content, system readiness, and audit logs.
 - The Admin console now includes an MVP homepage manager for Shopify-style public content control: admins can publish hero copy, CTA links, trust signals, showcase cards, and gallery preview cards through `site_settings.homepage_config`.
 - The public homepage can read published homepage configuration from Supabase while preserving static fallback content for GitHub Pages and local preview.

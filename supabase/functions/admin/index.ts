@@ -86,6 +86,14 @@ Deno.serve(async (req) => {
       const homepage = await getHomepageConfig(adminClient);
       return json({ actor, homepage });
     }
+    if (action === "get-page-builder-config") {
+      const pageBuilder = await getSetting(adminClient, "page_builder_config", defaultPageBuilderConfig());
+      return json({ actor, pageBuilder });
+    }
+    if (action === "get-tool-catalog-config") {
+      const toolCatalog = await getSetting(adminClient, "tool_catalog_config", defaultToolCatalogConfig());
+      return json({ actor, toolCatalog });
+    }
     if (action === "list-audit-logs") {
       requireAdmin(actor);
       return json({ actor, auditLogs: await select(adminClient, "audit_logs", "created_at", false) });
@@ -110,6 +118,24 @@ Deno.serve(async (req) => {
       if (error) throw error;
       await audit(adminClient, actor, "admin.update_homepage_config", "site_setting", "homepage_config", { reason: body.reason });
       return json({ actor, homepage: data });
+    }
+
+    if (action === "update-page-builder-config") {
+      requireAdmin(actor);
+      requireReason(body.reason);
+      const { data, error } = await upsertSetting(adminClient, "page_builder_config", normalizePageBuilderConfig(body.config), actor.id);
+      if (error) throw error;
+      await audit(adminClient, actor, "admin.update_page_builder_config", "site_setting", "page_builder_config", { reason: body.reason });
+      return json({ actor, pageBuilder: data });
+    }
+
+    if (action === "update-tool-catalog-config") {
+      requireAdmin(actor);
+      requireReason(body.reason);
+      const { data, error } = await upsertSetting(adminClient, "tool_catalog_config", normalizeToolCatalogConfig(body.config), actor.id);
+      if (error) throw error;
+      await audit(adminClient, actor, "admin.update_tool_catalog_config", "site_setting", "tool_catalog_config", { reason: body.reason });
+      return json({ actor, toolCatalog: data });
     }
 
     if (action === "adjust-credits") {
@@ -234,6 +260,36 @@ async function getHomepageConfig(client: ReturnType<typeof createClient>) {
   };
 }
 
+async function getSetting(client: ReturnType<typeof createClient>, settingKey: string, fallback: Record<string, unknown>) {
+  const { data, error } = await client
+    .from("site_settings")
+    .select("*")
+    .eq("setting_key", settingKey)
+    .maybeSingle();
+  if (error) throw error;
+  return data ?? {
+    setting_key: settingKey,
+    value_json: fallback,
+    status: "default",
+    updated_at: null,
+    updated_by: null,
+  };
+}
+
+function upsertSetting(client: ReturnType<typeof createClient>, settingKey: string, valueJson: Record<string, unknown>, actorId: string) {
+  return client
+    .from("site_settings")
+    .upsert({
+      setting_key: settingKey,
+      value_json: valueJson,
+      status: "published",
+      updated_by: actorId,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "setting_key" })
+    .select("*")
+    .single();
+}
+
 function normalizeHomepageConfig(config: unknown) {
   const fallback = defaultHomepageConfig();
   const input = typeof config === "object" && config ? config as Record<string, unknown> : {};
@@ -251,6 +307,61 @@ function normalizeHomepageConfig(config: unknown) {
     showcaseCards: cardList(input.showcaseCards, fallback.showcaseCards, 8),
     creationCards: cardList(input.creationCards, fallback.creationCards, 12),
   };
+}
+
+function normalizePageBuilderConfig(config: unknown) {
+  const fallback = defaultPageBuilderConfig();
+  const input = typeof config === "object" && config ? config as Record<string, unknown> : {};
+  const pages = Array.isArray(input.pages) ? input.pages : fallback.pages;
+  return {
+    pages: pages.map((page, pageIndex) => {
+      const item = typeof page === "object" && page ? page as Record<string, unknown> : {};
+      return {
+        slug: text(item.slug, pageIndex === 0 ? "home" : `page-${pageIndex + 1}`, 48),
+        name: text(item.name, "页面", 80),
+        status: enumText(item.status, ["published", "draft", "hidden"], "published"),
+        modules: moduleList(item.modules, fallback.pages[0].modules),
+      };
+    }).filter((page) => page.slug && page.name).slice(0, 12),
+  };
+}
+
+function normalizeToolCatalogConfig(config: unknown) {
+  const fallback = defaultToolCatalogConfig();
+  const input = typeof config === "object" && config ? config as Record<string, unknown> : {};
+  const tools = Array.isArray(input.tools) ? input.tools : fallback.tools;
+  return {
+    tools: tools.map((tool) => {
+      const item = typeof tool === "object" && tool ? tool as Record<string, unknown> : {};
+      return {
+        slug: text(item.slug, "", 64),
+        name: text(item.name, "", 80),
+        category: enumText(item.category, ["image", "video", "character", "asset", "prompt"], "image"),
+        status: enumText(item.status, ["published", "draft", "hidden"], "published"),
+        provider: text(item.provider, "fake_worker", 40),
+        model: text(item.model, "local-demo", 80),
+        creditCost: numberClamp(item.creditCost, 0, 999, 0),
+        route: href(item.route, "./zh/app/generate/"),
+        featured: Boolean(item.featured),
+      };
+    }).filter((tool) => tool.slug && tool.name).slice(0, 80),
+  };
+}
+
+function moduleList(value: unknown, fallback: Array<Record<string, unknown>>) {
+  const modules = Array.isArray(value) ? value : fallback;
+  return modules.map((module, index) => {
+    const item = typeof module === "object" && module ? module as Record<string, unknown> : {};
+    return {
+      id: text(item.id, `module-${index + 1}`, 48),
+      type: text(item.type, "gallery", 40),
+      title: text(item.title, "内容模块", 80),
+      enabled: item.enabled !== false,
+      displayStyle: enumText(item.displayStyle, ["masonry", "carousel", "grid", "hero", "list"], "grid"),
+      cardCount: numberClamp(item.cardCount, 1, 24, 6),
+      source: text(item.source, "manual", 80),
+    };
+  }).filter((module) => module.id && module.type).slice(0, 16);
 }
 
 function defaultHomepageConfig() {
@@ -279,9 +390,57 @@ function defaultHomepageConfig() {
   };
 }
 
+function defaultPageBuilderConfig() {
+  return {
+    pages: [
+      {
+        slug: "home",
+        name: "首页",
+        status: "published",
+        modules: [
+          { id: "hero", type: "hero", title: "首屏视觉", enabled: true, displayStyle: "hero", cardCount: 4, source: "homepage_config.showcaseCards" },
+          { id: "explore", type: "gallery", title: "探索你能创作什么", enabled: true, displayStyle: "masonry", cardCount: 8, source: "featured_assets" },
+          { id: "characters", type: "characters", title: "角色示例", enabled: true, displayStyle: "carousel", cardCount: 6, source: "character_templates" },
+        ],
+      },
+      {
+        slug: "app",
+        name: "工具首页",
+        status: "published",
+        modules: [
+          { id: "featured-tools", type: "tools", title: "推荐工具", enabled: true, displayStyle: "grid", cardCount: 8, source: "tool_catalog_config.tools" },
+          { id: "image-tools", type: "tools", title: "图像工具", enabled: true, displayStyle: "carousel", cardCount: 12, source: "category:image" },
+          { id: "video-tools", type: "tools", title: "视频工具", enabled: true, displayStyle: "carousel", cardCount: 8, source: "category:video" },
+        ],
+      },
+    ],
+  };
+}
+
+function defaultToolCatalogConfig() {
+  return {
+    tools: [
+      { slug: "image-editor", name: "图片编辑器", category: "image", status: "published", provider: "fake_worker", model: "local-image-edit-v0", creditCost: 8, route: "./zh/app/image-editor/", featured: true },
+      { slug: "outfit-studio", name: "AI 换装", category: "image", status: "published", provider: "fake_worker", model: "local-outfit-v0", creditCost: 12, route: "./zh/app/outfit-studio/", featured: true },
+      { slug: "image-to-video", name: "图片转视频", category: "video", status: "published", provider: "fake_worker", model: "local-video-v0", creditCost: 24, route: "./zh/app/image-to-video/", featured: true },
+    ],
+  };
+}
+
 function text(value: unknown, fallback: string, max: number) {
   const normalized = typeof value === "string" ? value.trim() : "";
   return normalized ? normalized.slice(0, max) : fallback;
+}
+
+function enumText(value: unknown, allowed: string[], fallback: string) {
+  const normalized = typeof value === "string" ? value.trim() : "";
+  return allowed.includes(normalized) ? normalized : fallback;
+}
+
+function numberClamp(value: unknown, min: number, max: number, fallback: number) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(min, Math.min(max, Math.round(parsed)));
 }
 
 function href(value: unknown, fallback: string) {

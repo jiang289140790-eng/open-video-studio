@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.60.0 |
+| Version | 0.61.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,11 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Expanded the MVP Admin console toward a Shopify-style operations model with Page Builder and Tool Catalog sections. Admins can now configure page modules, display styles, card counts, module data sources, tool listing status, category, provider, model, route, featured state, and credit cost through `site_settings`.
+- Upgraded Page Builder and Tool Catalog from batch text-only configuration into visual admin cards with editable page/module/tool fields while keeping advanced batch editing available.
+- Connected the public homepage and tool directory surfaces to published `page_builder_config` and `tool_catalog_config`, so admin settings can affect section visibility, card counts, display style, tool labels, provider metadata, route, featured state, and credit labels.
+- Added Supabase Admin Edge Function actions and backend methods for `get-page-builder-config`, `update-page-builder-config`, `get-tool-catalog-config`, and `update-tool-catalog-config`, with admin-only writes and audit logs.
+- Added tests for page module merchandising, tool listing sanitization, admin/operator permissions, and static admin UI coverage.
 - Upgraded `apps/web/admin.html` from a simple homepage form into a richer Chinese MVP operations console with left navigation, command center, KPI cards, and dedicated modules for users, credits, orders, moderation, generation jobs, share links, homepage content, system readiness, and audit logs.
 - Restored the Admin page source to clean UTF-8 Chinese text and added static regression coverage for the expanded admin module map.
 - Added final Admin console styling overrides for the black / charcoal / pink product direction, including responsive navigation and denser operations layouts.
@@ -32,7 +37,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 ### Validation
 
 - Ran `npm run build`; production build completed successfully.
-- Ran `node --test dist/tests/frontend-static.test.js`; 33 static frontend tests passed.
+- Ran `npm run test`; 52 tests passed.
 
 ### Added
 

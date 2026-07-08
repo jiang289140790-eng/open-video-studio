@@ -21,6 +21,8 @@
         <a href="#moderation">内容审核</a>
         <a href="#jobs">生成任务</a>
         <a href="#shares">分享链接</a>
+        <a href="#page-builder">页面模块</a>
+        <a href="#tool-catalog">工具上架</a>
         <a href="#homepage">首页内容</a>
         <a href="#system">系统配置</a>
         <a href="#audit">审计日志</a>
@@ -144,6 +146,54 @@
             <span>Public Links</span>
           </div>
           <div class="admin-list" data-admin-shares></div>
+        </article>
+
+        <article class="panel admin-builder admin-module" id="page-builder">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Page Builder</p><h2>页面模块管理</h2></div>
+            <span>Admin only</span>
+          </div>
+          <p class="muted">像 Shopify 的页面模板一样，按页面配置模块、展示方式、卡片数量和数据来源。格式：页面|页面名|模块ID|模块类型|模块标题|开关|展示方式|卡片数|数据源。</p>
+          <form class="admin-home-form" data-admin-page-builder-form>
+            <div class="admin-visual-editor" data-admin-page-builder-visual></div>
+            <label class="admin-textarea-label">
+              <span>高级批量编辑</span>
+              <textarea name="pageBuilderRows" rows="10" data-admin-page-builder-rows placeholder="home|首页|hero|hero|首屏视觉|on|hero|4|homepage_config.showcaseCards&#10;home|首页|explore|gallery|探索你能创作什么|on|masonry|8|featured_assets&#10;app|工具首页|featured-tools|tools|推荐工具|on|grid|8|tool_catalog_config.tools"></textarea>
+            </label>
+            <label class="admin-textarea-label">
+              <span>发布原因</span>
+              <input name="reason" placeholder="例如：首页模块数量和展示方式调整" required>
+            </label>
+            <div class="admin-home-actions">
+              <button class="btn glass" type="button" data-admin-page-builder-preview>预览页面模块</button>
+              <button class="btn primary" type="submit">发布页面模块</button>
+            </div>
+          </form>
+          <div class="admin-list" data-admin-page-builder-preview-list></div>
+        </article>
+
+        <article class="panel admin-builder admin-module" id="tool-catalog">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Tool Catalog</p><h2>AI 工具上架管理</h2></div>
+            <span>Admin only</span>
+          </div>
+          <p class="muted">像商品上架一样管理 AI 工具：分类、状态、服务商、模型、积分价格、入口路径和是否推荐。格式：slug|名称|分类|状态|服务商|模型|积分|路径|推荐。</p>
+          <form class="admin-home-form" data-admin-tool-catalog-form>
+            <div class="admin-visual-editor" data-admin-tool-catalog-visual></div>
+            <label class="admin-textarea-label">
+              <span>高级批量编辑</span>
+              <textarea name="toolCatalogRows" rows="10" data-admin-tool-catalog-rows placeholder="image-editor|图片编辑器|image|published|fake_worker|local-image-edit-v0|8|./zh/app/image-editor/|yes&#10;outfit-studio|AI 换装|image|published|fake_worker|local-outfit-v0|12|./zh/app/outfit-studio/|yes&#10;image-to-video|图片转视频|video|published|fake_worker|local-video-v0|24|./zh/app/image-to-video/|yes"></textarea>
+            </label>
+            <label class="admin-textarea-label">
+              <span>发布原因</span>
+              <input name="reason" placeholder="例如：上架换装工具并调整积分价格" required>
+            </label>
+            <div class="admin-home-actions">
+              <button class="btn glass" type="button" data-admin-tool-catalog-preview>预览工具上架</button>
+              <button class="btn primary" type="submit">发布工具配置</button>
+            </div>
+          </form>
+          <div class="admin-list" data-admin-tool-catalog-preview-list></div>
         </article>
 
         <article class="panel admin-home-builder admin-module" id="homepage">

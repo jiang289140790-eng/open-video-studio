@@ -64,7 +64,7 @@ The production database target is Supabase PostgreSQL. The repository includes e
 
 MVP Admin implementation extends `src/supabase/mvp-schema.sql` with Supabase PostgreSQL tables for `audit_logs`, `orders`, `characters`, `images`, `videos`, and `site_settings`, plus role-aware RLS policies. Admin operations use `profiles.role` for `admin` and `operator` access and must preserve auditability for high-risk writes.
 
-The MVP homepage manager stores published public homepage configuration in `site_settings` under `homepage_config`. Public reads are allowed only for published settings; writes go through the admin backend and create audit logs.
+The MVP homepage manager stores published public homepage configuration in `site_settings` under `homepage_config`. Page merchandising stores module composition in `page_builder_config`, and AI tool merchandising stores listing/provider/cost settings in `tool_catalog_config`. Public reads are allowed only for published settings; writes go through the admin backend and create audit logs.
 
 ## Acceptance Criteria
 
