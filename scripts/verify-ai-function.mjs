@@ -51,6 +51,13 @@ const report = {
     fallback: null,
     error: "",
   },
+  qwenVision: {
+    ok: null,
+    provider: "",
+    model: "",
+    durationMs: 0,
+    error: "",
+  },
   generationLoop: {
     ok: null,
     orderCreated: false,
@@ -97,11 +104,13 @@ if (accessToken) {
     report.ok = report.ok && report.optionalAuthenticatedProbe.ok;
     if (report.optionalAuthenticatedProbe.ok) {
       await probePromptEnhancement(accessToken);
+      await probeQwenVision(accessToken);
       await probeGenerationLoop(accessToken);
       await probeCreditRefundLoop(accessToken);
       report.ok =
         report.ok &&
         report.promptEnhancement.ok !== false &&
+        report.qwenVision.ok !== false &&
         report.generationLoop.ok === true &&
         report.creditRefundLoop.ok === true;
     }
@@ -219,6 +228,32 @@ async function probePromptEnhancement(accessToken) {
   } catch (error) {
     report.promptEnhancement.ok = false;
     report.promptEnhancement.error = error instanceof Error ? error.message : "prompt_enhancement_failed";
+  }
+}
+
+async function probeQwenVision(accessToken) {
+  if (report.optionalAuthenticatedProbe.providersConfigured.qwen_vision !== true) {
+    report.qwenVision.ok = true;
+    report.qwenVision.error = "qwen_vision_not_configured";
+    return;
+  }
+  try {
+    const response = await invokeAi(accessToken, {
+      action: "analyze-image",
+      prompt: "Analyze this small verification image. Return concise JSON with subject, scene, text, risk, tags, and prompt suggestions.",
+      image_base64: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=",
+      json: true,
+      max_tokens: 300,
+      temperature: 0.1,
+    });
+    report.qwenVision.ok = Boolean(response.analysis);
+    report.qwenVision.provider = response.provider || "";
+    report.qwenVision.model = response.model || "";
+    report.qwenVision.durationMs = Number(response.durationMs || 0);
+    if (!report.qwenVision.ok) report.qwenVision.error = "analysis_missing";
+  } catch (error) {
+    report.qwenVision.ok = false;
+    report.qwenVision.error = error instanceof Error ? error.message : "qwen_vision_failed";
   }
 }
 

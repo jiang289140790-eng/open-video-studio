@@ -25,6 +25,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Added a real Qwen Vision smoke-test path to `npm run verify:ai` so production validation now attempts the authenticated `analyze-image` action with a small base64 verification image.
+- Updated the AI verification coverage test so the production verifier must retain Qwen Vision, DeepSeek prompt enhancement, successful generation, and cancellation refund probes.
+
+### Validation
+
+- Ran `npm run verify:ai`; DeepSeek prompt enhancement, successful generation asset creation, and cancellation refund still passed, while Qwen Vision returned `Unauthenticated`, proving the remaining issue is the external Qwen Vision site API key/authorization rather than the Supabase AI function route.
+- Ran `npm run test`; 59 tests passed.
+
+### Improved
+
 - Extended the Supabase `ai` Edge Function cancellation response to return explicit refund metadata for non-completed generation jobs.
 - Expanded `npm run verify:ai` to prove the production credit refund loop by creating a generation job, cancelling it, and verifying the cancellation refund amount.
 
