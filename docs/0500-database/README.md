@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DB-BIBLE-001 |
-| Version | 1.12.0 |
+| Version | 1.13.0 |
 | Status | Active |
 | Owner | Data Architecture Lead |
 | Dependencies | PB-008, PB-010, SEC-INDEX-001, ANALYTICS-INDEX-001 |
@@ -50,6 +50,9 @@ Define the permanent database architecture source of truth for Open Video Studio
 - [DB-AI-WORKERS-001 AI Workers](022-ai-workers.md)
 - [DB-WORKFLOW-CONFIGS-001 Workflow Configs](023-workflow-configs.md)
 - [DB-TOOL-VERSIONS-001 Tool Versions](024-tool-versions.md)
+- [DB-CONTENT-INTELLIGENCE-001 Content Intelligence](025-content-intelligence.md)
+- [DB-AGENT-CONFIGS-001 Agent Configs](026-agent-configs.md)
+- [DB-COST-ANALYTICS-001 Cost Analytics](027-cost-analytics.md)
 
 ## Current Implementation
 
@@ -74,6 +77,8 @@ The MVP homepage manager stores published public homepage configuration in `site
 The P0 Admin operations upgrade extends implementation schemas with `ai_workers` and richer `generation_jobs` detail fields: tool slug, workflow id/version, input params, output assets, credit charged, estimated cost, and latency. These fields support Worker Center, failure analysis, cost inspection, and future real provider telemetry without changing frontend contracts.
 
 The P1 Admin operations upgrade adds Workflow Center, Prompt Library, and Tool Version management. MVP configuration is stored in `site_settings.workflow_center_config`, `site_settings.prompt_library_config`, and `site_settings.tool_catalog_config.tools[].versions`, while `workflow_configs`, `prompt_library`, and `tool_versions` are present in implementation schemas for future durable migration.
+
+The P2 Admin operations upgrade adds Content Intelligence, Agent Center, and Cost Analytics readiness. MVP admin configuration stores content intelligence and agent settings in `site_settings`, while implementation schemas reserve `content_intelligence`, `agent_configs`, and `cost_analytics` for durable ingestion, agent governance, and provider margin reporting.
 
 ## Acceptance Criteria
 

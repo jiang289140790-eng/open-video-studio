@@ -136,6 +136,56 @@ create table if not exists public.tool_versions (
   unique(tool_slug, version)
 );
 
+create table if not exists public.content_intelligence (
+  id text primary key,
+  source_platform text not null,
+  source_url text,
+  account_name text,
+  post_text text not null default '',
+  media_urls jsonb not null default '[]'::jsonb,
+  analysis_json jsonb not null default '{}'::jsonb,
+  hook text,
+  topic text,
+  target_audience text,
+  content_angle text,
+  reusable_strategy text,
+  generated_post_variants jsonb not null default '[]'::jsonb,
+  status text not null default 'draft',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.agent_configs (
+  agent_id text primary key,
+  name text not null,
+  role text not null,
+  model_provider text not null,
+  model_name text not null,
+  system_prompt text not null default '',
+  temperature numeric not null default 0.7,
+  max_tokens integer not null default 4096,
+  tools_enabled jsonb not null default '[]'::jsonb,
+  status text not null default 'draft',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.cost_analytics (
+  id text primary key,
+  tool_slug text not null,
+  provider text not null,
+  model_workflow text not null,
+  total_jobs integer not null default 0,
+  success_jobs integer not null default 0,
+  failed_jobs integer not null default 0,
+  total_credit_charged integer not null default 0,
+  estimated_api_cost integer not null default 0,
+  estimated_gpu_cost integer not null default 0,
+  gross_profit integer not null default 0,
+  profit_margin integer not null default 0,
+  captured_at timestamptz not null default now()
+);
+
 create table if not exists public.media_assets (
   id text primary key,
   owner_user_id uuid not null references auth.users(id) on delete cascade,
@@ -278,6 +328,9 @@ create index if not exists idx_ai_workers_provider_status on public.ai_workers(p
 create index if not exists idx_workflow_configs_status on public.workflow_configs(status, provider);
 create index if not exists idx_prompt_library_status on public.prompt_library(status, category);
 create index if not exists idx_tool_versions_slug_status on public.tool_versions(tool_slug, status);
+create index if not exists idx_content_intelligence_platform_status on public.content_intelligence(source_platform, status);
+create index if not exists idx_agent_configs_role_status on public.agent_configs(role, status);
+create index if not exists idx_cost_analytics_tool_provider on public.cost_analytics(tool_slug, provider, captured_at desc);
 create index if not exists idx_media_owner_time on public.media_assets(owner_user_id, updated_at desc);
 create index if not exists idx_media_generation_job on public.media_assets(generation_job_id);
 create index if not exists idx_media_visibility on public.media_assets(visibility_status);
@@ -308,6 +361,9 @@ alter table public.ai_workers enable row level security;
 alter table public.workflow_configs enable row level security;
 alter table public.prompt_library enable row level security;
 alter table public.tool_versions enable row level security;
+alter table public.content_intelligence enable row level security;
+alter table public.agent_configs enable row level security;
+alter table public.cost_analytics enable row level security;
 alter table public.media_assets enable row level security;
 alter table public.share_links enable row level security;
 alter table public.characters enable row level security;
@@ -351,6 +407,18 @@ create policy "prompt library admin read" on public.prompt_library
 
 drop policy if exists "tool versions admin read" on public.tool_versions;
 create policy "tool versions admin read" on public.tool_versions
+  for select using (public.current_profile_role() in ('admin', 'operator'));
+
+drop policy if exists "content intelligence admin read" on public.content_intelligence;
+create policy "content intelligence admin read" on public.content_intelligence
+  for select using (public.current_profile_role() in ('admin', 'operator'));
+
+drop policy if exists "agent configs admin read" on public.agent_configs;
+create policy "agent configs admin read" on public.agent_configs
+  for select using (public.current_profile_role() in ('admin', 'operator'));
+
+drop policy if exists "cost analytics admin read" on public.cost_analytics;
+create policy "cost analytics admin read" on public.cost_analytics
   for select using (public.current_profile_role() in ('admin', 'operator'));
 
 drop policy if exists "media owner read" on public.media_assets;

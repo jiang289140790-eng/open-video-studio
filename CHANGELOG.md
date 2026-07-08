@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.69.0 |
+| Version | 0.70.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,19 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Added
+
+- Added P2 Admin operations modules for Content Intelligence, Agent Center, and Cost Analytics.
+- Extended the admin backend and Supabase `admin` Edge Function with audited actions for `content_intelligence_config` and `agent_center_config`, plus generation-job-derived cost analytics.
+- Added schema readiness for `content_intelligence`, `agent_configs`, and `cost_analytics` in local SQLite and Supabase MVP schemas.
+- Added database documentation for Content Intelligence, Agent Configs, and Cost Analytics, and updated Admin API, Database Bible, and Summary documentation.
+- Added admin backend and static frontend test coverage for P2 admin surfaces.
+
+### Validation
+
+- Ran `npm run build`; production build completed successfully.
+- Ran `npm run test`; production build completed and 53 tests passed.
 
 ### Added
 

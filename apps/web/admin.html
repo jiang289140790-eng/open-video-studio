@@ -27,6 +27,9 @@
         <a href="#tool-versions">工具版本</a>
         <a href="#workflow-center">Workflow Center</a>
         <a href="#prompt-library">Prompt 管理</a>
+        <a href="#content-intelligence">内容情报</a>
+        <a href="#agent-center">Agent Center</a>
+        <a href="#cost-analytics">成本利润</a>
         <a href="#homepage">首页内容</a>
         <a href="#system">系统配置</a>
         <a href="#audit">审计日志</a>
@@ -290,6 +293,61 @@
             </div>
           </form>
           <div class="admin-list" data-admin-prompt-preview-list></div>
+        </article>
+
+        <article class="panel admin-builder admin-module" id="content-intelligence">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Content Intelligence</p><h2>内容情报</h2></div>
+            <span>Admin only</span>
+          </div>
+          <p class="muted">先支持 X / 手动输入链接和正文，AI analysis JSON 暂用 mock。格式：平台|URL|账号|正文|Hook|Topic|受众|角度|复用策略|状态|变体逗号分隔。</p>
+          <form class="admin-home-form" data-admin-intelligence-form>
+            <label class="admin-textarea-label">
+              <span>内容情报记录</span>
+              <textarea name="intelligenceRows" rows="8" data-admin-intelligence-rows placeholder="X|https://x.com/example/status/demo|@creator|One prompt should become a full content package.|一个提示词不该只生成一张图|AI 内容生产系统|短视频创作者|从单次生成升级到可复用内容资产|转成 Campaign、Prompt、Caption 和短视频分镜|analyzed|X thread,TikTok short"></textarea>
+            </label>
+            <label class="admin-textarea-label">
+              <span>发布原因</span>
+              <input name="reason" placeholder="例如：新增 X 爆款内容分析样本" required>
+            </label>
+            <div class="admin-home-actions">
+              <button class="btn glass" type="button" data-admin-intelligence-preview>预览内容情报</button>
+              <button class="btn primary" type="submit">发布内容情报</button>
+            </div>
+          </form>
+          <div class="admin-list" data-admin-intelligence-preview-list></div>
+        </article>
+
+        <article class="panel admin-builder admin-module" id="agent-center">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Agent Center</p><h2>Agent Center</h2></div>
+            <span>Admin only</span>
+          </div>
+          <p class="muted">管理 Director、Content Analyst、Prompt Engineer、Script Writer、Storyboard、Publisher Agent。格式：ID|名称|角色|Provider|模型|温度|最大 Token|工具逗号分隔|状态|System Prompt。</p>
+          <form class="admin-home-form" data-admin-agent-form>
+            <label class="admin-textarea-label">
+              <span>Agent 配置</span>
+              <textarea name="agentRows" rows="8" data-admin-agent-rows placeholder="agent_director_v1|Director Agent|Director Agent|fake_worker|local-agent-v0|0.7|4096|prompt_library,workflow_center|active|Coordinate campaign content from topic to reusable assets."></textarea>
+            </label>
+            <label class="admin-textarea-label">
+              <span>发布原因</span>
+              <input name="reason" placeholder="例如：新增内容分析 Agent" required>
+            </label>
+            <div class="admin-home-actions">
+              <button class="btn glass" type="button" data-admin-agent-preview>预览 Agent</button>
+              <button class="btn primary" type="submit">发布 Agent 配置</button>
+            </div>
+          </form>
+          <div class="admin-list" data-admin-agent-preview-list></div>
+        </article>
+
+        <article class="panel admin-module" id="cost-analytics">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Cost Analytics</p><h2>成本与利润统计</h2></div>
+            <span>Derived from jobs</span>
+          </div>
+          <p class="muted">根据生成任务估算积分收入、API 成本、GPU 成本、毛利和利润率。真实 API / GPU 成本接入后替换估算逻辑。</p>
+          <div class="admin-list" data-admin-cost-analytics></div>
         </article>
 
         <article class="panel admin-home-builder admin-module" id="homepage">

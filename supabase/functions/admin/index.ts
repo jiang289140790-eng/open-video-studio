@@ -123,6 +123,18 @@ Deno.serve(async (req) => {
       const promptLibrary = await getSetting(adminClient, "prompt_library_config", defaultPromptLibraryConfig());
       return json({ actor, promptLibrary });
     }
+    if (action === "get-content-intelligence-config") {
+      const contentIntelligence = await getSetting(adminClient, "content_intelligence_config", defaultContentIntelligenceConfig());
+      return json({ actor, contentIntelligence });
+    }
+    if (action === "get-agent-center-config") {
+      const agentCenter = await getSetting(adminClient, "agent_center_config", defaultAgentCenterConfig());
+      return json({ actor, agentCenter });
+    }
+    if (action === "list-cost-analytics") {
+      const jobs = await select(adminClient, "generation_jobs", "created_at", false);
+      return json({ actor, costAnalytics: deriveCostAnalytics(jobs) });
+    }
     if (action === "list-audit-logs") {
       requireAdmin(actor);
       return json({ actor, auditLogs: await select(adminClient, "audit_logs", "created_at", false) });
@@ -183,6 +195,24 @@ Deno.serve(async (req) => {
       if (error) throw error;
       await audit(adminClient, actor, "admin.update_prompt_library_config", "site_setting", "prompt_library_config", { reason: body.reason });
       return json({ actor, promptLibrary: data });
+    }
+
+    if (action === "update-content-intelligence-config") {
+      requireAdmin(actor);
+      requireReason(body.reason);
+      const { data, error } = await upsertSetting(adminClient, "content_intelligence_config", normalizeContentIntelligenceConfig(body.config), actor.id);
+      if (error) throw error;
+      await audit(adminClient, actor, "admin.update_content_intelligence_config", "site_setting", "content_intelligence_config", { reason: body.reason });
+      return json({ actor, contentIntelligence: data });
+    }
+
+    if (action === "update-agent-center-config") {
+      requireAdmin(actor);
+      requireReason(body.reason);
+      const { data, error } = await upsertSetting(adminClient, "agent_center_config", normalizeAgentCenterConfig(body.config), actor.id);
+      if (error) throw error;
+      await audit(adminClient, actor, "admin.update_agent_center_config", "site_setting", "agent_center_config", { reason: body.reason });
+      return json({ actor, agentCenter: data });
     }
 
     if (action === "adjust-credits") {
@@ -455,6 +485,55 @@ function normalizePromptLibraryConfig(config: unknown) {
   };
 }
 
+function normalizeContentIntelligenceConfig(config: unknown) {
+  const fallback = defaultContentIntelligenceConfig();
+  const input = typeof config === "object" && config ? config as Record<string, unknown> : {};
+  const records = Array.isArray(input.records) ? input.records : fallback.records;
+  return {
+    records: records.map((record) => {
+      const item = typeof record === "object" && record ? record as Record<string, unknown> : {};
+      return {
+        sourcePlatform: text(item.sourcePlatform, "X", 40),
+        sourceUrl: text(item.sourceUrl, "", 240),
+        accountName: text(item.accountName, "", 120),
+        postText: text(item.postText, "", 4000),
+        mediaUrls: arrayText(item.mediaUrls, [], 12, 240),
+        analysisJson: typeof item.analysisJson === "object" && item.analysisJson ? item.analysisJson : {},
+        hook: text(item.hook, "", 240),
+        topic: text(item.topic, "", 160),
+        targetAudience: text(item.targetAudience, "", 160),
+        contentAngle: text(item.contentAngle, "", 240),
+        reusableStrategy: text(item.reusableStrategy, "", 300),
+        generatedPostVariants: arrayText(item.generatedPostVariants, [], 12, 160),
+        status: enumText(item.status, ["draft", "analyzed", "converted", "archived"], "draft"),
+      };
+    }).filter((record) => record.sourcePlatform && (record.sourceUrl || record.postText)).slice(0, 200),
+  };
+}
+
+function normalizeAgentCenterConfig(config: unknown) {
+  const fallback = defaultAgentCenterConfig();
+  const input = typeof config === "object" && config ? config as Record<string, unknown> : {};
+  const agents = Array.isArray(input.agents) ? input.agents : fallback.agents;
+  return {
+    agents: agents.map((agent) => {
+      const item = typeof agent === "object" && agent ? agent as Record<string, unknown> : {};
+      return {
+        agentId: text(item.agentId, "", 80),
+        name: text(item.name, "", 120),
+        role: enumText(item.role, ["Director Agent", "Content Analyst Agent", "Prompt Engineer Agent", "Script Writer Agent", "Storyboard Agent", "Publisher Agent"], "Director Agent"),
+        modelProvider: text(item.modelProvider, "fake_worker", 60),
+        modelName: text(item.modelName, "local-agent-v0", 100),
+        systemPrompt: text(item.systemPrompt, "", 4000),
+        temperature: numberClamp(item.temperature, 0, 2, 0.7),
+        maxTokens: numberClamp(item.maxTokens, 1, 200000, 4096),
+        toolsEnabled: arrayText(item.toolsEnabled, [], 20, 80),
+        status: enumText(item.status, ["draft", "testing", "active", "disabled"], "draft"),
+      };
+    }).filter((agent) => agent.agentId && agent.name).slice(0, 80),
+  };
+}
+
 function moduleList(value: unknown, fallback: Array<Record<string, unknown>>) {
   const modules = Array.isArray(value) ? value : fallback;
   return modules.map((module, index) => {
@@ -553,6 +632,23 @@ function defaultPromptLibraryConfig() {
   };
 }
 
+function defaultContentIntelligenceConfig() {
+  return {
+    records: [
+      { sourcePlatform: "X", sourceUrl: "https://x.com/example/status/demo", accountName: "@creator", postText: "One prompt should become a full content package.", mediaUrls: [], analysisJson: { confidence: 0.82 }, hook: "一个提示词不该只生成一张图", topic: "AI 内容生产系统", targetAudience: "短视频创作者", contentAngle: "从单次生成升级到可复用内容资产", reusableStrategy: "转成 Campaign、Prompt、Caption 和短视频分镜", generatedPostVariants: ["X thread", "TikTok short", "YouTube Shorts"], status: "analyzed" },
+    ],
+  };
+}
+
+function defaultAgentCenterConfig() {
+  return {
+    agents: [
+      { agentId: "agent_director_v1", name: "Director Agent", role: "Director Agent", modelProvider: "fake_worker", modelName: "local-agent-v0", systemPrompt: "Coordinate campaign content from topic to reusable assets.", temperature: 0.7, maxTokens: 4096, toolsEnabled: ["prompt_library", "workflow_center"], status: "active" },
+      { agentId: "agent_analyst_v1", name: "Content Analyst Agent", role: "Content Analyst Agent", modelProvider: "fake_worker", modelName: "local-agent-v0", systemPrompt: "Analyze social posts into hooks, topics, audience, angle, and reusable strategy.", temperature: 0.4, maxTokens: 4096, toolsEnabled: ["content_intelligence"], status: "testing" },
+    ],
+  };
+}
+
 function text(value: unknown, fallback: string, max: number) {
   const normalized = typeof value === "string" ? value.trim() : "";
   return normalized ? normalized.slice(0, max) : fallback;
@@ -609,6 +705,37 @@ function toolVersions(value: unknown, fallback: Array<Record<string, unknown>>) 
       status: enumText(item.status, ["draft", "testing", "published", "deprecated"], "draft"),
     };
   });
+}
+
+function deriveCostAnalytics(jobs: Array<Record<string, unknown>>) {
+  const groups = new Map<string, Array<Record<string, unknown>>>();
+  for (const job of jobs) {
+    const key = `${toolSlug(job)}|${job.provider || "fake_worker"}|${job.workflow_id || job.model || "local-demo"}`;
+    groups.set(key, [...(groups.get(key) ?? []), job]);
+  }
+  return Array.from(groups.entries()).map(([key, items]) => {
+    const [tool_slug, provider, model_workflow] = key.split("|");
+    const success_jobs = items.filter((job) => job.status === "completed").length;
+    const failed_jobs = items.filter((job) => job.status === "failed").length;
+    const total_credit_charged = items.reduce((sum, job) => sum + Number(job.credit_charged ?? job.cost_credits ?? 0), 0);
+    const estimated_api_cost = items.reduce((sum, job) => sum + Number(job.estimated_cost ?? job.estimated_cost_cents ?? 0), 0);
+    const estimated_gpu_cost = Math.round(items.reduce((sum, job) => sum + Number(job.duration_seconds ?? 0) * 2, 0));
+    const revenueCents = total_credit_charged * 3;
+    const gross_profit = revenueCents - estimated_api_cost - estimated_gpu_cost;
+    return {
+      tool_slug,
+      provider,
+      model_workflow,
+      total_jobs: items.length,
+      success_jobs,
+      failed_jobs,
+      total_credit_charged,
+      estimated_api_cost,
+      estimated_gpu_cost,
+      gross_profit,
+      profit_margin: revenueCents ? Math.round((gross_profit / revenueCents) * 100) : 0,
+    };
+  }).sort((left, right) => Number(right.total_credit_charged) - Number(left.total_credit_charged));
 }
 
 function normalizeGenerationJob(job: Record<string, unknown>) {

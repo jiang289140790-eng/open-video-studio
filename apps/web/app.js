@@ -532,6 +532,17 @@ const defaultPromptLibraryConfig = {
     { promptId: "prompt-video-short-v1", title: "短视频分镜", category: "video", useCase: "视频生成", promptText: "Write a 6-scene vertical short video storyboard for {topic}. Include hook, scene direction, motion, caption, and CTA.", negativePrompt: "", variables: ["topic", "cta"], model: "local-video-v0", version: "v1", tags: ["video", "storyboard"], status: "testing", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
   ]
 };
+const defaultContentIntelligenceConfig = {
+  records: [
+    { sourcePlatform: "X", sourceUrl: "https://x.com/example/status/demo", accountName: "@creator", postText: "One prompt should become a full content package.", mediaUrls: [], analysisJson: { confidence: 0.82 }, hook: "一个提示词不该只生成一张图", topic: "AI 内容生产系统", targetAudience: "短视频创作者", contentAngle: "从单次生成升级到可复用内容资产", reusableStrategy: "转成 Campaign、Prompt、Caption 和短视频分镜", generatedPostVariants: ["X thread", "TikTok short", "YouTube Shorts"], status: "analyzed" }
+  ]
+};
+const defaultAgentCenterConfig = {
+  agents: [
+    { agentId: "agent_director_v1", name: "Director Agent", role: "Director Agent", modelProvider: "fake_worker", modelName: "local-agent-v0", systemPrompt: "Coordinate campaign content from topic to reusable assets.", temperature: 0.7, maxTokens: 4096, toolsEnabled: ["prompt_library", "workflow_center"], status: "active" },
+    { agentId: "agent_analyst_v1", name: "Content Analyst Agent", role: "Content Analyst Agent", modelProvider: "fake_worker", modelName: "local-agent-v0", systemPrompt: "Analyze social posts into hooks, topics, audience, angle, and reusable strategy.", temperature: 0.4, maxTokens: 4096, toolsEnabled: ["content_intelligence"], status: "testing" }
+  ]
+};
 let pageBuilderConfig = structuredClone(defaultPageBuilderConfig);
 let toolCatalogConfig = structuredClone(defaultToolCatalogConfig);
 
@@ -1294,6 +1305,24 @@ document.addEventListener("click", async (event) => {
     showSiteToast("已生成 Prompt 预览");
     return;
   }
+  const adminIntelligencePreview = event.target.closest("[data-admin-intelligence-preview]");
+  if (adminIntelligencePreview) {
+    event.preventDefault();
+    const form = document.querySelector("[data-admin-intelligence-form]");
+    if (!form) return;
+    renderAdminIntelligencePreview(readIntelligenceForm(new FormData(form)));
+    showSiteToast("已生成内容情报预览");
+    return;
+  }
+  const adminAgentPreview = event.target.closest("[data-admin-agent-preview]");
+  if (adminAgentPreview) {
+    event.preventDefault();
+    const form = document.querySelector("[data-admin-agent-form]");
+    if (!form) return;
+    renderAdminAgentPreview(readAgentForm(new FormData(form)));
+    showSiteToast("已生成 Agent 预览");
+    return;
+  }
   const carouselButton = event.target.closest("[data-carousel-scroll]");
   if (carouselButton) {
     event.preventDefault();
@@ -1576,6 +1605,30 @@ document.addEventListener("submit", async (event) => {
     const button = promptForm.querySelector("button[type='submit']");
     await runAdminAction(button, "update-prompt-library-config", {
       config: readPromptForm(formData),
+      reason: String(formData.get("reason") || "").trim()
+    });
+    return;
+  }
+
+  const intelligenceForm = event.target.closest("[data-admin-intelligence-form]");
+  if (intelligenceForm) {
+    event.preventDefault();
+    const formData = new FormData(intelligenceForm);
+    const button = intelligenceForm.querySelector("button[type='submit']");
+    await runAdminAction(button, "update-content-intelligence-config", {
+      config: readIntelligenceForm(formData),
+      reason: String(formData.get("reason") || "").trim()
+    });
+    return;
+  }
+
+  const agentForm = event.target.closest("[data-admin-agent-form]");
+  if (agentForm) {
+    event.preventDefault();
+    const formData = new FormData(agentForm);
+    const button = agentForm.querySelector("button[type='submit']");
+    await runAdminAction(button, "update-agent-center-config", {
+      config: readAgentForm(formData),
       reason: String(formData.get("reason") || "").trim()
     });
     return;
@@ -2800,6 +2853,13 @@ function renderAdmin(current) {
   const promptLibrary = normalizePromptLibraryConfig(adminData.promptLibrary?.value_json || adminData.promptLibrary || defaultPromptLibraryConfig);
   fillPromptForm(promptLibrary);
   renderAdminPromptPreview(promptLibrary, adminData.promptLibrary?.updated_at);
+  const contentIntelligence = normalizeContentIntelligenceConfig(adminData.contentIntelligence?.value_json || adminData.contentIntelligence || defaultContentIntelligenceConfig);
+  fillIntelligenceForm(contentIntelligence);
+  renderAdminIntelligencePreview(contentIntelligence, adminData.contentIntelligence?.updated_at);
+  const agentCenter = normalizeAgentCenterConfig(adminData.agentCenter?.value_json || adminData.agentCenter || defaultAgentCenterConfig);
+  fillAgentForm(agentCenter);
+  renderAdminAgentPreview(agentCenter, adminData.agentCenter?.updated_at);
+  renderAdminCostAnalytics(adminData.costAnalytics || []);
   renderAdminUsers(adminData.users || []);
   renderAdminCredits(adminData.users || []);
   renderAdminOrders(adminData.orders || [], actor);
@@ -2822,6 +2882,11 @@ function renderAdminConfiguration() {
   renderAdminWorkflowPreview(defaultWorkflowCenterConfig);
   fillPromptForm(defaultPromptLibraryConfig);
   renderAdminPromptPreview(defaultPromptLibraryConfig);
+  fillIntelligenceForm(defaultContentIntelligenceConfig);
+  renderAdminIntelligencePreview(defaultContentIntelligenceConfig);
+  fillAgentForm(defaultAgentCenterConfig);
+  renderAdminAgentPreview(defaultAgentCenterConfig);
+  renderAdminCostAnalytics([]);
   const oauthItems = getOAuthReadiness().map((item) => ({ ...item, detail: item.ready ? "前端可发起真实授权" : item.action }));
   const oauthList = document.querySelector("[data-admin-oauth]");
   if (!oauthList) return;
@@ -2849,7 +2914,10 @@ function fillAdminEmptyState() {
     "[data-admin-tool-catalog-preview-list]",
     "[data-admin-tool-version-list]",
     "[data-admin-workflow-preview-list]",
-    "[data-admin-prompt-preview-list]"
+    "[data-admin-prompt-preview-list]",
+    "[data-admin-intelligence-preview-list]",
+    "[data-admin-agent-preview-list]",
+    "[data-admin-cost-analytics]"
   ];
   placeholders.forEach((selector) => {
     const target = document.querySelector(selector);
@@ -2871,7 +2939,7 @@ async function loadAdminConsole() {
   if (!document.querySelector("[data-admin-page]") || !supabase || adminLoading) return;
   adminLoading = true;
   try {
-    const [summary, users, orders, assets, jobs, workers, shares, homepage, pageBuilder, toolCatalog, workflowCenter, promptLibrary, audit] = await Promise.all([
+    const [summary, users, orders, assets, jobs, workers, shares, homepage, pageBuilder, toolCatalog, workflowCenter, promptLibrary, contentIntelligence, agentCenter, costAnalytics, audit] = await Promise.all([
       invokeAdmin("dashboard-summary"),
       invokeAdmin("list-users"),
       invokeAdmin("list-orders"),
@@ -2884,6 +2952,9 @@ async function loadAdminConsole() {
       invokeAdmin("get-tool-catalog-config"),
       invokeAdmin("get-workflow-center-config").catch(() => ({ workflowCenter: { value_json: defaultWorkflowCenterConfig } })),
       invokeAdmin("get-prompt-library-config").catch(() => ({ promptLibrary: { value_json: defaultPromptLibraryConfig } })),
+      invokeAdmin("get-content-intelligence-config").catch(() => ({ contentIntelligence: { value_json: defaultContentIntelligenceConfig } })),
+      invokeAdmin("get-agent-center-config").catch(() => ({ agentCenter: { value_json: defaultAgentCenterConfig } })),
+      invokeAdmin("list-cost-analytics").catch(() => ({ costAnalytics: [] })),
       invokeAdmin("list-audit-logs").catch((error) => ({ auditLogs: [], auditError: error.message }))
     ]);
     adminData = {
@@ -2900,6 +2971,9 @@ async function loadAdminConsole() {
       toolCatalog: toolCatalog.toolCatalog || {},
       workflowCenter: workflowCenter.workflowCenter || {},
       promptLibrary: promptLibrary.promptLibrary || {},
+      contentIntelligence: contentIntelligence.contentIntelligence || {},
+      agentCenter: agentCenter.agentCenter || {},
+      costAnalytics: costAnalytics.costAnalytics || [],
       auditLogs: audit.auditLogs || [],
       auditError: audit.auditError
     };
@@ -3078,6 +3152,45 @@ function normalizePromptLibraryConfig(config) {
   };
 }
 
+function normalizeContentIntelligenceConfig(config) {
+  const records = Array.isArray(config?.records) ? config.records : defaultContentIntelligenceConfig.records;
+  return {
+    records: records.map((record) => ({
+      sourcePlatform: String(record.sourcePlatform || "X").trim(),
+      sourceUrl: String(record.sourceUrl || "").trim(),
+      accountName: String(record.accountName || "").trim(),
+      postText: String(record.postText || "").trim(),
+      mediaUrls: Array.isArray(record.mediaUrls) ? record.mediaUrls.map(String).filter(Boolean).slice(0, 12) : [],
+      analysisJson: record.analysisJson && typeof record.analysisJson === "object" ? record.analysisJson : {},
+      hook: String(record.hook || "").trim(),
+      topic: String(record.topic || "").trim(),
+      targetAudience: String(record.targetAudience || "").trim(),
+      contentAngle: String(record.contentAngle || "").trim(),
+      reusableStrategy: String(record.reusableStrategy || "").trim(),
+      generatedPostVariants: Array.isArray(record.generatedPostVariants) ? record.generatedPostVariants.map(String).filter(Boolean).slice(0, 12) : [],
+      status: ["draft", "analyzed", "converted", "archived"].includes(record.status) ? record.status : "draft"
+    })).filter((record) => record.sourcePlatform && (record.sourceUrl || record.postText)).slice(0, 200)
+  };
+}
+
+function normalizeAgentCenterConfig(config) {
+  const agents = Array.isArray(config?.agents) ? config.agents : defaultAgentCenterConfig.agents;
+  return {
+    agents: agents.map((agent) => ({
+      agentId: String(agent.agentId || "").trim(),
+      name: String(agent.name || "").trim(),
+      role: ["Director Agent", "Content Analyst Agent", "Prompt Engineer Agent", "Script Writer Agent", "Storyboard Agent", "Publisher Agent"].includes(agent.role) ? agent.role : "Director Agent",
+      modelProvider: String(agent.modelProvider || "fake_worker").trim(),
+      modelName: String(agent.modelName || "local-agent-v0").trim(),
+      systemPrompt: String(agent.systemPrompt || "").trim(),
+      temperature: Math.max(0, Math.min(2, Number(agent.temperature ?? 0.7))),
+      maxTokens: Math.max(1, Math.min(200000, Number(agent.maxTokens || 4096))),
+      toolsEnabled: Array.isArray(agent.toolsEnabled) ? agent.toolsEnabled.map(String).filter(Boolean).slice(0, 20) : [],
+      status: ["draft", "testing", "active", "disabled"].includes(agent.status) ? agent.status : "draft"
+    })).filter((agent) => agent.agentId && agent.name).slice(0, 80)
+  };
+}
+
 function fillPageBuilderForm(config) {
   const form = document.querySelector("[data-admin-page-builder-form]");
   if (!form) return;
@@ -3104,6 +3217,18 @@ function fillPromptForm(config) {
   const form = document.querySelector("[data-admin-prompt-form]");
   if (!form) return;
   setFormValue(form, "promptRows", serializePromptRows(normalizePromptLibraryConfig(config)));
+}
+
+function fillIntelligenceForm(config) {
+  const form = document.querySelector("[data-admin-intelligence-form]");
+  if (!form) return;
+  setFormValue(form, "intelligenceRows", serializeIntelligenceRows(normalizeContentIntelligenceConfig(config)));
+}
+
+function fillAgentForm(config) {
+  const form = document.querySelector("[data-admin-agent-form]");
+  if (!form) return;
+  setFormValue(form, "agentRows", serializeAgentRows(normalizeAgentCenterConfig(config)));
 }
 
 function readPageBuilderForm(formData) {
@@ -3191,6 +3316,51 @@ function readPromptForm(formData) {
         tags: splitAdminList(tags),
         promptText,
         negativePrompt
+      };
+    })
+  });
+}
+
+function readIntelligenceForm(formData) {
+  const rows = String(formData.get("intelligenceRows") || "");
+  return normalizeContentIntelligenceConfig({
+    records: rows.split(/\n+/).map((line) => {
+      const [sourcePlatform, sourceUrl, accountName, postText, hook, topic, targetAudience, contentAngle, reusableStrategy, status, variants] = line.split("|").map((part) => part.trim());
+      return {
+        sourcePlatform,
+        sourceUrl,
+        accountName,
+        postText,
+        hook,
+        topic,
+        targetAudience,
+        contentAngle,
+        reusableStrategy,
+        status,
+        generatedPostVariants: splitAdminList(variants),
+        mediaUrls: [],
+        analysisJson: { source: "manual_admin_input", confidence: 0.7 }
+      };
+    })
+  });
+}
+
+function readAgentForm(formData) {
+  const rows = String(formData.get("agentRows") || "");
+  return normalizeAgentCenterConfig({
+    agents: rows.split(/\n+/).map((line) => {
+      const [agentId, name, role, modelProvider, modelName, temperature, maxTokens, toolsEnabled, status, systemPrompt] = line.split("|").map((part) => part.trim());
+      return {
+        agentId,
+        name,
+        role,
+        modelProvider,
+        modelName,
+        temperature: Number(temperature),
+        maxTokens: Number(maxTokens),
+        toolsEnabled: splitAdminList(toolsEnabled),
+        status,
+        systemPrompt
       };
     })
   });
@@ -3344,6 +3514,37 @@ function serializePromptRows(config) {
   ].join("|")).join("\n");
 }
 
+function serializeIntelligenceRows(config) {
+  return normalizeContentIntelligenceConfig(config).records.map((record) => [
+    record.sourcePlatform,
+    record.sourceUrl,
+    record.accountName,
+    record.postText,
+    record.hook,
+    record.topic,
+    record.targetAudience,
+    record.contentAngle,
+    record.reusableStrategy,
+    record.status,
+    record.generatedPostVariants.join(",")
+  ].join("|")).join("\n");
+}
+
+function serializeAgentRows(config) {
+  return normalizeAgentCenterConfig(config).agents.map((agent) => [
+    agent.agentId,
+    agent.name,
+    agent.role,
+    agent.modelProvider,
+    agent.modelName,
+    agent.temperature,
+    agent.maxTokens,
+    agent.toolsEnabled.join(","),
+    agent.status,
+    agent.systemPrompt
+  ].join("|")).join("\n");
+}
+
 function renderAdminPageBuilderPreview(config, updatedAt = "") {
   const target = document.querySelector("[data-admin-page-builder-preview-list]");
   if (!target) return;
@@ -3428,6 +3629,57 @@ function renderAdminPromptPreview(config, updatedAt = "") {
       <em>${escapeHtml(prompt.status)}</em>
     </article>
   `).join("") : `<article class="admin-row"><div><strong>暂无 Prompt</strong><p>添加图片、视频、分析、改写或分镜 Prompt 后会显示在这里。</p></div></article>`;
+}
+
+function renderAdminIntelligencePreview(config, updatedAt = "") {
+  const target = document.querySelector("[data-admin-intelligence-preview-list]");
+  if (!target) return;
+  const records = normalizeContentIntelligenceConfig(config).records;
+  target.innerHTML = records.length ? records.map((record) => `
+    <article class="admin-row admin-config-row">
+      <span class="status-dot ${record.status === "analyzed" || record.status === "converted" ? "ready" : record.status === "archived" ? "blocked" : ""}"></span>
+      <div>
+        <strong>${escapeHtml(record.sourcePlatform)} · ${escapeHtml(record.topic || record.hook || "Untitled intelligence")}</strong>
+        <p>${escapeHtml(record.accountName || "unknown")} · ${escapeHtml(record.status)}${updatedAt ? ` · 更新于 ${escapeHtml(updatedAt)}` : ""}</p>
+        <small>Hook：${escapeHtml(record.hook || "待分析")} ｜ 受众：${escapeHtml(record.targetAudience || "待分析")}</small>
+        <small>复用策略：${escapeHtml(record.reusableStrategy || "待生成")} ｜ 变体：${record.generatedPostVariants.map(escapeHtml).join(", ") || "无"}</small>
+      </div>
+      <em>${escapeHtml(record.sourceUrl ? "链接" : "正文")}</em>
+    </article>
+  `).join("") : `<article class="admin-row"><div><strong>暂无内容情报</strong><p>手动输入 X 链接和正文后会在这里展示 AI analysis JSON 占位结果。</p></div></article>`;
+}
+
+function renderAdminAgentPreview(config, updatedAt = "") {
+  const target = document.querySelector("[data-admin-agent-preview-list]");
+  if (!target) return;
+  const agents = normalizeAgentCenterConfig(config).agents;
+  target.innerHTML = agents.length ? agents.map((agent) => `
+    <article class="admin-row admin-config-row">
+      <span class="status-dot ${agent.status === "active" ? "ready" : agent.status === "disabled" ? "blocked" : ""}"></span>
+      <div>
+        <strong>${escapeHtml(agent.name)} · ${escapeHtml(agent.role)}</strong>
+        <p>${escapeHtml(agent.modelProvider)} / ${escapeHtml(agent.modelName)} · temp ${agent.temperature} · ${agent.maxTokens} tokens${updatedAt ? ` · 更新于 ${escapeHtml(updatedAt)}` : ""}</p>
+        <small>工具：${agent.toolsEnabled.map(escapeHtml).join(", ") || "无"} ｜ ${escapeHtml(agent.systemPrompt.slice(0, 180))}</small>
+      </div>
+      <em>${escapeHtml(agent.status)}</em>
+    </article>
+  `).join("") : `<article class="admin-row"><div><strong>暂无 Agent</strong><p>配置 Director、Content Analyst、Prompt Engineer 等 Agent 后会显示在这里。</p></div></article>`;
+}
+
+function renderAdminCostAnalytics(items) {
+  const target = document.querySelector("[data-admin-cost-analytics]");
+  if (!target) return;
+  target.innerHTML = items.length ? items.slice(0, 12).map((item) => `
+    <article class="admin-row admin-config-row">
+      <span class="status-dot ${Number(item.profit_margin || 0) >= 0 ? "ready" : "blocked"}"></span>
+      <div>
+        <strong>${escapeHtml(item.tool_slug || "unknown-tool")} · ${escapeHtml(item.provider || "fake_worker")}</strong>
+        <p>${escapeHtml(item.model_workflow || "local-demo")} · ${Number(item.total_jobs || 0)} jobs · ${Number(item.success_jobs || 0)} 成功 / ${Number(item.failed_jobs || 0)} 失败</p>
+        <small>积分 ${Number(item.total_credit_charged || 0)} · API ${formatMoney(item.estimated_api_cost || 0)} · GPU ${formatMoney(item.estimated_gpu_cost || 0)} · 毛利 ${formatMoney(item.gross_profit || 0)}</small>
+      </div>
+      <em>${Number(item.profit_margin || 0)}%</em>
+    </article>
+  `).join("") : `<article class="admin-row"><div><strong>等待成本数据</strong><p>生成任务产生后，会按工具、provider 和 workflow 汇总成本与利润。</p></div></article>`;
 }
 
 function splitAdminList(value = "") {

@@ -448,6 +448,62 @@ CREATE TABLE IF NOT EXISTS tool_versions (
 
 CREATE INDEX IF NOT EXISTS idx_tool_versions_slug_status ON tool_versions(tool_slug, status);
 
+CREATE TABLE IF NOT EXISTS content_intelligence (
+  id TEXT PRIMARY KEY,
+  source_platform TEXT NOT NULL,
+  source_url TEXT,
+  account_name TEXT,
+  post_text TEXT NOT NULL DEFAULT '',
+  media_urls TEXT NOT NULL DEFAULT '[]',
+  analysis_json TEXT NOT NULL DEFAULT '{}',
+  hook TEXT,
+  topic TEXT,
+  target_audience TEXT,
+  content_angle TEXT,
+  reusable_strategy TEXT,
+  generated_post_variants TEXT NOT NULL DEFAULT '[]',
+  status TEXT NOT NULL DEFAULT 'draft',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_content_intelligence_platform_status ON content_intelligence(source_platform, status);
+
+CREATE TABLE IF NOT EXISTS agent_configs (
+  agent_id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  role TEXT NOT NULL,
+  model_provider TEXT NOT NULL,
+  model_name TEXT NOT NULL,
+  system_prompt TEXT NOT NULL DEFAULT '',
+  temperature REAL NOT NULL DEFAULT 0.7,
+  max_tokens INTEGER NOT NULL DEFAULT 4096,
+  tools_enabled TEXT NOT NULL DEFAULT '[]',
+  status TEXT NOT NULL DEFAULT 'draft',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_agent_configs_role_status ON agent_configs(role, status);
+
+CREATE TABLE IF NOT EXISTS cost_analytics (
+  id TEXT PRIMARY KEY,
+  tool_slug TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  model_workflow TEXT NOT NULL,
+  total_jobs INTEGER NOT NULL DEFAULT 0,
+  success_jobs INTEGER NOT NULL DEFAULT 0,
+  failed_jobs INTEGER NOT NULL DEFAULT 0,
+  total_credit_charged INTEGER NOT NULL DEFAULT 0,
+  estimated_api_cost INTEGER NOT NULL DEFAULT 0,
+  estimated_gpu_cost INTEGER NOT NULL DEFAULT 0,
+  gross_profit INTEGER NOT NULL DEFAULT 0,
+  profit_margin INTEGER NOT NULL DEFAULT 0,
+  captured_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_cost_analytics_tool_provider ON cost_analytics(tool_slug, provider, captured_at);
+
 CREATE TABLE IF NOT EXISTS images (
   id TEXT PRIMARY KEY,
   owner_user_id TEXT NOT NULL,

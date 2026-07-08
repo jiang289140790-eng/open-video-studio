@@ -155,6 +155,43 @@ export interface PromptLibraryItem {
   updatedAt: string;
 }
 
+export interface ContentIntelligenceConfig {
+  records: ContentIntelligenceRecord[];
+}
+
+export interface ContentIntelligenceRecord {
+  sourcePlatform: string;
+  sourceUrl: string;
+  accountName: string;
+  postText: string;
+  mediaUrls: string[];
+  analysisJson: Record<string, unknown>;
+  hook: string;
+  topic: string;
+  targetAudience: string;
+  contentAngle: string;
+  reusableStrategy: string;
+  generatedPostVariants: string[];
+  status: string;
+}
+
+export interface AgentCenterConfig {
+  agents: AgentCenterItem[];
+}
+
+export interface AgentCenterItem {
+  agentId: string;
+  name: string;
+  role: string;
+  modelProvider: string;
+  modelName: string;
+  systemPrompt: string;
+  temperature: number;
+  maxTokens: number;
+  toolsEnabled: string[];
+  status: string;
+}
+
 export class SupabaseAdminBackend {
   constructor(private readonly client: SupabaseClient) {}
 
@@ -457,6 +494,42 @@ export class SupabaseAdminBackend {
       reason: input.reason.trim(),
     });
     return record;
+  }
+
+  async getContentIntelligenceConfig(actor: AdminActor): Promise<Record<string, unknown>> {
+    await this.requireOperator(actor);
+    return this.getSetting("content_intelligence_config", this.defaultContentIntelligenceConfig());
+  }
+
+  async updateContentIntelligenceConfig(actor: AdminActor, input: { config: Partial<ContentIntelligenceConfig>; reason: string }): Promise<Record<string, unknown>> {
+    this.requireAdmin(actor);
+    this.requireReason(input.reason);
+    const record = await this.upsertSetting("content_intelligence_config", this.normalizeContentIntelligenceConfig(input.config), actor.id);
+    await this.audit(actor, "admin.update_content_intelligence_config", "site_setting", "content_intelligence_config", "success", {
+      reason: input.reason.trim(),
+    });
+    return record;
+  }
+
+  async getAgentCenterConfig(actor: AdminActor): Promise<Record<string, unknown>> {
+    await this.requireOperator(actor);
+    return this.getSetting("agent_center_config", this.defaultAgentCenterConfig());
+  }
+
+  async updateAgentCenterConfig(actor: AdminActor, input: { config: Partial<AgentCenterConfig>; reason: string }): Promise<Record<string, unknown>> {
+    this.requireAdmin(actor);
+    this.requireReason(input.reason);
+    const record = await this.upsertSetting("agent_center_config", this.normalizeAgentCenterConfig(input.config), actor.id);
+    await this.audit(actor, "admin.update_agent_center_config", "site_setting", "agent_center_config", "success", {
+      reason: input.reason.trim(),
+    });
+    return record;
+  }
+
+  async listCostAnalytics(actor: AdminActor): Promise<Array<Record<string, unknown>>> {
+    await this.requireOperator(actor);
+    const jobs = await this.selectAll("generation_jobs", "created_at", false);
+    return this.deriveCostAnalytics(jobs);
   }
 
   async updateToolCatalogConfig(actor: AdminActor, input: { config: Partial<ToolCatalogConfig>; reason: string }): Promise<Record<string, unknown>> {
@@ -796,6 +869,101 @@ export class SupabaseAdminBackend {
         { promptId: "prompt-video-short-v1", title: "短视频分镜", category: "video", useCase: "视频生成", promptText: "Write a 6-scene vertical short video storyboard for {topic}. Include hook, scene direction, motion, caption, and CTA.", negativePrompt: "", variables: ["topic", "cta"], model: "local-video-v0", version: "v1", tags: ["video", "storyboard"], status: "testing", createdAt: timestamp, updatedAt: timestamp },
       ],
     };
+  }
+
+  private normalizeContentIntelligenceConfig(config: Partial<ContentIntelligenceConfig>): ContentIntelligenceConfig {
+    const fallback = this.defaultContentIntelligenceConfig();
+    const records = Array.isArray(config.records) ? config.records : fallback.records;
+    return {
+      records: records
+        .filter((record) => record.sourcePlatform && (record.sourceUrl || record.postText))
+        .slice(0, 200)
+        .map((record) => ({
+          sourcePlatform: String(record.sourcePlatform || "X").trim().slice(0, 40),
+          sourceUrl: String(record.sourceUrl || "").trim().slice(0, 240),
+          accountName: String(record.accountName || "").trim().slice(0, 120),
+          postText: String(record.postText || "").trim().slice(0, 4000),
+          mediaUrls: this.safeTextList(record.mediaUrls, [], 12),
+          analysisJson: typeof record.analysisJson === "object" && record.analysisJson ? record.analysisJson : {},
+          hook: String(record.hook || "").trim().slice(0, 240),
+          topic: String(record.topic || "").trim().slice(0, 160),
+          targetAudience: String(record.targetAudience || "").trim().slice(0, 160),
+          contentAngle: String(record.contentAngle || "").trim().slice(0, 240),
+          reusableStrategy: String(record.reusableStrategy || "").trim().slice(0, 300),
+          generatedPostVariants: this.safeTextList(record.generatedPostVariants, [], 12),
+          status: ["draft", "analyzed", "converted", "archived"].includes(record.status) ? record.status : "draft",
+        })),
+    };
+  }
+
+  private defaultContentIntelligenceConfig(): ContentIntelligenceConfig {
+    return {
+      records: [
+        { sourcePlatform: "X", sourceUrl: "https://x.com/example/status/demo", accountName: "@creator", postText: "One prompt should become a full content package.", mediaUrls: [], analysisJson: { confidence: 0.82 }, hook: "一个提示词不该只生成一张图", topic: "AI 内容生产系统", targetAudience: "短视频创作者", contentAngle: "从单次生成升级到可复用内容资产", reusableStrategy: "转成 Campaign、Prompt、Caption 和短视频分镜", generatedPostVariants: ["X thread", "TikTok short", "YouTube Shorts"], status: "analyzed" },
+      ],
+    };
+  }
+
+  private normalizeAgentCenterConfig(config: Partial<AgentCenterConfig>): AgentCenterConfig {
+    const fallback = this.defaultAgentCenterConfig();
+    const agents = Array.isArray(config.agents) ? config.agents : fallback.agents;
+    return {
+      agents: agents
+        .filter((agent) => agent.agentId && agent.name)
+        .slice(0, 80)
+        .map((agent) => ({
+          agentId: String(agent.agentId).trim().slice(0, 80),
+          name: String(agent.name).trim().slice(0, 120),
+          role: ["Director Agent", "Content Analyst Agent", "Prompt Engineer Agent", "Script Writer Agent", "Storyboard Agent", "Publisher Agent"].includes(agent.role) ? agent.role : "Director Agent",
+          modelProvider: String(agent.modelProvider || "fake_worker").trim().slice(0, 60),
+          modelName: String(agent.modelName || "local-agent-v0").trim().slice(0, 100),
+          systemPrompt: String(agent.systemPrompt || "").trim().slice(0, 4000),
+          temperature: Math.max(0, Math.min(2, Number(agent.temperature ?? 0.7))),
+          maxTokens: Math.max(1, Math.min(200000, Number(agent.maxTokens || 4096))),
+          toolsEnabled: this.safeTextList(agent.toolsEnabled, [], 20),
+          status: ["draft", "testing", "active", "disabled"].includes(agent.status) ? agent.status : "draft",
+        })),
+    };
+  }
+
+  private defaultAgentCenterConfig(): AgentCenterConfig {
+    return {
+      agents: [
+        { agentId: "agent_director_v1", name: "Director Agent", role: "Director Agent", modelProvider: "fake_worker", modelName: "local-agent-v0", systemPrompt: "Coordinate campaign content from topic to reusable assets.", temperature: 0.7, maxTokens: 4096, toolsEnabled: ["prompt_library", "workflow_center"], status: "active" },
+        { agentId: "agent_analyst_v1", name: "Content Analyst Agent", role: "Content Analyst Agent", modelProvider: "fake_worker", modelName: "local-agent-v0", systemPrompt: "Analyze social posts into hooks, topics, audience, angle, and reusable strategy.", temperature: 0.4, maxTokens: 4096, toolsEnabled: ["content_intelligence"], status: "testing" },
+      ],
+    };
+  }
+
+  private deriveCostAnalytics(jobs: Array<Record<string, any>>): Array<Record<string, unknown>> {
+    const groups = new Map<string, Array<Record<string, any>>>();
+    for (const job of jobs) {
+      const key = `${this.toolSlug(job)}|${job.provider || "fake_worker"}|${job.workflow_id || job.model || "local-demo"}`;
+      groups.set(key, [...(groups.get(key) ?? []), job]);
+    }
+    return Array.from(groups.entries()).map(([key, items]) => {
+      const [toolSlug, provider, workflow] = key.split("|");
+      const successJobs = items.filter((job) => job.status === "completed").length;
+      const failedJobs = items.filter((job) => job.status === "failed").length;
+      const totalCreditCharged = items.reduce((sum, job) => sum + Number(job.credit_charged ?? job.cost_credits ?? 0), 0);
+      const estimatedApiCost = items.reduce((sum, job) => sum + Number(job.estimated_cost ?? job.estimated_cost_cents ?? 0), 0);
+      const estimatedGpuCost = Math.round(items.reduce((sum, job) => sum + Number(job.duration_seconds ?? 0) * 2, 0));
+      const revenueCents = totalCreditCharged * 3;
+      const grossProfit = revenueCents - estimatedApiCost - estimatedGpuCost;
+      return {
+        tool_slug: toolSlug,
+        provider,
+        model_workflow: workflow,
+        total_jobs: items.length,
+        success_jobs: successJobs,
+        failed_jobs: failedJobs,
+        total_credit_charged: totalCreditCharged,
+        estimated_api_cost: estimatedApiCost,
+        estimated_gpu_cost: estimatedGpuCost,
+        gross_profit: grossProfit,
+        profit_margin: revenueCents ? Math.round((grossProfit / revenueCents) * 100) : 0,
+      };
+    }).sort((left, right) => Number(right.total_credit_charged) - Number(left.total_credit_charged));
   }
 
   private safeToolVersions(versions: ToolVersion[] | undefined, fallback: ToolVersion[]): ToolVersion[] {

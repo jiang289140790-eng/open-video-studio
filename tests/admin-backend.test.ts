@@ -190,6 +190,67 @@ test("admin backend enforces roles and audits sensitive operations", async () =>
   });
   assert.equal((updatedPromptLibrary.value_json as any).prompts[0].promptId, "prompt_storyboard_v2");
   assert.equal(client.table("audit_logs").length, 9);
+
+  const contentIntelligence = await backend.getContentIntelligenceConfig(operator);
+  assert.equal(contentIntelligence.setting_key, "content_intelligence_config");
+  await assert.rejects(
+    () => backend.updateContentIntelligenceConfig(operator, {
+      config: { records: [] },
+      reason: "operator attempt",
+    }),
+    (error: any) => error.code === "ADMIN_FORBIDDEN",
+  );
+  const updatedContentIntelligence = await backend.updateContentIntelligenceConfig(admin, {
+    config: {
+      records: [{
+        sourcePlatform: "X",
+        sourceUrl: "https://x.com/demo/status/1",
+        accountName: "@demo",
+        postText: "AI creators need reusable production systems.",
+        mediaUrls: ["https://example.com/demo.png"],
+        analysisJson: { confidence: 0.91 },
+        hook: "Reusable AI assets beat one-off prompts",
+        topic: "AI creator workflow",
+        targetAudience: "short video creators",
+        contentAngle: "turn one post into a reusable campaign",
+        reusableStrategy: "convert into prompt, caption, and storyboard assets",
+        generatedPostVariants: ["X post", "TikTok script"],
+        status: "approved",
+      }],
+    },
+    reason: "content intelligence import test",
+  });
+  assert.equal((updatedContentIntelligence.value_json as any).records[0].sourcePlatform, "X");
+  assert.equal(client.table("audit_logs").length, 10);
+
+  const agentCenter = await backend.getAgentCenterConfig(operator);
+  assert.equal(agentCenter.setting_key, "agent_center_config");
+  const updatedAgentCenter = await backend.updateAgentCenterConfig(admin, {
+    config: {
+      agents: [{
+        agentId: "agent_content_ops_v1",
+        name: "Content Ops Agent",
+        role: "Content Ops",
+        modelProvider: "fake_worker",
+        modelName: "local-agent-v0",
+        systemPrompt: "Transform content intelligence into production-ready creative tasks.",
+        temperature: 0.5,
+        maxTokens: 2048,
+        toolsEnabled: ["content_intelligence", "prompt_library"],
+        status: "active",
+      }],
+    },
+    reason: "agent routing test",
+  });
+  assert.equal((updatedAgentCenter.value_json as any).agents[0].agentId, "agent_content_ops_v1");
+  assert.equal(client.table("audit_logs").length, 11);
+
+  const costAnalytics = await backend.listCostAnalytics(operator);
+  assert.equal(costAnalytics.length, 2);
+  const imageCost = costAnalytics.find((record: any) => record.tool_slug === "image-editor");
+  assert.ok(imageCost);
+  assert.equal(imageCost.total_credit_charged, 8);
+  assert.ok(imageCost.tool_slug);
 });
 
 class FakeAdminSupabaseClient {

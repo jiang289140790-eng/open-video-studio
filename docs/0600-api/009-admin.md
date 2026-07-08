@@ -4,7 +4,7 @@
 |---|---|
 | ID | API-ADMIN-001 |
 | Unique ID | API-ADMIN-001 |
-| Version | 1.5.0 |
+| Version | 1.6.0 |
 | Status | Active |
 | Owner | Platform Admin Lead / Security Lead |
 | Dependencies | API-AUTH-001, DB-USERS-001, DB-AUDIT-LOGS-001, SEC-INDEX-001 |
@@ -57,6 +57,11 @@ MVP implementation uses one Supabase Edge Function named `admin` with an `action
 - `update-workflow-center-config`
 - `get-prompt-library-config`
 - `update-prompt-library-config`
+- `get-content-intelligence-config`
+- `update-content-intelligence-config`
+- `get-agent-center-config`
+- `update-agent-center-config`
+- `list-cost-analytics`
 - `adjust-credits`
 - `update-order-status`
 - `review-asset`
@@ -73,6 +78,12 @@ Sensitive write actions require a non-empty `reason`. `update-homepage-config` a
 `update-workflow-center-config` accepts `workflow_center_config` payloads for ComfyUI workflow, n8n workflow, API chain, and AI agent chain records. Admin publishes write `admin.update_workflow_center_config` audit logs.
 
 `update-prompt-library-config` accepts `prompt_library_config` payloads for reusable image, video, content analysis, rewrite, and storyboard prompts. Admin publishes write `admin.update_prompt_library_config` audit logs.
+
+`update-content-intelligence-config` accepts `content_intelligence_config` payloads for imported content signals, hooks, topics, audiences, creative angles, reuse strategies, and platform variants. Admin publishes write `admin.update_content_intelligence_config` audit logs.
+
+`update-agent-center-config` accepts `agent_center_config` payloads for AI agent role, provider, model, system prompt, temperature, token limits, enabled tools, and status. Admin publishes write `admin.update_agent_center_config` audit logs.
+
+`list-cost-analytics` returns tool/provider/model-workflow cost and margin summaries derived from generation jobs until scheduled production cost snapshots are connected.
 
 `dashboard-summary` now returns MVP operating KPIs for daily users, paid users, revenue, image jobs, video jobs, failed jobs, weekly revenue trend, popular tools, high-failure tools, and credit consumption ranking.
 
@@ -123,6 +134,8 @@ The MVP Admin surface now also supports configurable page merchandising. Operato
 The Admin console has been upgraded from configuration-first to operations-first for P0 SaaS monitoring. It can inspect growth/revenue/generation KPIs, Worker Center status, and enriched generation job details without changing provider architecture or exposing service keys in the browser.
 
 P1 Admin operations add Workflow Center, Prompt Library, and Tool Version management. These remain configuration-backed until production workflow and prompt tables become the canonical write path.
+
+P2 Admin operations add Content Intelligence, Agent Center, and Cost Analytics. Content and agent settings remain admin-configured for MVP speed, while cost analytics is derived from generation jobs and prepared for future provider billing snapshots.
 
 ## AI Context
 
