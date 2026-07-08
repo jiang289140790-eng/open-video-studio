@@ -25,6 +25,18 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Added `npm run verify:real-ai` as a live Qianwen generation probe. It creates a temporary authenticated user, grants demo credits, forces a `qianwen_generation` image job, processes the deployed `ai` Edge Function path, verifies generated asset persistence on success, verifies refund ledger behavior on provider failure, and cleans up all temporary data.
+- Added `QIANWEN_IMAGE_ENDPOINT` and `QIANWEN_VIDEO_ENDPOINT` to environment templates and the environment loader so Qianwen image/video endpoints can be corrected without frontend changes.
+- Updated the Qianwen provider adapter to support Alibaba Model Studio / DashScope native Wan endpoints. For `wan2.6-image`, the adapter can use the official `multimodal-generation/generation` style payload; for video it can use the native `video-generation/video-synthesis` style payload.
+
+### Validation
+
+- Deployed the updated Supabase `ai` Edge Function through the Management API; production function version is `10`.
+- Ran `npm run verify:real-ai`; the deployed function created a real `qianwen_generation` job with model `wan2.6-image`, the provider still returned `QIANWEN_GENERATION_FAILED / Not Found`, and the 8-credit failure refund was verified. This proves the live provider endpoint configured in Supabase is not production-ready yet but the failure path does not keep user credits.
+- Referenced Alibaba Cloud Model Studio documentation for Wan2.6 image generation and Wan image-to-video endpoint families while updating endpoint handling.
+
+### Improved
+
 - Added authenticated `create-share-link` support to the Supabase `ai` Edge Function so asset owners can publish generated assets through server-side ownership checks.
 - Updated the frontend share flow to call the real share API for remote assets and to hydrate public share pages from Supabase token lookup instead of relying only on local demo state.
 - Added `npm run verify:user-loop` to prove demo credits, generation job creation, Fake Worker processing, owner Gallery readback, owner History readback, public share-link lookup, public asset lookup, and cleanup.

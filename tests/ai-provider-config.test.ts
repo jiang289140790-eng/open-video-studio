@@ -20,6 +20,8 @@ test("AI provider environment exposes placeholders without committing secrets", 
     "DEEPSEEK_MODEL",
     "QIANWEN_API_KEY",
     "QIANWEN_BASE_URL",
+    "QIANWEN_IMAGE_ENDPOINT",
+    "QIANWEN_VIDEO_ENDPOINT",
     "QIANWEN_IMAGE_MODEL",
     "QIANWEN_VIDEO_MODEL",
     "AI_PROVIDER_DEFAULT",
@@ -66,9 +68,15 @@ test("AI Edge Function contains server-only provider actions and no browser-secr
   assert.ok(edgeFunction.includes("generation_refund"));
   assert.ok(edgeFunction.includes("createDemoCreditPurchase"));
   assert.ok(edgeFunction.includes("normalizeProbeFailure"));
+  assert.ok(edgeFunction.includes("QIANWEN_IMAGE_ENDPOINT"));
+  assert.ok(edgeFunction.includes("QIANWEN_VIDEO_ENDPOINT"));
+  assert.ok(edgeFunction.includes("qianwenGenerationEndpoint"));
+  assert.ok(edgeFunction.includes("multimodal-generation/generation"));
+  assert.ok(edgeFunction.includes("video-generation/video-synthesis"));
+  assert.ok(edgeFunction.includes("isDashScopeNativeEndpoint"));
   assert.ok(edgeFunction.includes("请识别这张图片"));
   assert.ok(edgeFunction.includes("提示词增强助手"));
-  assert.equal(/璇|涓|鍥|绠|銆|鐨|浣犳槸/.test(edgeFunction), false);
+  assert.equal(/(\u7487|\u6d63\u72b3\u69f8|\u9286|\u9417|\u7ec0|\u59b2)/.test(edgeFunction), false);
   assert.equal(edgeFunction.includes("VITE_QWEN"), false);
   assert.equal(edgeFunction.includes("VITE_DEEPSEEK"), false);
   assert.equal(edgeFunction.includes("VITE_QIANWEN"), false);
@@ -115,6 +123,7 @@ test("production verification scripts cover OAuth and AI function health", () =>
   const workflowScript = readFileSync(join(root, "scripts", "verify-workflow-routing.mjs"), "utf8");
   const paymentScript = readFileSync(join(root, "scripts", "verify-payment-loop.mjs"), "utf8");
   const userLoopScript = readFileSync(join(root, "scripts", "verify-user-product-loop.mjs"), "utf8");
+  const realAiScript = readFileSync(join(root, "scripts", "verify-real-ai-generation.mjs"), "utf8");
   const adminScript = readFileSync(join(root, "scripts", "verify-admin-console.mjs"), "utf8");
   const deployFunctionScript = readFileSync(join(root, "scripts", "deploy-supabase-function.mjs"), "utf8");
 
@@ -122,6 +131,7 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(packageJson.includes("verify:ai"));
   assert.ok(packageJson.includes("verify:workflow"));
   assert.ok(packageJson.includes("verify:user-loop"));
+  assert.ok(packageJson.includes("verify:real-ai"));
   assert.ok(packageJson.includes("verify:payments"));
   assert.ok(packageJson.includes("verify:admin"));
   assert.ok(packageJson.includes("deploy:function"));
@@ -170,6 +180,13 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(userLoopScript.includes("publicLinkReadable"));
   assert.ok(userLoopScript.includes("publicAssetReadable"));
   assert.ok(userLoopScript.includes("SUPABASE_SERVICE_ROLE_KEY"));
+  assert.ok(realAiScript.includes("qianwen_generation"));
+  assert.ok(realAiScript.includes("workflow-qianwen-image-v1"));
+  assert.ok(realAiScript.includes("process-generation-job"));
+  assert.ok(realAiScript.includes("providerStatus"));
+  assert.ok(realAiScript.includes("refund"));
+  assert.ok(realAiScript.includes("media_assets"));
+  assert.ok(realAiScript.includes("SUPABASE_SERVICE_ROLE_KEY"));
   for (const action of ["dashboard-summary", "list-users", "adjust-credits", "update-order-status", "review-asset", "revoke-share-link", "list-audit-logs"]) {
     assert.ok(adminScript.includes(action), `Admin verifier should cover ${action}`);
   }

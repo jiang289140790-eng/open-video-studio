@@ -284,32 +284,131 @@ async function callQianwenGeneration(env: AiEnv, job: Record<string, any>) {
   }
   const mediaType = normalizeMediaType(job.media_type);
   const model = job.model || defaultModel(env, mediaType, "qianwen_generation");
-  const response = await fetchWithTimeout(`${env.qianwenBaseUrl.replace(/\/$/, "")}/generations`, {
+  const endpoint = qianwenGenerationEndpoint(env, mediaType);
+  const isDashScopeNative = isDashScopeNativeEndpoint(endpoint);
+  const response = await fetchWithTimeout(endpoint, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${env.qianwenApiKey}`,
       "Content-Type": "application/json",
       Accept: "application/json",
+      ...(isDashScopeNative && mediaType === "video" ? { "X-DashScope-Async": "enable" } : {}),
     },
-    body: JSON.stringify({
-      model,
-      type: mediaType,
-      prompt: job.prompt,
-      image_url: job.input_params?.sourceImageUrl,
-      source_asset_id: job.source_asset_id,
-      aspect_ratio: job.aspect_ratio,
-      resolution: job.resolution,
-      duration_seconds: job.duration_seconds,
-      json: true,
-    }),
+    body: JSON.stringify(qianwenGenerationPayload(model, mediaType, job, isDashScopeNative)),
   }, env.providerTimeoutMs);
   const data = await parseProviderResponse(response, "QIANWEN_GENERATION_FAILED");
   return {
-    providerJobId: data.id || data.job_id || data.providerJobId || `qianwen_${job.id}`,
-    outputUrl: data.output_url || data.url || data.image_url || data.video_url,
-    outputBase64: data.output_base64 || data.image_base64 || data.video_base64,
+    providerJobId: data.id || data.job_id || data.output?.task_id || data.providerJobId || `qianwen_${job.id}`,
+    outputUrl: data.output_url || data.url || data.image_url || data.video_url || data.output?.choices?.[0]?.message?.content?.find?.((item: Record<string, unknown>) => item.image)?.image || data.output?.video_url || data.data?.[0]?.url,
+    outputBase64: data.output_base64 || data.image_base64 || data.video_base64 || data.data?.[0]?.b64_json,
     raw: data,
   };
+}
+
+function qianwenGenerationEndpoint(env: AiEnv, mediaType: "image" | "video"): string {
+  const explicit = mediaType === "image" ? env.qianwenImageEndpoint : env.qianwenVideoEndpoint;
+  if (explicit) return explicit;
+  const base = env.qianwenBaseUrl.replace(/\/$/, "");
+  if (/\/(generations|image-synthesis|video-synthesis)$/i.test(base) || base.includes("/services/")) return base;
+  if (base.includes("dashscope") || base.includes("maas.aliyuncs.com") || /\/api\/v1$/i.test(base)) {
+    const apiBase = /\/api\/v1$/i.test(base) ? base : `${base}/api/v1`;
+    return mediaType === "image"
+      ? `${apiBase}/services/aigc/multimodal-generation/generation`
+      : `${apiBase}/services/aigc/video-generation/video-synthesis`;
+  }
+  return mediaType === "image" ? `${base}/images/generations` : `${base}/videos/generations`;
+}
+
+function qianwenGenerationPayload(model: string, mediaType: "image" | "video", job: Record<string, any>, dashScopeNative: boolean) {
+  if (dashScopeNative) {
+    if (mediaType === "image") {
+      return {
+        model,
+        input: {
+          messages: [
+            {
+              role: "user",
+              content: [{ text: String(job.prompt || "") }],
+            },
+          ],
+        },
+        parameters: {
+          prompt_extend: true,
+          watermark: false,
+          n: 1,
+          enable_interleave: true,
+          size: normalizeDashScopeImageSize(job.resolution, job.aspect_ratio),
+        },
+      };
+    }
+    return {
+      model,
+      input: {
+        prompt: job.prompt,
+        ...(job.input_params?.sourceImageUrl ? {
+          media: [{ type: "first_frame", url: job.input_params.sourceImageUrl }],
+        } : {}),
+      },
+      parameters: {
+        size: normalizeDashScopeVideoSize(job.resolution, job.aspect_ratio),
+        duration: job.duration_seconds ?? 5,
+        prompt_extend: true,
+      },
+    };
+  }
+  const basePayload = {
+    model,
+    prompt: job.prompt,
+    json: true,
+  };
+  if (mediaType === "image") {
+    return {
+      ...basePayload,
+      size: normalizeImageSize(job.resolution, job.aspect_ratio),
+      aspect_ratio: job.aspect_ratio,
+      response_format: "url",
+    };
+  }
+  return {
+    ...basePayload,
+    type: "video",
+    image_url: job.input_params?.sourceImageUrl,
+    source_asset_id: job.source_asset_id,
+    aspect_ratio: job.aspect_ratio,
+    resolution: job.resolution,
+    duration_seconds: job.duration_seconds,
+  };
+}
+
+function isDashScopeNativeEndpoint(endpoint: string): boolean {
+  return endpoint.includes("/api/v1/services/aigc/") || endpoint.includes("dashscope") || endpoint.includes("maas.aliyuncs.com");
+}
+
+function normalizeImageSize(resolution: unknown, aspectRatio: unknown): string {
+  const value = String(resolution || "").trim();
+  if (/^\d+x\d+$/.test(value)) return value;
+  const ratio = String(aspectRatio || "16:9");
+  if (ratio === "1:1") return "1024x1024";
+  if (ratio === "9:16") return "1024x1792";
+  return "1792x1024";
+}
+
+function normalizeDashScopeImageSize(resolution: unknown, aspectRatio: unknown): string {
+  const value = String(resolution || "").trim().replace("x", "*");
+  if (/^\d+\*\d+$/.test(value)) return value;
+  const ratio = String(aspectRatio || "16:9");
+  if (ratio === "1:1") return "1280*1280";
+  if (ratio === "9:16") return "720*1280";
+  return "1280*720";
+}
+
+function normalizeDashScopeVideoSize(resolution: unknown, aspectRatio: unknown): string {
+  const value = String(resolution || "").trim().replace("x", "*");
+  if (/^\d+\*\d+$/.test(value)) return value;
+  const ratio = String(aspectRatio || "16:9");
+  if (ratio === "9:16") return "720*1280";
+  if (ratio === "1:1") return "960*960";
+  return "1280*720";
 }
 
 async function fakeWorkerResult(job: Record<string, any>) {
@@ -612,7 +711,7 @@ function providerStatus(env: AiEnv) {
   return [
     { provider: "qwen_vision", configured: Boolean(env.qwenVisionSiteApiKey), model: env.qwenVisionModel, endpoint: env.qwenVisionEndpoint },
     { provider: "deepseek_text", configured: Boolean(env.deepseekApiKey), model: env.deepseekModel, endpoint: env.deepseekBaseUrl },
-    { provider: "qianwen_generation", configured: Boolean(env.qianwenApiKey && env.qianwenBaseUrl), imageModel: env.qianwenImageModel, videoModel: env.qianwenVideoModel, endpoint: env.qianwenBaseUrl },
+    { provider: "qianwen_generation", configured: Boolean(env.qianwenApiKey && env.qianwenBaseUrl), imageModel: env.qianwenImageModel, videoModel: env.qianwenVideoModel, endpoint: env.qianwenBaseUrl, imageEndpoint: env.qianwenImageEndpoint || "", videoEndpoint: env.qianwenVideoEndpoint || "" },
     { provider: "fake_worker", configured: true, model: "local-demo", endpoint: "internal" },
   ];
 }
@@ -706,6 +805,8 @@ function loadAiEnv(): AiEnv {
     deepseekModel: Deno.env.get("DEEPSEEK_MODEL") || "deepseek-chat",
     qianwenApiKey: Deno.env.get("QIANWEN_API_KEY") ?? "",
     qianwenBaseUrl: Deno.env.get("QIANWEN_BASE_URL") ?? "",
+    qianwenImageEndpoint: Deno.env.get("QIANWEN_IMAGE_ENDPOINT") ?? "",
+    qianwenVideoEndpoint: Deno.env.get("QIANWEN_VIDEO_ENDPOINT") ?? "",
     qianwenImageModel: Deno.env.get("QIANWEN_IMAGE_MODEL") || "qianwen-image-v1",
     qianwenVideoModel: Deno.env.get("QIANWEN_VIDEO_MODEL") || "qianwen-video-v1",
     aiProviderDefault: safeProvider(Deno.env.get("AI_PROVIDER_DEFAULT")) || "fake_worker",
@@ -786,6 +887,8 @@ interface AiEnv {
   deepseekModel: string;
   qianwenApiKey: string;
   qianwenBaseUrl: string;
+  qianwenImageEndpoint: string;
+  qianwenVideoEndpoint: string;
   qianwenImageModel: string;
   qianwenVideoModel: string;
   aiProviderDefault: string;

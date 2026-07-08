@@ -14,6 +14,7 @@
     "verify:ai": "node scripts/verify-ai-function.mjs",
     "verify:workflow": "node scripts/verify-workflow-routing.mjs",
     "verify:user-loop": "node scripts/verify-user-product-loop.mjs",
+    "verify:real-ai": "node scripts/verify-real-ai-generation.mjs",
     "verify:payments": "node scripts/verify-payment-loop.mjs",
     "verify:production-config": "node scripts/check-production-config.mjs",
     "verify:admin": "node scripts/verify-admin-console.mjs",

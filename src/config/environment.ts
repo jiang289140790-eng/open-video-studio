@@ -16,6 +16,8 @@ export interface AppEnvironment {
   deepseekModel?: string;
   qianwenApiKey?: string;
   qianwenBaseUrl?: string;
+  qianwenImageEndpoint?: string;
+  qianwenVideoEndpoint?: string;
   qianwenImageModel?: string;
   qianwenVideoModel?: string;
   aiProviderDefault?: string;
@@ -42,6 +44,8 @@ export function loadEnvironment(filePath?: string): AppEnvironment {
     deepseekModel: value("DEEPSEEK_MODEL", "deepseek-chat"),
     qianwenApiKey: emptyToUndefined(value("QIANWEN_API_KEY")),
     qianwenBaseUrl: emptyToUndefined(value("QIANWEN_BASE_URL")),
+    qianwenImageEndpoint: emptyToUndefined(value("QIANWEN_IMAGE_ENDPOINT")),
+    qianwenVideoEndpoint: emptyToUndefined(value("QIANWEN_VIDEO_ENDPOINT")),
     qianwenImageModel: value("QIANWEN_IMAGE_MODEL", "your-image-model"),
     qianwenVideoModel: value("QIANWEN_VIDEO_MODEL", "your-video-model"),
     aiProviderDefault: value("AI_PROVIDER_DEFAULT", "fake_worker"),
