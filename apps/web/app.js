@@ -17,6 +17,9 @@ const APP_SHELL_PAGES = new Set([
   "accounts.html",
   "calendar.html",
   "analytics.html",
+  "publishing.html",
+  "automation.html",
+  "settings.html",
   "dashboard.html",
   "pricing.html",
   "free-coins.html",
@@ -49,6 +52,9 @@ const PROTECTED_PRODUCT_PAGES = new Set([
   "accounts.html",
   "calendar.html",
   "analytics.html",
+  "publishing.html",
+  "automation.html",
+  "settings.html",
   "admin.html"
 ]);
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
@@ -164,6 +170,17 @@ const defaultState = {
     { id: "analytics_prompt_pack", contentItemId: "content_prompt_pack", platform: "TikTok", views: 12800, likes: 920, comments: 84, shares: 112, clicks: 430, signups: 37, revenue: 0, conversionRate: 8.6 },
     { id: "analytics_x_pack", contentItemId: "content_prompt_pack", platform: "X", views: 6400, likes: 310, comments: 29, shares: 58, clicks: 220, signups: 14, revenue: 0, conversionRate: 6.3 }
   ],
+  automationRules: [
+    { id: "auto_review", name: "AI Studio 草稿进入 Review", trigger: "content_created", action: "move_to_review", status: "active", lastRun: "等待首次运行" },
+    { id: "auto_retry", name: "失败发布提醒", trigger: "publish_failed", action: "retry_failed", status: "paused", lastRun: "未运行" }
+  ],
+  contentSettings: {
+    defaultPlatforms: "X, TikTok, YouTube Shorts, Pinterest",
+    defaultFrequency: "每天 1 条",
+    defaultCta: "免费开始生成",
+    defaultStyle: "深色高级、视觉优先、创作者工具感",
+    reviewRequired: true
+  },
   rewards: {
     checkInDay: 0,
     lastCheckInDate: "",
@@ -427,6 +444,8 @@ state.contentItems = Array.isArray(state.contentItems) ? state.contentItems : st
 state.contentQueue = Array.isArray(state.contentQueue) ? state.contentQueue : structuredClone(defaultState.contentQueue);
 state.socialAccounts = Array.isArray(state.socialAccounts) ? state.socialAccounts : structuredClone(defaultState.socialAccounts);
 state.contentAnalytics = Array.isArray(state.contentAnalytics) ? state.contentAnalytics : structuredClone(defaultState.contentAnalytics);
+state.automationRules = Array.isArray(state.automationRules) ? state.automationRules : structuredClone(defaultState.automationRules);
+state.contentSettings = state.contentSettings && typeof state.contentSettings === "object" ? { ...defaultState.contentSettings, ...state.contentSettings } : structuredClone(defaultState.contentSettings);
 let selectedCharacterId = state.characters[0]?.id || "";
 let toolHomeFilter = "all";
 let toolHomeSearch = "";
@@ -743,8 +762,11 @@ function renderAccountNavigation(current) {
         <a href="./zh/pipeline/">Content Pipeline</a>
         <a href="./zh/queue/">Content Queue</a>
         <a href="./zh/accounts/">Publishing Accounts</a>
+        <a href="./zh/publishing/">Publishing</a>
         <a href="./zh/calendar/">Content Calendar</a>
         <a href="./zh/analytics/">Analytics</a>
+        <a href="./zh/automation/">Automation</a>
+        <a href="./zh/settings/">Settings</a>
         <a href="./zh/my-creations/">我的创作</a>
         <a href="./zh/history/">生成历史</a>
         <a href="./zh/assets/">资产库</a>
@@ -786,8 +808,11 @@ function injectAppShell() {
         <a href="./zh/pipeline/" class="${active("pipeline.html")}">Content Pipeline</a>
         <a href="./zh/queue/" class="${active("queue.html")}">Content Queue</a>
         <a href="./zh/accounts/" class="${active("accounts.html")}">Publishing Accounts</a>
+        <a href="./zh/publishing/" class="${active("publishing.html")}">Publishing</a>
         <a href="./zh/calendar/" class="${active("calendar.html")}">Content Calendar</a>
         <a href="./zh/analytics/" class="${active("analytics.html")}">Analytics</a>
+        <a href="./zh/automation/" class="${active("automation.html")}">Automation</a>
+        <a href="./zh/settings/" class="${active("settings.html")}">Settings</a>
         <span>AI 视频</span>
         <a href="./zh/video-tools/" class="${active("video-tools.html")}">全部视频工具</a>
         <a href="./zh/app/image-to-video/" class="${active("image-to-video.html")}">图片转视频</a>
@@ -835,8 +860,11 @@ function injectGlobalFooter() {
         <a href="./zh/pipeline/">Content Pipeline</a>
         <a href="./zh/queue/">Content Queue</a>
         <a href="./zh/accounts/">Publishing Accounts</a>
+        <a href="./zh/publishing/">Publishing</a>
         <a href="./zh/calendar/">Content Calendar</a>
         <a href="./zh/analytics/">Analytics</a>
+        <a href="./zh/automation/">Automation</a>
+        <a href="./zh/settings/">Settings</a>
       </div>
       <div>
         <h3>About Us</h3>
@@ -1421,6 +1449,39 @@ document.addEventListener("submit", async (event) => {
     });
     saveState(state);
     showSiteToast("演示发布账号已连接");
+    return;
+  }
+
+  const automationForm = event.target.closest("[data-automation-form]");
+  if (automationForm) {
+    event.preventDefault();
+    const formData = new FormData(automationForm);
+    state.automationRules.unshift({
+      id: `auto_${Date.now()}`,
+      name: String(formData.get("name") || "Untitled automation"),
+      trigger: String(formData.get("trigger") || "content_created"),
+      action: String(formData.get("action") || "move_to_review"),
+      status: "active",
+      lastRun: "刚刚保存"
+    });
+    saveState(state);
+    showSiteToast("自动化规则已保存");
+    return;
+  }
+
+  const contentSettingsForm = event.target.closest("[data-content-settings-form]");
+  if (contentSettingsForm) {
+    event.preventDefault();
+    const formData = new FormData(contentSettingsForm);
+    state.contentSettings = {
+      defaultPlatforms: String(formData.get("defaultPlatforms") || ""),
+      defaultFrequency: String(formData.get("defaultFrequency") || ""),
+      defaultCta: String(formData.get("defaultCta") || ""),
+      defaultStyle: String(formData.get("defaultStyle") || ""),
+      reviewRequired: String(formData.get("reviewRequired")) === "true"
+    };
+    saveState(state);
+    showSiteToast("内容运营设置已保存");
     return;
   }
 
@@ -2265,6 +2326,9 @@ function renderContentOperatingSystem(current) {
   renderSocialAccounts(current);
   renderContentCalendar(current);
   renderContentAnalytics(current);
+  renderPublishingCenter(current);
+  renderAutomation(current);
+  renderContentSettings(current);
 }
 
 function renderCampaignList(current) {
@@ -2511,6 +2575,80 @@ function renderContentAnalytics(current) {
       `;
     }).join("");
   }
+}
+
+function renderPublishingCenter(current) {
+  const target = document.querySelector("[data-publishing-list]");
+  if (!target) return;
+  const buttons = document.querySelectorAll("[data-publishing-filter]");
+  const active = Array.from(buttons).find((button) => button.classList.contains("active"))?.dataset.publishingFilter || "all";
+  buttons.forEach((button) => {
+    button.onclick = () => {
+      buttons.forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+      renderPublishingCenter(state);
+    };
+  });
+  const rows = current.contentQueue.filter((item) => active === "all" || item.status === active);
+  target.innerHTML = rows.length ? rows.map((item) => {
+    const account = current.socialAccounts.find((entry) => entry.platform === item.platform);
+    return `
+      <article class="queue-card">
+        <div>
+          <span>${escapeHtml(item.platform)} · ${escapeHtml(account?.handle || "未连接账号")}</span>
+          <strong>${escapeHtml(item.title)}</strong>
+          <p>${escapeHtml(item.scheduledAt || "未设置时间")} · ${escapeHtml(queueStatusLabel(item.status))}</p>
+        </div>
+        <em>${account?.status === "connected" ? "Ready" : "Needs account"}</em>
+      </article>
+    `;
+  }).join("") : `<article class="queue-card"><strong>暂无发布任务</strong><p>从 Queue 或 Pipeline 排期后会进入发布中心。</p></article>`;
+}
+
+function renderAutomation(current) {
+  const target = document.querySelector("[data-automation-list]");
+  if (!target) return;
+  target.innerHTML = current.automationRules.length ? current.automationRules.map((rule) => `
+    <article class="content-os-card">
+      <div>
+        <span>${escapeHtml(rule.status === "active" ? "Active" : "Paused")}</span>
+        <strong>${escapeHtml(rule.name)}</strong>
+        <p>Trigger: ${escapeHtml(rule.trigger)} · Action: ${escapeHtml(rule.action)}</p>
+      </div>
+      <div class="content-os-meta">
+        <small>${escapeHtml(rule.lastRun)}</small>
+        <small>真实执行器后续接入</small>
+      </div>
+    </article>
+  `).join("") : `<article class="content-os-card"><strong>暂无自动化</strong><p>创建规则后会显示在这里。</p></article>`;
+}
+
+function renderContentSettings(current) {
+  const target = document.querySelector("[data-content-settings-preview]");
+  if (!target) return;
+  const settings = current.contentSettings || defaultState.contentSettings;
+  target.innerHTML = `
+    <article class="content-os-card">
+      <span>默认平台</span>
+      <strong>${escapeHtml(settings.defaultPlatforms)}</strong>
+      <p>Campaign 创建时可复用这些平台。</p>
+    </article>
+    <article class="content-os-card">
+      <span>发布频率</span>
+      <strong>${escapeHtml(settings.defaultFrequency)}</strong>
+      <p>用于 Campaign 和 Calendar 的默认排期。</p>
+    </article>
+    <article class="content-os-card">
+      <span>默认 CTA</span>
+      <strong>${escapeHtml(settings.defaultCta)}</strong>
+      <p>AI Studio 生成 Caption 时可作为默认转化动作。</p>
+    </article>
+    <article class="content-os-card">
+      <span>发布安全</span>
+      <strong>${settings.reviewRequired ? "发布前必须审核" : "允许自动排期"}</strong>
+      <p>真实发布适配器接入前仅作为产品状态占位。</p>
+    </article>
+  `;
 }
 
 function renderAdmin(current) {

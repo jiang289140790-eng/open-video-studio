@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.65.0 |
+| Version | 0.66.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,18 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Added
+
+- Added the remaining MVP content-operations navigation surfaces required by the imported guidance: `publishing.html`, `automation.html`, and `settings.html`, with localized `/zh/.../` aliases and Vite build entries.
+- Added local Publishing Center rendering over content queue records, including platform account readiness and status filters.
+- Added local Automation rules with trigger/action/status/last-run placeholders, plus form-based rule creation.
+- Added local content operations Settings for default platforms, publishing frequency, default CTA, content style, and review-required behavior.
+- Extended the shared side rail, account menu, footer navigation, and static tests to include Publishing, Automation, and Settings.
+
+### Validation
+
+- Ran `npm run test`; production build completed and 53 tests passed.
 
 ### Improved
 

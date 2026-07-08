@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Automation | Open Video Studio</title>
+    <meta name="description" content="创建内容运营自动化规则，占位支持生成草稿、移动 Pipeline、排期和失败重试。">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
+      <nav class="topnav" aria-label="Primary navigation"></nav>
+      <nav class="accountnav" aria-label="Account navigation"></nav>
+    </header>
+    <main class="app-surface content-os-page">
+      <section class="page-hero compact">
+        <p class="eyebrow">Automation</p>
+        <h1>自动化规则</h1>
+        <p class="lead">先建立可见的自动化规则模型：触发器、动作、状态和运行记录。真实工作流引擎或 n8n 后续接入。</p>
+      </section>
+      <section class="content-os-grid">
+        <article class="panel">
+          <div class="tool-section-head"><div><p class="eyebrow">新建规则</p><h2>创建 Automation</h2></div><span class="credit-pill">Mock Run</span></div>
+          <form class="content-os-form" data-automation-form>
+            <label><span>规则名称</span><input name="name" value="AI Studio 草稿进入 Review"></label>
+            <label><span>触发器</span><select name="trigger"><option value="content_created">Content created</option><option value="stage_changed">Stage changed</option><option value="schedule_due">Schedule due</option><option value="publish_failed">Publish failed</option></select></label>
+            <label><span>动作</span><select name="action"><option value="move_to_review">移动到 Review</option><option value="create_variants">生成平台版本</option><option value="schedule_post">加入发布队列</option><option value="retry_failed">重试失败任务</option></select></label>
+            <button class="btn primary full" type="submit">保存自动化</button>
+          </form>
+        </article>
+        <section class="panel">
+          <div class="tool-section-head"><div><p class="eyebrow">规则列表</p><h2>当前自动化</h2></div><a href="./zh/pipeline/">查看 Pipeline</a></div>
+          <div class="content-card-list" data-automation-list></div>
+        </section>
+      </section>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Publishing Center | Open Video Studio</title>
+    <meta name="description" content="管理待审、已排期、已发布和失败的内容发布任务。">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
+      <nav class="topnav" aria-label="Primary navigation"></nav>
+      <nav class="accountnav" aria-label="Account navigation"></nav>
+    </header>
+    <main class="app-surface content-os-page">
+      <section class="page-hero compact">
+        <p class="eyebrow">Publishing Center</p>
+        <h1>发布中心</h1>
+        <p class="lead">把平台版本、发布账号、排期和状态放在同一处。第一版只做本地模拟，真实发布适配器后续接入。</p>
+      </section>
+      <section class="queue-toolbar">
+        <button class="active" type="button" data-publishing-filter="all">全部</button>
+        <button type="button" data-publishing-filter="needs_review">待审核</button>
+        <button type="button" data-publishing-filter="scheduled">已排期</button>
+        <button type="button" data-publishing-filter="published">已发布</button>
+        <button type="button" data-publishing-filter="failed">失败</button>
+      </section>
+      <section class="queue-list" data-publishing-list></section>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

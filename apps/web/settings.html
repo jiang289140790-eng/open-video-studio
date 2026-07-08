@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Settings | Open Video Studio</title>
+    <meta name="description" content="管理内容运营默认设置，包括默认平台、发布频率、默认 CTA、内容风格和安全开关。">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
+      <nav class="topnav" aria-label="Primary navigation"></nav>
+      <nav class="accountnav" aria-label="Account navigation"></nav>
+    </header>
+    <main class="app-surface content-os-page">
+      <section class="page-hero compact">
+        <p class="eyebrow">Settings</p>
+        <h1>内容运营设置</h1>
+        <p class="lead">为 Campaign、AI Studio、Publishing 和 Analytics 设置默认值。当前保存到本地状态，未来接入用户设置表。</p>
+      </section>
+      <section class="panel">
+        <form class="content-os-form settings-form" data-content-settings-form>
+          <label><span>默认平台</span><input name="defaultPlatforms" value="X, TikTok, YouTube Shorts, Pinterest"></label>
+          <label><span>默认发布频率</span><input name="defaultFrequency" value="每天 1 条"></label>
+          <label><span>默认 CTA</span><input name="defaultCta" value="免费开始生成"></label>
+          <label><span>默认内容风格</span><input name="defaultStyle" value="深色高级、视觉优先、创作者工具感"></label>
+          <label><span>发布安全</span><select name="reviewRequired"><option value="true">发布前必须审核</option><option value="false">允许自动排期</option></select></label>
+          <button class="btn primary" type="submit">保存设置</button>
+        </form>
+      </section>
+      <section class="panel">
+        <div class="tool-section-head"><div><p class="eyebrow">当前配置</p><h2>设置预览</h2></div><a href="./zh/campaigns/">创建 Campaign</a></div>
+        <div class="content-card-list" data-content-settings-preview></div>
+      </section>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
