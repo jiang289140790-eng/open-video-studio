@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.63.0 |
+| Version | 0.64.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,18 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Added
+
+- Added MVP publishing and feedback-loop surfaces from the imported content operating guidance: `accounts.html`, `calendar.html`, and `analytics.html`, with localized `/zh/.../` aliases and Vite build entries.
+- Added local social account connection placeholders for X, TikTok, YouTube Shorts, Instagram, Pinterest, Reddit, Telegram, and Facebook without connecting real platform APIs.
+- Added a Content Calendar view that renders queue items by Today, Tomorrow, This Week, Scheduled, Failed, and Published states.
+- Added Content Analytics summary and performance snapshot cards using local placeholder metrics for views, likes, shares, clicks, signups, and conversion rate.
+- Extended static frontend tests to cover publishing account, calendar, and analytics page hooks.
+
+### Validation
+
+- Ran `npm run test`; production build completed and 53 tests passed.
 
 ### Added
 

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Content Analytics | Open Video Studio</title>
+    <meta name="description" content="查看内容表现占位指标，包括 Views、Likes、Shares、Clicks、Signups、Revenue 和转化率。">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
+      <nav class="topnav" aria-label="Primary navigation"></nav>
+      <nav class="accountnav" aria-label="Account navigation"></nav>
+    </header>
+    <main class="app-surface content-os-page">
+      <section class="page-hero compact">
+        <p class="eyebrow">Analytics</p>
+        <h1>从内容表现回到创作优化</h1>
+        <p class="lead">第一版展示分析占位指标，帮助产品链路形成“发布 → 数据 → 优化”的反馈闭环。</p>
+      </section>
+      <section class="metric-grid content-analytics-grid" data-content-analytics-summary></section>
+      <section class="panel">
+        <div class="tool-section-head">
+          <div>
+            <p class="eyebrow">Performance</p>
+            <h2>内容表现快照</h2>
+          </div>
+          <a href="./zh/pipeline/">优化内容</a>
+        </div>
+        <div class="content-card-list" data-content-analytics-list></div>
+      </section>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

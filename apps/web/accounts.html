@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Social Accounts | Open Video Studio</title>
+    <meta name="description" content="连接和管理 X、TikTok、YouTube Shorts、Instagram、Pinterest、Reddit、Telegram 和 Facebook 发布账号。">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
+      <nav class="topnav" aria-label="Primary navigation"></nav>
+      <nav class="accountnav" aria-label="Account navigation"></nav>
+    </header>
+    <main class="app-surface content-os-page">
+      <section class="page-hero compact">
+        <p class="eyebrow">Publishing Accounts</p>
+        <h1>连接内容发布账号</h1>
+        <p class="lead">第一版先保存发布账号占位状态，让 Campaign、Queue 和 Calendar 能关联平台。真实 OAuth 发布适配器后续再接入。</p>
+      </section>
+      <section class="content-os-grid">
+        <article class="panel">
+          <div class="tool-section-head">
+            <div>
+              <p class="eyebrow">新增连接</p>
+              <h2>连接演示账号</h2>
+            </div>
+            <span class="credit-pill">Mock OAuth</span>
+          </div>
+          <form class="content-os-form" data-social-account-form>
+            <label><span>平台</span><select name="platform"><option>X</option><option>TikTok</option><option>YouTube Shorts</option><option>Instagram</option><option>Pinterest</option><option>Reddit</option><option>Telegram</option><option>Facebook</option></select></label>
+            <label><span>账号名称</span><input name="handle" value="@openvideostudio"></label>
+            <label><span>用途</span><input name="purpose" value="Campaign 发布账号"></label>
+            <button class="btn primary full" type="submit">连接账号</button>
+          </form>
+        </article>
+        <section class="panel">
+          <div class="tool-section-head">
+            <div>
+              <p class="eyebrow">账号列表</p>
+              <h2>可用发布账号</h2>
+            </div>
+            <a href="./zh/calendar/">查看日历</a>
+          </div>
+          <div class="content-card-list" data-social-account-list></div>
+        </section>
+      </section>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

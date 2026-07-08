@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Content Calendar | Open Video Studio</title>
+    <meta name="description" content="查看排期内容、发布平台、状态、失败任务和本周内容生产计划。">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
+      <nav class="topnav" aria-label="Primary navigation"></nav>
+      <nav class="accountnav" aria-label="Account navigation"></nav>
+    </header>
+    <main class="app-surface content-os-page">
+      <section class="page-hero compact">
+        <p class="eyebrow">Content Calendar</p>
+        <h1>把队列变成可视化发布计划</h1>
+        <p class="lead">查看 Today、Tomorrow、This Week 的内容排期。真实发布和失败重试会在发布适配器接入后启用。</p>
+      </section>
+      <section class="calendar-board" data-content-calendar></section>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

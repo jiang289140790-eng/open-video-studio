@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.70.0 |
+| Version | 0.71.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- The content operating system UI now includes MVP publishing and feedback-loop pages: Publishing Accounts, Content Calendar, and Analytics. These use local placeholder state for account connections, scheduled content, and performance metrics until real platform publishing and analytics ingestion are approved.
 - The content operating system foundation now has visible MVP frontend surfaces: Campaigns, AI Studio, Content Pipeline, and Content Queue. These pages use local state and mock AI output to prove the content lifecycle before real publishing integrations are connected.
 - The imported desktop AI Content Operating System guidance has been triaged into an MVP-compatible service foundation: `ContentOperatingService` now supports campaigns, AI Studio mock content packages, content pipeline stages, platform-specific variants, publishing queue records, and analytics placeholders without changing the existing frontend or provider architecture.
 - The local development schema now includes `campaigns`, `content_items`, `content_pipeline_events`, `platform_post_variants`, `publishing_queue`, and `content_analytics`, allowing future pages to evolve from one-off generation into reusable content lifecycle workflows.

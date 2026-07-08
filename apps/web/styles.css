@@ -3796,6 +3796,61 @@ body.tool-layout .site-footer {
   font-weight: 950;
 }
 
+.calendar-board {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(210px, 1fr));
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.calendar-column {
+  min-width: 210px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 18px;
+  padding: 12px;
+  background: rgba(255,255,255,.045);
+}
+
+.calendar-column h2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.calendar-column h2 span {
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: rgba(255,95,190,.18);
+  color: #ff8bd0;
+  font-size: .78rem;
+}
+
+.calendar-card {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 16px;
+  padding: 14px;
+  background: linear-gradient(145deg, rgba(255,255,255,.09), rgba(255,255,255,.035));
+  margin-bottom: 10px;
+}
+
+.calendar-card strong {
+  color: #fff;
+}
+
+.calendar-card p,
+.calendar-card small {
+  color: #b8c2dd;
+}
+
+.content-analytics-grid article {
+  background: linear-gradient(145deg, rgba(255,95,190,.12), rgba(139,92,246,.09));
+}
+
 @media (max-width: 900px) {
   .content-os-grid,
   .ai-studio-layout,
@@ -3805,5 +3860,9 @@ body.tool-layout .site-footer {
 
   .pipeline-board {
     grid-template-columns: repeat(10, 240px);
+  }
+
+  .calendar-board {
+    grid-template-columns: repeat(6, 230px);
   }
 }

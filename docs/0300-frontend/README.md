@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | FE-INDEX-001 |
-| Version | 0.8.0 |
+| Version | 0.9.0 |
 | Status | Active |
 | Owner | Frontend Lead |
 | Dependencies | OVSB-001, DOC-STD-001, UX-INDEX-001, API-INDEX-001, FE-BIBLE-001 |
@@ -50,6 +50,7 @@ The repository now includes React, Vite, and a production app shell at `apps/web
 - `apps/web/signin.html` implements the current sign in / account entry for `PAGE-AUTH-001`.
 - `apps/web/characters.html`, `apps/web/assets.html`, `apps/web/history.html`, and `apps/web/share.html` implement MVP product surfaces derived from existing character, asset, generation history, and share requirements.
 - `apps/web/campaigns.html`, `apps/web/ai-studio.html`, `apps/web/pipeline.html`, and `apps/web/queue.html` implement the MVP-visible AI Content Operating System surfaces for campaign setup, mock AI Studio output, content lifecycle movement, and queue filtering.
+- `apps/web/accounts.html`, `apps/web/calendar.html`, and `apps/web/analytics.html` implement MVP publishing and feedback-loop placeholders for social account connection state, scheduled content calendar views, and content performance summaries.
 - `apps/web/app.html`, `apps/web/image-to-video.html`, `apps/web/referral.html`, and `apps/web/my-creations.html` add target-site-style tool center, video tool, free-credit referral, and creation shelf routes.
 - `apps/web/app.js` now provides the local MVP interaction loop for login, credit purchase, character creation, generation, assets, history, and public sharing until the frontend is wired to Supabase APIs.
 

@@ -14,6 +14,9 @@ const APP_SHELL_PAGES = new Set([
   "ai-studio.html",
   "pipeline.html",
   "queue.html",
+  "accounts.html",
+  "calendar.html",
+  "analytics.html",
   "dashboard.html",
   "pricing.html",
   "free-coins.html",
@@ -43,6 +46,9 @@ const PROTECTED_PRODUCT_PAGES = new Set([
   "ai-studio.html",
   "pipeline.html",
   "queue.html",
+  "accounts.html",
+  "calendar.html",
+  "analytics.html",
   "admin.html"
 ]);
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
@@ -149,6 +155,14 @@ const defaultState = {
   ],
   contentQueue: [
     { id: "queue_tiktok", contentItemId: "content_prompt_pack", platform: "TikTok", status: "scheduled", scheduledAt: "2026-07-09 09:00", title: "把一个提示词变成完整内容包" }
+  ],
+  socialAccounts: [
+    { id: "social_x", platform: "X", handle: "@openvideostudio", purpose: "短文案发布", status: "connected" },
+    { id: "social_tiktok", platform: "TikTok", handle: "@ovs.creator", purpose: "竖屏短视频", status: "needs_review" }
+  ],
+  contentAnalytics: [
+    { id: "analytics_prompt_pack", contentItemId: "content_prompt_pack", platform: "TikTok", views: 12800, likes: 920, comments: 84, shares: 112, clicks: 430, signups: 37, revenue: 0, conversionRate: 8.6 },
+    { id: "analytics_x_pack", contentItemId: "content_prompt_pack", platform: "X", views: 6400, likes: 310, comments: 29, shares: 58, clicks: 220, signups: 14, revenue: 0, conversionRate: 6.3 }
   ],
   rewards: {
     checkInDay: 0,
@@ -411,6 +425,8 @@ state.orders = Array.isArray(state.orders) ? state.orders : [...defaultState.ord
 state.campaigns = Array.isArray(state.campaigns) ? state.campaigns : structuredClone(defaultState.campaigns);
 state.contentItems = Array.isArray(state.contentItems) ? state.contentItems : structuredClone(defaultState.contentItems);
 state.contentQueue = Array.isArray(state.contentQueue) ? state.contentQueue : structuredClone(defaultState.contentQueue);
+state.socialAccounts = Array.isArray(state.socialAccounts) ? state.socialAccounts : structuredClone(defaultState.socialAccounts);
+state.contentAnalytics = Array.isArray(state.contentAnalytics) ? state.contentAnalytics : structuredClone(defaultState.contentAnalytics);
 let selectedCharacterId = state.characters[0]?.id || "";
 let toolHomeFilter = "all";
 let toolHomeSearch = "";
@@ -726,6 +742,9 @@ function renderAccountNavigation(current) {
         <a href="./zh/ai-studio/">AI Studio</a>
         <a href="./zh/pipeline/">Content Pipeline</a>
         <a href="./zh/queue/">Content Queue</a>
+        <a href="./zh/accounts/">Publishing Accounts</a>
+        <a href="./zh/calendar/">Content Calendar</a>
+        <a href="./zh/analytics/">Analytics</a>
         <a href="./zh/my-creations/">我的创作</a>
         <a href="./zh/history/">生成历史</a>
         <a href="./zh/assets/">资产库</a>
@@ -766,6 +785,9 @@ function injectAppShell() {
         <a href="./zh/ai-studio/" class="${active("ai-studio.html")}">AI Studio</a>
         <a href="./zh/pipeline/" class="${active("pipeline.html")}">Content Pipeline</a>
         <a href="./zh/queue/" class="${active("queue.html")}">Content Queue</a>
+        <a href="./zh/accounts/" class="${active("accounts.html")}">Publishing Accounts</a>
+        <a href="./zh/calendar/" class="${active("calendar.html")}">Content Calendar</a>
+        <a href="./zh/analytics/" class="${active("analytics.html")}">Analytics</a>
         <span>AI 视频</span>
         <a href="./zh/video-tools/" class="${active("video-tools.html")}">全部视频工具</a>
         <a href="./zh/app/image-to-video/" class="${active("image-to-video.html")}">图片转视频</a>
@@ -812,6 +834,9 @@ function injectGlobalFooter() {
         <a href="./zh/ai-studio/">AI Studio</a>
         <a href="./zh/pipeline/">Content Pipeline</a>
         <a href="./zh/queue/">Content Queue</a>
+        <a href="./zh/accounts/">Publishing Accounts</a>
+        <a href="./zh/calendar/">Content Calendar</a>
+        <a href="./zh/analytics/">Analytics</a>
       </div>
       <div>
         <h3>About Us</h3>
@@ -1380,6 +1405,22 @@ document.addEventListener("submit", async (event) => {
     saveState(state);
     showSiteToast("AI Studio 草稿已生成");
     window.setTimeout(() => renderAiStudioOutput(state), 0);
+    return;
+  }
+
+  const socialAccountForm = event.target.closest("[data-social-account-form]");
+  if (socialAccountForm) {
+    event.preventDefault();
+    const formData = new FormData(socialAccountForm);
+    state.socialAccounts.unshift({
+      id: `social_${Date.now()}`,
+      platform: String(formData.get("platform") || "X"),
+      handle: String(formData.get("handle") || "@openvideostudio"),
+      purpose: String(formData.get("purpose") || "Campaign 发布账号"),
+      status: "connected"
+    });
+    saveState(state);
+    showSiteToast("演示发布账号已连接");
     return;
   }
 
@@ -2173,6 +2214,9 @@ function renderContentOperatingSystem(current) {
   renderAiStudioOutput(current);
   renderPipelineBoard(current);
   renderContentQueue(current);
+  renderSocialAccounts(current);
+  renderContentCalendar(current);
+  renderContentAnalytics(current);
 }
 
 function renderCampaignList(current) {
@@ -2331,6 +2375,94 @@ function queueStatusLabel(status) {
 
 function goalLabel(goal) {
   return ({ traffic: "引流", followers: "涨粉", sales: "销售", leads: "线索", awareness: "品牌认知" })[goal] || goal;
+}
+
+function renderSocialAccounts(current) {
+  const target = document.querySelector("[data-social-account-list]");
+  if (!target) return;
+  target.innerHTML = current.socialAccounts.length ? current.socialAccounts.map((account) => `
+    <article class="content-os-card">
+      <div>
+        <span>${escapeHtml(account.platform)}</span>
+        <strong>${escapeHtml(account.handle)}</strong>
+        <p>${escapeHtml(account.purpose || "发布账号")}</p>
+      </div>
+      <div class="content-os-meta">
+        <small>${account.status === "connected" ? "已连接" : "待确认"}</small>
+        <small>真实 OAuth 后续接入</small>
+      </div>
+    </article>
+  `).join("") : `<article class="content-os-card"><strong>暂无连接账号</strong><p>连接演示账号后，Campaign 和 Queue 可以关联发布平台。</p></article>`;
+}
+
+function renderContentCalendar(current) {
+  const target = document.querySelector("[data-content-calendar]");
+  if (!target) return;
+  const groups = [
+    ["today", "Today"],
+    ["tomorrow", "Tomorrow"],
+    ["this_week", "This Week"],
+    ["scheduled", "Scheduled"],
+    ["failed", "Failed"],
+    ["published", "Published"]
+  ];
+  target.innerHTML = groups.map(([key, label]) => {
+    const rows = current.contentQueue.filter((item) => key === "scheduled" ? item.status === "scheduled" : item.status === key);
+    return `
+      <section class="calendar-column">
+        <h2>${label}<span>${rows.length}</span></h2>
+        ${rows.length ? rows.map((item) => `
+          <article class="calendar-card">
+            <strong>${escapeHtml(item.title)}</strong>
+            <p>${escapeHtml(item.platform)} · ${escapeHtml(item.scheduledAt || "未设置")}</p>
+            <small>${escapeHtml(queueStatusLabel(item.status))}</small>
+          </article>
+        `).join("") : `<p class="pipeline-empty">暂无排期</p>`}
+      </section>
+    `;
+  }).join("");
+}
+
+function renderContentAnalytics(current) {
+  const summary = document.querySelector("[data-content-analytics-summary]");
+  const list = document.querySelector("[data-content-analytics-list]");
+  if (!summary && !list) return;
+  const totals = current.contentAnalytics.reduce((acc, row) => {
+    acc.views += Number(row.views || 0);
+    acc.likes += Number(row.likes || 0);
+    acc.shares += Number(row.shares || 0);
+    acc.clicks += Number(row.clicks || 0);
+    acc.signups += Number(row.signups || 0);
+    return acc;
+  }, { views: 0, likes: 0, shares: 0, clicks: 0, signups: 0 });
+  if (summary) {
+    summary.innerHTML = [
+      ["Views", totals.views],
+      ["Likes", totals.likes],
+      ["Shares", totals.shares],
+      ["Clicks", totals.clicks],
+      ["Signups", totals.signups]
+    ].map(([label, value]) => `<article><span>${label}</span><strong>${value}</strong><p>演示指标</p></article>`).join("");
+  }
+  if (list) {
+    list.innerHTML = current.contentAnalytics.map((row) => {
+      const item = current.contentItems.find((entry) => entry.id === row.contentItemId);
+      return `
+        <article class="content-os-card">
+          <div>
+            <span>${escapeHtml(row.platform)}</span>
+            <strong>${escapeHtml(item?.title || "内容表现")}</strong>
+            <p>Views ${row.views} · Likes ${row.likes} · Shares ${row.shares} · Clicks ${row.clicks}</p>
+          </div>
+          <div class="content-os-meta">
+            <small>${row.signups} Signups</small>
+            <small>${row.conversionRate}% Conversion</small>
+            <small>优化建议占位</small>
+          </div>
+        </article>
+      `;
+    }).join("");
+  }
 }
 
 function renderAdmin(current) {
