@@ -62,7 +62,40 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 const telegramBotUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "";
 const telegramAuthUrl = import.meta.env.VITE_TELEGRAM_AUTH_URL || "";
 const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+const I18N_LOCALES = {
+  "zh-CN": { label: "简体中文", short: "文A", status: "complete" },
+  en: { label: "English", short: "EN", status: "mvp" },
+  ja: { label: "日本語", short: "JA", status: "mvp" },
+  ko: { label: "한국어", short: "KO", status: "mvp" }
+};
+const I18N_CORE_TERMS = [
+  "图像工具",
+  "视频工具",
+  "购买积分",
+  "免费硬币",
+  "我的创作",
+  "每日签到",
+  "登录",
+  "控制台",
+  "生成历史",
+  "资产库",
+  "管理后台",
+  "开始生成",
+  "角色",
+  "积分",
+  "生成",
+  "优化提示词",
+  "用户管理",
+  "订单履约",
+  "内容审核",
+  "分享链接",
+  "系统配置",
+  "审计日志",
+  "Workflow Center",
+  "Prompt 管理"
+];
 const I18N_MESSAGES = {
+  "zh-CN": {},
   en: {
     "图像工具": "Image tools",
     "视频工具": "Video tools",
@@ -101,7 +134,29 @@ const I18N_MESSAGES = {
     "生成任务": "Generation jobs",
     "分享链接": "Share links",
     "系统配置": "System config",
-    "审计日志": "Audit logs"
+    "审计日志": "Audit logs",
+    "Workflow Center": "Workflow Center",
+    "Prompt 管理": "Prompt Library",
+    "成本利润": "Cost & margin",
+    "Worker 管理": "Worker Center",
+    "首页内容": "Homepage content",
+    "页面模块": "Page modules",
+    "工具上架": "Tool catalog",
+    "工具版本": "Tool versions",
+    "内容情报": "Content intelligence",
+    "运营管理后台": "Operations admin",
+    "打开网站": "Open site",
+    "退出登录": "Sign out",
+    "发布 Workflow 配置": "Publish workflow config",
+    "预览 Workflow": "Preview workflow",
+    "发布": "Published",
+    "测试": "Testing",
+    "草稿": "Draft",
+    "停用": "Disabled",
+    "回滚 Fake": "Rollback Fake",
+    "切千问": "Use Qianwen",
+    "切 DeepSeek": "Use DeepSeek",
+    "切 Qwen": "Use Qwen"
   },
   ja: {
     "图像工具": "画像ツール",
@@ -115,9 +170,20 @@ const I18N_MESSAGES = {
     "生成": "生成",
     "资产库": "アセット",
     "生成历史": "履歴",
+    "控制台": "ダッシュボード",
+    "管理后台": "管理",
     "角色": "キャラクター",
     "积分": "クレジット",
-    "优化提示词": "プロンプト強化"
+    "优化提示词": "プロンプト強化",
+    "用户管理": "ユーザー",
+    "积分管理": "クレジット管理",
+    "订单履约": "注文",
+    "内容审核": "モデレーション",
+    "分享链接": "共有リンク",
+    "系统配置": "システム設定",
+    "审计日志": "監査ログ",
+    "Workflow Center": "Workflow Center",
+    "Prompt 管理": "プロンプト管理"
   },
   ko: {
     "图像工具": "이미지 도구",
@@ -131,12 +197,45 @@ const I18N_MESSAGES = {
     "生成": "생성",
     "资产库": "에셋",
     "生成历史": "히스토리",
+    "控制台": "대시보드",
+    "管理后台": "관리자",
     "角色": "캐릭터",
     "积分": "크레딧",
-    "优化提示词": "프롬프트 개선"
+    "优化提示词": "프롬프트 개선",
+    "用户管理": "사용자",
+    "积分管理": "크레딧 관리",
+    "订单履约": "주문",
+    "内容审核": "콘텐츠 검수",
+    "分享链接": "공유 링크",
+    "系统配置": "시스템 설정",
+    "审计日志": "감사 로그",
+    "Workflow Center": "Workflow Center",
+    "Prompt 管理": "프롬프트 관리"
+  }
+};
+const I18N_ATTRIBUTE_MESSAGES = {
+  en: {
+    "选择文件": "Choose file",
+    "输入密码": "Enter password",
+    "creator@example.com": "creator@example.com",
+    "例如：新增 ComfyUI 图片生成工作流": "Example: add a ComfyUI image workflow",
+    "例如：上架换装工具并调整积分价格": "Example: publish outfit tool and adjust credits"
+  },
+  ja: {
+    "选择文件": "ファイルを選択",
+    "输入密码": "パスワードを入力",
+    "例如：新增 ComfyUI 图片生成工作流": "例：ComfyUI 画像ワークフローを追加",
+    "例如：上架换装工具并调整积分价格": "例：着せ替えツールを公開しクレジットを調整"
+  },
+  ko: {
+    "选择文件": "파일 선택",
+    "输入密码": "비밀번호 입력",
+    "例如：新增 ComfyUI 图片生成工作流": "예: ComfyUI 이미지 워크플로 추가",
+    "例如：上架换装工具并调整积分价格": "예: 의상 도구 게시 및 크레딧 조정"
   }
 };
 const I18N_ORIGINAL_TEXT = new WeakMap();
+const I18N_ORIGINAL_ATTRS = new WeakMap();
 
 const defaultState = {
   user: null,
@@ -659,26 +758,27 @@ function languageMenuMarkup() {
     <div class="language-menu">
       <button class="language-trigger" type="button" aria-label="切换语言" aria-expanded="false">${languageTriggerLabel(locale)}</button>
       <div class="language-dropdown">
-        <button type="button" data-language="zh-CN" aria-pressed="${locale === "zh-CN"}">简体中文</button>
-        <button type="button" data-language="en" aria-pressed="${locale === "en"}">English</button>
-        <button type="button" data-language="ja" aria-pressed="${locale === "ja"}">日本語</button>
-        <button type="button" data-language="ko" aria-pressed="${locale === "ko"}">한국어</button>
+        ${Object.entries(I18N_LOCALES).map(([code, meta]) => `
+          <button type="button" data-language="${escapeHtml(code)}" aria-pressed="${locale === code}">${escapeHtml(meta.label)}</button>
+        `).join("")}
       </div>
     </div>
   `;
 }
 
 function getStoredLanguage() {
-  return localStorage.getItem("ovs_language") || "zh-CN";
+  const locale = localStorage.getItem("ovs_language") || "zh-CN";
+  return I18N_LOCALES[locale] ? locale : "zh-CN";
 }
 
 function languageTriggerLabel(locale) {
-  return ({ "zh-CN": "文A", en: "EN", ja: "JA", ko: "KO" })[locale] || "文A";
+  return I18N_LOCALES[locale]?.short || I18N_LOCALES["zh-CN"].short;
 }
 
 function applyStoredLanguage() {
   const locale = getStoredLanguage();
   document.documentElement.lang = locale;
+  document.documentElement.dataset.i18nStatus = I18N_LOCALES[locale]?.status || "unknown";
   document.querySelectorAll(".language-trigger").forEach((trigger) => {
     trigger.textContent = languageTriggerLabel(locale);
   });
@@ -691,6 +791,7 @@ function applyStoredLanguage() {
 function translateStaticText(locale) {
   const dictionary = I18N_MESSAGES[locale];
   document.body.dataset.locale = locale;
+  document.body.dataset.i18nCoverage = String(getI18nCoverage(locale));
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   const nodes = [];
   while (walker.nextNode()) nodes.push(walker.currentNode);
@@ -706,6 +807,35 @@ function translateStaticText(locale) {
     const text = original.trim();
     node.nodeValue = dictionary[text] ? original.replace(text, dictionary[text]) : original;
   });
+  translateStaticAttributes(locale);
+}
+
+function translateStaticAttributes(locale) {
+  const dictionary = I18N_ATTRIBUTE_MESSAGES[locale];
+  const attributes = ["placeholder", "aria-label", "title"];
+  document.querySelectorAll("input, textarea, button, a").forEach((element) => {
+    if (!I18N_ORIGINAL_ATTRS.has(element)) I18N_ORIGINAL_ATTRS.set(element, {});
+    const originals = I18N_ORIGINAL_ATTRS.get(element);
+    attributes.forEach((attribute) => {
+      if (!element.hasAttribute(attribute)) return;
+      if (!Object.prototype.hasOwnProperty.call(originals, attribute)) {
+        originals[attribute] = element.getAttribute(attribute);
+      }
+      const original = originals[attribute];
+      if (!dictionary || !dictionary[original]) {
+        element.setAttribute(attribute, original);
+        return;
+      }
+      element.setAttribute(attribute, dictionary[original]);
+    });
+  });
+}
+
+function getI18nCoverage(locale) {
+  if (locale === "zh-CN") return 100;
+  const dictionary = I18N_MESSAGES[locale] || {};
+  const translated = I18N_CORE_TERMS.filter((term) => dictionary[term]).length;
+  return Math.round((translated / I18N_CORE_TERMS.length) * 100);
 }
 
 function showSiteToast(message) {
@@ -1520,7 +1650,8 @@ document.addEventListener("click", async (event) => {
     const locale = languageButton.dataset.language || "zh-CN";
     localStorage.setItem("ovs_language", locale);
     applyStoredLanguage();
-    showSiteToast(locale === "zh-CN" ? "已切换为简体中文" : `${label} 界面翻译准备中，当前保留中文内容。`);
+    const coverage = getI18nCoverage(locale);
+    showSiteToast(locale === "zh-CN" ? "已切换为简体中文" : `已切换为 ${label}，核心界面覆盖率 ${coverage}%`);
     return;
   }
   const logoutButton = event.target.closest("[data-logout]");

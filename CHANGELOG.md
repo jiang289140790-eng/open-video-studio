@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.79.0 |
+| Version | 0.80.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Improved
+
+- Upgraded frontend language switching from a small ad hoc dictionary into a registered MVP i18n layer with `I18N_LOCALES`, `I18N_CORE_TERMS`, text dictionaries, attribute dictionaries, original text/attribute preservation, and runtime coverage reporting.
+- Expanded English, Japanese, and Korean coverage for core navigation, admin, workflow, credits, generation, and operations labels.
+- Language switching now reports core UI coverage instead of saying non-Chinese translations are only placeholders.
+
+### Validation
+
+- Ran `npm run test`; 59 tests passed.
 
 ### Improved
 
