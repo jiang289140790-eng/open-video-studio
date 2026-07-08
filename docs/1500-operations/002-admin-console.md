@@ -90,6 +90,8 @@ Supabase Auth currently has no users in this project, so the first admin role ca
 
 The Admin Console now also asks the `ai` Edge Function for live provider status. System readiness and Workflow Center previews can show whether a provider is configured, whether lightweight probes pass, and which blocker is preventing rollout. Qwen Vision currently reports `Unauthenticated`, so operators should keep the Qwen Vision workflow in testing/draft until the site API key is replaced.
 
+The Admin Console also asks the `admin` Edge Function to probe Supabase OAuth authorization endpoints for Google, X/Twitter, and Discord. This prevents operators from mistaking visible login buttons for fully enabled OAuth providers. Current production state is that all three providers return Supabase `Unsupported provider: provider is not enabled`.
+
 The admin console frontend has been upgraded from a lightweight homepage form into a multi-module MVP operations console. It now presents the operating map an internal admin needs: overview, users, credits, orders, moderation, jobs, shares, homepage content, system readiness, and audit logs.
 
 The Admin console now includes MVP Shopify-style configuration surfaces backed by `site_settings.page_builder_config` and `site_settings.tool_catalog_config`. These do not add a new architecture layer; they make existing static pages and AI tool routes operationally configurable for page composition and tool merchandising.

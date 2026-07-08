@@ -52,6 +52,8 @@ npm run verify:oauth
 
 The OAuth verifier creates Supabase authorization URLs for Google, X/Twitter, and Discord, then probes the Supabase authorization endpoint without following the browser redirect. It also checks whether the Telegram Login Widget public values are present. It does not print provider secrets.
 
+The Admin Console now performs the same Google, X/Twitter, and Discord provider enablement check through the `admin` Edge Function, so operators can see the difference between "button exists" and "Supabase provider is actually enabled" without using the command line.
+
 ## Required GitHub Pages Configuration
 
 Set these GitHub repository Variables:
@@ -134,6 +136,7 @@ As of 2026-07-08:
 - Google, X/Twitter, and Discord can create Supabase OAuth authorization URLs from local configuration, but Supabase currently returns `Unsupported provider: provider is not enabled` when the verifier probes the provider authorization endpoints.
 - Telegram is not complete until `VITE_TELEGRAM_BOT_USERNAME` and `VITE_TELEGRAM_AUTH_URL` are configured with a trusted backend hash-verification endpoint.
 - The frontend social-login buttons are present; remaining OAuth work is Supabase Auth Provider enablement and provider-dashboard credentials.
+- Admin Console system readiness shows the same provider-disabled state for Google, X/Twitter, and Discord.
 
 ## Future Plan
 

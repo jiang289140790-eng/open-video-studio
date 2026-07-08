@@ -25,6 +25,17 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Added an admin-only `oauth-provider-status` action to the Supabase `admin` Edge Function, probing Google, X/Twitter, and Discord authorization endpoints without exposing OAuth secrets.
+- Updated the Admin Console system readiness panel to show both frontend social-login entry readiness and real Supabase OAuth Provider enablement status.
+
+### Validation
+
+- Deployed the updated `admin` Edge Function.
+- Ran `npm run verify:oauth`; Google, X/Twitter, and Discord still report Supabase `Unsupported provider: provider is not enabled`, matching the new Admin readiness behavior.
+- Ran `npm run test`; 59 tests passed.
+
+### Improved
+
 - Added optional live provider probes to the Supabase `ai` Edge Function `provider-status` action for admin/operator users.
 - Updated the Admin Console system readiness and Workflow Center previews to show AI Provider runtime state, including Qwen Vision / DeepSeek probe results and provider-specific blocker messages.
 

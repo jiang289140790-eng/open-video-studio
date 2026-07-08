@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Admin Console now includes a real Supabase OAuth Provider readiness check through the `admin` Edge Function. It separates visible frontend social-login buttons from actual provider enablement, currently showing Google, X/Twitter, and Discord as not enabled in Supabase.
 - Admin Console now reads live AI Provider status from the `ai` Edge Function. System readiness and Workflow Center rows can show provider blockers such as Qwen Vision `Unauthenticated` instead of only showing that a provider name exists in configuration.
 - Production AI verification now includes a real Qwen Vision `analyze-image` probe using a small base64 image. Current verification reaches the deployed Supabase `ai` function but Qwen Vision returns `Unauthenticated`, so a valid Qwen Vision site API key is still required before the multimodal analysis provider can be marked production-ready.
 - Production AI verification now covers both success and cancellation paths. `npm run verify:ai` proves demo credit purchase, generation job creation, Fake Worker asset creation, and a separate cancellation path where a queued job is cancelled and the consumed 8 credits are refunded.

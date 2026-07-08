@@ -30,6 +30,8 @@ The repository now includes a Supabase client foundation and environment validat
 
 MVP Backend Loop adds `SupabaseMvpBackendLoop`, which uses Supabase Auth for signup and password login, syncs an owned `profiles` row, and grants starter credits through the credit ledger table. The local `AuthService` mirrors the same starter-credit behavior for deterministic tests and local development.
 
+Admin operators can now inspect OAuth provider readiness through the `admin` Edge Function. The check probes Supabase authorization endpoints for Google, X/Twitter, and Discord and reports provider-disabled errors without exposing provider secrets in the browser.
+
 ## Responsibilities
 
 - Validate login, signup, session refresh, logout, and verification flows.

@@ -103,6 +103,10 @@ Deno.serve(async (req) => {
       return json({ actor, workers: deriveWorkerStatuses(jobs) });
     }
     if (action === "list-share-links") return json({ actor, shares: await select(adminClient, "share_links", "created_at", false) });
+    if (action === "oauth-provider-status") {
+      const redirectTo = String(body.redirectTo || "https://jiang289140790-eng.github.io/open-video-studio/zh/login/").trim();
+      return json({ actor, oauthProviders: await oauthProviderStatus(userClient, redirectTo) });
+    }
     if (action === "get-homepage-config") {
       const homepage = await getHomepageConfig(adminClient);
       return json({ actor, homepage });
@@ -319,6 +323,62 @@ async function select(client: ReturnType<typeof createClient>, table: string, or
   const { data, error } = await query;
   if (error) throw error;
   return data ?? [];
+}
+
+async function oauthProviderStatus(userClient: ReturnType<typeof createClient>, redirectTo: string) {
+  const providers = ["google", "twitter", "discord"];
+  const results = await Promise.all(providers.map(async (provider) => {
+    const result = await userClient.auth.signInWithOAuth({
+      provider: provider as "google" | "twitter" | "discord",
+      options: { redirectTo, skipBrowserRedirect: true },
+    });
+    if (result.error || !result.data?.url) {
+      return {
+        provider,
+        ok: false,
+        authorizationUrlCreated: Boolean(result.data?.url),
+        status: 0,
+        locationHost: "",
+        error: result.error?.message || "authorization_url_missing",
+      };
+    }
+    const probe = await probeAuthorizationUrl(result.data.url);
+    return {
+      provider,
+      ok: probe.ok,
+      authorizationUrlCreated: true,
+      status: probe.status,
+      locationHost: probe.locationHost,
+      error: probe.error,
+    };
+  }));
+  return results;
+}
+
+async function probeAuthorizationUrl(url: string) {
+  try {
+    const response = await fetch(url, { redirect: "manual" });
+    const location = response.headers.get("location") || "";
+    const locationHost = location ? new URL(location).host : "";
+    const text = response.status >= 300 && response.status < 400 ? "" : await response.text().catch(() => "");
+    return {
+      ok: response.status >= 300 && response.status < 400 && Boolean(locationHost),
+      status: response.status,
+      locationHost,
+      error: summarizeProviderError(text),
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      locationHost: "",
+      error: error instanceof Error ? error.message : "authorization_probe_failed",
+    };
+  }
+}
+
+function summarizeProviderError(textValue = "") {
+  return textValue.replace(/\s+/g, " ").trim().slice(0, 240);
 }
 
 async function getHomepageConfig(client: ReturnType<typeof createClient>) {

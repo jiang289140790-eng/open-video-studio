@@ -3138,7 +3138,7 @@ function renderAdmin(current) {
   setText("[data-admin-health]", "已连接");
   setText("[data-admin-supabase-status]", "Supabase 已配置。后台数据来自安全函数，不从浏览器暴露 service key。");
   renderAdminOperatingInsights(summary);
-  renderAdminSystemReadiness(adminData.aiProviders || [], adminData.aiProviderError || "");
+  renderAdminSystemReadiness(adminData.aiProviders || [], adminData.aiProviderError || "", adminData.oauthProviders || [], adminData.oauthProviderError || "");
 
   const homepage = normalizeHomepageConfig(adminData.homepage?.value_json || adminData.homepage || defaultHomepageConfig);
   fillHomepageForm(homepage);
@@ -3190,11 +3190,12 @@ function renderAdminConfiguration() {
   fillAgentForm(defaultAgentCenterConfig);
   renderAdminAgentPreview(defaultAgentCenterConfig);
   renderAdminCostAnalytics([]);
-  renderAdminSystemReadiness([], "");
+  renderAdminSystemReadiness([], "", [], "");
 }
 
-function renderAdminSystemReadiness(aiProviders = [], providerError = "") {
+function renderAdminSystemReadiness(aiProviders = [], providerError = "", oauthProviderStatus = [], oauthProviderError = "") {
   const oauthItems = getOAuthReadiness().map((item) => ({ ...item, detail: item.ready ? "前端可发起真实授权" : item.action }));
+  const oauthStatusByProvider = Object.fromEntries((oauthProviderStatus || []).map((item) => [item.provider, item]));
   const oauthList = document.querySelector("[data-admin-oauth]");
   if (!oauthList) return;
   const providerRows = Array.isArray(aiProviders) && aiProviders.length ? aiProviders.map((provider) => {
@@ -3219,14 +3220,28 @@ function renderAdminSystemReadiness(aiProviders = [], providerError = "") {
     </article>
   `;
   oauthList.innerHTML = `
-    <article class="admin-row muted-row"><div><strong>OAuth 登录状态</strong><p>这些状态来自前端公开配置；Provider 是否启用以 npm run verify:oauth 为准。</p></div></article>
+    <article class="admin-row muted-row"><div><strong>OAuth 登录状态</strong><p>前端配置与 Supabase Provider 实时探测分开显示，避免把按钮入口误判为可登录。</p></div></article>
     ${oauthItems.map((item) => `
     <article class="admin-row">
       <span class="status-dot ${item.ready ? "ready" : "blocked"}"></span>
       <div><strong>${item.name}</strong><p>${escapeHtml(item.detail)}</p></div>
-      <em>${item.ready ? "可用" : "待配置"}</em>
+      <em>${item.ready ? "入口可见" : "待配置"}</em>
     </article>
     `).join("")}
+    ${["google", "twitter", "discord"].map((provider) => {
+      const status = oauthStatusByProvider[provider];
+      const ok = Boolean(status?.ok);
+      const detail = status
+        ? (ok ? `Supabase 已跳转到 ${status.locationHost || "provider"}` : `Supabase 探测失败：${status.error || `HTTP ${status.status || 0}`}`)
+        : (oauthProviderError || "登录管理员后会由后台安全函数探测 Supabase Provider 是否启用。");
+      return `
+        <article class="admin-row">
+          <span class="status-dot ${ok ? "ready" : "blocked"}"></span>
+          <div><strong>Supabase OAuth · ${escapeHtml(provider)}</strong><p>${escapeHtml(detail)}</p></div>
+          <em>${ok ? "已启用" : "未启用"}</em>
+        </article>
+      `;
+    }).join("")}
     <article class="admin-row muted-row"><div><strong>AI Provider 实时状态</strong><p>后台只轻量探测 Qwen Vision / DeepSeek；千问生成避免自动触发真实生成成本。</p></div></article>
     ${providerRows}
   `;
@@ -3272,7 +3287,7 @@ async function loadAdminConsole() {
   if (!document.querySelector("[data-admin-page]") || !supabase || adminLoading) return;
   adminLoading = true;
   try {
-    const [summary, users, orders, assets, jobs, workers, shares, homepage, pageBuilder, toolCatalog, workflowCenter, promptLibrary, contentIntelligence, agentCenter, costAnalytics, audit, aiStatus] = await Promise.all([
+    const [summary, users, orders, assets, jobs, workers, shares, homepage, pageBuilder, toolCatalog, workflowCenter, promptLibrary, contentIntelligence, agentCenter, costAnalytics, audit, aiStatus, oauthStatus] = await Promise.all([
       invokeAdmin("dashboard-summary"),
       invokeAdmin("list-users"),
       invokeAdmin("list-orders"),
@@ -3289,7 +3304,8 @@ async function loadAdminConsole() {
       invokeAdmin("get-agent-center-config").catch(() => ({ agentCenter: { value_json: defaultAgentCenterConfig } })),
       invokeAdmin("list-cost-analytics").catch(() => ({ costAnalytics: [] })),
       invokeAdmin("list-audit-logs").catch((error) => ({ auditLogs: [], auditError: error.message })),
-      invokeAi("provider-status", { probe: true }).catch((error) => ({ providers: [], providerError: error.message }))
+      invokeAi("provider-status", { probe: true }).catch((error) => ({ providers: [], providerError: error.message })),
+      invokeAdmin("oauth-provider-status", { redirectTo: new URL("./zh/login/", window.location.href).href }).catch((error) => ({ oauthProviders: [], oauthProviderError: error.message }))
     ]);
     adminData = {
       actor: summary.actor || users.actor || orders.actor || assets.actor || jobs.actor,
@@ -3311,7 +3327,9 @@ async function loadAdminConsole() {
       auditLogs: audit.auditLogs || [],
       auditError: audit.auditError,
       aiProviders: aiStatus.providers || [],
-      aiProviderError: aiStatus.providerError || ""
+      aiProviderError: aiStatus.providerError || "",
+      oauthProviders: oauthStatus.oauthProviders || [],
+      oauthProviderError: oauthStatus.oauthProviderError || ""
     };
     adminLoaded = true;
   } catch (error) {
