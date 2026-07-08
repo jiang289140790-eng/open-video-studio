@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.73.0 |
+| Version | 0.74.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Improved
+
+- Added local homepage visual assets from the approved素材目录 to the hero showcase and creation preview cards.
+- Updated homepage rendering so Supabase/local homepage configuration preserves card image paths instead of falling back to CSS-only placeholders.
+- Added image-card styling with dark overlays for readable premium visual cards.
+
+### Validation
+
+- Added static frontend coverage to ensure homepage visual assets exist and are referenced by the homepage surface.
 
 ### Fixed
 

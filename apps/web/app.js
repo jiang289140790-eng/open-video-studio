@@ -225,7 +225,8 @@ function normalizeHomepageCards(cards, fallback) {
       title: String(card.title),
       style: /^art-\d+$/.test(String(card.style || "")) ? String(card.style) : `art-${(index % 13) + 1}`,
       size: ["tall", "wide"].includes(card.size) ? card.size : "",
-      outputPreview: Boolean(card.outputPreview)
+      outputPreview: Boolean(card.outputPreview),
+      image: sanitizeHomepageImageHref(String(card.image || fallback?.[index]?.image || ""))
     }))
     : structuredClone(fallback);
 }
@@ -278,19 +279,23 @@ function renderHomepageConfig(config) {
 
   const creations = document.querySelector("[data-homepage-list='creationCards']");
   if (creations) creations.innerHTML = normalized.creationCards.map((card) => `
-    <article class="creation-card ${escapeHtml(card.style)}"><span>${escapeHtml(card.label)}</span><strong>${escapeHtml(card.title)}</strong></article>
+    <article class="creation-card ${escapeHtml(card.style)}${card.image ? " has-image" : ""}"${homepageCardStyle(card)}><span>${escapeHtml(card.label)}</span><strong>${escapeHtml(card.title)}</strong></article>
   `).join("");
 }
 
 function homepageShowcaseMarkup(card) {
-  const classes = ["showcase-card", card.size, card.style, card.outputPreview ? "output-preview" : ""].filter(Boolean).join(" ");
+  const classes = ["showcase-card", card.size, card.style, card.image ? "has-image" : "", card.outputPreview ? "output-preview" : ""].filter(Boolean).join(" ");
   return `
-    <article class="${escapeHtml(classes)}">
+    <article class="${escapeHtml(classes)}"${homepageCardStyle(card)}>
       <span>${escapeHtml(card.label)}</span>
       <strong>${escapeHtml(card.title)}</strong>
       ${card.outputPreview ? `<div class="mock-video-frame"><span class="play-dot small"></span><p>已发布配置</p></div>` : ""}
     </article>
   `;
+}
+
+function homepageCardStyle(card) {
+  return card.image ? ` style="--card-image: url('${escapeHtml(card.image)}')"` : "";
 }
 
 function setHomepageLink(name, label, href) {
@@ -470,20 +475,20 @@ const defaultHomepageConfig = {
   galleryTitle: "看看你可以创建什么",
   trustSignals: ["无需设计经验", "角色可复用", "提示词到视频", "积分制生成"],
   showcaseCards: [
-    { label: "视频", title: "生成营销短片", style: "art-1", size: "tall", outputPreview: true },
-    { label: "角色", title: "工作室主持人", style: "art-2" },
-    { label: "图片", title: "发布主视觉", style: "art-3" },
-    { label: "提示词", title: "把发布脚本转成可复用场景", style: "art-4", size: "wide" }
+    { label: "视频", title: "生成营销短片", style: "art-1", size: "tall", outputPreview: true, image: "./home-assets/ovs-home-07.png" },
+    { label: "角色", title: "工作室主持人", style: "art-2", image: "./home-assets/ovs-home-10.png" },
+    { label: "图片", title: "发布主视觉", style: "art-3", image: "./home-assets/ovs-home-01.png" },
+    { label: "提示词", title: "把发布脚本转成可复用场景", style: "art-4", size: "wide", image: "./home-assets/ovs-home-05.png" }
   ],
   creationCards: [
-    { label: "AI 角色", title: "带记忆的可复用主持人", style: "art-2" },
-    { label: "产品视频", title: "适合发布的动态概念", style: "art-1" },
-    { label: "时尚场景", title: "杂志感营销画面", style: "art-5" },
-    { label: "电影肖像", title: "统一面孔与风格", style: "art-6" },
-    { label: "社媒广告", title: "适合投放的竖屏素材", style: "art-8" },
-    { label: "图片转视频", title: "把参考图变成短片", style: "art-7" },
-    { label: "提示词重混", title: "从一个想法生成多个版本", style: "art-9" },
-    { label: "可复用资产", title: "保存作品用于未来场景", style: "art-10" }
+    { label: "AI 角色", title: "带记忆的可复用主持人", style: "art-2", image: "./home-assets/ovs-home-02.png" },
+    { label: "产品视频", title: "适合发布的动态概念", style: "art-1", image: "./home-assets/ovs-home-08.png" },
+    { label: "时尚场景", title: "杂志感营销画面", style: "art-5", image: "./home-assets/ovs-home-09.png" },
+    { label: "电影肖像", title: "统一面孔与风格", style: "art-6", image: "./home-assets/ovs-home-11.png" },
+    { label: "社媒广告", title: "适合投放的竖屏素材", style: "art-8", image: "./home-assets/ovs-home-12.png" },
+    { label: "图片转视频", title: "把参考图变成短片", style: "art-7", image: "./home-assets/ovs-home-06.png" },
+    { label: "提示词重混", title: "从一个想法生成多个版本", style: "art-9", image: "./home-assets/ovs-home-03.png" },
+    { label: "可复用资产", title: "保存作品用于未来场景", style: "art-10", image: "./home-assets/ovs-home-04.png" }
   ]
 };
 let homepageConfig = structuredClone(defaultHomepageConfig);
@@ -3754,20 +3759,26 @@ function splitCommaList(value) {
 
 function parseHomepageCards(value, fallback) {
   const cards = value.split(/\n+/).map((line, index) => {
-    const [label, title, style = `art-${(index % 13) + 1}`, size = "", output = ""] = line.split("|").map((part) => part.trim());
-    return label && title ? { label, title, style, size, outputPreview: output === "preview" } : null;
+    const [label, title, style = `art-${(index % 13) + 1}`, size = "", output = "", image = ""] = line.split("|").map((part) => part.trim());
+    return label && title ? { label, title, style, size, outputPreview: output === "preview", image } : null;
   }).filter(Boolean);
   return cards.length ? cards : fallback;
 }
 
 function serializeHomepageCards(cards) {
-  return normalizeHomepageCards(cards, []).map((card) => [card.label, card.title, card.style, card.size, card.outputPreview ? "preview" : ""].filter(Boolean).join("|")).join("\n");
+  return normalizeHomepageCards(cards, []).map((card) => [card.label, card.title, card.style, card.size, card.outputPreview ? "preview" : "", card.image].filter(Boolean).join("|")).join("\n");
 }
 
 function sanitizeHomepageHref(href) {
   if (!href) return "./zh/app/generate/";
   if (href.startsWith("./") || href.startsWith("/") || href.startsWith("#")) return href;
   return "./zh/app/generate/";
+}
+
+function sanitizeHomepageImageHref(href) {
+  if (!href) return "";
+  if (href.startsWith("./home-assets/") || href.startsWith("./assets/") || href.startsWith("data:image/")) return href;
+  return "";
 }
 
 function renderAdminUsers(users) {

@@ -77,6 +77,32 @@ describe("MVP static frontend", () => {
     }
   });
 
+  it("uses real homepage visual assets instead of CSS-only placeholders", () => {
+    const index = readPage("index.html");
+    const appScript = readPage("app.js");
+    const styles = readPage("styles.css");
+    const homepageAssets = [
+      "ovs-home-01.png",
+      "ovs-home-02.png",
+      "ovs-home-03.png",
+      "ovs-home-04.png",
+      "ovs-home-05.png",
+      "ovs-home-06.png",
+      "ovs-home-07.png",
+      "ovs-home-08.png",
+      "ovs-home-09.png",
+      "ovs-home-10.png",
+      "ovs-home-11.png",
+      "ovs-home-12.png"
+    ];
+    for (const asset of homepageAssets) {
+      assert.equal(existsSync(join(publicRoot, "home-assets", asset)), true, `${asset} should be available to the deployed site`);
+      assert.ok(`${index}\n${appScript}`.includes(`./home-assets/${asset}`), `${asset} should be referenced by the homepage surface`);
+    }
+    assert.ok(index.includes("has-image"));
+    assert.ok(styles.includes("--card-image"));
+  });
+
   it("offers the required social authentication options on the account page", () => {
     const signin = readPage("signin.html");
     assert.ok(signin.includes("使用 Google 登录"));
