@@ -60,6 +60,9 @@ const report = {
   },
   generationLoop: {
     ok: null,
+    jobId: "",
+    assetId: "",
+    storageKey: "",
     orderCreated: false,
     jobCreated: false,
     assetCreated: false,
@@ -68,10 +71,19 @@ const report = {
   },
   creditRefundLoop: {
     ok: null,
+    jobId: "",
     jobCreated: false,
     jobStatus: "",
     refunded: false,
     refundAmount: 0,
+    error: "",
+  },
+  databasePersistence: {
+    ok: null,
+    jobReadable: false,
+    assetReadable: false,
+    creditDebitReadable: false,
+    refundReadable: false,
     error: "",
   },
 };
@@ -107,12 +119,14 @@ if (accessToken) {
       await probeQwenVision(accessToken);
       await probeGenerationLoop(accessToken);
       await probeCreditRefundLoop(accessToken);
+      await probeDatabasePersistence(accessToken);
       report.ok =
         report.ok &&
         report.promptEnhancement.ok !== false &&
         report.qwenVision.ok !== false &&
         report.generationLoop.ok === true &&
-        report.creditRefundLoop.ok === true;
+        report.creditRefundLoop.ok === true &&
+        report.databasePersistence.ok === true;
     }
   } finally {
     await temporaryAccess.cleanup();
@@ -276,12 +290,15 @@ async function probeGenerationLoop(accessToken) {
       aspectRatio: "16:9",
     });
     report.generationLoop.jobCreated = Boolean(created.job?.id);
+    report.generationLoop.jobId = String(created.job?.id || "");
 
     const processed = await invokeAi(accessToken, {
       action: "process-generation-job",
       jobId: created.job?.id,
     });
     report.generationLoop.assetCreated = Boolean(processed.asset?.id);
+    report.generationLoop.assetId = String(processed.asset?.id || "");
+    report.generationLoop.storageKey = String(processed.asset?.storage_key || processed.asset?.file_url || "");
     report.generationLoop.jobStatus = String(processed.job?.status || "");
     report.generationLoop.ok =
       report.generationLoop.orderCreated &&
@@ -305,6 +322,7 @@ async function probeCreditRefundLoop(accessToken) {
       aspectRatio: "16:9",
     });
     report.creditRefundLoop.jobCreated = Boolean(created.job?.id);
+    report.creditRefundLoop.jobId = String(created.job?.id || "");
 
     const cancelled = await invokeAi(accessToken, {
       action: "cancel-generation-job",
@@ -321,6 +339,77 @@ async function probeCreditRefundLoop(accessToken) {
   } catch (error) {
     report.creditRefundLoop.ok = false;
     report.creditRefundLoop.error = error instanceof Error ? error.message : "credit_refund_loop_failed";
+  }
+}
+
+async function probeDatabasePersistence(accessToken) {
+  try {
+    if (!anonKey) throw new Error("SUPABASE_ANON_KEY is required for database readback verification");
+    if (!report.generationLoop.jobId || !report.generationLoop.assetId || !report.creditRefundLoop.jobId) {
+      throw new Error("Generation and refund probes must create IDs before database readback");
+    }
+
+    const { createClient } = await import("@supabase/supabase-js");
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: `Bearer ${accessToken}` } },
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    });
+
+    const [jobRead, assetRead, debitRead, refundRead] = await Promise.all([
+      userClient
+        .from("generation_jobs")
+        .select("id,status,result_asset_id,cost_credits")
+        .eq("id", report.generationLoop.jobId)
+        .single(),
+      userClient
+        .from("media_assets")
+        .select("id,generation_job_id,storage_key,file_url,asset_type,processing_status")
+        .eq("id", report.generationLoop.assetId)
+        .single(),
+      userClient
+        .from("credit_transactions")
+        .select("source_type,source_id,balance_impact,status,operation_category")
+        .eq("source_id", report.generationLoop.jobId),
+      userClient
+        .from("credit_transactions")
+        .select("source_type,source_id,balance_impact,status,operation_category")
+        .eq("source_id", report.creditRefundLoop.jobId),
+    ]);
+
+    if (jobRead.error) throw new Error(`generation_jobs readback failed: ${jobRead.error.message}`);
+    if (assetRead.error) throw new Error(`media_assets readback failed: ${assetRead.error.message}`);
+    if (debitRead.error) throw new Error(`credit debit readback failed: ${debitRead.error.message}`);
+    if (refundRead.error) throw new Error(`credit refund readback failed: ${refundRead.error.message}`);
+
+    const debitRows = debitRead.data ?? [];
+    const refundRows = refundRead.data ?? [];
+    report.databasePersistence.jobReadable =
+      jobRead.data?.id === report.generationLoop.jobId &&
+      jobRead.data?.status === "completed";
+    report.databasePersistence.assetReadable =
+      assetRead.data?.id === report.generationLoop.assetId &&
+      assetRead.data?.generation_job_id === report.generationLoop.jobId &&
+      Boolean(assetRead.data?.storage_key || assetRead.data?.file_url);
+    report.databasePersistence.creditDebitReadable = debitRows.some((row) =>
+      row.source_id === report.generationLoop.jobId &&
+      Number(row.balance_impact) < 0 &&
+      row.status === "posted"
+    );
+    report.databasePersistence.refundReadable = refundRows.some((row) =>
+      row.source_id === report.creditRefundLoop.jobId &&
+      Number(row.balance_impact) > 0 &&
+      row.status === "posted" &&
+      row.operation_category === "refund"
+    );
+    report.databasePersistence.ok =
+      report.databasePersistence.jobReadable &&
+      report.databasePersistence.assetReadable &&
+      report.databasePersistence.creditDebitReadable &&
+      report.databasePersistence.refundReadable;
+    if (!report.databasePersistence.ok) report.databasePersistence.error = "database_readback_incomplete";
+  } catch (error) {
+    report.databasePersistence.ok = false;
+    report.databasePersistence.error = error instanceof Error ? error.message : "database_persistence_probe_failed";
   }
 }
 

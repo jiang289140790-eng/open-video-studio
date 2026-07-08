@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DB-BIBLE-001 |
-| Version | 1.14.0 |
+| Version | 1.15.0 |
 | Status | Active |
 | Owner | Data Architecture Lead |
 | Dependencies | PB-008, PB-010, SEC-INDEX-001, ANALYTICS-INDEX-001 |
@@ -61,6 +61,8 @@ Phase 1 uses a local SQLite schema at `src/db/schema.sql` for development and au
 The production database target is Supabase PostgreSQL. The repository includes environment-based Supabase client creation and live verification scripts.
 
 Remote Supabase has been aligned with the current MVP schema using `supabase/migrations/202607080001_remote_mvp_schema_alignment.sql`. The migration preserves old rows, converts production generation/asset/credit IDs to text where needed, adds missing MVP columns, creates missing operational tables, and reapplies role-aware RLS policies. Remote migration history now marks `202607070001` and `202607080001` as applied.
+
+Production AI verification now reads the core MVP backend tables after each smoke-test loop. `npm run verify:ai` confirms the generated job is readable from `generation_jobs`, the generated output is readable from `media_assets`, the generation debit is readable from `credit_transactions`, and the cancellation refund is readable from `credit_transactions` with `operation_category = 'refund'`.
 
 `ADR-004` extends the local schema for the one-user product workflow with characters, generation jobs, images, videos, orders, and share links. Production database selection, migration policy, backup, restore, RTO, RPO, and storage growth controls remain future architecture work.
 

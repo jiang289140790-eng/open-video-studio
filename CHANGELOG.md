@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.77.0 |
+| Version | 0.78.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Improved
+
+- Expanded `npm run verify:ai` to read production Supabase tables after generation and refund probes, proving that `generation_jobs`, `media_assets`, and `credit_transactions` are usable by Gallery, History, and Credits instead of only trusting Edge Function responses.
+- Updated the AI verification coverage test so future changes must preserve the database persistence readback probe.
+
+### Validation
+
+- Ran `npm run verify:ai`; production generation, asset persistence, credit debit, and cancellation refund readback all passed, while Qwen Vision still fails with external provider `Unauthenticated`.
+- Ran `npm run test`; 59 tests passed.
 
 ### Improved
 

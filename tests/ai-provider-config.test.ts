@@ -123,8 +123,12 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(aiScript.includes("analyze-image"));
   assert.ok(aiScript.includes("probeGenerationLoop"));
   assert.ok(aiScript.includes("probeCreditRefundLoop"));
+  assert.ok(aiScript.includes("probeDatabasePersistence"));
   assert.ok(aiScript.includes("probePromptEnhancement"));
   assert.ok(aiScript.includes("probeQwenVision"));
+  assert.ok(aiScript.includes("generation_jobs"));
+  assert.ok(aiScript.includes("media_assets"));
+  assert.ok(aiScript.includes("credit_transactions"));
   assert.equal(oauthScript.includes("SUPABASE_SERVICE_ROLE_KEY"), false);
   assert.ok(aiScript.includes("SUPABASE_SERVICE_ROLE_KEY"));
 });
