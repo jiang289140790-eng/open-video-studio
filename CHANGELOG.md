@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.83.0 |
+| Version | 0.84.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-09
+
+### Improved
+
+- Upgraded `npm run verify:admin` from schema and unauthenticated-gate checks into an authenticated production admin operation smoke test.
+- The verifier now creates a temporary admin user, validates dashboard and user reads, adjusts credits, updates an order, reviews an asset, revokes a share link, verifies audit log creation, and cleans up all temporary records.
+- Added stale verification cleanup so failed admin probes do not leave temporary orders, assets, share links, credit rows, profiles, users, or verification audit logs in production data.
+
+### Validation
+
+- Ran `npm run verify:admin`; database tables, Admin Edge Function fail-closed gate, authenticated admin reads, credit adjustment, order fulfillment, asset moderation, share revocation, audit logging, and cleanup all passed.
 
 ### Improved
 

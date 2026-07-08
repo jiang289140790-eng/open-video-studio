@@ -111,11 +111,13 @@ test("production verification scripts cover OAuth and AI function health", () =>
   const oauthScript = readFileSync(join(root, "scripts", "verify-oauth.mjs"), "utf8");
   const aiScript = readFileSync(join(root, "scripts", "verify-ai-function.mjs"), "utf8");
   const paymentScript = readFileSync(join(root, "scripts", "verify-payment-loop.mjs"), "utf8");
+  const adminScript = readFileSync(join(root, "scripts", "verify-admin-console.mjs"), "utf8");
   const deployFunctionScript = readFileSync(join(root, "scripts", "deploy-supabase-function.mjs"), "utf8");
 
   assert.ok(packageJson.includes("verify:oauth"));
   assert.ok(packageJson.includes("verify:ai"));
   assert.ok(packageJson.includes("verify:payments"));
+  assert.ok(packageJson.includes("verify:admin"));
   assert.ok(packageJson.includes("deploy:function"));
   for (const provider of ["google", "twitter", "discord", "telegram"]) {
     assert.ok(oauthScript.includes(provider), `OAuth verifier should cover ${provider}`);
@@ -144,6 +146,12 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(paymentScript.includes("credit_transactions"));
   assert.ok(paymentScript.includes("creditBalanceCorrect"));
   assert.ok(paymentScript.includes("SUPABASE_TEST_ACCESS_TOKEN"));
+  for (const action of ["dashboard-summary", "list-users", "adjust-credits", "update-order-status", "review-asset", "revoke-share-link", "list-audit-logs"]) {
+    assert.ok(adminScript.includes(action), `Admin verifier should cover ${action}`);
+  }
+  assert.ok(adminScript.includes("runAdminOperationProbe"));
+  assert.ok(adminScript.includes("cleanupStaleAdminVerificationRows"));
+  assert.ok(adminScript.includes("SUPABASE_SERVICE_ROLE_KEY"));
   assert.equal(oauthScript.includes("SUPABASE_SERVICE_ROLE_KEY"), false);
   assert.ok(aiScript.includes("SUPABASE_SERVICE_ROLE_KEY"));
   assert.ok(paymentScript.includes("SUPABASE_SERVICE_ROLE_KEY"));

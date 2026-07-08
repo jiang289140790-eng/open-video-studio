@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | SCRIPT-README-001 |
-| Version | 0.5.0 |
+| Version | 0.6.0 |
 | Status | Active |
 | Owner | Engineering |
 | Dependencies | OVSB-001, DOC-STD-001, DEVOPS-INDEX-001 |
@@ -23,7 +23,7 @@ Store maintenance, validation, generation, and operational scripts used to suppo
 
 - `npm run verify:supabase`: checks Supabase URL, database reachability, and the configured Storage bucket.
 - `npm run verify:production-config`: checks required local and GitHub Pages environment variables for deployment readiness.
-- `npm run verify:admin`: checks the Admin Edge Function and admin schema readiness.
+- `npm run verify:admin`: checks the Admin Edge Function, admin schema readiness, and authenticated admin operation loop. When `SUPABASE_SERVICE_ROLE_KEY` is available, it creates a temporary admin user, verifies dashboard/user reads, credit adjustment, order status update, asset review, share revocation, audit logging, and cleanup.
 - `npm run verify:oauth`: creates non-redirecting Supabase OAuth authorization URLs for Google, X/Twitter, and Discord, and checks Telegram Login Widget public configuration.
 - `npm run verify:i18n`: checks registered locales, MVP product-term translation coverage, translated attributes, runtime coverage logic, and mojibake markers for the static product surface.
 - `npm run verify:ai`: checks that the Supabase `ai` Edge Function fails closed for unauthenticated requests, then performs an authenticated smoke test for provider status with live provider probes, Qwen Vision image analysis, DeepSeek prompt enhancement, demo credit purchase, generation job creation, Fake Worker processing, Supabase Storage upload, asset creation, queued-job cancellation refund, and production table readback from `generation_jobs`, `media_assets`, and `credit_transactions`. If `SUPABASE_TEST_ACCESS_TOKEN` is absent, the script uses the local service role key to create and clean up a temporary verification user.

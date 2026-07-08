@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.87.0 |
+| Version | 0.88.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Admin verification now proves real backend operations instead of only checking that the Admin page and tables exist. `npm run verify:admin` creates a temporary admin, reads dashboard/users, adjusts credits, updates an order, reviews an asset, revokes a share link, verifies audit logs, and cleans up all verification records.
 - Frontend i18n now has an explicit product glossary quality gate. `I18N_PRODUCT_TERMS` expands the runtime coverage check to 59 MVP product terms across account, generation, credits, admin, workflow, and tool-publishing language. `npm run verify:i18n` validates locale registration, coverage, translated attributes, runtime coverage logic, and mojibake markers.
 - The Supabase `ai` Edge Function has been redeployed through `npm run deploy:function -- ai` using the Supabase Management API because the npm Supabase CLI binary is unavailable on the current Windows runtime. The deployment script reads `SUPABASE_ACCESS_TOKEN` locally and only prints non-secret deployment metadata.
 - Qwen Vision and DeepSeek server prompts now use valid Chinese text instead of mojibake. Provider health probes now include normalized failure diagnostics with code, status, category, and message; current production verification classifies Qwen Vision as HTTP `401` / `auth`, while DeepSeek, Fake Worker, generation persistence, credit debit, and cancellation refund continue to pass.
