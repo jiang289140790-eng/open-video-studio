@@ -3620,7 +3620,7 @@ body.admin-shell-body .admin-console-top h1 {
   padding: 10px;
   background: linear-gradient(145deg, rgba(255,255,255,0.07), rgba(255,255,255,0.025));
 }
-.admin-config-card.tool-card {
+.admin-config-card.admin-tool-config-card {
   grid-template-columns: repeat(5, minmax(0, 1fr));
   min-height: 0;
   display: grid;
@@ -3628,7 +3628,7 @@ body.admin-shell-body .admin-console-top h1 {
   justify-content: stretch;
 }
 
-body.admin-shell-body .admin-config-card.tool-card {
+body.admin-shell-body .admin-config-card.admin-tool-config-card {
   min-height: 0;
   gap: 8px;
   padding: 10px;
@@ -3790,7 +3790,7 @@ body.admin-shell-body .admin-config-card.tool-card {
   .admin-command-center, .admin-status-grid, .admin-kpi-grid, .admin-operating-grid, .admin-workspace, .admin-system-grid { grid-template-columns: 1fr; }
   .admin-config-page-head,
   .admin-config-card,
-  .admin-config-card.tool-card { grid-template-columns: 1fr; }
+  .admin-config-card.admin-tool-config-card { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {

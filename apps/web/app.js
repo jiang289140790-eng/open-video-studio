@@ -1793,6 +1793,16 @@ document.querySelectorAll(".tool-poster.locked").forEach((card) => {
   });
 });
 
+function stopAdminControlEvent(event) {
+  if (!document.body.classList.contains("admin-shell-body")) return;
+  if (!event.target.closest(".admin-config-page input, .admin-config-page select, .admin-config-page textarea, .admin-config-card input, .admin-config-card select, .admin-config-card textarea")) return;
+  event.stopImmediatePropagation();
+}
+
+document.addEventListener("pointerdown", stopAdminControlEvent);
+document.addEventListener("mousedown", stopAdminControlEvent);
+document.addEventListener("click", stopAdminControlEvent);
+
 function openUnlockModal(nextUrl = "./zh/app/generate/") {
   document.querySelector(".unlock-overlay")?.remove();
   const overlay = document.createElement("section");
@@ -3410,7 +3420,7 @@ function renderToolCatalogVisualEditor(config) {
   if (!target) return;
   const normalized = normalizeToolCatalogConfig(config);
   target.innerHTML = normalized.tools.map((tool) => `
-    <article class="admin-config-card tool-card" data-tool-catalog-item>
+    <article class="admin-config-card admin-tool-config-card" data-tool-catalog-item>
       <label><span>Slug</span><input data-tool-slug value="${escapeHtml(tool.slug)}"></label>
       <label><span>工具名称</span><input data-tool-name value="${escapeHtml(tool.name)}"></label>
       <label><span>分类</span><select data-tool-category>${optionMarkup(["image", "video", "character", "asset", "prompt"], tool.category)}</select></label>

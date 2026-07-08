@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.72.0 |
+| Version | 0.73.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Fixed
+
+- Fixed Admin console select dropdowns flashing closed by isolating admin form controls from global document click handlers.
+- Renamed Admin Tool Catalog visual cards away from the public `tool-card` class so backend form controls no longer inherit frontend card interaction assumptions.
+
+### Validation
+
+- Ran `npm run test`; production build completed and 53 tests passed.
+- Verified the Admin Tool Catalog category select can change from `image` to `video` in the browser.
 
 ### Improved
 
