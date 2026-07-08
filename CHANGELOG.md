@@ -25,6 +25,17 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Added optional live provider probes to the Supabase `ai` Edge Function `provider-status` action for admin/operator users.
+- Updated the Admin Console system readiness and Workflow Center previews to show AI Provider runtime state, including Qwen Vision / DeepSeek probe results and provider-specific blocker messages.
+
+### Validation
+
+- Deployed the updated `ai` Edge Function.
+- Ran `npm run verify:ai`; Qwen Vision still fails with provider `Unauthenticated`, while DeepSeek, generation asset creation, and cancellation refund still pass.
+- Ran `npm run test`; 59 tests passed.
+
+### Improved
+
 - Added a real Qwen Vision smoke-test path to `npm run verify:ai` so production validation now attempts the authenticated `analyze-image` action with a small base64 verification image.
 - Updated the AI verification coverage test so the production verifier must retain Qwen Vision, DeepSeek prompt enhancement, successful generation, and cancellation refund probes.
 

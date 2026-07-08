@@ -247,6 +247,7 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Qwen Vision is now included in production AI verification, but it currently fails with provider `Unauthenticated` until a valid Qwen Vision site API key is configured.
 - Real payment gateway execution remains deferred; current checkout can create a non-charging demo order and grant credits for MVP operations testing.
 - Admin Workflow Center can control eligible AI provider rollout without changing frontend generation code.
+- Admin Workflow Center now shows live AI provider readiness and blocker reasons from the `ai` Edge Function, so operators can see Qwen Vision authorization failures before publishing or promoting workflows.
 - OAuth remains a launch blocker until Supabase Auth Providers are enabled for Google, X/Twitter, and Discord and Telegram public login configuration is supplied.
 
 ## Future Plan

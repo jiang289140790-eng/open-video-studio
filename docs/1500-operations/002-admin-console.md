@@ -88,6 +88,8 @@ As of the first MVP Admin implementation, database tables are reachable from the
 
 Supabase Auth currently has no users in this project, so the first admin role can only be assigned after the first real account signs up.
 
+The Admin Console now also asks the `ai` Edge Function for live provider status. System readiness and Workflow Center previews can show whether a provider is configured, whether lightweight probes pass, and which blocker is preventing rollout. Qwen Vision currently reports `Unauthenticated`, so operators should keep the Qwen Vision workflow in testing/draft until the site API key is replaced.
+
 The admin console frontend has been upgraded from a lightweight homepage form into a multi-module MVP operations console. It now presents the operating map an internal admin needs: overview, users, credits, orders, moderation, jobs, shares, homepage content, system readiness, and audit logs.
 
 The Admin console now includes MVP Shopify-style configuration surfaces backed by `site_settings.page_builder_config` and `site_settings.tool_catalog_config`. These do not add a new architecture layer; they make existing static pages and AI tool routes operationally configurable for page composition and tool merchandising.

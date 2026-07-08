@@ -40,7 +40,11 @@ Deno.serve(async (req) => {
 
     if (action === "provider-status") {
       requireOperator(actor);
-      return json({ actor, providers: providerStatus(env) });
+      const providers = providerStatus(env);
+      if (body.probe === true) {
+        return json({ actor, providers: await providerStatusWithProbes(env, providers) });
+      }
+      return json({ actor, providers });
     }
 
     if (action === "enhance-prompt") {
@@ -561,6 +565,41 @@ function providerStatus(env: AiEnv) {
     { provider: "qianwen_generation", configured: Boolean(env.qianwenApiKey && env.qianwenBaseUrl), imageModel: env.qianwenImageModel, videoModel: env.qianwenVideoModel, endpoint: env.qianwenBaseUrl },
     { provider: "fake_worker", configured: true, model: "local-demo", endpoint: "internal" },
   ];
+}
+
+async function providerStatusWithProbes(env: AiEnv, providers: Array<Record<string, unknown>>) {
+  const results = await Promise.all(providers.map(async (provider) => {
+    const name = String(provider.provider || "");
+    if (name === "qwen_vision" && provider.configured) {
+      const started = Date.now();
+      try {
+        await callQwenVision(env, {
+          prompt: "Analyze this small admin provider-health verification image. Return concise JSON.",
+          image_base64: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=",
+          json: true,
+          max_tokens: 180,
+          temperature: 0.1,
+        });
+        return { ...provider, probe: { ok: true, durationMs: Date.now() - started, message: "verified" } };
+      } catch (error) {
+        return { ...provider, probe: { ok: false, durationMs: Date.now() - started, message: error instanceof Error ? error.message : "Qwen Vision probe failed" } };
+      }
+    }
+    if (name === "deepseek_text" && provider.configured) {
+      const started = Date.now();
+      try {
+        const result = await enhancePrompt(env, "Admin provider health check", { source: "admin-provider-health" });
+        return { ...provider, probe: { ok: !result.fallback, durationMs: Date.now() - started, message: result.fallback ? "fallback" : "verified" } };
+      } catch (error) {
+        return { ...provider, probe: { ok: false, durationMs: Date.now() - started, message: error instanceof Error ? error.message : "DeepSeek probe failed" } };
+      }
+    }
+    if (name === "fake_worker") {
+      return { ...provider, probe: { ok: true, durationMs: 0, message: "internal fallback" } };
+    }
+    return { ...provider, probe: { ok: Boolean(provider.configured), durationMs: 0, message: provider.configured ? "configured; live generation probe skipped" : "missing configuration" } };
+  }));
+  return results;
 }
 
 async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {

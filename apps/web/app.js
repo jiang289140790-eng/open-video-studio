@@ -3138,6 +3138,7 @@ function renderAdmin(current) {
   setText("[data-admin-health]", "已连接");
   setText("[data-admin-supabase-status]", "Supabase 已配置。后台数据来自安全函数，不从浏览器暴露 service key。");
   renderAdminOperatingInsights(summary);
+  renderAdminSystemReadiness(adminData.aiProviders || [], adminData.aiProviderError || "");
 
   const homepage = normalizeHomepageConfig(adminData.homepage?.value_json || adminData.homepage || defaultHomepageConfig);
   fillHomepageForm(homepage);
@@ -3151,7 +3152,7 @@ function renderAdmin(current) {
   renderAdminToolVersions(toolCatalog);
   const workflowCenter = normalizeWorkflowCenterConfig(adminData.workflowCenter?.value_json || adminData.workflowCenter || defaultWorkflowCenterConfig);
   fillWorkflowForm(workflowCenter);
-  renderAdminWorkflowPreview(workflowCenter, adminData.workflowCenter?.updated_at);
+  renderAdminWorkflowPreview(workflowCenter, adminData.workflowCenter?.updated_at, adminData.aiProviders || []);
   const promptLibrary = normalizePromptLibraryConfig(adminData.promptLibrary?.value_json || adminData.promptLibrary || defaultPromptLibraryConfig);
   fillPromptForm(promptLibrary);
   renderAdminPromptPreview(promptLibrary, adminData.promptLibrary?.updated_at);
@@ -3189,16 +3190,46 @@ function renderAdminConfiguration() {
   fillAgentForm(defaultAgentCenterConfig);
   renderAdminAgentPreview(defaultAgentCenterConfig);
   renderAdminCostAnalytics([]);
+  renderAdminSystemReadiness([], "");
+}
+
+function renderAdminSystemReadiness(aiProviders = [], providerError = "") {
   const oauthItems = getOAuthReadiness().map((item) => ({ ...item, detail: item.ready ? "前端可发起真实授权" : item.action }));
   const oauthList = document.querySelector("[data-admin-oauth]");
   if (!oauthList) return;
-  oauthList.innerHTML = oauthItems.map((item) => `
+  const providerRows = Array.isArray(aiProviders) && aiProviders.length ? aiProviders.map((provider) => {
+    const probe = provider.probe || {};
+    const configured = Boolean(provider.configured);
+    const ok = configured && (probe.ok !== false);
+    const detail = probe.message
+      ? `${configured ? "Secret 已配置" : "Secret 未配置"} · ${probe.ok === false ? `实时验证失败：${probe.message}` : `状态：${probe.message}`}`
+      : (configured ? "Secret 已配置，尚未运行实时验证。" : "缺少必要 Secret 或 endpoint。");
+    return `
+      <article class="admin-row">
+        <span class="status-dot ${ok ? "ready" : "blocked"}"></span>
+        <div><strong>AI Provider · ${escapeHtml(provider.provider || "unknown")}</strong><p>${escapeHtml(detail)}</p></div>
+        <em>${ok ? "可用" : "阻塞"}</em>
+      </article>
+    `;
+  }).join("") : `
+    <article class="admin-row muted-row">
+      <span class="status-dot blocked"></span>
+      <div><strong>AI Provider</strong><p>${escapeHtml(providerError || "登录管理员后会读取 AI Function 的 provider-status 实时探针。")}</p></div>
+      <em>待检测</em>
+    </article>
+  `;
+  oauthList.innerHTML = `
+    <article class="admin-row muted-row"><div><strong>OAuth 登录状态</strong><p>这些状态来自前端公开配置；Provider 是否启用以 npm run verify:oauth 为准。</p></div></article>
+    ${oauthItems.map((item) => `
     <article class="admin-row">
       <span class="status-dot ${item.ready ? "ready" : "blocked"}"></span>
       <div><strong>${item.name}</strong><p>${escapeHtml(item.detail)}</p></div>
       <em>${item.ready ? "可用" : "待配置"}</em>
     </article>
-  `).join("");
+    `).join("")}
+    <article class="admin-row muted-row"><div><strong>AI Provider 实时状态</strong><p>后台只轻量探测 Qwen Vision / DeepSeek；千问生成避免自动触发真实生成成本。</p></div></article>
+    ${providerRows}
+  `;
 }
 
 function fillAdminEmptyState() {
@@ -3241,7 +3272,7 @@ async function loadAdminConsole() {
   if (!document.querySelector("[data-admin-page]") || !supabase || adminLoading) return;
   adminLoading = true;
   try {
-    const [summary, users, orders, assets, jobs, workers, shares, homepage, pageBuilder, toolCatalog, workflowCenter, promptLibrary, contentIntelligence, agentCenter, costAnalytics, audit] = await Promise.all([
+    const [summary, users, orders, assets, jobs, workers, shares, homepage, pageBuilder, toolCatalog, workflowCenter, promptLibrary, contentIntelligence, agentCenter, costAnalytics, audit, aiStatus] = await Promise.all([
       invokeAdmin("dashboard-summary"),
       invokeAdmin("list-users"),
       invokeAdmin("list-orders"),
@@ -3257,7 +3288,8 @@ async function loadAdminConsole() {
       invokeAdmin("get-content-intelligence-config").catch(() => ({ contentIntelligence: { value_json: defaultContentIntelligenceConfig } })),
       invokeAdmin("get-agent-center-config").catch(() => ({ agentCenter: { value_json: defaultAgentCenterConfig } })),
       invokeAdmin("list-cost-analytics").catch(() => ({ costAnalytics: [] })),
-      invokeAdmin("list-audit-logs").catch((error) => ({ auditLogs: [], auditError: error.message }))
+      invokeAdmin("list-audit-logs").catch((error) => ({ auditLogs: [], auditError: error.message })),
+      invokeAi("provider-status", { probe: true }).catch((error) => ({ providers: [], providerError: error.message }))
     ]);
     adminData = {
       actor: summary.actor || users.actor || orders.actor || assets.actor || jobs.actor,
@@ -3277,7 +3309,9 @@ async function loadAdminConsole() {
       agentCenter: agentCenter.agentCenter || {},
       costAnalytics: costAnalytics.costAnalytics || [],
       auditLogs: audit.auditLogs || [],
-      auditError: audit.auditError
+      auditError: audit.auditError,
+      aiProviders: aiStatus.providers || [],
+      aiProviderError: aiStatus.providerError || ""
     };
     adminLoaded = true;
   } catch (error) {
@@ -3903,7 +3937,7 @@ function renderAdminToolVersions(config) {
   `).join("") : `<article class="admin-row"><div><strong>暂无工具版本</strong><p>工具上架配置保存后会在这里展示版本历史。</p></div></article>`;
 }
 
-function renderAdminWorkflowPreview(config, updatedAt = "") {
+function renderAdminWorkflowPreview(config, updatedAt = "", aiProviders = []) {
   const target = document.querySelector("[data-admin-workflow-preview-list]");
   if (!target) return;
   const workflows = normalizeWorkflowCenterConfig(config).workflows;
@@ -3914,14 +3948,23 @@ function renderAdminWorkflowPreview(config, updatedAt = "") {
         <strong>${escapeHtml(workflow.name)} · ${escapeHtml(workflow.workflowId)}</strong>
         <p>${escapeHtml(workflow.type)} / ${escapeHtml(workflow.provider)} · ${escapeHtml(workflow.outputType)} · ${workflow.creditPrice} 积分 · ${escapeHtml(workflow.version)}${updatedAt ? ` · 更新于 ${escapeHtml(updatedAt)}` : ""}</p>
         <small>模型：${workflow.requiredModels.map(escapeHtml).join(", ") || "未配置"} ｜ 输入：${workflow.requiredInputs.map(escapeHtml).join(", ") || "未配置"} ｜ ${escapeHtml(workflow.description)}</small>
-        <small>${escapeHtml(workflowRolloutHint(workflow))}</small>
+        <small>${escapeHtml(workflowRolloutHint(workflow, aiProviders))}</small>
       </div>
       <em>${escapeHtml(workflow.status)}</em>
     </article>
   `).join("") : `<article class="admin-row"><div><strong>暂无 Workflow</strong><p>添加 ComfyUI、n8n、API Chain 或 Agent Chain 后会显示在这里。</p></div></article>`;
 }
 
-function workflowRolloutHint(workflow) {
+function workflowRolloutHint(workflow, aiProviders = []) {
+  const providerStatus = Array.isArray(aiProviders)
+    ? aiProviders.find((provider) => provider.provider === workflow.provider)
+    : null;
+  if (providerStatus?.probe?.ok === false) {
+    return `Provider 阻塞：${workflow.provider} 实时验证失败，原因：${providerStatus.probe.message || "未知错误"}。`;
+  }
+  if (providerStatus && !providerStatus.configured) {
+    return `Provider 阻塞：${workflow.provider} 缺少必要 Secret 或 endpoint。`;
+  }
   if (!["published", "testing"].includes(workflow.status)) {
     return "不会进入真实生成路由：只有 testing / published 状态会被 AI Function 读取。";
   }
