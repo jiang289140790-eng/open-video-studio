@@ -49,6 +49,7 @@ secrets/
 # Package manager and deploy metadata
 .vercel/
 .netlify/
+supabase/.temp/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
