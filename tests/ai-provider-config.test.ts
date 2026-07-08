@@ -101,3 +101,21 @@ test("frontend routes generation through AI Edge Function before local fallback"
   assert.ok(appScript.includes("qwen_vision"));
   assert.ok(appScript.includes("deepseek_text"));
 });
+
+test("production verification scripts cover OAuth and AI function health", () => {
+  const packageJson = readFileSync(join(root, "package.json"), "utf8");
+  const oauthScript = readFileSync(join(root, "scripts", "verify-oauth.mjs"), "utf8");
+  const aiScript = readFileSync(join(root, "scripts", "verify-ai-function.mjs"), "utf8");
+
+  assert.ok(packageJson.includes("verify:oauth"));
+  assert.ok(packageJson.includes("verify:ai"));
+  for (const provider of ["google", "twitter", "discord", "telegram"]) {
+    assert.ok(oauthScript.includes(provider), `OAuth verifier should cover ${provider}`);
+  }
+  assert.ok(oauthScript.includes("skipBrowserRedirect"));
+  assert.ok(aiScript.includes("/functions/v1/ai"));
+  assert.ok(aiScript.includes("provider-status"));
+  assert.ok(aiScript.includes("SUPABASE_TEST_ACCESS_TOKEN"));
+  assert.equal(oauthScript.includes("SUPABASE_SERVICE_ROLE_KEY"), false);
+  assert.equal(aiScript.includes("SUPABASE_SERVICE_ROLE_KEY"), false);
+});

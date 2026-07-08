@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.76.0 |
+| Version | 0.77.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,20 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Improved
+
+- Added `npm run verify:oauth` to create non-redirecting Supabase OAuth authorization URLs for Google, X/Twitter, and Discord, while checking Telegram Login Widget public configuration.
+- Added `npm run verify:ai` to verify the Supabase `ai` Edge Function endpoint and its unauthenticated fail-closed behavior.
+- Added Admin Workflow Center rollout hints so operators can see whether a workflow will route to Qianwen generation, Fake Worker fallback, DeepSeek prompt enhancement, Qwen Vision analysis, or a reserved provider path.
+- Expanded the frontend i18n dictionary and changed language switching to preserve original source text before applying English, Japanese, Korean, or Chinese translations.
+
+### Validation
+
+- Ran `npm run build`; production build completed successfully.
+- Ran `npm run test`; 59 tests passed.
+- Ran `npm run verify:ai`; the deployed `ai` function returned the expected unauthenticated 401 gate.
+- Ran `npm run verify:oauth`; Google, X/Twitter, and Discord authorization URLs were created successfully, while Telegram correctly reported missing Bot username/auth URL configuration.
 
 ### Improved
 

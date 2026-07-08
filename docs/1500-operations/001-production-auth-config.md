@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | OPS-AUTH-001 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Active |
 | Owner | CTO / Operations |
 | Dependencies | FE-AUTH-010, API-AUTH-001, BACKEND-AUTH-001 |
@@ -43,6 +43,14 @@ Validate local and GitHub production configuration presence:
 ```bash
 npm run verify:production-config
 ```
+
+Validate OAuth launch readiness without redirecting the browser:
+
+```bash
+npm run verify:oauth
+```
+
+The OAuth verifier creates Supabase authorization URLs for Google, X/Twitter, and Discord. It also checks whether the Telegram Login Widget public values are present. It does not print provider secrets.
 
 ## Required GitHub Pages Configuration
 
@@ -114,9 +122,17 @@ Set the production Site URL:
 
 - `npm run verify:supabase` returns `ok: true`.
 - `npm run verify:production-config` returns `ok: true`.
+- `npm run verify:oauth` returns authorization URL readiness for Google, X/Twitter, and Discord.
 - GitHub Pages build has `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
 - Sign-in page OAuth readiness shows Google, X, and Discord as ready.
 - Telegram shows ready only after Bot username and backend auth URL are configured.
+
+## Current Verification Status
+
+As of 2026-07-08:
+
+- Google, X/Twitter, and Discord can create Supabase OAuth authorization URLs from local configuration.
+- Telegram is not complete until `VITE_TELEGRAM_BOT_USERNAME` and `VITE_TELEGRAM_AUTH_URL` are configured with a trusted backend hash-verification endpoint.
 
 ## Future Plan
 

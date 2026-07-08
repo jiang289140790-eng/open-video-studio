@@ -79,7 +79,29 @@ const I18N_MESSAGES = {
     "推荐好友": "Refer friends",
     "开始创作": "Start creating",
     "开始生成": "Start generating",
-    "返回控制台": "Back to dashboard"
+    "返回控制台": "Back to dashboard",
+    "作品探索": "Explore",
+    "角色": "Characters",
+    "积分": "Credits",
+    "图片生成器": "Image generator",
+    "生成预览": "Generation preview",
+    "准备生成": "Ready to generate",
+    "结果会保存到资产库和生成历史。": "Results save to Assets and History.",
+    "生成": "Generate",
+    "优化提示词": "Enhance prompt",
+    "积分不足": "Not enough credits",
+    "购买积分": "Buy credits",
+    "打开作品": "Open asset",
+    "真实生成暂不可用": "Real generation is unavailable",
+    "后台安全函数不可用": "Admin function unavailable",
+    "用户管理": "Users",
+    "积分管理": "Credits",
+    "订单履约": "Orders",
+    "内容审核": "Moderation",
+    "生成任务": "Generation jobs",
+    "分享链接": "Share links",
+    "系统配置": "System config",
+    "审计日志": "Audit logs"
   },
   ja: {
     "图像工具": "画像ツール",
@@ -88,7 +110,14 @@ const I18N_MESSAGES = {
     "免费硬币": "無料コイン",
     "我的创作": "マイ作品",
     "每日签到": "デイリーチェックイン",
-    "登录": "ログイン"
+    "登录": "ログイン",
+    "开始生成": "生成を開始",
+    "生成": "生成",
+    "资产库": "アセット",
+    "生成历史": "履歴",
+    "角色": "キャラクター",
+    "积分": "クレジット",
+    "优化提示词": "プロンプト強化"
   },
   ko: {
     "图像工具": "이미지 도구",
@@ -97,9 +126,17 @@ const I18N_MESSAGES = {
     "免费硬币": "무료 코인",
     "我的创作": "내 작업",
     "每日签到": "데일리 체크인",
-    "登录": "로그인"
+    "登录": "로그인",
+    "开始生成": "생성 시작",
+    "生成": "생성",
+    "资产库": "에셋",
+    "生成历史": "히스토리",
+    "角色": "캐릭터",
+    "积分": "크레딧",
+    "优化提示词": "프롬프트 개선"
   }
 };
+const I18N_ORIGINAL_TEXT = new WeakMap();
 
 const defaultState = {
   user: null,
@@ -654,13 +691,20 @@ function applyStoredLanguage() {
 function translateStaticText(locale) {
   const dictionary = I18N_MESSAGES[locale];
   document.body.dataset.locale = locale;
-  if (!dictionary) return;
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   const nodes = [];
   while (walker.nextNode()) nodes.push(walker.currentNode);
   nodes.forEach((node) => {
-    const text = node.nodeValue.trim();
-    if (dictionary[text]) node.nodeValue = node.nodeValue.replace(text, dictionary[text]);
+    if (!I18N_ORIGINAL_TEXT.has(node)) {
+      I18N_ORIGINAL_TEXT.set(node, node.nodeValue);
+    }
+    const original = I18N_ORIGINAL_TEXT.get(node);
+    if (!dictionary) {
+      node.nodeValue = original;
+      return;
+    }
+    const text = original.trim();
+    node.nodeValue = dictionary[text] ? original.replace(text, dictionary[text]) : original;
   });
 }
 
@@ -3870,10 +3914,30 @@ function renderAdminWorkflowPreview(config, updatedAt = "") {
         <strong>${escapeHtml(workflow.name)} · ${escapeHtml(workflow.workflowId)}</strong>
         <p>${escapeHtml(workflow.type)} / ${escapeHtml(workflow.provider)} · ${escapeHtml(workflow.outputType)} · ${workflow.creditPrice} 积分 · ${escapeHtml(workflow.version)}${updatedAt ? ` · 更新于 ${escapeHtml(updatedAt)}` : ""}</p>
         <small>模型：${workflow.requiredModels.map(escapeHtml).join(", ") || "未配置"} ｜ 输入：${workflow.requiredInputs.map(escapeHtml).join(", ") || "未配置"} ｜ ${escapeHtml(workflow.description)}</small>
+        <small>${escapeHtml(workflowRolloutHint(workflow))}</small>
       </div>
       <em>${escapeHtml(workflow.status)}</em>
     </article>
   `).join("") : `<article class="admin-row"><div><strong>暂无 Workflow</strong><p>添加 ComfyUI、n8n、API Chain 或 Agent Chain 后会显示在这里。</p></div></article>`;
+}
+
+function workflowRolloutHint(workflow) {
+  if (!["published", "testing"].includes(workflow.status)) {
+    return "不会进入真实生成路由：只有 testing / published 状态会被 AI Function 读取。";
+  }
+  if (workflow.provider === "qianwen_generation") {
+    return "真实生成候选：此 Workflow 会尝试走千问图片/视频 provider，失败时任务会标记 failed 并自动退款。";
+  }
+  if (workflow.provider === "fake_worker") {
+    return "安全回滚：此 Workflow 会走 Fake Worker，适合演示、灰度和供应商异常时回退。";
+  }
+  if (workflow.provider === "deepseek_text") {
+    return "文本增强：此 Workflow 仅用于提示词/文案增强，不直接生成资产。";
+  }
+  if (workflow.provider === "qwen_vision") {
+    return "图片理解：此 Workflow 用于上传图片识别、标签、风险和运营文案，不直接生成资产。";
+  }
+  return "预留 provider：当前前端不会直接调用此 Workflow，请先完成对应 Edge Function 适配。";
 }
 
 function renderAdminPromptPreview(config, updatedAt = "") {

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.80.0 |
+| Version | 0.81.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,10 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Production verification now includes `npm run verify:oauth` for non-redirecting Google, X/Twitter, and Discord OAuth URL readiness plus Telegram public configuration checks, and `npm run verify:ai` for the Supabase `ai` Edge Function fail-closed gate.
+- Current OAuth verification proves Google, X/Twitter, and Discord authorization URLs can be created from local Supabase config; Telegram remains incomplete until Bot username and trusted auth callback URL are configured.
+- Language switching now keeps a cached Chinese source text baseline before translating, so switching between English, Japanese, Korean, and Chinese does not compound previous translations.
+- Admin Workflow Center previews now explain rollout behavior for `qianwen_generation`, `fake_worker`, `deepseek_text`, and `qwen_vision` providers.
 - The Generate page now attempts the authenticated Supabase `ai` Edge Function first, creating and processing generation jobs that save outputs to Supabase Storage and `media_assets`, then syncing Gallery, History, and Credits from real Supabase tables. Local demo generation remains as fallback when auth or Supabase is unavailable.
 - The `ai` Edge Function now reads Admin Workflow Center configuration to choose the active generation provider, so admins can switch eligible workflows between `fake_worker` and `qianwen_generation` without changing frontend code.
 - Failed or cancelled generation jobs now refund consumed credits through explicit `generation_refund` ledger entries with duplicate-refund protection in both local service tests and the Supabase Edge Function path.

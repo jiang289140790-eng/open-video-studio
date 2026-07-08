@@ -9,6 +9,8 @@
     "build:server": "tsc -p tsconfig.json",
     "build:web": "vite build",
     "verify:supabase": "node scripts/verify-supabase.mjs",
+    "verify:oauth": "node scripts/verify-oauth.mjs",
+    "verify:ai": "node scripts/verify-ai-function.mjs",
     "verify:production-config": "node scripts/check-production-config.mjs",
     "verify:admin": "node scripts/verify-admin-console.mjs",
     "test": "npm run build && node --test dist/tests/**/*.test.js",
