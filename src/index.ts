@@ -17,6 +17,8 @@ export { CreditLedger } from "./credits/creditLedger.js";
 export { StorageService } from "./storage/storageService.js";
 export { BillingService } from "./billing/billingService.js";
 export { PlatformService } from "./platform/platformService.js";
+export { ContentOperatingService } from "./content/contentOperatingService.js";
+export type { Campaign, ContentItem, PlatformVariant, PublishingQueueItem } from "./content/contentOperatingService.js";
 export { CharacterService } from "./characters/characterService.js";
 export { GenerationService } from "./generation/generationService.js";
 export { GalleryService } from "./gallery/galleryService.js";

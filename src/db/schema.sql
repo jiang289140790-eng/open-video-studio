@@ -83,6 +83,146 @@ CREATE INDEX IF NOT EXISTS idx_projects_workspace_time ON projects(workspace_id,
 CREATE INDEX IF NOT EXISTS idx_projects_owner ON projects(owner_user_id, updated_at);
 CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status);
 
+CREATE TABLE IF NOT EXISTS campaigns (
+  id TEXT PRIMARY KEY,
+  workspace_id TEXT NOT NULL,
+  project_id TEXT NOT NULL,
+  owner_user_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  goal TEXT NOT NULL,
+  niche TEXT NOT NULL DEFAULT '',
+  target_audience TEXT NOT NULL DEFAULT '',
+  platforms_json TEXT NOT NULL DEFAULT '[]',
+  connected_accounts_json TEXT NOT NULL DEFAULT '[]',
+  content_style TEXT NOT NULL DEFAULT '',
+  posting_frequency TEXT NOT NULL DEFAULT '',
+  cta TEXT NOT NULL DEFAULT '',
+  target_url TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'draft',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  archived_at TEXT,
+  FOREIGN KEY (workspace_id) REFERENCES workspaces(id),
+  FOREIGN KEY (project_id) REFERENCES projects(id),
+  FOREIGN KEY (owner_user_id) REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_campaigns_workspace ON campaigns(workspace_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_campaigns_project ON campaigns(project_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_campaigns_owner ON campaigns(owner_user_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_campaigns_status ON campaigns(status);
+
+CREATE TABLE IF NOT EXISTS content_items (
+  id TEXT PRIMARY KEY,
+  campaign_id TEXT NOT NULL,
+  workspace_id TEXT NOT NULL,
+  project_id TEXT NOT NULL,
+  owner_user_id TEXT NOT NULL,
+  character_id TEXT,
+  title TEXT NOT NULL,
+  topic TEXT NOT NULL DEFAULT '',
+  research_notes TEXT NOT NULL DEFAULT '',
+  script TEXT NOT NULL DEFAULT '',
+  prompt TEXT NOT NULL DEFAULT '',
+  caption TEXT NOT NULL DEFAULT '',
+  hashtags_json TEXT NOT NULL DEFAULT '[]',
+  translation_json TEXT NOT NULL DEFAULT '{}',
+  cta TEXT NOT NULL DEFAULT '',
+  stage TEXT NOT NULL DEFAULT 'idea',
+  review_status TEXT NOT NULL DEFAULT 'draft',
+  status TEXT NOT NULL DEFAULT 'active',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  scheduled_at TEXT,
+  published_at TEXT,
+  archived_at TEXT,
+  FOREIGN KEY (campaign_id) REFERENCES campaigns(id),
+  FOREIGN KEY (workspace_id) REFERENCES workspaces(id),
+  FOREIGN KEY (project_id) REFERENCES projects(id),
+  FOREIGN KEY (owner_user_id) REFERENCES users(id),
+  FOREIGN KEY (character_id) REFERENCES characters(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_content_items_campaign_stage ON content_items(campaign_id, stage, updated_at);
+CREATE INDEX IF NOT EXISTS idx_content_items_project ON content_items(project_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_content_items_owner ON content_items(owner_user_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_content_items_review ON content_items(review_status);
+
+CREATE TABLE IF NOT EXISTS content_pipeline_events (
+  id TEXT PRIMARY KEY,
+  content_item_id TEXT NOT NULL,
+  actor_user_id TEXT NOT NULL,
+  from_stage TEXT,
+  to_stage TEXT NOT NULL,
+  reason TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (content_item_id) REFERENCES content_items(id),
+  FOREIGN KEY (actor_user_id) REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_pipeline_events_item ON content_pipeline_events(content_item_id, created_at);
+
+CREATE TABLE IF NOT EXISTS platform_post_variants (
+  id TEXT PRIMARY KEY,
+  content_item_id TEXT NOT NULL,
+  platform TEXT NOT NULL,
+  caption TEXT NOT NULL DEFAULT '',
+  hashtags_json TEXT NOT NULL DEFAULT '[]',
+  cta TEXT NOT NULL DEFAULT '',
+  media_format TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'draft',
+  connected_account_id TEXT,
+  scheduled_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (content_item_id) REFERENCES content_items(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_platform_variants_item ON platform_post_variants(content_item_id);
+CREATE INDEX IF NOT EXISTS idx_platform_variants_platform ON platform_post_variants(platform, status);
+
+CREATE TABLE IF NOT EXISTS publishing_queue (
+  id TEXT PRIMARY KEY,
+  content_item_id TEXT NOT NULL,
+  platform_variant_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  queue_status TEXT NOT NULL DEFAULT 'needs_review',
+  scheduled_at TEXT,
+  error_message TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (content_item_id) REFERENCES content_items(id),
+  FOREIGN KEY (platform_variant_id) REFERENCES platform_post_variants(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_publishing_queue_user_status ON publishing_queue(user_id, queue_status, scheduled_at);
+CREATE INDEX IF NOT EXISTS idx_publishing_queue_item ON publishing_queue(content_item_id);
+
+CREATE TABLE IF NOT EXISTS content_analytics (
+  id TEXT PRIMARY KEY,
+  content_item_id TEXT NOT NULL,
+  platform_variant_id TEXT,
+  platform TEXT NOT NULL,
+  impressions INTEGER NOT NULL DEFAULT 0,
+  views INTEGER NOT NULL DEFAULT 0,
+  likes INTEGER NOT NULL DEFAULT 0,
+  comments INTEGER NOT NULL DEFAULT 0,
+  shares INTEGER NOT NULL DEFAULT 0,
+  saves INTEGER NOT NULL DEFAULT 0,
+  clicks INTEGER NOT NULL DEFAULT 0,
+  website_visits INTEGER NOT NULL DEFAULT 0,
+  signups INTEGER NOT NULL DEFAULT 0,
+  revenue_cents INTEGER NOT NULL DEFAULT 0,
+  conversion_rate REAL NOT NULL DEFAULT 0,
+  captured_at TEXT NOT NULL,
+  FOREIGN KEY (content_item_id) REFERENCES content_items(id),
+  FOREIGN KEY (platform_variant_id) REFERENCES platform_post_variants(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_content_analytics_item_time ON content_analytics(content_item_id, captured_at);
+CREATE INDEX IF NOT EXISTS idx_content_analytics_platform ON content_analytics(platform, captured_at);
+
 CREATE TABLE IF NOT EXISTS audit_logs (
   id TEXT PRIMARY KEY,
   actor_type TEXT NOT NULL,

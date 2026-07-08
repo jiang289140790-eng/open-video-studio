@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-PLATFORM-V2-001 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Active |
 | Owner | CTO / Product Leadership |
 | Dependencies | REVIEW-PLATFORM-EVOLUTION-001, PB-008, PB-010, PB-011 |
@@ -178,9 +178,25 @@ Sprints:
 - Future Expansion: project activity feeds.
 - Related Documents: DB-GENERATION-JOBS-001.
 
+## Imported Content Operating System Guidance
+
+The desktop guidance describing Campaigns, AI Studio, Content Pipeline, Content Queue, platform adaptation, review workflow, and analytics placeholders has been interpreted as a content-lifecycle track, not as permission to reopen enterprise architecture expansion.
+
+### TASK-CONTENT-001 Campaign And Content Lifecycle Foundation
+
+- Priority: P0.
+- Dependencies: TASK-PLATFORM-001 through TASK-PLATFORM-004.
+- Estimated Complexity: Medium.
+- Acceptance Criteria: service layer can create campaigns, create content items, generate mock AI Studio output, move pipeline stages, create platform variants, and schedule queue records.
+- Risk: campaign, project, and future workflow concepts can overlap if not kept clearly scoped.
+- Future Expansion: campaign dashboards, calendar UI, real publishing adapters, analytics ingestion, and workflow automation.
+- Related Documents: REVIEW-PLATFORM-EVOLUTION-001, DB-BIBLE-001, API-BIBLE-001.
+
+Current status: implemented locally through `ContentOperatingService`, local SQLite tables, and automated tests. This is a non-breaking service foundation only; it does not add real social publishing, enterprise teams, approval systems, or real AI provider calls.
+
 ## Roadmap Governance
 
-Do not skip ahead to publishing, analytics, or automation until platform ownership and project scoping exist.
+Do not add enterprise modules, real social publishing, analytics ingestion, or automation agents until the MVP product loop remains stable and the owning documents approve those follow-up phases. Local placeholder records may exist when they support testable content lifecycle foundations and do not alter the public product architecture.
 
 ## Acceptance Criteria
 

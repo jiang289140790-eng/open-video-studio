@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.61.0 |
+| Version | 0.62.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,17 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Added
+
+- Added the first AI Content Operating System service foundation from the imported desktop guidance: campaigns, content items, AI Studio mock draft generation, content pipeline events, platform-specific post variants, publishing queue records, and analytics placeholder records.
+- Added `ContentOperatingService` so a user can create a campaign, create a content idea, generate research/script/prompt/caption/hashtags/translations with mock AI output, move the item through pipeline stages, create platform variants, and schedule a queue item without changing the existing generation, asset, admin, or Supabase architecture.
+- Extended the local SQLite schema with `campaigns`, `content_items`, `content_pipeline_events`, `platform_post_variants`, `publishing_queue`, and `content_analytics` as a non-breaking foundation for future content lifecycle workflows.
+- Added automated coverage for the Campaign → AI Studio → Pipeline → Platform Variants → Publishing Queue loop.
+
+### Validation
+
+- Ran `npm run test`; production build completed and 53 tests passed.
 
 ### Improved
 

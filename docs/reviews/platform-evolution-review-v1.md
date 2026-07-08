@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | REVIEW-PLATFORM-EVOLUTION-001 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Active |
 | Owner | CTO / Chief Product Officer / Platform Architect |
 | Dependencies | PB-001, PB-008, PB-010, PB-011, ADR-004, ADR-005, REVIEW-PROVIDER-PLUGIN-001 |
@@ -31,6 +31,7 @@ Existing strengths:
 - Product workflow foundation supports register, purchase credits, generate, store, review, share, and history.
 - AI Engine foundation supports provider-independent orchestration, queue, worker, storage abstraction, and cost tracking.
 - Provider Plugin Architecture has a proposed package migration plan.
+- The local service layer now includes an MVP-compatible Campaign and Content Pipeline foundation through `ContentOperatingService`, allowing Campaign → AI Studio mock output → Pipeline → Platform Variants → Queue without changing provider or frontend architecture.
 
 Core gap:
 
@@ -45,9 +46,9 @@ Current blockers to becoming an AI Content Operating Platform:
 - Media assets can store `project_id`, but there is no canonical project table or permission enforcement.
 - Generation jobs do not yet belong to projects.
 - AI jobs do not yet belong to projects or workflows.
-- No workflow engine exists for configurable multi-step content production.
-- No publishing abstraction exists.
-- No content calendar, scheduling queue, approval workflow, or version history.
+- No full workflow engine exists for configurable multi-step content production; a minimal local content pipeline foundation now exists for campaign content items.
+- No real publishing abstraction exists; local platform variants and publishing queue records are placeholders for later adapters.
+- No content calendar, real approval workflow, or version history; local scheduling queue records exist only as a service-layer foundation.
 - No content analytics model exists beyond high-level analytics docs.
 - No admin model registry, provider configuration, or feature flag data model.
 - No explicit permission matrix for workspace/project/team roles.

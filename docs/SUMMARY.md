@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.68.0 |
+| Version | 0.69.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,8 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- The imported desktop AI Content Operating System guidance has been triaged into an MVP-compatible service foundation: `ContentOperatingService` now supports campaigns, AI Studio mock content packages, content pipeline stages, platform-specific variants, publishing queue records, and analytics placeholders without changing the existing frontend or provider architecture.
+- The local development schema now includes `campaigns`, `content_items`, `content_pipeline_events`, `platform_post_variants`, `publishing_queue`, and `content_analytics`, allowing future pages to evolve from one-off generation into reusable content lifecycle workflows.
 - The MVP Admin console is now a real Supabase-backed operations surface. Admin/operator access is based on `profiles.role`, sensitive write actions go through the Supabase `admin` Edge Function, and admin credit/order/content/share actions write audit logs.
 - The Admin console now supports Shopify-style MVP merchandising controls through `site_settings`: `page_builder_config` controls page modules, display style, card counts, and module data sources; `tool_catalog_config` controls AI tool listing status, category, provider, model, route, featured state, and credit cost.
 - The Admin frontend has been upgraded into a multi-module MVP operations console with a left navigation shell, command center, KPI cards, and modules for users, credits, orders, moderation, jobs, shares, homepage content, system readiness, and audit logs.
