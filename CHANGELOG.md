@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.62.0 |
+| Version | 0.63.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,17 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Added
+
+- Added MVP Content Operating System frontend surfaces: `campaigns.html`, `ai-studio.html`, `pipeline.html`, and `queue.html`, with localized `/zh/.../` aliases and Vite build entries.
+- Connected the new pages to the shared dark creator app shell, side rail, account menu, global footer, and local product state.
+- Added local interactions for campaign creation, AI Studio mock content package generation, pipeline stage movement, queue filtering, and scheduled queue insertion.
+- Extended static frontend tests so the Campaigns, AI Studio, Content Pipeline, and Content Queue surfaces and hooks remain covered.
+
+### Validation
+
+- Ran `npm run test`; production build completed and 53 tests passed.
 
 ### Added
 

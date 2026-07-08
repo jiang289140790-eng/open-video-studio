@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Studio | Open Video Studio</title>
+    <meta name="description" content="AI Studio 用 mock AI 输出生成选题、脚本、提示词、标题、标签、翻译和平台文案。">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
+      <nav class="topnav" aria-label="Primary navigation"></nav>
+      <nav class="accountnav" aria-label="Account navigation"></nav>
+    </header>
+    <main class="app-surface content-os-page">
+      <section class="page-hero compact">
+        <p class="eyebrow">AI Studio</p>
+        <h1>从 Topic 到 Prompt 的内容生产台</h1>
+        <p class="lead">先用 mock AI 跑通产品链路：选题研究、脚本、提示词、图片/视频占位、Caption、Hashtags、Translation、CTA 和质量检查。</p>
+      </section>
+
+      <section class="ai-studio-layout">
+        <article class="panel">
+          <div class="tool-section-head">
+            <div>
+              <p class="eyebrow">输入</p>
+              <h2>生成内容包</h2>
+            </div>
+            <span class="credit-pill">0 积分演示</span>
+          </div>
+          <form class="content-os-form" data-ai-studio-form>
+            <label><span>选择 Campaign</span><select name="campaignId" data-campaign-select></select></label>
+            <label><span>Topic</span><textarea name="topic" rows="4">把一个提示词变成完整社媒内容包</textarea></label>
+            <label><span>使用角色</span><select name="character"><option>Mira - 工作室主持人</option><option>Atlas - 产品讲解员</option><option>Nova - 创作者形象</option></select></label>
+            <button class="btn primary full" type="submit">生成 AI Studio 草稿</button>
+          </form>
+        </article>
+
+        <section class="panel ai-studio-output">
+          <div class="tool-section-head">
+            <div>
+              <p class="eyebrow">输出</p>
+              <h2>内容生产结果</h2>
+            </div>
+            <a href="./zh/pipeline/">进入 Pipeline</a>
+          </div>
+          <div class="studio-output-grid" data-ai-studio-output></div>
+        </section>
+      </section>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

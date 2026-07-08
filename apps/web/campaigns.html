@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Campaigns | Open Video Studio</title>
+    <meta name="description" content="创建和管理 AI 内容 Campaign，把主题、平台、角色、CTA 和发布节奏组织成可复用内容生产计划。">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
+      <nav class="topnav" aria-label="Primary navigation"></nav>
+      <nav class="accountnav" aria-label="Account navigation"></nav>
+    </header>
+    <main class="app-surface content-os-page">
+      <section class="page-hero compact">
+        <p class="eyebrow">Campaigns</p>
+        <h1>把一次创意变成连续内容计划</h1>
+        <p class="lead">Campaign 定义目标、受众、平台、角色、CTA 和发布频率。后续每条内容都会沿着 AI Studio、Pipeline 和 Queue 前进。</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="./zh/ai-studio/">打开 AI Studio</a>
+          <a class="btn glass" href="./zh/pipeline/">查看 Pipeline</a>
+        </div>
+      </section>
+
+      <section class="content-os-grid">
+        <article class="panel content-os-form-panel">
+          <div class="tool-section-head">
+            <div>
+              <p class="eyebrow">新建计划</p>
+              <h2>创建 Campaign</h2>
+            </div>
+            <span class="credit-pill">Mock AI</span>
+          </div>
+          <form class="content-os-form" data-campaign-form>
+            <label><span>Campaign 名称</span><input name="name" required value="Creator Growth Loop"></label>
+            <label><span>目标</span><select name="goal"><option value="traffic">引流</option><option value="followers">涨粉</option><option value="sales">销售</option><option value="leads">线索</option><option value="awareness">品牌认知</option></select></label>
+            <label><span>细分领域</span><input name="niche" value="AI 视频创作者"></label>
+            <label><span>目标受众</span><input name="audience" value="独立创作者、小团队和内容运营人员"></label>
+            <label><span>发布平台</span><input name="platforms" value="X, TikTok, YouTube Shorts, Pinterest"></label>
+            <label><span>内容风格</span><input name="style" value="深色高级、视觉优先、创作者工具感"></label>
+            <label><span>发布频率</span><input name="frequency" value="每天 1 条"></label>
+            <label><span>CTA</span><input name="cta" value="免费开始生成"></label>
+            <button class="btn primary full" type="submit">创建 Campaign</button>
+          </form>
+        </article>
+
+        <section class="panel content-os-list-panel">
+          <div class="tool-section-head">
+            <div>
+              <p class="eyebrow">Campaign 列表</p>
+              <h2>当前内容计划</h2>
+            </div>
+            <a href="./zh/queue/">发布队列</a>
+          </div>
+          <div class="content-card-list" data-campaign-list></div>
+        </section>
+      </section>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

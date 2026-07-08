@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Content Queue | Open Video Studio</title>
+    <meta name="description" content="查看 Today、Tomorrow、This Week、Scheduled、Failed、Needs Review 和 Published 内容队列。">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><span class="brand-mark">OVS</span><span>Open Video Studio</span></a>
+      <nav class="topnav" aria-label="Primary navigation"></nav>
+      <nav class="accountnav" aria-label="Account navigation"></nav>
+    </header>
+    <main class="app-surface content-os-page">
+      <section class="page-hero compact">
+        <p class="eyebrow">Content Queue</p>
+        <h1>统一管理待审、排期和已发布内容</h1>
+        <p class="lead">第一版使用本地队列模拟发布计划，真实社交平台发布适配器后续再接入。</p>
+      </section>
+      <section class="queue-toolbar">
+        <button class="active" type="button" data-queue-filter="all">全部</button>
+        <button type="button" data-queue-filter="needs_review">待审核</button>
+        <button type="button" data-queue-filter="scheduled">已排期</button>
+        <button type="button" data-queue-filter="published">已发布</button>
+        <button type="button" data-queue-filter="failed">失败</button>
+      </section>
+      <section class="queue-list" data-content-queue></section>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

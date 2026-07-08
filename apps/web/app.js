@@ -10,6 +10,10 @@ const APP_SHELL_PAGES = new Set([
   "characters.html",
   "assets.html",
   "history.html",
+  "campaigns.html",
+  "ai-studio.html",
+  "pipeline.html",
+  "queue.html",
   "dashboard.html",
   "pricing.html",
   "free-coins.html",
@@ -35,6 +39,10 @@ const PROTECTED_PRODUCT_PAGES = new Set([
   "my-creations.html",
   "assets.html",
   "history.html",
+  "campaigns.html",
+  "ai-studio.html",
+  "pipeline.html",
+  "queue.html",
   "admin.html"
 ]);
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
@@ -102,6 +110,45 @@ const defaultState = {
   ],
   orders: [
     { id: "order_demo", planName: "创作者包", credits: 1000, price: "$29.99", method: "paypal", status: "fulfilled", createdAt: "2026-07-07" }
+  ],
+  campaigns: [
+    {
+      id: "camp_growth",
+      name: "Creator Growth Loop",
+      goal: "traffic",
+      niche: "AI 视频创作者",
+      audience: "独立创作者、小团队和内容运营人员",
+      platforms: ["X", "TikTok", "YouTube Shorts", "Pinterest"],
+      connectedAccounts: ["demo-x-account"],
+      style: "深色高级、视觉优先、创作者工具感",
+      frequency: "每天 1 条",
+      cta: "免费开始生成",
+      targetUrl: "https://openvideostudio.app",
+      status: "active"
+    }
+  ],
+  contentItems: [
+    {
+      id: "content_prompt_pack",
+      campaignId: "camp_growth",
+      title: "把一个提示词变成完整内容包",
+      topic: "可复用 AI 视频资产",
+      stage: "caption",
+      reviewStatus: "needs_review",
+      character: "Mira",
+      research: "关注创作者从提示词到可发布内容的断点：脚本、提示词、封面、字幕、CTA 和平台适配。",
+      script: "Hook：一个提示词不该只生成一张图。展示如何把它变成图片、视频、Caption 和多平台版本。",
+      prompt: "深色高级 AI 创作平台界面，角色主持人展示可复用视频资产，电影感灯光，适合竖屏短视频。",
+      caption: "把一个创意变成完整内容包，并保存为可复用资产。",
+      hashtags: ["AIContent", "OpenVideoStudio", "VideoAI", "CreatorTools"],
+      variants: [
+        { id: "variant_x", platform: "X", caption: "一个提示词，也可以变成完整内容包。", status: "needs_review", format: "image_or_video_with_caption" },
+        { id: "variant_tiktok", platform: "TikTok", caption: "从提示词到短视频内容包。", status: "scheduled", format: "vertical_video_9_16" }
+      ]
+    }
+  ],
+  contentQueue: [
+    { id: "queue_tiktok", contentItemId: "content_prompt_pack", platform: "TikTok", status: "scheduled", scheduledAt: "2026-07-09 09:00", title: "把一个提示词变成完整内容包" }
   ],
   rewards: {
     checkInDay: 0,
@@ -361,9 +408,13 @@ state.rewards = {
   ...(state.rewards || {})
 };
 state.orders = Array.isArray(state.orders) ? state.orders : [...defaultState.orders];
+state.campaigns = Array.isArray(state.campaigns) ? state.campaigns : structuredClone(defaultState.campaigns);
+state.contentItems = Array.isArray(state.contentItems) ? state.contentItems : structuredClone(defaultState.contentItems);
+state.contentQueue = Array.isArray(state.contentQueue) ? state.contentQueue : structuredClone(defaultState.contentQueue);
 let selectedCharacterId = state.characters[0]?.id || "";
 let toolHomeFilter = "all";
 let toolHomeSearch = "";
+let queueFilter = "all";
 let adminLoaded = false;
 let adminLoading = false;
 let adminData = null;
@@ -671,6 +722,10 @@ function renderAccountNavigation(current) {
       <button class="account-trigger" type="button" aria-expanded="false"><span>${initial}</span><b data-user-name>${current.user.name}</b></button>
       <div class="account-dropdown">
         <a href="./zh/dashboard/">控制台</a>
+        <a href="./zh/campaigns/">Campaigns</a>
+        <a href="./zh/ai-studio/">AI Studio</a>
+        <a href="./zh/pipeline/">Content Pipeline</a>
+        <a href="./zh/queue/">Content Queue</a>
         <a href="./zh/my-creations/">我的创作</a>
         <a href="./zh/history/">生成历史</a>
         <a href="./zh/assets/">资产库</a>
@@ -706,6 +761,11 @@ function injectAppShell() {
         <a href="./zh/app/generate/" class="${active("generate.html")}">图片生成器</a>
         <a href="./zh/app/characters/" class="${active("characters.html")}">角色生成器</a>
         <a href="./zh/assets/" class="${active("assets.html")}">资产库</a>
+        <span>内容运营</span>
+        <a href="./zh/campaigns/" class="${active("campaigns.html")}">Campaigns</a>
+        <a href="./zh/ai-studio/" class="${active("ai-studio.html")}">AI Studio</a>
+        <a href="./zh/pipeline/" class="${active("pipeline.html")}">Content Pipeline</a>
+        <a href="./zh/queue/" class="${active("queue.html")}">Content Queue</a>
         <span>AI 视频</span>
         <a href="./zh/video-tools/" class="${active("video-tools.html")}">全部视频工具</a>
         <a href="./zh/app/image-to-video/" class="${active("image-to-video.html")}">图片转视频</a>
@@ -748,6 +808,10 @@ function injectGlobalFooter() {
         <a href="./zh/app/image-to-video/">图片转视频</a>
         <a href="./zh/history/">生成历史</a>
         <a href="./zh/my-creations/">我的创作</a>
+        <a href="./zh/campaigns/">Campaigns</a>
+        <a href="./zh/ai-studio/">AI Studio</a>
+        <a href="./zh/pipeline/">Content Pipeline</a>
+        <a href="./zh/queue/">Content Queue</a>
       </div>
       <div>
         <h3>About Us</h3>
@@ -970,6 +1034,7 @@ function renderState(current) {
   renderHistory(current);
   renderCreations(current);
   renderDashboard(current);
+  renderContentOperatingSystem(current);
   renderReferral(current);
   renderShare(current);
   renderAdmin(current);
@@ -1246,9 +1311,78 @@ document.addEventListener("click", async (event) => {
   if (scrollTopButton) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+
+  const pipelineMove = event.target.closest("[data-pipeline-move]");
+  if (pipelineMove) {
+    event.preventDefault();
+    const item = state.contentItems.find((entry) => entry.id === pipelineMove.dataset.pipelineMove);
+    if (!item) return;
+    item.stage = pipelineMove.dataset.stage || "review";
+    item.reviewStatus = item.stage === "scheduled" ? "scheduled" : item.stage === "published" ? "published" : "needs_review";
+    if (item.stage === "scheduled" && !state.contentQueue.some((queue) => queue.contentItemId === item.id)) {
+      state.contentQueue.unshift({
+        id: `queue_${Date.now()}`,
+        contentItemId: item.id,
+        platform: item.variants?.[0]?.platform || "X",
+        status: "scheduled",
+        scheduledAt: "明天 09:00",
+        title: item.title
+      });
+    }
+    saveState(state);
+    showSiteToast(`已移动到 ${item.stage}`);
+    return;
+  }
+
+  const queueButton = event.target.closest("[data-queue-filter]");
+  if (queueButton) {
+    event.preventDefault();
+    queueFilter = queueButton.dataset.queueFilter || "all";
+    renderContentQueue(state);
+  }
 });
 
 document.addEventListener("submit", async (event) => {
+  const campaignForm = event.target.closest("[data-campaign-form]");
+  if (campaignForm) {
+    event.preventDefault();
+    const formData = new FormData(campaignForm);
+    const campaign = {
+      id: `camp_${Date.now()}`,
+      name: String(formData.get("name") || "Untitled Campaign"),
+      goal: String(formData.get("goal") || "traffic"),
+      niche: String(formData.get("niche") || ""),
+      audience: String(formData.get("audience") || ""),
+      platforms: String(formData.get("platforms") || "").split(",").map((item) => item.trim()).filter(Boolean),
+      connectedAccounts: [],
+      style: String(formData.get("style") || ""),
+      frequency: String(formData.get("frequency") || ""),
+      cta: String(formData.get("cta") || ""),
+      targetUrl: "",
+      status: "draft"
+    };
+    state.campaigns.unshift(campaign);
+    saveState(state);
+    showSiteToast("Campaign 已创建");
+    return;
+  }
+
+  const aiStudioForm = event.target.closest("[data-ai-studio-form]");
+  if (aiStudioForm) {
+    event.preventDefault();
+    const formData = new FormData(aiStudioForm);
+    const campaignId = String(formData.get("campaignId") || state.campaigns[0]?.id || "");
+    const campaign = state.campaigns.find((item) => item.id === campaignId) || state.campaigns[0];
+    const topic = String(formData.get("topic") || "AI 内容创作");
+    const character = String(formData.get("character") || "Mira");
+    const contentItem = createMockContentItem(campaign, topic, character);
+    state.contentItems.unshift(contentItem);
+    saveState(state);
+    showSiteToast("AI Studio 草稿已生成");
+    window.setTimeout(() => renderAiStudioOutput(state), 0);
+    return;
+  }
+
   const homepageForm = event.target.closest("[data-admin-homepage-form]");
   if (homepageForm) {
     event.preventDefault();
@@ -2031,6 +2165,172 @@ function renderDashboard(current) {
       </article>
     `).join("");
   }
+}
+
+function renderContentOperatingSystem(current) {
+  renderCampaignList(current);
+  renderCampaignSelect(current);
+  renderAiStudioOutput(current);
+  renderPipelineBoard(current);
+  renderContentQueue(current);
+}
+
+function renderCampaignList(current) {
+  const target = document.querySelector("[data-campaign-list]");
+  if (!target) return;
+  target.innerHTML = current.campaigns.length ? current.campaigns.map((campaign) => `
+    <article class="content-os-card">
+      <div>
+        <span>${escapeHtml(goalLabel(campaign.goal))}</span>
+        <strong>${escapeHtml(campaign.name)}</strong>
+        <p>${escapeHtml(campaign.audience || "尚未设置受众")}</p>
+      </div>
+      <div class="content-os-meta">
+        <small>${escapeHtml(campaign.niche || "通用内容")}</small>
+        <small>${escapeHtml(campaign.frequency || "未设置频率")}</small>
+        <small>${escapeHtml(campaign.status || "draft")}</small>
+      </div>
+      <div class="content-chip-row">${(campaign.platforms || []).map((platform) => `<em>${escapeHtml(platform)}</em>`).join("")}</div>
+      <div class="character-action-row">
+        <a class="btn glass" href="./zh/ai-studio/">生成内容</a>
+        <a class="btn glass" href="./zh/pipeline/">查看 Pipeline</a>
+      </div>
+    </article>
+  `).join("") : `<article class="content-os-card"><strong>暂无 Campaign</strong><p>创建第一个 Campaign 后，AI Studio 会围绕它生成内容包。</p></article>`;
+}
+
+function renderCampaignSelect(current) {
+  const target = document.querySelector("[data-campaign-select]");
+  if (!target) return;
+  target.innerHTML = current.campaigns.map((campaign) => `<option value="${escapeHtml(campaign.id)}">${escapeHtml(campaign.name)}</option>`).join("");
+}
+
+function renderAiStudioOutput(current) {
+  const target = document.querySelector("[data-ai-studio-output]");
+  if (!target) return;
+  const item = current.contentItems[0];
+  if (!item) {
+    target.innerHTML = `<article><strong>等待生成</strong><p>选择 Campaign 和 Topic 后生成第一份内容包。</p></article>`;
+    return;
+  }
+  target.innerHTML = [
+    ["Research", item.research],
+    ["Script", item.script],
+    ["Prompt", item.prompt],
+    ["Caption", item.caption],
+    ["Hashtags", (item.hashtags || []).map((tag) => `#${tag}`).join(" ")],
+    ["Quality Check", `阶段：${stageLabel(item.stage)} · 审核：${reviewLabel(item.reviewStatus)}`]
+  ].map(([label, value]) => `
+    <article>
+      <span>${escapeHtml(label)}</span>
+      <p>${escapeHtml(value || "等待 AI Studio 输出")}</p>
+    </article>
+  `).join("");
+}
+
+function renderPipelineBoard(current) {
+  const target = document.querySelector("[data-pipeline-board]");
+  if (!target) return;
+  const stages = ["idea", "research", "script", "prompt", "asset", "caption", "review", "scheduled", "published", "analyzed"];
+  target.innerHTML = stages.map((stage) => {
+    const items = current.contentItems.filter((item) => item.stage === stage);
+    return `
+      <section class="pipeline-column">
+        <h2>${stageLabel(stage)} <span>${items.length}</span></h2>
+        ${items.length ? items.map((item) => pipelineCard(item)).join("") : `<p class="pipeline-empty">暂无内容</p>`}
+      </section>
+    `;
+  }).join("");
+}
+
+function pipelineCard(item) {
+  const next = nextStage(item.stage);
+  return `
+    <article class="pipeline-card">
+      <strong>${escapeHtml(item.title)}</strong>
+      <p>${escapeHtml(item.topic || item.caption || "内容生产中")}</p>
+      <div class="content-chip-row">${(item.hashtags || []).slice(0, 3).map((tag) => `<em>#${escapeHtml(tag)}</em>`).join("")}</div>
+      ${next ? `<button type="button" data-pipeline-move="${escapeHtml(item.id)}" data-stage="${escapeHtml(next)}">移动到 ${stageLabel(next)}</button>` : `<a href="./zh/queue/">查看队列</a>`}
+    </article>
+  `;
+}
+
+function renderContentQueue(current) {
+  const target = document.querySelector("[data-content-queue]");
+  if (!target) return;
+  document.querySelectorAll("[data-queue-filter]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.queueFilter === queueFilter);
+  });
+  const rows = current.contentQueue.filter((item) => queueFilter === "all" || item.status === queueFilter);
+  target.innerHTML = rows.length ? rows.map((item) => `
+    <article class="queue-card">
+      <div>
+        <span>${escapeHtml(item.platform)}</span>
+        <strong>${escapeHtml(item.title)}</strong>
+        <p>${escapeHtml(item.scheduledAt || "未设置发布时间")}</p>
+      </div>
+      <em>${escapeHtml(queueStatusLabel(item.status))}</em>
+    </article>
+  `).join("") : `<article class="queue-card"><strong>当前筛选下暂无内容</strong><p>从 Pipeline 移动到 Scheduled 后会出现在这里。</p></article>`;
+}
+
+function createMockContentItem(campaign, topic, character) {
+  const platforms = campaign?.platforms?.length ? campaign.platforms : ["X", "TikTok"];
+  const caption = `${topic}：用 ${campaign?.name || "Open Video Studio"} 把一个创意变成可复用内容包。${campaign?.cta || "开始创作"}`;
+  return {
+    id: `content_${Date.now()}`,
+    campaignId: campaign?.id || "camp_local",
+    title: topic,
+    topic,
+    stage: "caption",
+    reviewStatus: "needs_review",
+    character,
+    research: `围绕「${topic}」分析受众痛点、视觉钩子、平台节奏和转化 CTA。`,
+    script: `Hook：${topic}。Problem：内容生产不能只停在单张图。Solution：生成脚本、提示词、资产、Caption 和平台版本。CTA：${campaign?.cta || "免费开始生成"}。`,
+    prompt: `${campaign?.style || "高级 AI 创作平台"}，${character} 展示 ${topic}，电影感光影，竖屏友好，适合社媒发布。`,
+    caption,
+    hashtags: ["AIContent", "OpenVideoStudio", "CreatorTools", "VideoAI"],
+    variants: platforms.map((platform) => ({
+      id: `variant_${platform.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_${Date.now()}`,
+      platform,
+      caption: `${caption} · ${platform}`,
+      status: "needs_review",
+      format: platform.toLowerCase().includes("tiktok") || platform.toLowerCase().includes("shorts") ? "vertical_video_9_16" : "image_or_video_with_caption"
+    }))
+  };
+}
+
+function nextStage(stage) {
+  const stages = ["idea", "research", "script", "prompt", "asset", "caption", "review", "scheduled", "published", "analyzed"];
+  const index = stages.indexOf(stage);
+  return index >= 0 && index < stages.length - 1 ? stages[index + 1] : "";
+}
+
+function stageLabel(stage) {
+  return ({
+    idea: "Idea",
+    research: "Research",
+    script: "Script",
+    prompt: "Prompt",
+    asset: "Asset",
+    caption: "Caption",
+    review: "Review",
+    scheduled: "Scheduled",
+    published: "Published",
+    analyzed: "Analyzed"
+  })[stage] || stage;
+}
+
+function reviewLabel(status) {
+  return ({ draft: "草稿", needs_review: "待审核", approved: "已通过", rejected: "已拒绝", scheduled: "已排期", published: "已发布", failed: "失败" })[status] || status;
+}
+
+function queueStatusLabel(status) {
+  return ({ needs_review: "待审核", scheduled: "已排期", published: "已发布", failed: "失败", today: "今天", tomorrow: "明天", this_week: "本周" })[status] || status;
+}
+
+function goalLabel(goal) {
+  return ({ traffic: "引流", followers: "涨粉", sales: "销售", leads: "线索", awareness: "品牌认知" })[goal] || goal;
 }
 
 function renderAdmin(current) {
