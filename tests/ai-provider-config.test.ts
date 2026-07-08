@@ -65,6 +65,10 @@ test("AI Edge Function contains server-only provider actions and no browser-secr
   assert.ok(edgeFunction.includes("refundGenerationCredits"));
   assert.ok(edgeFunction.includes("generation_refund"));
   assert.ok(edgeFunction.includes("createDemoCreditPurchase"));
+  assert.ok(edgeFunction.includes("normalizeProbeFailure"));
+  assert.ok(edgeFunction.includes("请识别这张图片"));
+  assert.ok(edgeFunction.includes("提示词增强助手"));
+  assert.equal(/璇|涓|鍥|绠|銆|鐨|浣犳槸/.test(edgeFunction), false);
   assert.equal(edgeFunction.includes("VITE_QWEN"), false);
   assert.equal(edgeFunction.includes("VITE_DEEPSEEK"), false);
   assert.equal(edgeFunction.includes("VITE_QIANWEN"), false);
@@ -107,10 +111,12 @@ test("production verification scripts cover OAuth and AI function health", () =>
   const oauthScript = readFileSync(join(root, "scripts", "verify-oauth.mjs"), "utf8");
   const aiScript = readFileSync(join(root, "scripts", "verify-ai-function.mjs"), "utf8");
   const paymentScript = readFileSync(join(root, "scripts", "verify-payment-loop.mjs"), "utf8");
+  const deployFunctionScript = readFileSync(join(root, "scripts", "deploy-supabase-function.mjs"), "utf8");
 
   assert.ok(packageJson.includes("verify:oauth"));
   assert.ok(packageJson.includes("verify:ai"));
   assert.ok(packageJson.includes("verify:payments"));
+  assert.ok(packageJson.includes("deploy:function"));
   for (const provider of ["google", "twitter", "discord", "telegram"]) {
     assert.ok(oauthScript.includes(provider), `OAuth verifier should cover ${provider}`);
   }
@@ -128,6 +134,8 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(aiScript.includes("probeDatabasePersistence"));
   assert.ok(aiScript.includes("probePromptEnhancement"));
   assert.ok(aiScript.includes("probeQwenVision"));
+  assert.ok(aiScript.includes("providerProbes"));
+  assert.ok(aiScript.includes("probe: true"));
   assert.ok(aiScript.includes("generation_jobs"));
   assert.ok(aiScript.includes("media_assets"));
   assert.ok(aiScript.includes("credit_transactions"));
@@ -139,4 +147,7 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.equal(oauthScript.includes("SUPABASE_SERVICE_ROLE_KEY"), false);
   assert.ok(aiScript.includes("SUPABASE_SERVICE_ROLE_KEY"));
   assert.ok(paymentScript.includes("SUPABASE_SERVICE_ROLE_KEY"));
+  assert.ok(deployFunctionScript.includes("SUPABASE_ACCESS_TOKEN"));
+  assert.ok(deployFunctionScript.includes("/functions/deploy?slug="));
+  assert.equal(deployFunctionScript.includes("console.log(accessToken"), false);
 });

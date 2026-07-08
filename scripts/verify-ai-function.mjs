@@ -43,6 +43,7 @@ const report = {
     ok: null,
     providerCount: 0,
     providersConfigured: {},
+    providerProbes: {},
     error: "",
   },
   promptEnhancement: {
@@ -104,13 +105,16 @@ if (accessToken) {
         authorization: `Bearer ${accessToken}`,
         "content-type": "application/json",
       },
-      body: JSON.stringify({ action: "provider-status" }),
+      body: JSON.stringify({ action: "provider-status", probe: true }),
     });
     const body = await authenticated.json().catch(() => ({}));
     report.optionalAuthenticatedProbe.ok = authenticated.ok && Array.isArray(body.providers);
     report.optionalAuthenticatedProbe.providerCount = Array.isArray(body.providers) ? body.providers.length : 0;
     report.optionalAuthenticatedProbe.providersConfigured = Object.fromEntries(
       (body.providers ?? []).map((provider) => [provider.provider, Boolean(provider.configured)]),
+    );
+    report.optionalAuthenticatedProbe.providerProbes = Object.fromEntries(
+      (body.providers ?? []).map((provider) => [provider.provider, provider.probe ?? null]),
     );
     report.optionalAuthenticatedProbe.error = body?.error?.message || "";
     report.ok = report.ok && report.optionalAuthenticatedProbe.ok;

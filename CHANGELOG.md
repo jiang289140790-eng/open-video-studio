@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.81.0 |
+| Version | 0.82.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,20 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-09
+
+### Improved
+
+- Fixed corrupted Chinese prompt text inside the deployed Supabase `ai` Edge Function for Qwen Vision image analysis and DeepSeek prompt enhancement.
+- Added normalized provider-health failure diagnostics so admin and verification probes classify provider failures by code, HTTP status, and category such as `auth`, `timeout`, `provider`, or `request`.
+- Added `npm run deploy:function -- <slug>` as a Supabase Management API deployment path for Edge Functions, avoiding the unavailable Windows Supabase CLI binary package while keeping `SUPABASE_ACCESS_TOKEN` out of logs.
+- Expanded `npm run verify:ai` to request live provider probes. Current production evidence shows Qwen Vision failing with `QWEN_VISION_FAILED`, HTTP `401`, category `auth`; DeepSeek verifies successfully; Qianwen is configured with live generation probe skipped; Fake Worker remains healthy.
+
+### Validation
+
+- Deployed the `ai` Edge Function to Supabase through the Management API; production function version is `7`.
+- Ran `npm run verify:ai`; generation, Storage asset persistence, credit debit, cancellation refund, and database readback passed, while Qwen Vision remains blocked by external API authentication.
+- Ran `npm run verify:payments`; demo checkout, order readback, credit ledger readback, and balance verification passed.
+- Ran `npm run test`; 59 tests passed.
 
 ### Improved
 

@@ -582,7 +582,7 @@ async function providerStatusWithProbes(env: AiEnv, providers: Array<Record<stri
         });
         return { ...provider, probe: { ok: true, durationMs: Date.now() - started, message: "verified" } };
       } catch (error) {
-        return { ...provider, probe: { ok: false, durationMs: Date.now() - started, message: error instanceof Error ? error.message : "Qwen Vision probe failed" } };
+        return { ...provider, probe: normalizeProbeFailure(error, Date.now() - started, "Qwen Vision probe failed") };
       }
     }
     if (name === "deepseek_text" && provider.configured) {
@@ -591,7 +591,7 @@ async function providerStatusWithProbes(env: AiEnv, providers: Array<Record<stri
         const result = await enhancePrompt(env, "Admin provider health check", { source: "admin-provider-health" });
         return { ...provider, probe: { ok: !result.fallback, durationMs: Date.now() - started, message: result.fallback ? "fallback" : "verified" } };
       } catch (error) {
-        return { ...provider, probe: { ok: false, durationMs: Date.now() - started, message: error instanceof Error ? error.message : "DeepSeek probe failed" } };
+        return { ...provider, probe: normalizeProbeFailure(error, Date.now() - started, "DeepSeek probe failed") };
       }
     }
     if (name === "fake_worker") {
@@ -624,6 +624,22 @@ async function parseProviderResponse(response: Response, code: string) {
     throw new AiFunctionError(code, data?.error?.message || data?.message || response.statusText, response.status);
   }
   return data;
+}
+
+function normalizeProbeFailure(error: unknown, durationMs: number, fallbackMessage: string) {
+  const status = error instanceof AiFunctionError ? error.status : 0;
+  const code = error instanceof AiFunctionError ? error.code : "PROVIDER_PROBE_FAILED";
+  const message = error instanceof Error ? error.message : fallbackMessage;
+  const lower = message.toLowerCase();
+  const category =
+    status === 401 || status === 403 || lower.includes("unauth")
+      ? "auth"
+      : status === 408 || lower.includes("timeout") || lower.includes("abort")
+        ? "timeout"
+        : status >= 500
+          ? "provider"
+          : "request";
+  return { ok: false, durationMs, code, status, category, message };
 }
 
 function loadAiEnv(): AiEnv {

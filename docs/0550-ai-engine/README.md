@@ -35,6 +35,8 @@ Own AI model orchestration, prompt systems, generation pipelines, evaluation, sa
 
 The MVP now includes a Supabase `ai` Edge Function for server-only provider orchestration. It reserves `qwen_vision` for Qwen multimodal image analysis, `deepseek_text` for prompt enhancement and Chinese operating copy, and `qianwen_generation` for image/video generation. Real provider use remains behind backend configuration and environment secrets; `fake_worker` remains the default rollback provider.
 
+Current production provider probes classify failures with code, HTTP status, category, and message so admins can distinguish bad credentials from provider outages. Qwen Vision currently reaches the external API but returns HTTP `401` / `auth`; DeepSeek prompt enhancement, Fake Worker generation, Storage persistence, credit debit, and cancellation refund are verified.
+
 Production verification now probes Qwen Vision through the deployed `ai` function. The route reaches the provider, but the current external response is `Unauthenticated`, so the Qwen Vision site API key must be replaced with a valid key before this provider is considered production-ready. DeepSeek prompt enhancement and the Fake Worker-backed generation loop are verified separately.
 
 ## Proposed Provider Plugin Architecture
