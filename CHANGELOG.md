@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.71.0 |
+| Version | 0.72.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Improved
+
+- Reduced Admin console visual density issues by tightening sidebar typography, top heading size, KPI numbers, panel headings, list rows, form controls, textareas, and admin-only media/tool preview cards.
+- Added stronger Admin CSS overrides so backend configuration cards no longer inherit oversized public tool-card image/layout dimensions.
+
+### Validation
+
+- Ran `npm run test`; production build completed and 53 tests passed.
+- Verified the Admin console at 1366x768 with no horizontal overflow; H1 is approximately 27px, panel headings approximately 15px, and tool configuration cards approximately 209px high.
 
 ### Improved
 
