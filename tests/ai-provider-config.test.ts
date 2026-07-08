@@ -110,12 +110,14 @@ test("production verification scripts cover OAuth and AI function health", () =>
   const packageJson = readFileSync(join(root, "package.json"), "utf8");
   const oauthScript = readFileSync(join(root, "scripts", "verify-oauth.mjs"), "utf8");
   const aiScript = readFileSync(join(root, "scripts", "verify-ai-function.mjs"), "utf8");
+  const workflowScript = readFileSync(join(root, "scripts", "verify-workflow-routing.mjs"), "utf8");
   const paymentScript = readFileSync(join(root, "scripts", "verify-payment-loop.mjs"), "utf8");
   const adminScript = readFileSync(join(root, "scripts", "verify-admin-console.mjs"), "utf8");
   const deployFunctionScript = readFileSync(join(root, "scripts", "deploy-supabase-function.mjs"), "utf8");
 
   assert.ok(packageJson.includes("verify:oauth"));
   assert.ok(packageJson.includes("verify:ai"));
+  assert.ok(packageJson.includes("verify:workflow"));
   assert.ok(packageJson.includes("verify:payments"));
   assert.ok(packageJson.includes("verify:admin"));
   assert.ok(packageJson.includes("deploy:function"));
@@ -141,6 +143,14 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(aiScript.includes("generation_jobs"));
   assert.ok(aiScript.includes("media_assets"));
   assert.ok(aiScript.includes("credit_transactions"));
+  assert.ok(workflowScript.includes("get-workflow-center-config"));
+  assert.ok(workflowScript.includes("update-workflow-center-config"));
+  assert.ok(workflowScript.includes("create-generation-job"));
+  assert.ok(workflowScript.includes("process-generation-job"));
+  assert.ok(workflowScript.includes("providerSelected"));
+  assert.ok(workflowScript.includes("assetReadable"));
+  assert.ok(workflowScript.includes("restoreWorkflowCenter"));
+  assert.ok(workflowScript.includes("SUPABASE_SERVICE_ROLE_KEY"));
   assert.ok(paymentScript.includes("demo-credit-purchase"));
   assert.ok(paymentScript.includes("orders"));
   assert.ok(paymentScript.includes("credit_transactions"));

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.84.0 |
+| Version | 0.85.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-09
+
+### Improved
+
+- Added `npm run verify:workflow` as a production smoke test for Admin Workflow Center routing.
+- The verifier creates a temporary admin, reads the current Workflow Center config, publishes a temporary testing workflow, creates an AI generation job without passing a direct provider override, confirms the AI Edge Function selects the provider from the Workflow config, processes the job, reads back the generated asset, restores the previous Workflow config, and cleans up all temporary data.
+- This proves the backend AI Workflow switch affects real generation routing without changing frontend code.
+
+### Validation
+
+- Ran `npm run verify:workflow`; Admin Workflow config read/update/restore, AI job creation, provider selection, Fake Worker processing, Storage asset creation, asset readback, and cleanup all passed.
 
 ### Improved
 

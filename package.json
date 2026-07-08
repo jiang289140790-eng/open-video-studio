@@ -12,6 +12,7 @@
     "verify:oauth": "node scripts/verify-oauth.mjs",
     "verify:i18n": "node scripts/verify-i18n.mjs",
     "verify:ai": "node scripts/verify-ai-function.mjs",
+    "verify:workflow": "node scripts/verify-workflow-routing.mjs",
     "verify:payments": "node scripts/verify-payment-loop.mjs",
     "verify:production-config": "node scripts/check-production-config.mjs",
     "verify:admin": "node scripts/verify-admin-console.mjs",
