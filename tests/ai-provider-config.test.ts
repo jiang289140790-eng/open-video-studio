@@ -101,6 +101,8 @@ test("frontend routes generation through AI Edge Function before local fallback"
   assert.ok(appScript.includes("syncRemoteProductData"));
   assert.ok(appScript.includes("demo-credit-purchase"));
   assert.ok(appScript.includes("runRemoteDemoCreditPurchase"));
+  assert.ok(appScript.includes("create-share-link"));
+  assert.ok(appScript.includes("hydrateRemoteShareByToken"));
   assert.ok(appScript.includes("qianwen_generation"));
   assert.ok(appScript.includes("qwen_vision"));
   assert.ok(appScript.includes("deepseek_text"));
@@ -112,12 +114,14 @@ test("production verification scripts cover OAuth and AI function health", () =>
   const aiScript = readFileSync(join(root, "scripts", "verify-ai-function.mjs"), "utf8");
   const workflowScript = readFileSync(join(root, "scripts", "verify-workflow-routing.mjs"), "utf8");
   const paymentScript = readFileSync(join(root, "scripts", "verify-payment-loop.mjs"), "utf8");
+  const userLoopScript = readFileSync(join(root, "scripts", "verify-user-product-loop.mjs"), "utf8");
   const adminScript = readFileSync(join(root, "scripts", "verify-admin-console.mjs"), "utf8");
   const deployFunctionScript = readFileSync(join(root, "scripts", "deploy-supabase-function.mjs"), "utf8");
 
   assert.ok(packageJson.includes("verify:oauth"));
   assert.ok(packageJson.includes("verify:ai"));
   assert.ok(packageJson.includes("verify:workflow"));
+  assert.ok(packageJson.includes("verify:user-loop"));
   assert.ok(packageJson.includes("verify:payments"));
   assert.ok(packageJson.includes("verify:admin"));
   assert.ok(packageJson.includes("deploy:function"));
@@ -156,6 +160,16 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(paymentScript.includes("credit_transactions"));
   assert.ok(paymentScript.includes("creditBalanceCorrect"));
   assert.ok(paymentScript.includes("SUPABASE_TEST_ACCESS_TOKEN"));
+  assert.ok(userLoopScript.includes("demo-credit-purchase"));
+  assert.ok(userLoopScript.includes("create-generation-job"));
+  assert.ok(userLoopScript.includes("process-generation-job"));
+  assert.ok(userLoopScript.includes("create-share-link"));
+  assert.ok(userLoopScript.includes("media_assets"));
+  assert.ok(userLoopScript.includes("generation_jobs"));
+  assert.ok(userLoopScript.includes("share_links"));
+  assert.ok(userLoopScript.includes("publicLinkReadable"));
+  assert.ok(userLoopScript.includes("publicAssetReadable"));
+  assert.ok(userLoopScript.includes("SUPABASE_SERVICE_ROLE_KEY"));
   for (const action of ["dashboard-summary", "list-users", "adjust-credits", "update-order-status", "review-asset", "revoke-share-link", "list-audit-logs"]) {
     assert.ok(adminScript.includes(action), `Admin verifier should cover ${action}`);
   }

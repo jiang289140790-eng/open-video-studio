@@ -85,6 +85,11 @@ Deno.serve(async (req) => {
       return json({ job, refund });
     }
 
+    if (action === "create-share-link") {
+      const share = await createShareLink(adminClient, user.id, body);
+      return json({ share });
+    }
+
     if (action === "demo-credit-purchase") {
       const order = await createDemoCreditPurchase(adminClient, user.id, body);
       return json({ order });
@@ -260,7 +265,7 @@ async function enhancePrompt(env: AiEnv, prompt: string, context: Record<string,
         model: env.deepseekModel,
         temperature: 0.3,
         messages: [
-          { role: "system", content: "你是 Open Video Studio 的提示词增强助手。请保留用户意图，用中文输出更适合图片/视频生成的清晰 prompt，不要输出解释。" },
+          { role: "system", content: "你是 Open Video Studio 的提示词增强助手。请保留用户意图，用中文输出更适合图片和视频生成的清晰 prompt，不要输出解释。" },
           { role: "user", content: JSON.stringify({ prompt, context }) },
         ],
       }),
@@ -477,6 +482,51 @@ async function createDemoCreditPurchase(adminClient: any, userId: string, body: 
   }).select("*").single();
   if (orderInsert.error) throw new AiFunctionError("DEMO_PURCHASE_ORDER_FAILED", orderInsert.error.message, 502);
   return orderInsert.data;
+}
+
+async function createShareLink(adminClient: any, userId: string, body: Record<string, unknown>) {
+  const assetId = requireText(body.assetId, "ASSET_ID_REQUIRED");
+  const { data: asset, error: assetError } = await adminClient
+    .from("media_assets")
+    .select("id,owner_user_id,visibility_status,deleted_at,display_name")
+    .eq("id", assetId)
+    .eq("owner_user_id", userId)
+    .is("deleted_at", null)
+    .single();
+  if (assetError || !asset) throw new AiFunctionError("ASSET_NOT_FOUND", "Asset not found.", 404);
+
+  const existing = await adminClient
+    .from("share_links")
+    .select("*")
+    .eq("owner_user_id", userId)
+    .eq("media_asset_id", assetId)
+    .eq("visibility_status", "active")
+    .is("revoked_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  if (existing.error) throw new AiFunctionError("SHARE_LINK_READ_FAILED", existing.error.message, 502);
+  if ((existing.data ?? []).length > 0) return existing.data[0];
+
+  const timestamp = new Date().toISOString();
+  const inserted = await adminClient.from("share_links").insert({
+    id: createId("share"),
+    owner_user_id: userId,
+    media_asset_id: assetId,
+    token: createShareToken(),
+    visibility_status: "active",
+    created_at: timestamp,
+    revoked_at: null,
+  }).select("*").single();
+  if (inserted.error) throw new AiFunctionError("SHARE_LINK_CREATE_FAILED", inserted.error.message, 502);
+
+  const updated = await adminClient
+    .from("media_assets")
+    .update({ visibility_status: "public", updated_at: timestamp })
+    .eq("id", assetId)
+    .eq("owner_user_id", userId);
+  if (updated.error) throw new AiFunctionError("ASSET_SHARE_PUBLISH_FAILED", updated.error.message, 502);
+
+  return inserted.data;
 }
 
 async function refundGenerationCredits(adminClient: any, userId: string, job: Record<string, any>, reason: string) {
@@ -704,6 +754,10 @@ function safeObject(value: unknown): Record<string, unknown> {
 
 function createId(prefix: string): string {
   return `${prefix}_${crypto.randomUUID().replaceAll("-", "")}`;
+}
+
+function createShareToken(): string {
+  return `s_${crypto.randomUUID().replaceAll("-", "").slice(0, 24)}`;
 }
 
 function json(payload: unknown, status = 200): Response {

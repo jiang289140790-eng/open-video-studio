@@ -56,6 +56,8 @@ MVP Sprint 1 adds a minimal local HTTP API server through `createMvpApiServer`. 
 
 The MVP backend now includes a Supabase `ai` Edge Function with authenticated actions for image analysis, prompt enhancement, generation job creation, job processing, job status, cancellation, and provider status. This API is server-side only for third-party provider secrets and keeps frontend contracts provider-neutral.
 
+The `ai` Edge Function also exposes authenticated `create-share-link` for generated media assets. It verifies the current user owns the asset, reuses an active share link when available, updates the asset visibility to `public`, and stores the public token in `share_links`. Public share pages read active tokens and public assets through Supabase RLS; `npm run verify:user-loop` validates this end-to-end.
+
 Production verification now proves more than endpoint existence. `npm run verify:ai` creates an authenticated temporary admin probe, checks provider status, calls Qwen Vision image analysis, calls DeepSeek prompt enhancement, creates a demo credit purchase, creates a generation job, processes it through the Fake Worker route, uploads output metadata to Supabase Storage, and then reads `generation_jobs`, `media_assets`, and `credit_transactions` back as the authenticated user. It also creates and cancels a separate queued job to verify the cancellation refund response, refund ledger entry, and credit amount. Current Qwen Vision verification reaches the provider but returns `Unauthenticated`, so the external site API key still needs correction. Real Qianwen image/video generation remains controlled by Admin Workflow rollout.
 
 ## Acceptance Criteria

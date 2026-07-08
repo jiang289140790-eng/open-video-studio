@@ -25,6 +25,23 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Added authenticated `create-share-link` support to the Supabase `ai` Edge Function so asset owners can publish generated assets through server-side ownership checks.
+- Updated the frontend share flow to call the real share API for remote assets and to hydrate public share pages from Supabase token lookup instead of relying only on local demo state.
+- Added `npm run verify:user-loop` to prove demo credits, generation job creation, Fake Worker processing, owner Gallery readback, owner History readback, public share-link lookup, public asset lookup, and cleanup.
+- Repaired remaining mojibake in Qwen Vision and DeepSeek default prompt text inside the AI Edge Function source.
+
+### Validation
+
+- Deployed the updated Supabase `ai` Edge Function through the Management API; production function version is `8`.
+- Ran `npm run verify:user-loop`; temporary user auth, demo credit grant, credit debit, Fake Worker generation, Storage-backed asset creation, owner Gallery readback, owner History readback, server-created share link, anonymous public share-link readback, anonymous public asset readback, and cleanup all passed.
+- Ran `npm run verify:workflow`; Admin Workflow routing, provider selection, asset persistence, config restore, and cleanup all passed.
+- Ran `npm run verify:payments`; demo checkout order, credit ledger, balance readback, and unauthenticated fail-closed gate all passed.
+- Ran `npm run verify:admin`; admin reads, credit adjustment, order update, asset review, share revocation, audit log, and cleanup all passed.
+- Ran `npm run test`; 59 tests passed.
+- Ran `npm run verify:oauth`; Supabase local config is present, but Google, X/Twitter, and Discord still return `Unsupported provider: provider is not enabled`, and Telegram still lacks public bot/auth URL configuration.
+
+### Improved
+
 - Added `npm run verify:workflow` as a production smoke test for Admin Workflow Center routing.
 - The verifier creates a temporary admin, reads the current Workflow Center config, publishes a temporary testing workflow, creates an AI generation job without passing a direct provider override, confirms the AI Edge Function selects the provider from the Workflow config, processes the job, reads back the generated asset, restores the previous Workflow config, and cleans up all temporary data.
 - This proves the backend AI Workflow switch affects real generation routing without changing frontend code.

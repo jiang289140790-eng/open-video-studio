@@ -1360,6 +1360,9 @@ function injectCarouselControls() {
 }
 
 async function hydrateAuthSession() {
+  if (document.body.classList.contains("share-body")) {
+    await hydrateRemoteShareByToken();
+  }
   if (!supabase) {
     renderState(state);
     return;
@@ -1382,10 +1385,11 @@ async function hydrateAuthSession() {
 
 async function syncRemoteProductData() {
   if (!supabase || !state.user?.id) return;
-  const [assetsResult, jobsResult, creditsResult] = await Promise.all([
+  const [assetsResult, jobsResult, creditsResult, sharesResult] = await Promise.all([
     supabase.from("media_assets").select("*").eq("owner_user_id", state.user.id).is("deleted_at", null).order("updated_at", { ascending: false }).limit(80),
     supabase.from("generation_jobs").select("*").eq("user_id", state.user.id).order("created_at", { ascending: false }).limit(80),
-    supabase.from("credit_transactions").select("balance_impact,status").eq("user_id", state.user.id)
+    supabase.from("credit_transactions").select("balance_impact,status").eq("user_id", state.user.id),
+    supabase.from("share_links").select("*").eq("owner_user_id", state.user.id).eq("visibility_status", "active").is("revoked_at", null).order("created_at", { ascending: false }).limit(80)
   ]);
   if (!assetsResult.error && Array.isArray(assetsResult.data)) {
     state.assets = assetsResult.data.map(mapRemoteAsset);
@@ -1398,6 +1402,46 @@ async function syncRemoteProductData() {
       .filter((row) => row.status === "posted")
       .reduce((sum, row) => sum + Number(row.balance_impact || 0), 0);
   }
+  if (!sharesResult.error && Array.isArray(sharesResult.data)) {
+    state.shares = sharesResult.data.map((share) => ({
+      id: String(share.id),
+      token: String(share.token),
+      assetId: String(share.media_asset_id),
+      title: state.assets.find((asset) => asset.id === share.media_asset_id)?.title || "分享作品",
+      remote: true
+    }));
+  }
+}
+
+async function hydrateRemoteShareByToken() {
+  if (!supabase) return;
+  const token = new URLSearchParams(window.location.search).get("token");
+  if (!token) return;
+  const shareResult = await supabase
+    .from("share_links")
+    .select("*")
+    .eq("token", token)
+    .eq("visibility_status", "active")
+    .is("revoked_at", null)
+    .maybeSingle();
+  if (shareResult.error || !shareResult.data?.media_asset_id) return;
+  const assetResult = await supabase
+    .from("media_assets")
+    .select("*")
+    .eq("id", shareResult.data.media_asset_id)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (assetResult.error || !assetResult.data) return;
+  const asset = mapRemoteAsset(assetResult.data);
+  asset.visibility = "public";
+  upsertById(state.assets, asset);
+  upsertById(state.shares, {
+    id: String(shareResult.data.id),
+    token: String(shareResult.data.token),
+    assetId: String(shareResult.data.media_asset_id),
+    title: asset.title,
+    remote: true
+  });
 }
 
 function mapRemoteAsset(asset, index = 0) {
@@ -2870,9 +2914,31 @@ function renderCreations(current) {
   }
 }
 
-function createShare(assetId) {
+async function createShare(assetId) {
   const asset = state.assets.find((item) => item.id === assetId);
   if (!asset) return;
+  if (supabase && asset.remote) {
+    try {
+      const result = await invokeAi("create-share-link", { assetId });
+      const remoteShare = result.share;
+      if (remoteShare?.token) {
+        asset.visibility = "public";
+        const share = {
+          id: String(remoteShare.id),
+          token: String(remoteShare.token),
+          assetId: String(remoteShare.media_asset_id || asset.id),
+          title: asset.title,
+          remote: true
+        };
+        upsertById(state.shares, share);
+        saveState(state);
+        window.location.href = `./zh/share/?token=${encodeURIComponent(share.token)}`;
+        return;
+      }
+    } catch (error) {
+      showSiteToast(`${error.message || "分享链接创建失败"}，已切回本地演示分享。`);
+    }
+  }
   asset.visibility = "public";
   const share = { id: `share_${Date.now()}`, token: `share-${Date.now()}`, assetId: asset.id, title: asset.title };
   state.shares.unshift(share);
