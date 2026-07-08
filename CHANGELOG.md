@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.70.0 |
+| Version | 0.71.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,17 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Improved
+
+- Added explicit `workflowId` binding to Admin Tool Catalog configuration, visual editing, batch editing, previews, backend normalization, and Supabase Edge Function normalization.
+- Expanded default Agent Center configuration to cover Director, Content Analyst, Prompt Engineer, Script Writer, Storyboard, and Publisher Agent roles.
+- Expanded default Content Intelligence records to cover X, TikTok, YouTube, Reddit, Instagram, and Telegram manual-analysis inputs with preserved AI analysis JSON shape.
+- Updated Admin API, Database Bible, Summary documentation, and tests for the completed backend operations guidance alignment.
+
+### Validation
+
+- Ran `npm run test`; production build completed and 53 tests passed.
 
 ### Added
 

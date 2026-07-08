@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DB-BIBLE-001 |
-| Version | 1.13.0 |
+| Version | 1.14.0 |
 | Status | Active |
 | Owner | Data Architecture Lead |
 | Dependencies | PB-008, PB-010, SEC-INDEX-001, ANALYTICS-INDEX-001 |
@@ -79,6 +79,8 @@ The P0 Admin operations upgrade extends implementation schemas with `ai_workers`
 The P1 Admin operations upgrade adds Workflow Center, Prompt Library, and Tool Version management. MVP configuration is stored in `site_settings.workflow_center_config`, `site_settings.prompt_library_config`, and `site_settings.tool_catalog_config.tools[].versions`, while `workflow_configs`, `prompt_library`, and `tool_versions` are present in implementation schemas for future durable migration.
 
 The P2 Admin operations upgrade adds Content Intelligence, Agent Center, and Cost Analytics readiness. MVP admin configuration stores content intelligence and agent settings in `site_settings`, while implementation schemas reserve `content_intelligence`, `agent_configs`, and `cost_analytics` for durable ingestion, agent governance, and provider margin reporting.
+
+Tool Catalog configuration now includes an explicit per-tool `workflowId` binding in `site_settings.tool_catalog_config`, allowing public tool listings and future generation jobs to align with Workflow Center records without changing frontend contracts.
 
 ## Acceptance Criteria
 

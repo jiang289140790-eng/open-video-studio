@@ -4,7 +4,7 @@
 |---|---|
 | ID | API-ADMIN-001 |
 | Unique ID | API-ADMIN-001 |
-| Version | 1.6.0 |
+| Version | 1.7.0 |
 | Status | Active |
 | Owner | Platform Admin Lead / Security Lead |
 | Dependencies | API-AUTH-001, DB-USERS-001, DB-AUDIT-LOGS-001, SEC-INDEX-001 |
@@ -71,7 +71,7 @@ Sensitive write actions require a non-empty `reason`. `update-homepage-config` a
 
 `update-page-builder-config` accepts `page_builder_config` payloads for page modules, enabled state, display style, card count, and module data source.
 
-`update-tool-catalog-config` accepts `tool_catalog_config` payloads for AI tool listing status, category, provider, model, route, featured state, and credit cost.
+`update-tool-catalog-config` accepts `tool_catalog_config` payloads for AI tool listing status, category, provider, model, explicit `workflowId` binding, route, featured state, and credit cost.
 
 `tool_catalog_config.tools[].versions` stores MVP tool version history with version, changelog, model version, workflow version, prompt version, and status.
 
@@ -136,6 +136,8 @@ The Admin console has been upgraded from configuration-first to operations-first
 P1 Admin operations add Workflow Center, Prompt Library, and Tool Version management. These remain configuration-backed until production workflow and prompt tables become the canonical write path.
 
 P2 Admin operations add Content Intelligence, Agent Center, and Cost Analytics. Content and agent settings remain admin-configured for MVP speed, while cost analytics is derived from generation jobs and prepared for future provider billing snapshots.
+
+Tool Catalog now stores explicit workflow bindings per tool. Agent Center default configuration covers Director, Content Analyst, Prompt Engineer, Script Writer, Storyboard, and Publisher roles. Content Intelligence default records preserve the manual ingestion shape for X, TikTok, YouTube, Reddit, Instagram, and Telegram.
 
 ## AI Context
 

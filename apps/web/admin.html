@@ -221,12 +221,12 @@
             <div><p class="eyebrow">Tool Catalog</p><h2>AI 工具上架管理</h2></div>
             <span>Admin only</span>
           </div>
-          <p class="muted">像商品上架一样管理 AI 工具：分类、状态、服务商、模型、积分价格、入口路径和是否推荐。格式：slug|名称|分类|状态|服务商|模型|积分|路径|推荐。</p>
+          <p class="muted">像商品上架一样管理 AI 工具：分类、状态、服务商、模型、绑定 Workflow、积分价格、入口路径和是否推荐。格式：slug|名称|分类|状态|服务商|模型|workflow_id|积分|路径|推荐。</p>
           <form class="admin-home-form" data-admin-tool-catalog-form>
             <div class="admin-visual-editor" data-admin-tool-catalog-visual></div>
             <label class="admin-textarea-label">
               <span>高级批量编辑</span>
-              <textarea name="toolCatalogRows" rows="10" data-admin-tool-catalog-rows placeholder="image-editor|图片编辑器|image|published|fake_worker|local-image-edit-v0|8|./zh/app/image-editor/|yes&#10;outfit-studio|AI 换装|image|published|fake_worker|local-outfit-v0|12|./zh/app/outfit-studio/|yes&#10;image-to-video|图片转视频|video|published|fake_worker|local-video-v0|24|./zh/app/image-to-video/|yes"></textarea>
+              <textarea name="toolCatalogRows" rows="10" data-admin-tool-catalog-rows placeholder="image-editor|图片编辑器|image|published|fake_worker|local-image-edit-v0|workflow-image-edit-v1|8|./zh/app/image-editor/|yes&#10;outfit-studio|AI 换装|image|published|fake_worker|local-outfit-v0|workflow-outfit-v1|12|./zh/app/outfit-studio/|yes&#10;image-to-video|图片转视频|video|published|fake_worker|local-video-v0|workflow-video-v1|24|./zh/app/image-to-video/|yes"></textarea>
             </label>
             <label class="admin-textarea-label">
               <span>发布原因</span>

@@ -588,6 +588,7 @@ describe("MVP static frontend", () => {
       "data-page-builder-page",
       "data-page-builder-module",
       "data-tool-catalog-item",
+      "data-tool-workflow",
       "get-page-builder-config",
       "get-tool-catalog-config",
       "update-page-builder-config",

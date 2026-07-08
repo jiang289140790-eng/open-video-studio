@@ -125,13 +125,14 @@ test("admin backend enforces roles and audits sensitive operations", async () =>
   const updatedToolCatalog = await backend.updateToolCatalogConfig(admin, {
     config: {
       tools: [
-        { slug: "outfit-studio", name: "AI Outfit", category: "image", status: "published", provider: "fal", model: "tryon-v1", creditCost: 12, route: "https://unsafe.example", featured: true, versions: [{ version: "v2", changelog: "fal try-on test", modelVersion: "tryon-v1", workflowVersion: "workflow-outfit-v2", promptVersion: "prompt-outfit-v2", status: "testing" }] },
+        { slug: "outfit-studio", name: "AI Outfit", category: "image", status: "published", provider: "fal", model: "tryon-v1", workflowId: "workflow-outfit-v2", creditCost: 12, route: "https://unsafe.example", featured: true, versions: [{ version: "v2", changelog: "fal try-on test", modelVersion: "tryon-v1", workflowVersion: "workflow-outfit-v2", promptVersion: "prompt-outfit-v2", status: "testing" }] },
       ],
     },
     reason: "tool listing update",
   });
   assert.equal((updatedToolCatalog.value_json as any).tools[0].route, "./zh/app/generate/");
   assert.equal((updatedToolCatalog.value_json as any).tools[0].provider, "fal");
+  assert.equal((updatedToolCatalog.value_json as any).tools[0].workflowId, "workflow-outfit-v2");
   assert.equal((updatedToolCatalog.value_json as any).tools[0].versions[0].status, "testing");
   assert.equal(client.table("audit_logs").length, 7);
 
@@ -193,6 +194,10 @@ test("admin backend enforces roles and audits sensitive operations", async () =>
 
   const contentIntelligence = await backend.getContentIntelligenceConfig(operator);
   assert.equal(contentIntelligence.setting_key, "content_intelligence_config");
+  assert.deepEqual(
+    (contentIntelligence.value_json as any).records.map((record: any) => record.sourcePlatform),
+    ["X", "TikTok", "YouTube", "Reddit", "Instagram", "Telegram"],
+  );
   await assert.rejects(
     () => backend.updateContentIntelligenceConfig(operator, {
       config: { records: [] },
@@ -225,6 +230,10 @@ test("admin backend enforces roles and audits sensitive operations", async () =>
 
   const agentCenter = await backend.getAgentCenterConfig(operator);
   assert.equal(agentCenter.setting_key, "agent_center_config");
+  assert.deepEqual(
+    (agentCenter.value_json as any).agents.map((agent: any) => agent.role),
+    ["Director Agent", "Content Analyst Agent", "Prompt Engineer Agent", "Script Writer Agent", "Storyboard Agent", "Publisher Agent"],
+  );
   const updatedAgentCenter = await backend.updateAgentCenterConfig(admin, {
     config: {
       agents: [{

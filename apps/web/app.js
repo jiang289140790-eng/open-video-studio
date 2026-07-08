@@ -515,9 +515,9 @@ const defaultPageBuilderConfig = {
 
 const defaultToolCatalogConfig = {
   tools: [
-    { slug: "image-editor", name: "图片编辑器", category: "image", status: "published", provider: "fake_worker", model: "local-image-edit-v0", creditCost: 8, route: "./zh/app/image-editor/", featured: true, versions: [{ version: "v1", changelog: "MVP image edit workflow", modelVersion: "local-image-edit-v0", workflowVersion: "workflow-image-edit-v1", promptVersion: "prompt-image-edit-v1", status: "published" }] },
-    { slug: "outfit-studio", name: "AI 换装", category: "image", status: "published", provider: "fake_worker", model: "local-outfit-v0", creditCost: 12, route: "./zh/app/outfit-studio/", featured: true, versions: [{ version: "v1", changelog: "MVP outfit workflow", modelVersion: "local-outfit-v0", workflowVersion: "workflow-outfit-v1", promptVersion: "prompt-outfit-v1", status: "published" }] },
-    { slug: "image-to-video", name: "图片转视频", category: "video", status: "published", provider: "fake_worker", model: "local-video-v0", creditCost: 24, route: "./zh/app/image-to-video/", featured: true, versions: [{ version: "v1", changelog: "MVP image to video workflow", modelVersion: "local-video-v0", workflowVersion: "workflow-video-v1", promptVersion: "prompt-video-v1", status: "published" }] }
+    { slug: "image-editor", name: "图片编辑器", category: "image", status: "published", provider: "fake_worker", model: "local-image-edit-v0", workflowId: "workflow-image-edit-v1", creditCost: 8, route: "./zh/app/image-editor/", featured: true, versions: [{ version: "v1", changelog: "MVP image edit workflow", modelVersion: "local-image-edit-v0", workflowVersion: "workflow-image-edit-v1", promptVersion: "prompt-image-edit-v1", status: "published" }] },
+    { slug: "outfit-studio", name: "AI 换装", category: "image", status: "published", provider: "fake_worker", model: "local-outfit-v0", workflowId: "workflow-outfit-v1", creditCost: 12, route: "./zh/app/outfit-studio/", featured: true, versions: [{ version: "v1", changelog: "MVP outfit workflow", modelVersion: "local-outfit-v0", workflowVersion: "workflow-outfit-v1", promptVersion: "prompt-outfit-v1", status: "published" }] },
+    { slug: "image-to-video", name: "图片转视频", category: "video", status: "published", provider: "fake_worker", model: "local-video-v0", workflowId: "workflow-video-v1", creditCost: 24, route: "./zh/app/image-to-video/", featured: true, versions: [{ version: "v1", changelog: "MVP image to video workflow", modelVersion: "local-video-v0", workflowVersion: "workflow-video-v1", promptVersion: "prompt-video-v1", status: "published" }] }
   ]
 };
 const defaultWorkflowCenterConfig = {
@@ -534,13 +534,22 @@ const defaultPromptLibraryConfig = {
 };
 const defaultContentIntelligenceConfig = {
   records: [
-    { sourcePlatform: "X", sourceUrl: "https://x.com/example/status/demo", accountName: "@creator", postText: "One prompt should become a full content package.", mediaUrls: [], analysisJson: { confidence: 0.82 }, hook: "一个提示词不该只生成一张图", topic: "AI 内容生产系统", targetAudience: "短视频创作者", contentAngle: "从单次生成升级到可复用内容资产", reusableStrategy: "转成 Campaign、Prompt、Caption 和短视频分镜", generatedPostVariants: ["X thread", "TikTok short", "YouTube Shorts"], status: "analyzed" }
+    { sourcePlatform: "X", sourceUrl: "https://x.com/example/status/demo", accountName: "@creator", postText: "One prompt should become a full content package.", mediaUrls: [], analysisJson: { confidence: 0.82 }, hook: "一个提示词不该只生成一张图", topic: "AI 内容生产系统", targetAudience: "短视频创作者", contentAngle: "从单次生成升级到可复用内容资产", reusableStrategy: "转成 Campaign、Prompt、Caption 和短视频分镜", generatedPostVariants: ["X thread", "TikTok short", "YouTube Shorts"], status: "analyzed" },
+    { sourcePlatform: "TikTok", sourceUrl: "", accountName: "@trend", postText: "Fast visual hooks outperform static product demos.", mediaUrls: [], analysisJson: { confidence: 0.76, inputMode: "manual" }, hook: "前 2 秒决定短视频是否被看完", topic: "短视频开场", targetAudience: "品牌短视频团队", contentAngle: "把产品亮点转成强开场镜头", reusableStrategy: "转成脚本、分镜和视频生成 prompt", generatedPostVariants: ["TikTok script", "Reel caption"], status: "draft" },
+    { sourcePlatform: "YouTube", sourceUrl: "", accountName: "@shorts", postText: "Creators want repeatable formats, not isolated generations.", mediaUrls: [], analysisJson: { confidence: 0.73, inputMode: "manual" }, hook: "固定栏目比单次爆款更可持续", topic: "内容栏目化", targetAudience: "YouTube Shorts 创作者", contentAngle: "把生成结果组织成可持续栏目", reusableStrategy: "转成 series template、thumbnail prompt 和片尾 CTA", generatedPostVariants: ["Shorts outline", "Thumbnail prompt"], status: "draft" },
+    { sourcePlatform: "Reddit", sourceUrl: "", accountName: "r/creator", postText: "Users compare model output quality and workflow reliability.", mediaUrls: [], analysisJson: { confidence: 0.7, inputMode: "manual" }, hook: "质量之外，稳定工作流才是复购原因", topic: "AI 工具评价", targetAudience: "AI SaaS 产品经理", contentAngle: "把社区反馈转成产品改进和演示素材", reusableStrategy: "转成 FAQ、对比图和落地页证据卡", generatedPostVariants: ["FAQ item", "Comparison card"], status: "draft" },
+    { sourcePlatform: "Instagram", sourceUrl: "", accountName: "@visualstudio", postText: "Masonry visual previews create stronger creative intent.", mediaUrls: [], analysisJson: { confidence: 0.74, inputMode: "manual" }, hook: "视觉墙比文字说明更能驱动创作", topic: "视觉发现", targetAudience: "视觉内容创作者", contentAngle: "用图库预览驱动生成入口", reusableStrategy: "转成 gallery tags、prompt remix 和角色示例", generatedPostVariants: ["Carousel caption", "Gallery prompt"], status: "draft" },
+    { sourcePlatform: "Telegram", sourceUrl: "", accountName: "creator channel", postText: "Private communities need quick reusable creative packs.", mediaUrls: [], analysisJson: { confidence: 0.68, inputMode: "manual" }, hook: "社群运营需要一键复用的内容包", topic: "社群内容运营", targetAudience: "Telegram 社群运营者", contentAngle: "把生成资产打包成社群发布素材", reusableStrategy: "转成发布文案、封面图和短视频脚本", generatedPostVariants: ["Channel post", "Pinned offer"], status: "draft" }
   ]
 };
 const defaultAgentCenterConfig = {
   agents: [
     { agentId: "agent_director_v1", name: "Director Agent", role: "Director Agent", modelProvider: "fake_worker", modelName: "local-agent-v0", systemPrompt: "Coordinate campaign content from topic to reusable assets.", temperature: 0.7, maxTokens: 4096, toolsEnabled: ["prompt_library", "workflow_center"], status: "active" },
-    { agentId: "agent_analyst_v1", name: "Content Analyst Agent", role: "Content Analyst Agent", modelProvider: "fake_worker", modelName: "local-agent-v0", systemPrompt: "Analyze social posts into hooks, topics, audience, angle, and reusable strategy.", temperature: 0.4, maxTokens: 4096, toolsEnabled: ["content_intelligence"], status: "testing" }
+    { agentId: "agent_analyst_v1", name: "Content Analyst Agent", role: "Content Analyst Agent", modelProvider: "fake_worker", modelName: "local-agent-v0", systemPrompt: "Analyze social posts into hooks, topics, audience, angle, and reusable strategy.", temperature: 0.4, maxTokens: 4096, toolsEnabled: ["content_intelligence"], status: "testing" },
+    { agentId: "agent_prompt_engineer_v1", name: "Prompt Engineer Agent", role: "Prompt Engineer Agent", modelProvider: "fake_worker", modelName: "local-agent-v0", systemPrompt: "Turn approved creative briefs into reusable image, video, and character prompts.", temperature: 0.5, maxTokens: 4096, toolsEnabled: ["prompt_library", "tool_catalog"], status: "draft" },
+    { agentId: "agent_script_writer_v1", name: "Script Writer Agent", role: "Script Writer Agent", modelProvider: "fake_worker", modelName: "local-agent-v0", systemPrompt: "Write short-form scripts with hook, scenes, captions, and CTA.", temperature: 0.8, maxTokens: 4096, toolsEnabled: ["content_intelligence", "prompt_library"], status: "draft" },
+    { agentId: "agent_storyboard_v1", name: "Storyboard Agent", role: "Storyboard Agent", modelProvider: "fake_worker", modelName: "local-agent-v0", systemPrompt: "Convert scripts into shot lists, visual directions, and generation-ready scene plans.", temperature: 0.6, maxTokens: 4096, toolsEnabled: ["workflow_center", "asset_library"], status: "draft" },
+    { agentId: "agent_publisher_v1", name: "Publisher Agent", role: "Publisher Agent", modelProvider: "fake_worker", modelName: "local-agent-v0", systemPrompt: "Prepare approved assets for platform-specific publishing queues and metadata.", temperature: 0.4, maxTokens: 4096, toolsEnabled: ["publishing_queue", "analytics"], status: "disabled" }
   ]
 };
 let pageBuilderConfig = structuredClone(defaultPageBuilderConfig);
@@ -3083,6 +3092,7 @@ function normalizeToolCatalogConfig(config) {
       status: ["published", "draft", "hidden"].includes(tool.status) ? tool.status : "published",
       provider: String(tool.provider || "fake_worker").trim(),
       model: String(tool.model || "local-demo").trim(),
+      workflowId: String(tool.workflowId || tool.workflow_id || "workflow-v1").trim(),
       creditCost: Math.max(0, Math.min(999, Number(tool.creditCost || 0))),
       route: sanitizeHomepageHref(String(tool.route || "./zh/app/generate/")),
       featured: Boolean(tool.featured),
@@ -3260,7 +3270,7 @@ function readToolCatalogForm(formData) {
   const rows = String(formData.get("toolCatalogRows") || "");
   return normalizeToolCatalogConfig({
     tools: rows.split(/\n+/).map((line) => {
-      const [slug, name, category, status, provider, model, creditCost, route, featured] = line.split("|").map((part) => part.trim());
+      const [slug, name, category, status, provider, model, workflowId, creditCost, route, featured] = line.split("|").map((part) => part.trim());
       return {
         slug,
         name,
@@ -3268,6 +3278,7 @@ function readToolCatalogForm(formData) {
         status,
         provider,
         model,
+        workflowId,
         creditCost: Number(creditCost),
         route,
         featured: ["yes", "true", "on", "1", "推荐"].includes(String(featured || "").toLowerCase())
@@ -3406,6 +3417,7 @@ function renderToolCatalogVisualEditor(config) {
       <label><span>状态</span><select data-tool-status>${optionMarkup(["published", "draft", "hidden"], tool.status)}</select></label>
       <label><span>服务商</span><select data-tool-provider>${optionMarkup(["fake_worker", "openai", "gemini", "fal", "replicate", "comfyui", "runpod", "local_api"], tool.provider)}</select></label>
       <label><span>模型 / 工作流</span><input data-tool-model value="${escapeHtml(tool.model)}"></label>
+      <label><span>绑定 Workflow</span><input data-tool-workflow value="${escapeHtml(tool.workflowId)}"></label>
       <label><span>积分价格</span><input data-tool-cost type="number" min="0" max="999" value="${tool.creditCost}"></label>
       <label><span>是否推荐</span><select data-tool-featured>${optionMarkup(["yes", "no"], tool.featured ? "yes" : "no")}</select></label>
       <label class="wide"><span>入口路径</span><input data-tool-route value="${escapeHtml(tool.route)}"></label>
@@ -3440,6 +3452,7 @@ function readToolCatalogVisualEditor() {
     status: node.querySelector("[data-tool-status]")?.value || "published",
     provider: node.querySelector("[data-tool-provider]")?.value || "fake_worker",
     model: node.querySelector("[data-tool-model]")?.value.trim() || "local-demo",
+    workflowId: node.querySelector("[data-tool-workflow]")?.value.trim() || "workflow-v1",
     creditCost: Number(node.querySelector("[data-tool-cost]")?.value || 0),
     route: node.querySelector("[data-tool-route]")?.value.trim() || "./zh/app/generate/",
     featured: node.querySelector("[data-tool-featured]")?.value === "yes",
@@ -3476,6 +3489,7 @@ function serializeToolCatalogRows(config) {
     tool.status,
     tool.provider,
     tool.model,
+    tool.workflowId,
     tool.creditCost,
     tool.route,
     tool.featured ? "yes" : "no"
@@ -3571,7 +3585,7 @@ function renderAdminToolCatalogPreview(config, updatedAt = "") {
       <span class="status-dot ${tool.status === "published" ? "ready" : "blocked"}"></span>
       <div>
         <strong>${escapeHtml(tool.name)} · ${escapeHtml(tool.category)}</strong>
-        <p>${escapeHtml(tool.provider)} / ${escapeHtml(tool.model)} · ${tool.creditCost} 积分 · ${escapeHtml(tool.route)}${updatedAt ? ` · 更新于 ${escapeHtml(updatedAt)}` : ""}</p>
+        <p>${escapeHtml(tool.provider)} / ${escapeHtml(tool.model)} · Workflow ${escapeHtml(tool.workflowId)} · ${tool.creditCost} 积分 · ${escapeHtml(tool.route)}${updatedAt ? ` · 更新于 ${escapeHtml(updatedAt)}` : ""}</p>
       </div>
       <em>${tool.featured ? "推荐" : escapeHtml(tool.status)}</em>
     </article>

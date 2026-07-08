@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.77.0 |
+| Version | 0.78.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,9 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Admin Tool Catalog entries now carry an explicit `workflowId` binding in addition to model and version history, so a listed AI tool can be connected to a Workflow Center record before real worker execution is connected.
+- Agent Center defaults now cover the six MVP agent roles from the imported backend guidance: Director, Content Analyst, Prompt Engineer, Script Writer, Storyboard, and Publisher.
+- Content Intelligence defaults now cover X, TikTok, YouTube, Reddit, Instagram, and Telegram manual-analysis records, preserving the future ingestion shape while keeping MVP data mockable.
 - The Admin console now includes P2 operations modules for Content Intelligence, Agent Center, and Cost Analytics. These prepare imported content analysis, agent governance, and provider margin reporting without changing the existing backend or provider architecture.
 - The Admin console now includes P1 configuration operations for Workflow Center, Prompt Library, and Tool Version management. These use audited `site_settings` configuration for MVP speed while implementation schemas reserve `workflow_configs`, `prompt_library`, and `tool_versions` for future durable migration.
 - The Admin console now includes P0 SaaS operations controls from the latest backend upgrade guidance: daily growth/revenue/generation KPIs, weekly revenue trend, popular/high-failure/credit-consumption tool rankings, Worker Center, and richer generation job detail rows with workflow, cost, latency, input, output, and error context.
