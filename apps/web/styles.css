@@ -996,6 +996,18 @@ body.tool-layout .tool-card {
 .dashboard-grid .wide { grid-column: span 2; }
 .dashboard-sections { margin-bottom: 20px; }
 .dashboard-sections strong { display: block; margin: 8px 0; font-size: 2.4rem; }
+.content-ops-summary {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.content-ops-summary article {
+  background: linear-gradient(145deg, rgba(255,95,190,.1), rgba(139,92,246,.08));
+}
+.dashboard-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
 .dashboard-list {
   display: grid;
   gap: 12px;

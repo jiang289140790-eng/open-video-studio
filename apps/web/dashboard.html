@@ -15,17 +15,28 @@
       <a class="btn primary" href="./zh/app/generate/">快速生成</a>
     </header>
     <main class="app-surface">
-      <section class="page-hero compact"><p class="eyebrow">控制台</p><h1>你的 AI 创作工作台</h1><p class="lead">欢迎回来，<span data-user-name>创作者</span>。在这里查看积分、任务、角色、资产和分享链接。</p></section>
+      <section class="page-hero compact"><p class="eyebrow">控制台</p><h1>你的 AI 内容运营工作台</h1><p class="lead">欢迎回来，<span data-user-name>创作者</span>。在这里查看积分、任务、角色、资产、Campaign、排期和内容表现。</p></section>
       <section class="metric-grid dashboard-sections">
         <article><span>积分</span><strong data-dashboard-credits>40</strong><p>可用积分</p></article>
         <article><span>任务</span><strong data-dashboard-jobs>2</strong><p>队列与运行中</p></article>
         <article><span>资产</span><strong data-dashboard-assets>2</strong><p>可复用资产</p></article>
         <article><span>分享链接</span><strong data-dashboard-shares>1</strong><p>公开链接</p></article>
       </section>
+      <section class="metric-grid dashboard-sections content-ops-summary">
+        <article><span>Active campaigns</span><strong data-dashboard-campaigns>1</strong><p>进行中的 Campaign</p></article>
+        <article><span>Content in pipeline</span><strong data-dashboard-pipeline>1</strong><p>生产中的内容</p></article>
+        <article><span>Scheduled posts</span><strong data-dashboard-scheduled>1</strong><p>已排期发布</p></article>
+        <article><span>Failed posts</span><strong data-dashboard-failed>0</strong><p>需要处理</p></article>
+        <article><span>Content volume</span><strong data-dashboard-volume>1</strong><p>内容生产量</p></article>
+        <article><span>Social traffic</span><strong data-dashboard-traffic>650</strong><p>社交流量点击</p></article>
+      </section>
       <section class="dashboard-grid">
         <article class="panel"><h2>最近生成</h2><div class="dashboard-list" data-dashboard-recent></div></article>
         <article class="panel"><h2>保存角色</h2><div class="dashboard-list" data-dashboard-characters></div><a class="btn glass" href="./zh/app/characters/">管理角色</a></article>
         <article class="panel"><h2>分享链接</h2><div class="dashboard-list" data-dashboard-shares-list></div><a class="btn glass" href="./zh/my-creations/">管理分享</a></article>
+        <article class="panel"><h2>Top performing content</h2><div class="dashboard-list" data-dashboard-top-content></div><a class="btn glass" href="./zh/analytics/">查看分析</a></article>
+        <article class="panel"><h2>Accounts needing attention</h2><div class="dashboard-list" data-dashboard-account-attention></div><a class="btn glass" href="./zh/accounts/">管理账号</a></article>
+        <article class="panel wide"><h2>内容运营入口</h2><p class="muted">从 Campaign、AI Studio、Pipeline、Queue 或 Calendar 继续生产。</p><div class="dashboard-action-row"><a class="btn primary" href="./zh/campaigns/">创建 Campaign</a><a class="btn glass" href="./zh/ai-studio/">打开 AI Studio</a><a class="btn glass" href="./zh/pipeline/">查看 Pipeline</a><a class="btn glass" href="./zh/calendar/">内容日历</a></div></article>
         <article class="panel wide"><h2>快速生成</h2><p class="muted">从角色、最近资产或提示词预设开始。</p><a class="btn primary" href="./zh/app/generate/">打开图片生成器</a></article>
       </section>
     </main>

@@ -2167,12 +2167,24 @@ function renderDashboard(current) {
     credits: document.querySelector("[data-dashboard-credits]"),
     jobs: document.querySelector("[data-dashboard-jobs]"),
     assets: document.querySelector("[data-dashboard-assets]"),
-    shares: document.querySelector("[data-dashboard-shares]")
+    shares: document.querySelector("[data-dashboard-shares]"),
+    campaigns: document.querySelector("[data-dashboard-campaigns]"),
+    pipeline: document.querySelector("[data-dashboard-pipeline]"),
+    scheduled: document.querySelector("[data-dashboard-scheduled]"),
+    failed: document.querySelector("[data-dashboard-failed]"),
+    volume: document.querySelector("[data-dashboard-volume]"),
+    traffic: document.querySelector("[data-dashboard-traffic]")
   };
   if (stats.credits) stats.credits.textContent = String(current.credits);
   if (stats.jobs) stats.jobs.textContent = String(current.history.length);
   if (stats.assets) stats.assets.textContent = String(current.assets.length);
   if (stats.shares) stats.shares.textContent = String(current.shares.length);
+  if (stats.campaigns) stats.campaigns.textContent = String(current.campaigns.filter((campaign) => campaign.status === "active").length);
+  if (stats.pipeline) stats.pipeline.textContent = String(current.contentItems.filter((item) => !["published", "analyzed"].includes(item.stage)).length);
+  if (stats.scheduled) stats.scheduled.textContent = String(current.contentQueue.filter((item) => item.status === "scheduled").length);
+  if (stats.failed) stats.failed.textContent = String(current.contentQueue.filter((item) => item.status === "failed").length);
+  if (stats.volume) stats.volume.textContent = String(current.contentItems.length);
+  if (stats.traffic) stats.traffic.textContent = String(current.contentAnalytics.reduce((total, row) => total + Number(row.clicks || 0), 0));
 
   const recent = document.querySelector("[data-dashboard-recent]");
   if (recent) {
@@ -2205,6 +2217,42 @@ function renderDashboard(current) {
         <a href="./zh/share/?token=${encodeURIComponent(share.token)}">打开</a>
       </article>
     `).join("");
+  }
+
+  const topContent = document.querySelector("[data-dashboard-top-content]");
+  if (topContent) {
+    topContent.innerHTML = current.contentAnalytics
+      .slice()
+      .sort((a, b) => Number(b.views || 0) - Number(a.views || 0))
+      .slice(0, 4)
+      .map((row) => {
+        const item = current.contentItems.find((entry) => entry.id === row.contentItemId);
+        return `
+          <article class="dashboard-row">
+            <span class="thumb art-13"></span>
+            <div><strong>${escapeHtml(item?.title || "内容表现")}</strong><p>${escapeHtml(row.platform)} · ${row.views} views · ${row.signups} signups</p></div>
+            <a href="./zh/analytics/">分析</a>
+          </article>
+        `;
+      }).join("");
+  }
+
+  const accountAttention = document.querySelector("[data-dashboard-account-attention]");
+  if (accountAttention) {
+    const rows = current.socialAccounts.filter((account) => account.status !== "connected");
+    accountAttention.innerHTML = rows.length ? rows.map((account) => `
+      <article class="dashboard-row">
+        <span class="thumb art-9"></span>
+        <div><strong>${escapeHtml(account.platform)} ${escapeHtml(account.handle)}</strong><p>${escapeHtml(account.status)} · 需要确认连接状态</p></div>
+        <a href="./zh/accounts/">处理</a>
+      </article>
+    `).join("") : `
+      <article class="dashboard-row">
+        <span class="thumb art-9"></span>
+        <div><strong>发布账号正常</strong><p>${current.socialAccounts.length} 个演示账号可用于排期。</p></div>
+        <a href="./zh/accounts/">查看</a>
+      </article>
+    `;
   }
 }
 

@@ -146,6 +146,14 @@ describe("MVP static frontend", () => {
       "data-dashboard-recent",
       "data-dashboard-characters",
       "data-dashboard-shares-list",
+      "data-dashboard-campaigns",
+      "data-dashboard-pipeline",
+      "data-dashboard-scheduled",
+      "data-dashboard-failed",
+      "data-dashboard-volume",
+      "data-dashboard-traffic",
+      "data-dashboard-top-content",
+      "data-dashboard-account-attention",
       "data-campaign-form",
       "data-campaign-list",
       "data-ai-studio-form",
@@ -718,6 +726,10 @@ describe("MVP static frontend", () => {
       "data-dashboard-characters",
       "data-dashboard-shares-list",
       "dashboard-row",
+      "Top performing content",
+      "Accounts needing attention",
+      "Content volume",
+      "Social traffic",
       "referral-progress"
     ]) {
       assert.ok(`${referral}\n${dashboard}\n${appScript}\n${styles}`.includes(expected), `reward/dashboard center should include ${expected}`);

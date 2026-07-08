@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | PAGE-DASHBOARD-001 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Active |
 | Owner | Frontend Lead / Product Lead |
 | Dependencies | PB-008, PB-009, DS-007, DS-010, API-GALLERY-001, API-CREDITS-001 |
@@ -33,6 +33,13 @@ The dashboard should use a dense but calm SaaS command center layout. It should 
 - Credit and subscription summary.
 - Review or notification summary.
 - Suggested next actions.
+- Active campaigns.
+- Content in pipeline.
+- Scheduled and failed posts.
+- Top performing content.
+- Accounts needing attention.
+- Content production volume.
+- Website or social traffic from publishing channels.
 
 ## Components
 
@@ -77,10 +84,11 @@ Authenticated dashboard is not indexable.
 - Users can resume or start core workflows quickly.
 - Important account, credit, generation, or review states are visible.
 - Dashboard does not duplicate detailed gallery, pricing, or admin behavior.
+- Dashboard summarizes content operations without replacing dedicated Campaigns, AI Studio, Pipeline, Queue, Accounts, Calendar, or Analytics pages.
 
 ## Future Plan
 
-Add personalized workflow recommendations, team status, review queues, and analytics summaries.
+Add personalized workflow recommendations, team status, review queues, real analytics summaries, and production publishing status after real platform integrations are approved.
 
 ## AI Context
 

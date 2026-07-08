@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.64.0 |
+| Version | 0.65.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,16 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Improved
+
+- Upgraded `dashboard.html` into a content-operations command center aligned with the imported guidance. It now shows active campaigns, content in pipeline, scheduled posts, failed posts, content production volume, social traffic, top performing content, accounts needing attention, and direct links to Campaigns, AI Studio, Pipeline, Calendar, Accounts, and Analytics.
+- Extended dashboard local-state rendering so the new command-center cards are computed from campaigns, content items, queue records, social accounts, and analytics placeholders.
+- Added static test coverage for the new dashboard content operations metrics and panels.
+
+### Validation
+
+- Ran `npm run test`; production build completed and 53 tests passed.
 
 ### Added
 
