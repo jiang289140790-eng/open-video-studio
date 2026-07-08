@@ -24,6 +24,9 @@
         <a href="#shares">分享链接</a>
         <a href="#page-builder">页面模块</a>
         <a href="#tool-catalog">工具上架</a>
+        <a href="#tool-versions">工具版本</a>
+        <a href="#workflow-center">Workflow Center</a>
+        <a href="#prompt-library">Prompt 管理</a>
         <a href="#homepage">首页内容</a>
         <a href="#system">系统配置</a>
         <a href="#audit">审计日志</a>
@@ -232,6 +235,61 @@
             </div>
           </form>
           <div class="admin-list" data-admin-tool-catalog-preview-list></div>
+        </article>
+
+        <article class="panel admin-module" id="tool-versions">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Tool Versions</p><h2>工具版本管理</h2></div>
+            <span>History</span>
+          </div>
+          <p class="muted">每个工具可以拥有多个版本。前台默认读取 published 版本，后台保留 draft、testing、deprecated 历史。</p>
+          <div class="admin-list" data-admin-tool-version-list></div>
+        </article>
+
+        <article class="panel admin-builder admin-module" id="workflow-center">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Workflow Center</p><h2>Workflow Center</h2></div>
+            <span>Admin only</span>
+          </div>
+          <p class="muted">管理 ComfyUI Workflow、n8n Workflow、API Chain 和 AI Agent Chain。格式：ID|名称|类型|服务商|输出|积分|版本|状态|模型逗号分隔|输入逗号分隔|描述。</p>
+          <form class="admin-home-form" data-admin-workflow-form>
+            <label class="admin-textarea-label">
+              <span>Workflow 配置</span>
+              <textarea name="workflowRows" rows="8" data-admin-workflow-rows placeholder="workflow-image-edit-v1|图片编辑工作流|api_chain|fake_worker|image|8|v1|published|local-image-edit-v0|prompt,reference_image|MVP 图片编辑占位工作流"></textarea>
+            </label>
+            <label class="admin-textarea-label">
+              <span>发布原因</span>
+              <input name="reason" placeholder="例如：新增 ComfyUI 图片生成工作流" required>
+            </label>
+            <div class="admin-home-actions">
+              <button class="btn glass" type="button" data-admin-workflow-preview>预览 Workflow</button>
+              <button class="btn primary" type="submit">发布 Workflow 配置</button>
+            </div>
+          </form>
+          <div class="admin-list" data-admin-workflow-preview-list></div>
+        </article>
+
+        <article class="panel admin-builder admin-module" id="prompt-library">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Prompt Library</p><h2>Prompt 管理</h2></div>
+            <span>Admin only</span>
+          </div>
+          <p class="muted">管理图片、视频、内容分析、帖子改写和分镜 Prompt。格式：ID|标题|分类|用途|模型|版本|状态|变量逗号分隔|标签逗号分隔|Prompt|Negative Prompt。</p>
+          <form class="admin-home-form" data-admin-prompt-form>
+            <label class="admin-textarea-label">
+              <span>Prompt 配置</span>
+              <textarea name="promptRows" rows="8" data-admin-prompt-rows placeholder="prompt-image-launch-v1|产品发布主视觉|image|图片生成|local-image-edit-v0|v1|published|character,product,style|image,launch|Create a premium AI SaaS product launch scene...|low quality, blurry"></textarea>
+            </label>
+            <label class="admin-textarea-label">
+              <span>发布原因</span>
+              <input name="reason" placeholder="例如：新增短视频分镜 Prompt" required>
+            </label>
+            <div class="admin-home-actions">
+              <button class="btn glass" type="button" data-admin-prompt-preview>预览 Prompt</button>
+              <button class="btn primary" type="submit">发布 Prompt 配置</button>
+            </div>
+          </form>
+          <div class="admin-list" data-admin-prompt-preview-list></div>
         </article>
 
         <article class="panel admin-home-builder admin-module" id="homepage">

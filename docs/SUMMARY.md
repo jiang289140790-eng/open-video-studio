@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.75.0 |
+| Version | 0.76.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- The Admin console now includes P1 configuration operations for Workflow Center, Prompt Library, and Tool Version management. These use audited `site_settings` configuration for MVP speed while implementation schemas reserve `workflow_configs`, `prompt_library`, and `tool_versions` for future durable migration.
 - The Admin console now includes P0 SaaS operations controls from the latest backend upgrade guidance: daily growth/revenue/generation KPIs, weekly revenue trend, popular/high-failure/credit-consumption tool rankings, Worker Center, and richer generation job detail rows with workflow, cost, latency, input, output, and error context.
 - AI Studio mock output now exposes the full content package shape expected by the imported guidance: research, script, prompt, image placeholder, video placeholder, thumbnail, caption, hashtags, translation, CTA, quality check, and platform-specific versions.
 - The content operations navigation now covers the remaining MVP guidance surfaces: Publishing, Automation, and Settings. These pages are local-state placeholders for publishing readiness, automation rules, and default content-operation configuration.
@@ -226,6 +227,9 @@ Provide the navigation map for the Open Video Studio knowledge base.
 - [DB-WORKSPACES-001 Workspaces](0500-database/019-workspaces.md)
 - [DB-PROJECTS-001 Projects](0500-database/020-projects.md)
 - [DB-PERMISSIONS-001 Permissions](0500-database/021-permissions.md)
+- [DB-AI-WORKERS-001 AI Workers](0500-database/022-ai-workers.md)
+- [DB-WORKFLOW-CONFIGS-001 Workflow Configs](0500-database/023-workflow-configs.md)
+- [DB-TOOL-VERSIONS-001 Tool Versions](0500-database/024-tool-versions.md)
 
 ## API Bible
 

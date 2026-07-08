@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DB-BIBLE-001 |
-| Version | 1.11.0 |
+| Version | 1.12.0 |
 | Status | Active |
 | Owner | Data Architecture Lead |
 | Dependencies | PB-008, PB-010, SEC-INDEX-001, ANALYTICS-INDEX-001 |
@@ -48,6 +48,8 @@ Define the permanent database architecture source of truth for Open Video Studio
 - [DB-PROJECTS-001 Projects](020-projects.md)
 - [DB-PERMISSIONS-001 Permissions](021-permissions.md)
 - [DB-AI-WORKERS-001 AI Workers](022-ai-workers.md)
+- [DB-WORKFLOW-CONFIGS-001 Workflow Configs](023-workflow-configs.md)
+- [DB-TOOL-VERSIONS-001 Tool Versions](024-tool-versions.md)
 
 ## Current Implementation
 
@@ -70,6 +72,8 @@ MVP Admin implementation extends `src/supabase/mvp-schema.sql` with Supabase Pos
 The MVP homepage manager stores published public homepage configuration in `site_settings` under `homepage_config`. Page merchandising stores module composition in `page_builder_config`, and AI tool merchandising stores listing/provider/cost settings in `tool_catalog_config`. Public reads are allowed only for published settings; writes go through the admin backend and create audit logs.
 
 The P0 Admin operations upgrade extends implementation schemas with `ai_workers` and richer `generation_jobs` detail fields: tool slug, workflow id/version, input params, output assets, credit charged, estimated cost, and latency. These fields support Worker Center, failure analysis, cost inspection, and future real provider telemetry without changing frontend contracts.
+
+The P1 Admin operations upgrade adds Workflow Center, Prompt Library, and Tool Version management. MVP configuration is stored in `site_settings.workflow_center_config`, `site_settings.prompt_library_config`, and `site_settings.tool_catalog_config.tools[].versions`, while `workflow_configs`, `prompt_library`, and `tool_versions` are present in implementation schemas for future durable migration.
 
 ## Acceptance Criteria
 

@@ -515,9 +515,21 @@ const defaultPageBuilderConfig = {
 
 const defaultToolCatalogConfig = {
   tools: [
-    { slug: "image-editor", name: "图片编辑器", category: "image", status: "published", provider: "fake_worker", model: "local-image-edit-v0", creditCost: 8, route: "./zh/app/image-editor/", featured: true },
-    { slug: "outfit-studio", name: "AI 换装", category: "image", status: "published", provider: "fake_worker", model: "local-outfit-v0", creditCost: 12, route: "./zh/app/outfit-studio/", featured: true },
-    { slug: "image-to-video", name: "图片转视频", category: "video", status: "published", provider: "fake_worker", model: "local-video-v0", creditCost: 24, route: "./zh/app/image-to-video/", featured: true }
+    { slug: "image-editor", name: "图片编辑器", category: "image", status: "published", provider: "fake_worker", model: "local-image-edit-v0", creditCost: 8, route: "./zh/app/image-editor/", featured: true, versions: [{ version: "v1", changelog: "MVP image edit workflow", modelVersion: "local-image-edit-v0", workflowVersion: "workflow-image-edit-v1", promptVersion: "prompt-image-edit-v1", status: "published" }] },
+    { slug: "outfit-studio", name: "AI 换装", category: "image", status: "published", provider: "fake_worker", model: "local-outfit-v0", creditCost: 12, route: "./zh/app/outfit-studio/", featured: true, versions: [{ version: "v1", changelog: "MVP outfit workflow", modelVersion: "local-outfit-v0", workflowVersion: "workflow-outfit-v1", promptVersion: "prompt-outfit-v1", status: "published" }] },
+    { slug: "image-to-video", name: "图片转视频", category: "video", status: "published", provider: "fake_worker", model: "local-video-v0", creditCost: 24, route: "./zh/app/image-to-video/", featured: true, versions: [{ version: "v1", changelog: "MVP image to video workflow", modelVersion: "local-video-v0", workflowVersion: "workflow-video-v1", promptVersion: "prompt-video-v1", status: "published" }] }
+  ]
+};
+const defaultWorkflowCenterConfig = {
+  workflows: [
+    { workflowId: "workflow-image-edit-v1", name: "图片编辑工作流", type: "api_chain", provider: "fake_worker", jsonConfig: { mode: "image_edit" }, requiredModels: ["local-image-edit-v0"], requiredInputs: ["prompt", "reference_image"], outputType: "image", creditPrice: 8, version: "v1", status: "published", description: "MVP 图片编辑占位工作流，可替换为 ComfyUI / Fal / RunPod。" },
+    { workflowId: "workflow-video-v1", name: "图片转视频工作流", type: "api_chain", provider: "fake_worker", jsonConfig: { mode: "image_to_video" }, requiredModels: ["local-video-v0"], requiredInputs: ["prompt", "source_asset"], outputType: "video", creditPrice: 24, version: "v1", status: "testing", description: "MVP 视频生成占位工作流，后续绑定真实视频 provider。" }
+  ]
+};
+const defaultPromptLibraryConfig = {
+  prompts: [
+    { promptId: "prompt-image-launch-v1", title: "产品发布主视觉", category: "image", useCase: "图片生成", promptText: "Create a premium AI SaaS product launch scene with a reusable presenter character, cinematic lighting, clean composition, and strong visual CTA.", negativePrompt: "low quality, blurry, distorted text", variables: ["character", "product", "style"], model: "local-image-edit-v0", version: "v1", tags: ["image", "launch", "saas"], status: "published", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { promptId: "prompt-video-short-v1", title: "短视频分镜", category: "video", useCase: "视频生成", promptText: "Write a 6-scene vertical short video storyboard for {topic}. Include hook, scene direction, motion, caption, and CTA.", negativePrompt: "", variables: ["topic", "cta"], model: "local-video-v0", version: "v1", tags: ["video", "storyboard"], status: "testing", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
   ]
 };
 let pageBuilderConfig = structuredClone(defaultPageBuilderConfig);
@@ -1264,6 +1276,24 @@ document.addEventListener("click", async (event) => {
     showSiteToast("已生成工具上架预览");
     return;
   }
+  const adminWorkflowPreview = event.target.closest("[data-admin-workflow-preview]");
+  if (adminWorkflowPreview) {
+    event.preventDefault();
+    const form = document.querySelector("[data-admin-workflow-form]");
+    if (!form) return;
+    renderAdminWorkflowPreview(readWorkflowForm(new FormData(form)));
+    showSiteToast("已生成 Workflow 预览");
+    return;
+  }
+  const adminPromptPreview = event.target.closest("[data-admin-prompt-preview]");
+  if (adminPromptPreview) {
+    event.preventDefault();
+    const form = document.querySelector("[data-admin-prompt-form]");
+    if (!form) return;
+    renderAdminPromptPreview(readPromptForm(new FormData(form)));
+    showSiteToast("已生成 Prompt 预览");
+    return;
+  }
   const carouselButton = event.target.closest("[data-carousel-scroll]");
   if (carouselButton) {
     event.preventDefault();
@@ -1522,6 +1552,30 @@ document.addEventListener("submit", async (event) => {
     const button = toolCatalogForm.querySelector("button[type='submit']");
     await runAdminAction(button, "update-tool-catalog-config", {
       config: readToolCatalogForm(formData),
+      reason: String(formData.get("reason") || "").trim()
+    });
+    return;
+  }
+
+  const workflowForm = event.target.closest("[data-admin-workflow-form]");
+  if (workflowForm) {
+    event.preventDefault();
+    const formData = new FormData(workflowForm);
+    const button = workflowForm.querySelector("button[type='submit']");
+    await runAdminAction(button, "update-workflow-center-config", {
+      config: readWorkflowForm(formData),
+      reason: String(formData.get("reason") || "").trim()
+    });
+    return;
+  }
+
+  const promptForm = event.target.closest("[data-admin-prompt-form]");
+  if (promptForm) {
+    event.preventDefault();
+    const formData = new FormData(promptForm);
+    const button = promptForm.querySelector("button[type='submit']");
+    await runAdminAction(button, "update-prompt-library-config", {
+      config: readPromptForm(formData),
       reason: String(formData.get("reason") || "").trim()
     });
     return;
@@ -2739,6 +2793,13 @@ function renderAdmin(current) {
   const toolCatalog = normalizeToolCatalogConfig(adminData.toolCatalog?.value_json || adminData.toolCatalog || defaultToolCatalogConfig);
   fillToolCatalogForm(toolCatalog);
   renderAdminToolCatalogPreview(toolCatalog, adminData.toolCatalog?.updated_at);
+  renderAdminToolVersions(toolCatalog);
+  const workflowCenter = normalizeWorkflowCenterConfig(adminData.workflowCenter?.value_json || adminData.workflowCenter || defaultWorkflowCenterConfig);
+  fillWorkflowForm(workflowCenter);
+  renderAdminWorkflowPreview(workflowCenter, adminData.workflowCenter?.updated_at);
+  const promptLibrary = normalizePromptLibraryConfig(adminData.promptLibrary?.value_json || adminData.promptLibrary || defaultPromptLibraryConfig);
+  fillPromptForm(promptLibrary);
+  renderAdminPromptPreview(promptLibrary, adminData.promptLibrary?.updated_at);
   renderAdminUsers(adminData.users || []);
   renderAdminCredits(adminData.users || []);
   renderAdminOrders(adminData.orders || [], actor);
@@ -2756,6 +2817,11 @@ function renderAdminConfiguration() {
   renderAdminPageBuilderPreview(defaultPageBuilderConfig);
   fillToolCatalogForm(defaultToolCatalogConfig);
   renderAdminToolCatalogPreview(defaultToolCatalogConfig);
+  renderAdminToolVersions(defaultToolCatalogConfig);
+  fillWorkflowForm(defaultWorkflowCenterConfig);
+  renderAdminWorkflowPreview(defaultWorkflowCenterConfig);
+  fillPromptForm(defaultPromptLibraryConfig);
+  renderAdminPromptPreview(defaultPromptLibraryConfig);
   const oauthItems = getOAuthReadiness().map((item) => ({ ...item, detail: item.ready ? "前端可发起真实授权" : item.action }));
   const oauthList = document.querySelector("[data-admin-oauth]");
   if (!oauthList) return;
@@ -2780,7 +2846,10 @@ function fillAdminEmptyState() {
     "[data-admin-audit]",
     "[data-admin-homepage-preview-list]",
     "[data-admin-page-builder-preview-list]",
-    "[data-admin-tool-catalog-preview-list]"
+    "[data-admin-tool-catalog-preview-list]",
+    "[data-admin-tool-version-list]",
+    "[data-admin-workflow-preview-list]",
+    "[data-admin-prompt-preview-list]"
   ];
   placeholders.forEach((selector) => {
     const target = document.querySelector(selector);
@@ -2802,7 +2871,7 @@ async function loadAdminConsole() {
   if (!document.querySelector("[data-admin-page]") || !supabase || adminLoading) return;
   adminLoading = true;
   try {
-    const [summary, users, orders, assets, jobs, workers, shares, homepage, pageBuilder, toolCatalog, audit] = await Promise.all([
+    const [summary, users, orders, assets, jobs, workers, shares, homepage, pageBuilder, toolCatalog, workflowCenter, promptLibrary, audit] = await Promise.all([
       invokeAdmin("dashboard-summary"),
       invokeAdmin("list-users"),
       invokeAdmin("list-orders"),
@@ -2813,6 +2882,8 @@ async function loadAdminConsole() {
       invokeAdmin("get-homepage-config"),
       invokeAdmin("get-page-builder-config"),
       invokeAdmin("get-tool-catalog-config"),
+      invokeAdmin("get-workflow-center-config").catch(() => ({ workflowCenter: { value_json: defaultWorkflowCenterConfig } })),
+      invokeAdmin("get-prompt-library-config").catch(() => ({ promptLibrary: { value_json: defaultPromptLibraryConfig } })),
       invokeAdmin("list-audit-logs").catch((error) => ({ auditLogs: [], auditError: error.message }))
     ]);
     adminData = {
@@ -2827,6 +2898,8 @@ async function loadAdminConsole() {
       homepage: homepage.homepage || {},
       pageBuilder: pageBuilder.pageBuilder || {},
       toolCatalog: toolCatalog.toolCatalog || {},
+      workflowCenter: workflowCenter.workflowCenter || {},
+      promptLibrary: promptLibrary.promptLibrary || {},
       auditLogs: audit.auditLogs || [],
       auditError: audit.auditError
     };
@@ -2938,8 +3011,70 @@ function normalizeToolCatalogConfig(config) {
       model: String(tool.model || "local-demo").trim(),
       creditCost: Math.max(0, Math.min(999, Number(tool.creditCost || 0))),
       route: sanitizeHomepageHref(String(tool.route || "./zh/app/generate/")),
-      featured: Boolean(tool.featured)
+      featured: Boolean(tool.featured),
+      versions: normalizeToolVersions(tool.versions, [{
+        version: "v1",
+        changelog: "Initial published configuration",
+        modelVersion: String(tool.model || "local-demo"),
+        workflowVersion: "workflow-v1",
+        promptVersion: "prompt-v1",
+        status: "published"
+      }])
     })).filter((tool) => tool.slug && tool.name).slice(0, 80)
+  };
+}
+
+function normalizeToolVersions(versions, fallback = []) {
+  const source = Array.isArray(versions) && versions.length ? versions : fallback;
+  return source.slice(0, 20).map((version) => ({
+    version: String(version.version || "v1").trim(),
+    changelog: String(version.changelog || "").trim(),
+    modelVersion: String(version.modelVersion || "").trim(),
+    workflowVersion: String(version.workflowVersion || "").trim(),
+    promptVersion: String(version.promptVersion || "").trim(),
+    status: ["draft", "testing", "published", "deprecated"].includes(version.status) ? version.status : "draft"
+  }));
+}
+
+function normalizeWorkflowCenterConfig(config) {
+  const workflows = Array.isArray(config?.workflows) ? config.workflows : defaultWorkflowCenterConfig.workflows;
+  return {
+    workflows: workflows.map((workflow) => ({
+      workflowId: String(workflow.workflowId || "").trim(),
+      name: String(workflow.name || "").trim(),
+      type: ["comfyui", "n8n", "api_chain", "agent_chain"].includes(workflow.type) ? workflow.type : "api_chain",
+      provider: String(workflow.provider || "fake_worker").trim(),
+      jsonConfig: workflow.jsonConfig && typeof workflow.jsonConfig === "object" ? workflow.jsonConfig : {},
+      requiredModels: Array.isArray(workflow.requiredModels) ? workflow.requiredModels.map(String).filter(Boolean).slice(0, 12) : [],
+      requiredInputs: Array.isArray(workflow.requiredInputs) ? workflow.requiredInputs.map(String).filter(Boolean).slice(0, 12) : [],
+      outputType: ["image", "video", "text", "multimodal", "asset"].includes(workflow.outputType) ? workflow.outputType : "asset",
+      creditPrice: Math.max(0, Math.min(9999, Number(workflow.creditPrice || 0))),
+      version: String(workflow.version || "v1").trim(),
+      status: ["draft", "testing", "published", "deprecated"].includes(workflow.status) ? workflow.status : "draft",
+      description: String(workflow.description || "").trim()
+    })).filter((workflow) => workflow.workflowId && workflow.name).slice(0, 80)
+  };
+}
+
+function normalizePromptLibraryConfig(config) {
+  const prompts = Array.isArray(config?.prompts) ? config.prompts : defaultPromptLibraryConfig.prompts;
+  const timestamp = new Date().toISOString();
+  return {
+    prompts: prompts.map((prompt) => ({
+      promptId: String(prompt.promptId || "").trim(),
+      title: String(prompt.title || "").trim(),
+      category: String(prompt.category || "image").trim(),
+      useCase: String(prompt.useCase || "").trim(),
+      promptText: String(prompt.promptText || "").trim(),
+      negativePrompt: String(prompt.negativePrompt || "").trim(),
+      variables: Array.isArray(prompt.variables) ? prompt.variables.map(String).filter(Boolean).slice(0, 20) : [],
+      model: String(prompt.model || "local-demo").trim(),
+      version: String(prompt.version || "v1").trim(),
+      tags: Array.isArray(prompt.tags) ? prompt.tags.map(String).filter(Boolean).slice(0, 16) : [],
+      status: ["draft", "testing", "published", "archived"].includes(prompt.status) ? prompt.status : "draft",
+      createdAt: String(prompt.createdAt || timestamp),
+      updatedAt: String(prompt.updatedAt || timestamp)
+    })).filter((prompt) => prompt.promptId && prompt.title && prompt.promptText).slice(0, 200)
   };
 }
 
@@ -2957,6 +3092,18 @@ function fillToolCatalogForm(config) {
   const normalized = normalizeToolCatalogConfig(config);
   setFormValue(form, "toolCatalogRows", serializeToolCatalogRows(normalized));
   renderToolCatalogVisualEditor(normalized);
+}
+
+function fillWorkflowForm(config) {
+  const form = document.querySelector("[data-admin-workflow-form]");
+  if (!form) return;
+  setFormValue(form, "workflowRows", serializeWorkflowRows(normalizeWorkflowCenterConfig(config)));
+}
+
+function fillPromptForm(config) {
+  const form = document.querySelector("[data-admin-prompt-form]");
+  if (!form) return;
+  setFormValue(form, "promptRows", serializePromptRows(normalizePromptLibraryConfig(config)));
 }
 
 function readPageBuilderForm(formData) {
@@ -2999,6 +3146,51 @@ function readToolCatalogForm(formData) {
         creditCost: Number(creditCost),
         route,
         featured: ["yes", "true", "on", "1", "推荐"].includes(String(featured || "").toLowerCase())
+      };
+    })
+  });
+}
+
+function readWorkflowForm(formData) {
+  const rows = String(formData.get("workflowRows") || "");
+  return normalizeWorkflowCenterConfig({
+    workflows: rows.split(/\n+/).map((line) => {
+      const [workflowId, name, type, provider, outputType, creditPrice, version, status, requiredModels, requiredInputs, description] = line.split("|").map((part) => part.trim());
+      return {
+        workflowId,
+        name,
+        type,
+        provider,
+        outputType,
+        creditPrice: Number(creditPrice),
+        version,
+        status,
+        requiredModels: splitAdminList(requiredModels),
+        requiredInputs: splitAdminList(requiredInputs),
+        description,
+        jsonConfig: { source: "admin_text_rows" }
+      };
+    })
+  });
+}
+
+function readPromptForm(formData) {
+  const rows = String(formData.get("promptRows") || "");
+  return normalizePromptLibraryConfig({
+    prompts: rows.split(/\n+/).map((line) => {
+      const [promptId, title, category, useCase, model, version, status, variables, tags, promptText, negativePrompt] = line.split("|").map((part) => part.trim());
+      return {
+        promptId,
+        title,
+        category,
+        useCase,
+        model,
+        version,
+        status,
+        variables: splitAdminList(variables),
+        tags: splitAdminList(tags),
+        promptText,
+        negativePrompt
       };
     })
   });
@@ -3070,6 +3262,7 @@ function readPageBuilderVisualEditor() {
 }
 
 function readToolCatalogVisualEditor() {
+  const existing = normalizeToolCatalogConfig(adminData?.toolCatalog?.value_json || adminData?.toolCatalog || defaultToolCatalogConfig).tools;
   const tools = Array.from(document.querySelectorAll("[data-tool-catalog-item]")).map((node) => ({
     slug: node.querySelector("[data-tool-slug]")?.value.trim() || "",
     name: node.querySelector("[data-tool-name]")?.value.trim() || "",
@@ -3079,7 +3272,8 @@ function readToolCatalogVisualEditor() {
     model: node.querySelector("[data-tool-model]")?.value.trim() || "local-demo",
     creditCost: Number(node.querySelector("[data-tool-cost]")?.value || 0),
     route: node.querySelector("[data-tool-route]")?.value.trim() || "./zh/app/generate/",
-    featured: node.querySelector("[data-tool-featured]")?.value === "yes"
+    featured: node.querySelector("[data-tool-featured]")?.value === "yes",
+    versions: existing.find((tool) => tool.slug === (node.querySelector("[data-tool-slug]")?.value.trim() || ""))?.versions
   }));
   return { tools: tools.filter((tool) => tool.slug && tool.name) };
 }
@@ -3118,6 +3312,38 @@ function serializeToolCatalogRows(config) {
   ].join("|")).join("\n");
 }
 
+function serializeWorkflowRows(config) {
+  return normalizeWorkflowCenterConfig(config).workflows.map((workflow) => [
+    workflow.workflowId,
+    workflow.name,
+    workflow.type,
+    workflow.provider,
+    workflow.outputType,
+    workflow.creditPrice,
+    workflow.version,
+    workflow.status,
+    workflow.requiredModels.join(","),
+    workflow.requiredInputs.join(","),
+    workflow.description
+  ].join("|")).join("\n");
+}
+
+function serializePromptRows(config) {
+  return normalizePromptLibraryConfig(config).prompts.map((prompt) => [
+    prompt.promptId,
+    prompt.title,
+    prompt.category,
+    prompt.useCase,
+    prompt.model,
+    prompt.version,
+    prompt.status,
+    prompt.variables.join(","),
+    prompt.tags.join(","),
+    prompt.promptText,
+    prompt.negativePrompt
+  ].join("|")).join("\n");
+}
+
 function renderAdminPageBuilderPreview(config, updatedAt = "") {
   const target = document.querySelector("[data-admin-page-builder-preview-list]");
   if (!target) return;
@@ -3149,6 +3375,63 @@ function renderAdminToolCatalogPreview(config, updatedAt = "") {
       <em>${tool.featured ? "推荐" : escapeHtml(tool.status)}</em>
     </article>
   `).join("");
+}
+
+function renderAdminToolVersions(config) {
+  const target = document.querySelector("[data-admin-tool-version-list]");
+  if (!target) return;
+  const tools = normalizeToolCatalogConfig(config).tools;
+  const versions = tools.flatMap((tool) => tool.versions.map((version) => ({ tool, version })));
+  target.innerHTML = versions.length ? versions.map(({ tool, version }) => `
+    <article class="admin-row admin-config-row">
+      <span class="status-dot ${version.status === "published" ? "ready" : version.status === "deprecated" ? "blocked" : ""}"></span>
+      <div>
+        <strong>${escapeHtml(tool.name)} · ${escapeHtml(version.version)} · ${escapeHtml(version.status)}</strong>
+        <p>模型 ${escapeHtml(version.modelVersion)} · Workflow ${escapeHtml(version.workflowVersion)} · Prompt ${escapeHtml(version.promptVersion)}</p>
+        <small>${escapeHtml(version.changelog || "暂无版本说明")}</small>
+      </div>
+      <em>${escapeHtml(tool.slug)}</em>
+    </article>
+  `).join("") : `<article class="admin-row"><div><strong>暂无工具版本</strong><p>工具上架配置保存后会在这里展示版本历史。</p></div></article>`;
+}
+
+function renderAdminWorkflowPreview(config, updatedAt = "") {
+  const target = document.querySelector("[data-admin-workflow-preview-list]");
+  if (!target) return;
+  const workflows = normalizeWorkflowCenterConfig(config).workflows;
+  target.innerHTML = workflows.length ? workflows.map((workflow) => `
+    <article class="admin-row admin-config-row">
+      <span class="status-dot ${workflow.status === "published" ? "ready" : workflow.status === "deprecated" ? "blocked" : ""}"></span>
+      <div>
+        <strong>${escapeHtml(workflow.name)} · ${escapeHtml(workflow.workflowId)}</strong>
+        <p>${escapeHtml(workflow.type)} / ${escapeHtml(workflow.provider)} · ${escapeHtml(workflow.outputType)} · ${workflow.creditPrice} 积分 · ${escapeHtml(workflow.version)}${updatedAt ? ` · 更新于 ${escapeHtml(updatedAt)}` : ""}</p>
+        <small>模型：${workflow.requiredModels.map(escapeHtml).join(", ") || "未配置"} ｜ 输入：${workflow.requiredInputs.map(escapeHtml).join(", ") || "未配置"} ｜ ${escapeHtml(workflow.description)}</small>
+      </div>
+      <em>${escapeHtml(workflow.status)}</em>
+    </article>
+  `).join("") : `<article class="admin-row"><div><strong>暂无 Workflow</strong><p>添加 ComfyUI、n8n、API Chain 或 Agent Chain 后会显示在这里。</p></div></article>`;
+}
+
+function renderAdminPromptPreview(config, updatedAt = "") {
+  const target = document.querySelector("[data-admin-prompt-preview-list]");
+  if (!target) return;
+  const prompts = normalizePromptLibraryConfig(config).prompts;
+  target.innerHTML = prompts.length ? prompts.map((prompt) => `
+    <article class="admin-row admin-config-row">
+      <span class="status-dot ${prompt.status === "published" ? "ready" : prompt.status === "archived" ? "blocked" : ""}"></span>
+      <div>
+        <strong>${escapeHtml(prompt.title)} · ${escapeHtml(prompt.promptId)}</strong>
+        <p>${escapeHtml(prompt.category)} / ${escapeHtml(prompt.useCase)} · ${escapeHtml(prompt.model)} · ${escapeHtml(prompt.version)}${updatedAt ? ` · 更新于 ${escapeHtml(updatedAt)}` : ""}</p>
+        <small>${escapeHtml(prompt.promptText.slice(0, 180))}</small>
+        <small>变量：${prompt.variables.map(escapeHtml).join(", ") || "无"} ｜ 标签：${prompt.tags.map(escapeHtml).join(", ") || "无"}</small>
+      </div>
+      <em>${escapeHtml(prompt.status)}</em>
+    </article>
+  `).join("") : `<article class="admin-row"><div><strong>暂无 Prompt</strong><p>添加图片、视频、分析、改写或分镜 Prompt 后会显示在这里。</p></div></article>`;
+}
+
+function splitAdminList(value = "") {
+  return String(value || "").split(/[,，]/).map((item) => item.trim()).filter(Boolean);
 }
 
 function renderAdminOperatingInsights(summary) {

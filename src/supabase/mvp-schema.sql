@@ -89,6 +89,53 @@ create table if not exists public.ai_workers (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.workflow_configs (
+  workflow_id text primary key,
+  name text not null,
+  workflow_type text not null,
+  provider text not null,
+  json_config jsonb not null default '{}'::jsonb,
+  required_models jsonb not null default '[]'::jsonb,
+  required_inputs jsonb not null default '[]'::jsonb,
+  output_type text not null,
+  credit_price integer not null default 0,
+  version text not null default 'v1',
+  status text not null default 'draft',
+  description text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.prompt_library (
+  prompt_id text primary key,
+  title text not null,
+  category text not null,
+  use_case text not null default '',
+  prompt_text text not null,
+  negative_prompt text not null default '',
+  variables jsonb not null default '[]'::jsonb,
+  model text not null default 'local-demo',
+  version text not null default 'v1',
+  tags jsonb not null default '[]'::jsonb,
+  status text not null default 'draft',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.tool_versions (
+  id text primary key,
+  tool_slug text not null,
+  version text not null,
+  changelog text not null default '',
+  model_version text not null default '',
+  workflow_version text not null default '',
+  prompt_version text not null default '',
+  status text not null default 'draft',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(tool_slug, version)
+);
+
 create table if not exists public.media_assets (
   id text primary key,
   owner_user_id uuid not null references auth.users(id) on delete cascade,
@@ -228,6 +275,9 @@ create index if not exists idx_generation_user_time on public.generation_jobs(us
 create index if not exists idx_generation_status on public.generation_jobs(status);
 create index if not exists idx_generation_tool_workflow on public.generation_jobs(tool_slug, workflow_id, workflow_version);
 create index if not exists idx_ai_workers_provider_status on public.ai_workers(provider, status);
+create index if not exists idx_workflow_configs_status on public.workflow_configs(status, provider);
+create index if not exists idx_prompt_library_status on public.prompt_library(status, category);
+create index if not exists idx_tool_versions_slug_status on public.tool_versions(tool_slug, status);
 create index if not exists idx_media_owner_time on public.media_assets(owner_user_id, updated_at desc);
 create index if not exists idx_media_generation_job on public.media_assets(generation_job_id);
 create index if not exists idx_media_visibility on public.media_assets(visibility_status);
@@ -255,6 +305,9 @@ alter table public.profiles enable row level security;
 alter table public.credit_transactions enable row level security;
 alter table public.generation_jobs enable row level security;
 alter table public.ai_workers enable row level security;
+alter table public.workflow_configs enable row level security;
+alter table public.prompt_library enable row level security;
+alter table public.tool_versions enable row level security;
 alter table public.media_assets enable row level security;
 alter table public.share_links enable row level security;
 alter table public.characters enable row level security;
@@ -286,6 +339,18 @@ create policy "generation owner write" on public.generation_jobs
 
 drop policy if exists "ai workers admin read" on public.ai_workers;
 create policy "ai workers admin read" on public.ai_workers
+  for select using (public.current_profile_role() in ('admin', 'operator'));
+
+drop policy if exists "workflow configs admin read" on public.workflow_configs;
+create policy "workflow configs admin read" on public.workflow_configs
+  for select using (public.current_profile_role() in ('admin', 'operator'));
+
+drop policy if exists "prompt library admin read" on public.prompt_library;
+create policy "prompt library admin read" on public.prompt_library
+  for select using (public.current_profile_role() in ('admin', 'operator'));
+
+drop policy if exists "tool versions admin read" on public.tool_versions;
+create policy "tool versions admin read" on public.tool_versions
   for select using (public.current_profile_role() in ('admin', 'operator'));
 
 drop policy if exists "media owner read" on public.media_assets;

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.68.0 |
+| Version | 0.69.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -22,6 +22,18 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
 ## 2026-07-08
+
+### Added
+
+- Added P1 Admin operations modules for Workflow Center, Prompt Library, and Tool Version management.
+- Extended `tool_catalog_config` with tool version history for version, changelog, model version, workflow version, prompt version, and status.
+- Added Admin API actions and audited publish paths for `workflow_center_config` and `prompt_library_config`.
+- Added schema readiness for `workflow_configs`, `prompt_library`, and `tool_versions` in local SQLite and Supabase MVP schemas.
+- Added database documentation for Workflow Configs and Tool Versions, and updated Prompt, Admin API, Database Bible, and Summary documentation.
+
+### Validation
+
+- Ran `npm run test`; production build completed and 53 tests passed.
 
 ### Added
 

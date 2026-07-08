@@ -125,14 +125,71 @@ test("admin backend enforces roles and audits sensitive operations", async () =>
   const updatedToolCatalog = await backend.updateToolCatalogConfig(admin, {
     config: {
       tools: [
-        { slug: "outfit-studio", name: "AI Outfit", category: "image", status: "published", provider: "fal", model: "tryon-v1", creditCost: 12, route: "https://unsafe.example", featured: true },
+        { slug: "outfit-studio", name: "AI Outfit", category: "image", status: "published", provider: "fal", model: "tryon-v1", creditCost: 12, route: "https://unsafe.example", featured: true, versions: [{ version: "v2", changelog: "fal try-on test", modelVersion: "tryon-v1", workflowVersion: "workflow-outfit-v2", promptVersion: "prompt-outfit-v2", status: "testing" }] },
       ],
     },
     reason: "tool listing update",
   });
   assert.equal((updatedToolCatalog.value_json as any).tools[0].route, "./zh/app/generate/");
   assert.equal((updatedToolCatalog.value_json as any).tools[0].provider, "fal");
+  assert.equal((updatedToolCatalog.value_json as any).tools[0].versions[0].status, "testing");
   assert.equal(client.table("audit_logs").length, 7);
+
+  const workflowCenter = await backend.getWorkflowCenterConfig(operator);
+  assert.equal(workflowCenter.setting_key, "workflow_center_config");
+  await assert.rejects(
+    () => backend.updateWorkflowCenterConfig(operator, {
+      config: { workflows: [] },
+      reason: "operator attempt",
+    }),
+    (error: any) => error.code === "ADMIN_FORBIDDEN",
+  );
+  const updatedWorkflowCenter = await backend.updateWorkflowCenterConfig(admin, {
+    config: {
+      workflows: [{
+        workflowId: "workflow_comfy_v1",
+        name: "Comfy workflow",
+        type: "comfyui",
+        provider: "runpod",
+        jsonConfig: { graph: "placeholder" },
+        requiredModels: ["sdxl"],
+        requiredInputs: ["prompt", "reference"],
+        outputType: "image",
+        creditPrice: 18,
+        version: "v1",
+        status: "testing",
+        description: "ComfyUI placeholder workflow",
+      }],
+    },
+    reason: "workflow publish test",
+  });
+  assert.equal((updatedWorkflowCenter.value_json as any).workflows[0].provider, "runpod");
+  assert.equal(client.table("audit_logs").length, 8);
+
+  const promptLibrary = await backend.getPromptLibraryConfig(operator);
+  assert.equal(promptLibrary.setting_key, "prompt_library_config");
+  const updatedPromptLibrary = await backend.updatePromptLibraryConfig(admin, {
+    config: {
+      prompts: [{
+        promptId: "prompt_storyboard_v2",
+        title: "Storyboard v2",
+        category: "video",
+        useCase: "分镜",
+        promptText: "Create a storyboard for {topic}.",
+        negativePrompt: "",
+        variables: ["topic"],
+        model: "gpt-demo",
+        version: "v2",
+        tags: ["storyboard"],
+        status: "published",
+        createdAt: "2026-07-08T00:00:00.000Z",
+        updatedAt: "2026-07-08T00:00:00.000Z",
+      }],
+    },
+    reason: "prompt publish test",
+  });
+  assert.equal((updatedPromptLibrary.value_json as any).prompts[0].promptId, "prompt_storyboard_v2");
+  assert.equal(client.table("audit_logs").length, 9);
 });
 
 class FakeAdminSupabaseClient {

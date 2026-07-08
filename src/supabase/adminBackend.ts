@@ -104,6 +104,55 @@ export interface ToolCatalogItem {
   creditCost: number;
   route: string;
   featured: boolean;
+  versions: ToolVersion[];
+}
+
+export interface ToolVersion {
+  version: string;
+  changelog: string;
+  modelVersion: string;
+  workflowVersion: string;
+  promptVersion: string;
+  status: string;
+}
+
+export interface WorkflowCenterConfig {
+  workflows: WorkflowCenterItem[];
+}
+
+export interface WorkflowCenterItem {
+  workflowId: string;
+  name: string;
+  type: string;
+  provider: string;
+  jsonConfig: Record<string, unknown>;
+  requiredModels: string[];
+  requiredInputs: string[];
+  outputType: string;
+  creditPrice: number;
+  version: string;
+  status: string;
+  description: string;
+}
+
+export interface PromptLibraryConfig {
+  prompts: PromptLibraryItem[];
+}
+
+export interface PromptLibraryItem {
+  promptId: string;
+  title: string;
+  category: string;
+  useCase: string;
+  promptText: string;
+  negativePrompt: string;
+  variables: string[];
+  model: string;
+  version: string;
+  tags: string[];
+  status: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export class SupabaseAdminBackend {
@@ -380,6 +429,36 @@ export class SupabaseAdminBackend {
     return this.getSetting("tool_catalog_config", this.defaultToolCatalogConfig());
   }
 
+  async getWorkflowCenterConfig(actor: AdminActor): Promise<Record<string, unknown>> {
+    await this.requireOperator(actor);
+    return this.getSetting("workflow_center_config", this.defaultWorkflowCenterConfig());
+  }
+
+  async updateWorkflowCenterConfig(actor: AdminActor, input: { config: Partial<WorkflowCenterConfig>; reason: string }): Promise<Record<string, unknown>> {
+    this.requireAdmin(actor);
+    this.requireReason(input.reason);
+    const record = await this.upsertSetting("workflow_center_config", this.normalizeWorkflowCenterConfig(input.config), actor.id);
+    await this.audit(actor, "admin.update_workflow_center_config", "site_setting", "workflow_center_config", "success", {
+      reason: input.reason.trim(),
+    });
+    return record;
+  }
+
+  async getPromptLibraryConfig(actor: AdminActor): Promise<Record<string, unknown>> {
+    await this.requireOperator(actor);
+    return this.getSetting("prompt_library_config", this.defaultPromptLibraryConfig());
+  }
+
+  async updatePromptLibraryConfig(actor: AdminActor, input: { config: Partial<PromptLibraryConfig>; reason: string }): Promise<Record<string, unknown>> {
+    this.requireAdmin(actor);
+    this.requireReason(input.reason);
+    const record = await this.upsertSetting("prompt_library_config", this.normalizePromptLibraryConfig(input.config), actor.id);
+    await this.audit(actor, "admin.update_prompt_library_config", "site_setting", "prompt_library_config", "success", {
+      reason: input.reason.trim(),
+    });
+    return record;
+  }
+
   async updateToolCatalogConfig(actor: AdminActor, input: { config: Partial<ToolCatalogConfig>; reason: string }): Promise<Record<string, unknown>> {
     this.requireAdmin(actor);
     this.requireReason(input.reason);
@@ -628,6 +707,14 @@ export class SupabaseAdminBackend {
           creditCost: Math.max(0, Math.min(999, Number(tool.creditCost || 0))),
           route: this.safeHref(tool.route, "./zh/app/generate/"),
           featured: Boolean(tool.featured),
+          versions: this.safeToolVersions(tool.versions, [{
+            version: "v1",
+            changelog: "Initial published configuration",
+            modelVersion: String(tool.model || "local-demo"),
+            workflowVersion: "workflow-v1",
+            promptVersion: "prompt-v1",
+            status: "published",
+          }]),
         })),
     };
   }
@@ -635,11 +722,92 @@ export class SupabaseAdminBackend {
   private defaultToolCatalogConfig(): ToolCatalogConfig {
     return {
       tools: [
-        { slug: "image-editor", name: "图片编辑器", category: "image", status: "published", provider: "fake_worker", model: "local-image-edit-v0", creditCost: 8, route: "./zh/app/image-editor/", featured: true },
-        { slug: "outfit-studio", name: "AI 换装", category: "image", status: "published", provider: "fake_worker", model: "local-outfit-v0", creditCost: 12, route: "./zh/app/outfit-studio/", featured: true },
-        { slug: "image-to-video", name: "图片转视频", category: "video", status: "published", provider: "fake_worker", model: "local-video-v0", creditCost: 24, route: "./zh/app/image-to-video/", featured: true },
+        { slug: "image-editor", name: "图片编辑器", category: "image", status: "published", provider: "fake_worker", model: "local-image-edit-v0", creditCost: 8, route: "./zh/app/image-editor/", featured: true, versions: [{ version: "v1", changelog: "MVP image edit workflow", modelVersion: "local-image-edit-v0", workflowVersion: "workflow-image-edit-v1", promptVersion: "prompt-image-edit-v1", status: "published" }] },
+        { slug: "outfit-studio", name: "AI 换装", category: "image", status: "published", provider: "fake_worker", model: "local-outfit-v0", creditCost: 12, route: "./zh/app/outfit-studio/", featured: true, versions: [{ version: "v1", changelog: "MVP outfit workflow", modelVersion: "local-outfit-v0", workflowVersion: "workflow-outfit-v1", promptVersion: "prompt-outfit-v1", status: "published" }] },
+        { slug: "image-to-video", name: "图片转视频", category: "video", status: "published", provider: "fake_worker", model: "local-video-v0", creditCost: 24, route: "./zh/app/image-to-video/", featured: true, versions: [{ version: "v1", changelog: "MVP image to video workflow", modelVersion: "local-video-v0", workflowVersion: "workflow-video-v1", promptVersion: "prompt-video-v1", status: "published" }] },
       ],
     };
+  }
+
+  private normalizeWorkflowCenterConfig(config: Partial<WorkflowCenterConfig>): WorkflowCenterConfig {
+    const fallback = this.defaultWorkflowCenterConfig();
+    const workflows = Array.isArray(config.workflows) ? config.workflows : fallback.workflows;
+    return {
+      workflows: workflows
+        .filter((workflow) => workflow.workflowId && workflow.name)
+        .slice(0, 80)
+        .map((workflow) => ({
+          workflowId: String(workflow.workflowId).trim().slice(0, 80),
+          name: String(workflow.name).trim().slice(0, 100),
+          type: ["comfyui", "n8n", "api_chain", "agent_chain"].includes(workflow.type) ? workflow.type : "api_chain",
+          provider: String(workflow.provider || "fake_worker").trim().slice(0, 60),
+          jsonConfig: typeof workflow.jsonConfig === "object" && workflow.jsonConfig ? workflow.jsonConfig : {},
+          requiredModels: this.safeTextList(workflow.requiredModels, [], 12),
+          requiredInputs: this.safeTextList(workflow.requiredInputs, [], 12),
+          outputType: ["image", "video", "text", "multimodal", "asset"].includes(workflow.outputType) ? workflow.outputType : "asset",
+          creditPrice: Math.max(0, Math.min(9999, Number(workflow.creditPrice || 0))),
+          version: String(workflow.version || "v1").trim().slice(0, 24),
+          status: ["draft", "testing", "published", "deprecated"].includes(workflow.status) ? workflow.status : "draft",
+          description: String(workflow.description || "").trim().slice(0, 240),
+        })),
+    };
+  }
+
+  private defaultWorkflowCenterConfig(): WorkflowCenterConfig {
+    return {
+      workflows: [
+        { workflowId: "workflow-image-edit-v1", name: "图片编辑工作流", type: "api_chain", provider: "fake_worker", jsonConfig: { mode: "image_edit" }, requiredModels: ["local-image-edit-v0"], requiredInputs: ["prompt", "reference_image"], outputType: "image", creditPrice: 8, version: "v1", status: "published", description: "MVP 图片编辑占位工作流，可替换为 ComfyUI / Fal / RunPod。" },
+        { workflowId: "workflow-video-v1", name: "图片转视频工作流", type: "api_chain", provider: "fake_worker", jsonConfig: { mode: "image_to_video" }, requiredModels: ["local-video-v0"], requiredInputs: ["prompt", "source_asset"], outputType: "video", creditPrice: 24, version: "v1", status: "testing", description: "MVP 视频生成占位工作流，后续绑定真实视频 provider。" },
+      ],
+    };
+  }
+
+  private normalizePromptLibraryConfig(config: Partial<PromptLibraryConfig>): PromptLibraryConfig {
+    const fallback = this.defaultPromptLibraryConfig();
+    const prompts = Array.isArray(config.prompts) ? config.prompts : fallback.prompts;
+    const timestamp = nowIso();
+    return {
+      prompts: prompts
+        .filter((prompt) => prompt.promptId && prompt.title && prompt.promptText)
+        .slice(0, 200)
+        .map((prompt) => ({
+          promptId: String(prompt.promptId).trim().slice(0, 80),
+          title: String(prompt.title).trim().slice(0, 120),
+          category: String(prompt.category || "image").trim().slice(0, 60),
+          useCase: String(prompt.useCase || "").trim().slice(0, 120),
+          promptText: String(prompt.promptText || "").trim().slice(0, 4000),
+          negativePrompt: String(prompt.negativePrompt || "").trim().slice(0, 2000),
+          variables: this.safeTextList(prompt.variables, [], 20),
+          model: String(prompt.model || "local-demo").trim().slice(0, 100),
+          version: String(prompt.version || "v1").trim().slice(0, 24),
+          tags: this.safeTextList(prompt.tags, [], 16),
+          status: ["draft", "testing", "published", "archived"].includes(prompt.status) ? prompt.status : "draft",
+          createdAt: String(prompt.createdAt || timestamp),
+          updatedAt: timestamp,
+        })),
+    };
+  }
+
+  private defaultPromptLibraryConfig(): PromptLibraryConfig {
+    const timestamp = nowIso();
+    return {
+      prompts: [
+        { promptId: "prompt-image-launch-v1", title: "产品发布主视觉", category: "image", useCase: "图片生成", promptText: "Create a premium AI SaaS product launch scene with a reusable presenter character, cinematic lighting, clean composition, and strong visual CTA.", negativePrompt: "low quality, blurry, distorted text", variables: ["character", "product", "style"], model: "local-image-edit-v0", version: "v1", tags: ["image", "launch", "saas"], status: "published", createdAt: timestamp, updatedAt: timestamp },
+        { promptId: "prompt-video-short-v1", title: "短视频分镜", category: "video", useCase: "视频生成", promptText: "Write a 6-scene vertical short video storyboard for {topic}. Include hook, scene direction, motion, caption, and CTA.", negativePrompt: "", variables: ["topic", "cta"], model: "local-video-v0", version: "v1", tags: ["video", "storyboard"], status: "testing", createdAt: timestamp, updatedAt: timestamp },
+      ],
+    };
+  }
+
+  private safeToolVersions(versions: ToolVersion[] | undefined, fallback: ToolVersion[]): ToolVersion[] {
+    const source = Array.isArray(versions) && versions.length ? versions : fallback;
+    return source.slice(0, 20).map((version) => ({
+      version: String(version.version || "v1").trim().slice(0, 24),
+      changelog: String(version.changelog || "").trim().slice(0, 200),
+      modelVersion: String(version.modelVersion || "").trim().slice(0, 80),
+      workflowVersion: String(version.workflowVersion || "").trim().slice(0, 80),
+      promptVersion: String(version.promptVersion || "").trim().slice(0, 80),
+      status: ["draft", "testing", "published", "deprecated"].includes(version.status) ? version.status : "draft",
+    }));
   }
 
   private normalizeGenerationJob(job: Record<string, any>): Record<string, unknown> {

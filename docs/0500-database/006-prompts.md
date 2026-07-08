@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DB-PROMPTS-001 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Active |
 | Owner | AI Platform Data Owner |
 | Dependencies | DB-USERS-001, PB-010, AI-INDEX-001 |
@@ -75,6 +75,10 @@ Support prompt versions, evaluations, A/B tests, prompt libraries, variable sche
 ## Future Plan
 
 Create AI prompt registry and evaluation documents before production AI workflows launch.
+
+## Current Implementation
+
+MVP P1 adds Admin Prompt Library configuration through `site_settings.prompt_library_config` and defines `prompt_library` in local and Supabase schemas. Prompt records include prompt ID, title, category, use case, prompt text, negative prompt, variables, model, version, tags, status, and timestamps.
 
 ## AI Context
 

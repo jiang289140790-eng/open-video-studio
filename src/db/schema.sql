@@ -395,6 +395,59 @@ CREATE TABLE IF NOT EXISTS ai_workers (
 
 CREATE INDEX IF NOT EXISTS idx_ai_workers_provider_status ON ai_workers(provider, status);
 
+CREATE TABLE IF NOT EXISTS workflow_configs (
+  workflow_id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  workflow_type TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  json_config TEXT NOT NULL DEFAULT '{}',
+  required_models TEXT NOT NULL DEFAULT '[]',
+  required_inputs TEXT NOT NULL DEFAULT '[]',
+  output_type TEXT NOT NULL,
+  credit_price INTEGER NOT NULL DEFAULT 0,
+  version TEXT NOT NULL DEFAULT 'v1',
+  status TEXT NOT NULL DEFAULT 'draft',
+  description TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_workflow_configs_status ON workflow_configs(status, provider);
+
+CREATE TABLE IF NOT EXISTS prompt_library (
+  prompt_id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  category TEXT NOT NULL,
+  use_case TEXT NOT NULL DEFAULT '',
+  prompt_text TEXT NOT NULL,
+  negative_prompt TEXT NOT NULL DEFAULT '',
+  variables TEXT NOT NULL DEFAULT '[]',
+  model TEXT NOT NULL DEFAULT 'local-demo',
+  version TEXT NOT NULL DEFAULT 'v1',
+  tags TEXT NOT NULL DEFAULT '[]',
+  status TEXT NOT NULL DEFAULT 'draft',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_prompt_library_status ON prompt_library(status, category);
+
+CREATE TABLE IF NOT EXISTS tool_versions (
+  id TEXT PRIMARY KEY,
+  tool_slug TEXT NOT NULL,
+  version TEXT NOT NULL,
+  changelog TEXT NOT NULL DEFAULT '',
+  model_version TEXT NOT NULL DEFAULT '',
+  workflow_version TEXT NOT NULL DEFAULT '',
+  prompt_version TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'draft',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(tool_slug, version)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tool_versions_slug_status ON tool_versions(tool_slug, status);
+
 CREATE TABLE IF NOT EXISTS images (
   id TEXT PRIMARY KEY,
   owner_user_id TEXT NOT NULL,

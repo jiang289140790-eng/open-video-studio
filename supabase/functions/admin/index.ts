@@ -115,6 +115,14 @@ Deno.serve(async (req) => {
       const toolCatalog = await getSetting(adminClient, "tool_catalog_config", defaultToolCatalogConfig());
       return json({ actor, toolCatalog });
     }
+    if (action === "get-workflow-center-config") {
+      const workflowCenter = await getSetting(adminClient, "workflow_center_config", defaultWorkflowCenterConfig());
+      return json({ actor, workflowCenter });
+    }
+    if (action === "get-prompt-library-config") {
+      const promptLibrary = await getSetting(adminClient, "prompt_library_config", defaultPromptLibraryConfig());
+      return json({ actor, promptLibrary });
+    }
     if (action === "list-audit-logs") {
       requireAdmin(actor);
       return json({ actor, auditLogs: await select(adminClient, "audit_logs", "created_at", false) });
@@ -157,6 +165,24 @@ Deno.serve(async (req) => {
       if (error) throw error;
       await audit(adminClient, actor, "admin.update_tool_catalog_config", "site_setting", "tool_catalog_config", { reason: body.reason });
       return json({ actor, toolCatalog: data });
+    }
+
+    if (action === "update-workflow-center-config") {
+      requireAdmin(actor);
+      requireReason(body.reason);
+      const { data, error } = await upsertSetting(adminClient, "workflow_center_config", normalizeWorkflowCenterConfig(body.config), actor.id);
+      if (error) throw error;
+      await audit(adminClient, actor, "admin.update_workflow_center_config", "site_setting", "workflow_center_config", { reason: body.reason });
+      return json({ actor, workflowCenter: data });
+    }
+
+    if (action === "update-prompt-library-config") {
+      requireAdmin(actor);
+      requireReason(body.reason);
+      const { data, error } = await upsertSetting(adminClient, "prompt_library_config", normalizePromptLibraryConfig(body.config), actor.id);
+      if (error) throw error;
+      await audit(adminClient, actor, "admin.update_prompt_library_config", "site_setting", "prompt_library_config", { reason: body.reason });
+      return json({ actor, promptLibrary: data });
     }
 
     if (action === "adjust-credits") {
@@ -364,8 +390,68 @@ function normalizeToolCatalogConfig(config: unknown) {
         creditCost: numberClamp(item.creditCost, 0, 999, 0),
         route: href(item.route, "./zh/app/generate/"),
         featured: Boolean(item.featured),
+        versions: toolVersions(item.versions, [{
+          version: "v1",
+          changelog: "Initial published configuration",
+          modelVersion: text(item.model, "local-demo", 80),
+          workflowVersion: "workflow-v1",
+          promptVersion: "prompt-v1",
+          status: "published",
+        }]),
       };
     }).filter((tool) => tool.slug && tool.name).slice(0, 80),
+  };
+}
+
+function normalizeWorkflowCenterConfig(config: unknown) {
+  const fallback = defaultWorkflowCenterConfig();
+  const input = typeof config === "object" && config ? config as Record<string, unknown> : {};
+  const workflows = Array.isArray(input.workflows) ? input.workflows : fallback.workflows;
+  return {
+    workflows: workflows.map((workflow) => {
+      const item = typeof workflow === "object" && workflow ? workflow as Record<string, unknown> : {};
+      return {
+        workflowId: text(item.workflowId, "", 80),
+        name: text(item.name, "", 100),
+        type: enumText(item.type, ["comfyui", "n8n", "api_chain", "agent_chain"], "api_chain"),
+        provider: text(item.provider, "fake_worker", 60),
+        jsonConfig: typeof item.jsonConfig === "object" && item.jsonConfig ? item.jsonConfig : {},
+        requiredModels: arrayText(item.requiredModels, [], 12, 80),
+        requiredInputs: arrayText(item.requiredInputs, [], 12, 60),
+        outputType: enumText(item.outputType, ["image", "video", "text", "multimodal", "asset"], "asset"),
+        creditPrice: numberClamp(item.creditPrice, 0, 9999, 0),
+        version: text(item.version, "v1", 24),
+        status: enumText(item.status, ["draft", "testing", "published", "deprecated"], "draft"),
+        description: text(item.description, "", 240),
+      };
+    }).filter((workflow) => workflow.workflowId && workflow.name).slice(0, 80),
+  };
+}
+
+function normalizePromptLibraryConfig(config: unknown) {
+  const fallback = defaultPromptLibraryConfig();
+  const input = typeof config === "object" && config ? config as Record<string, unknown> : {};
+  const prompts = Array.isArray(input.prompts) ? input.prompts : fallback.prompts;
+  const timestamp = new Date().toISOString();
+  return {
+    prompts: prompts.map((prompt) => {
+      const item = typeof prompt === "object" && prompt ? prompt as Record<string, unknown> : {};
+      return {
+        promptId: text(item.promptId, "", 80),
+        title: text(item.title, "", 120),
+        category: text(item.category, "image", 60),
+        useCase: text(item.useCase, "", 120),
+        promptText: text(item.promptText, "", 4000),
+        negativePrompt: text(item.negativePrompt, "", 2000),
+        variables: arrayText(item.variables, [], 20, 60),
+        model: text(item.model, "local-demo", 100),
+        version: text(item.version, "v1", 24),
+        tags: arrayText(item.tags, [], 16, 40),
+        status: enumText(item.status, ["draft", "testing", "published", "archived"], "draft"),
+        createdAt: text(item.createdAt, timestamp, 40),
+        updatedAt: timestamp,
+      };
+    }).filter((prompt) => prompt.promptId && prompt.title && prompt.promptText).slice(0, 200),
   };
 }
 
@@ -441,9 +527,28 @@ function defaultPageBuilderConfig() {
 function defaultToolCatalogConfig() {
   return {
     tools: [
-      { slug: "image-editor", name: "图片编辑器", category: "image", status: "published", provider: "fake_worker", model: "local-image-edit-v0", creditCost: 8, route: "./zh/app/image-editor/", featured: true },
-      { slug: "outfit-studio", name: "AI 换装", category: "image", status: "published", provider: "fake_worker", model: "local-outfit-v0", creditCost: 12, route: "./zh/app/outfit-studio/", featured: true },
-      { slug: "image-to-video", name: "图片转视频", category: "video", status: "published", provider: "fake_worker", model: "local-video-v0", creditCost: 24, route: "./zh/app/image-to-video/", featured: true },
+      { slug: "image-editor", name: "图片编辑器", category: "image", status: "published", provider: "fake_worker", model: "local-image-edit-v0", creditCost: 8, route: "./zh/app/image-editor/", featured: true, versions: [{ version: "v1", changelog: "MVP image edit workflow", modelVersion: "local-image-edit-v0", workflowVersion: "workflow-image-edit-v1", promptVersion: "prompt-image-edit-v1", status: "published" }] },
+      { slug: "outfit-studio", name: "AI 换装", category: "image", status: "published", provider: "fake_worker", model: "local-outfit-v0", creditCost: 12, route: "./zh/app/outfit-studio/", featured: true, versions: [{ version: "v1", changelog: "MVP outfit workflow", modelVersion: "local-outfit-v0", workflowVersion: "workflow-outfit-v1", promptVersion: "prompt-outfit-v1", status: "published" }] },
+      { slug: "image-to-video", name: "图片转视频", category: "video", status: "published", provider: "fake_worker", model: "local-video-v0", creditCost: 24, route: "./zh/app/image-to-video/", featured: true, versions: [{ version: "v1", changelog: "MVP image to video workflow", modelVersion: "local-video-v0", workflowVersion: "workflow-video-v1", promptVersion: "prompt-video-v1", status: "published" }] },
+    ],
+  };
+}
+
+function defaultWorkflowCenterConfig() {
+  return {
+    workflows: [
+      { workflowId: "workflow-image-edit-v1", name: "图片编辑工作流", type: "api_chain", provider: "fake_worker", jsonConfig: { mode: "image_edit" }, requiredModels: ["local-image-edit-v0"], requiredInputs: ["prompt", "reference_image"], outputType: "image", creditPrice: 8, version: "v1", status: "published", description: "MVP 图片编辑占位工作流，可替换为 ComfyUI / Fal / RunPod。" },
+      { workflowId: "workflow-video-v1", name: "图片转视频工作流", type: "api_chain", provider: "fake_worker", jsonConfig: { mode: "image_to_video" }, requiredModels: ["local-video-v0"], requiredInputs: ["prompt", "source_asset"], outputType: "video", creditPrice: 24, version: "v1", status: "testing", description: "MVP 视频生成占位工作流，后续绑定真实视频 provider。" },
+    ],
+  };
+}
+
+function defaultPromptLibraryConfig() {
+  const timestamp = new Date().toISOString();
+  return {
+    prompts: [
+      { promptId: "prompt-image-launch-v1", title: "产品发布主视觉", category: "image", useCase: "图片生成", promptText: "Create a premium AI SaaS product launch scene with a reusable presenter character, cinematic lighting, clean composition, and strong visual CTA.", negativePrompt: "low quality, blurry, distorted text", variables: ["character", "product", "style"], model: "local-image-edit-v0", version: "v1", tags: ["image", "launch", "saas"], status: "published", createdAt: timestamp, updatedAt: timestamp },
+      { promptId: "prompt-video-short-v1", title: "短视频分镜", category: "video", useCase: "视频生成", promptText: "Write a 6-scene vertical short video storyboard for {topic}. Include hook, scene direction, motion, caption, and CTA.", negativePrompt: "", variables: ["topic", "cta"], model: "local-video-v0", version: "v1", tags: ["video", "storyboard"], status: "testing", createdAt: timestamp, updatedAt: timestamp },
     ],
   };
 }
@@ -489,6 +594,21 @@ function cardList(value: unknown, fallback: Array<Record<string, unknown>>, maxI
     };
   }).filter((card) => card.label && card.title).slice(0, maxItems);
   return cards.length ? cards : fallback;
+}
+
+function toolVersions(value: unknown, fallback: Array<Record<string, unknown>>) {
+  const versions = Array.isArray(value) && value.length ? value : fallback;
+  return versions.slice(0, 20).map((version) => {
+    const item = typeof version === "object" && version ? version as Record<string, unknown> : {};
+    return {
+      version: text(item.version, "v1", 24),
+      changelog: text(item.changelog, "", 200),
+      modelVersion: text(item.modelVersion, "", 80),
+      workflowVersion: text(item.workflowVersion, "", 80),
+      promptVersion: text(item.promptVersion, "", 80),
+      status: enumText(item.status, ["draft", "testing", "published", "deprecated"], "draft"),
+    };
+  });
 }
 
 function normalizeGenerationJob(job: Record<string, unknown>) {
