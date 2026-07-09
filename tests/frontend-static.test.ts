@@ -626,7 +626,9 @@ describe("MVP static frontend", () => {
       "data-admin-orders",
       "data-admin-health",
       "renderAdminSystemReadiness",
+      "providerReadinessDetail",
       "AI Provider 实时状态",
+      "verify:real-ai",
       "Supabase OAuth",
       "oauth-provider-status",
       "入口可见",
@@ -698,7 +700,7 @@ describe("MVP static frontend", () => {
     ]) {
       assert.ok(admin.includes(expected), `admin page should include ${expected}`);
     }
-    assert.equal(admin.includes("绠＄悊"), false);
+    assert.equal(admin.includes("\u7ba1\uff24\u60ca"), false);
   });
 
   it("ships local original preview assets instead of only CSS placeholders", () => {
@@ -922,7 +924,7 @@ describe("MVP static frontend", () => {
     const staticFiles = [...requiredPages, "styles.css", "app.js"];
     for (const file of staticFiles) {
       const content = readPage(file);
-      assert.equal(/閳鈶﹟鈧瑋锟絴脗|脙|鐧诲綍|鍥惧儚|绉垎/.test(content), false, `${file} should not contain mojibake markers`);
+      assert.equal(/(\u95b3|\u9236|\u9207|\u8119|\u9427|\u934f|\u7ec9|\u935a|\u7ba1\uff24\u60ca|\u9422|\u7481|\u941f|\u9352|\u68e3|\u7039|\u939c)/.test(content), false, `${file} should not contain mojibake markers`);
     }
   });
 });

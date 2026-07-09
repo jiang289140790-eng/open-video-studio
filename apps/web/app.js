@@ -3511,9 +3511,7 @@ function renderAdminSystemReadiness(aiProviders = [], providerError = "", oauthP
     const probe = provider.probe || {};
     const configured = Boolean(provider.configured);
     const ok = configured && (probe.ok !== false);
-    const detail = probe.message
-      ? `${configured ? "Secret 已配置" : "Secret 未配置"} · ${probe.ok === false ? `实时验证失败：${probe.message}` : `状态：${probe.message}`}`
-      : (configured ? "Secret 已配置，尚未运行实时验证。" : "缺少必要 Secret 或 endpoint。");
+    const detail = providerReadinessDetail(provider);
     return `
       <article class="admin-row">
         <span class="status-dot ${ok ? "ready" : "blocked"}"></span>
@@ -3551,9 +3549,29 @@ function renderAdminSystemReadiness(aiProviders = [], providerError = "", oauthP
         </article>
       `;
     }).join("")}
-    <article class="admin-row muted-row"><div><strong>AI Provider 实时状态</strong><p>后台只轻量探测 Qwen Vision / DeepSeek；千问生成避免自动触发真实生成成本。</p></div></article>
+    <article class="admin-row muted-row"><div><strong>AI Provider 实时状态</strong><p>后台轻量探测 Qwen Vision / DeepSeek；真实千问生成请使用 npm run verify:real-ai 做成本受控的生产探针。</p></div></article>
     ${providerRows}
   `;
+}
+
+function providerReadinessDetail(provider) {
+  const probe = provider.probe || {};
+  const configured = Boolean(provider.configured);
+  const providerName = String(provider.provider || "");
+  if (!configured) return "缺少必要 Secret 或 endpoint。";
+  if (probe.ok === false) {
+    const category = probe.category ? ` · 类型：${probe.category}` : "";
+    const status = probe.status ? ` · HTTP ${probe.status}` : "";
+    return `实时验证失败：${probe.message || "未知错误"}${status}${category}`;
+  }
+  if (providerName === "qianwen_generation") {
+    const endpointHint = provider.imageEndpoint || provider.videoEndpoint
+      ? "已配置显式图片/视频 endpoint。"
+      : "未配置显式 endpoint，将从 QIANWEN_BASE_URL 推导 DashScope / OpenAI-compatible 路径。";
+    return `Secret 已配置 · ${probe.message || "等待真实生成探针"} · ${endpointHint} 若真实生成返回 Not Found，请检查 Supabase Secrets 的 QIANWEN_IMAGE_ENDPOINT。`;
+  }
+  if (providerName === "fake_worker") return "内部兜底可用，不产生真实 AI 成本。";
+  return probe.message ? `Secret 已配置 · 状态：${probe.message}` : "Secret 已配置，尚未运行实时验证。";
 }
 
 function fillAdminEmptyState() {

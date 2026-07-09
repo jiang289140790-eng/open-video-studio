@@ -23,6 +23,20 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ## 2026-07-09
 
+### Fixed
+
+- Rebuilt `apps/web/admin.html` as clean UTF-8 Chinese after detecting a page-level encoding regression in the Admin Console source.
+- Strengthened the Admin System readiness copy for AI Providers. Qianwen now explicitly tells operators to use `npm run verify:real-ai` for live generation verification and to inspect `QIANWEN_IMAGE_ENDPOINT` when real generation returns `Not Found`.
+- Updated static frontend tests so mojibake markers fail the build instead of being treated as expected Admin text.
+
+### Validation
+
+- Ran `npm run test`; build passed and 59 tests passed, including Admin UTF-8 mojibake regression coverage.
+- Ran `npm run verify:admin`; Admin Edge Function, role-gated operation probe, credit adjustment, order update, asset review, share revocation, audit logging, and cleanup all passed.
+- Ran `npm run verify:user-loop`; demo credits, Fake Worker generation, Gallery/History readback, share link creation, public share readback, and cleanup all passed.
+- Ran `npm run verify:i18n`; Chinese, English, Japanese, and Korean product-term coverage remained 100% with no mojibake markers.
+- Ran `npm run verify:real-ai`; Qianwen live generation still returns `QIANWEN_GENERATION_FAILED / Not Found`, and the 8-credit refund path remains verified.
+
 ### Improved
 
 - Added `npm run verify:real-ai` as a live Qianwen generation probe. It creates a temporary authenticated user, grants demo credits, forces a `qianwen_generation` image job, processes the deployed `ai` Edge Function path, verifies generated asset persistence on success, verifies refund ledger behavior on provider failure, and cleans up all temporary data.
