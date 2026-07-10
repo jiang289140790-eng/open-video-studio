@@ -94,6 +94,9 @@ test("AI Edge Function contains server-only provider actions and no browser-secr
   assert.ok(edgeFunction.includes("QIANWEN_GENERATION_TIMEOUT"));
   assert.ok(edgeFunction.includes("compatible-mode"));
   assert.ok(edgeFunction.includes("sourceImageUrl"));
+  assert.ok(edgeFunction.includes("image-generation/generation"));
+  assert.ok(edgeFunction.includes("isDashScopeAsyncEndpoint"));
+  assert.ok(edgeFunction.includes("X-DashScope-Async"));
   assert.ok(edgeFunction.includes("multimodal-generation/generation"));
   assert.ok(edgeFunction.includes("text2image/image-synthesis"));
   assert.ok(edgeFunction.includes("input: {\n            prompt"));

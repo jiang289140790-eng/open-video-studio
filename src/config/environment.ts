@@ -57,7 +57,7 @@ export function loadEnvironment(filePath?: string): AppEnvironment {
     qianwenVideoEndpoint: emptyToUndefined(value("QIANWEN_VIDEO_ENDPOINT")),
     qianwenImageModel: value("QIANWEN_IMAGE_MODEL", "your-image-model"),
     qianwenVideoModel: value("QIANWEN_VIDEO_MODEL", "your-video-model"),
-    qianwenMaxPolls: Number(value("QIANWEN_MAX_POLLS", "24")),
+    qianwenMaxPolls: Number(value("QIANWEN_MAX_POLLS", "36")),
     qianwenPollIntervalMs: Number(value("QIANWEN_POLL_INTERVAL_MS", "5000")),
     liblibAccessKey: emptyToUndefined(value("LIBLIB_ACCESS_KEY")),
     liblibSecretKey: emptyToUndefined(value("LIBLIB_SECRET_KEY")),

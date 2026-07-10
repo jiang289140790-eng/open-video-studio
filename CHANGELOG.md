@@ -35,6 +35,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Added an Admin System Provider Fix Checklist that maps real AI rollout blockers to concrete operator actions: Qianwen image/video endpoint and model fixes, Qwen Vision site API key replacement, Liblib template setup, and the matching image/video verification commands.
 - Improved the Qianwen generation adapter for the real generation loop. It now treats `/compatible-mode/v1` as an OpenAI-compatible base instead of misrouting it to native DashScope paths, retries safe same-base Qianwen endpoint candidates after `404` or incompatible `stream=False` responses, supports server-side polling for native async `task_id` responses, and documents `QIANWEN_MAX_POLLS` / `QIANWEN_POLL_INTERVAL_MS` for long-running video jobs.
 - Updated the real video verification path to generate and upload a temporary 256x256 Supabase Storage reference image, pass its signed URL into `sourceImageUrl`, and clean it up after the probe so image-to-video models that require `input.media` can be tested against production.
+- Added the official DashScope native async image generation candidate `/services/aigc/image-generation/generation` and sends `X-DashScope-Async: enable` for native image/video task creation, matching the Wan2.6 image generation API contract.
+- Increased the default Qianwen polling window to 36 polls at 5 seconds so real image tasks that return `task_id` have enough time to finish before the platform marks the job failed and refunds credits.
 
 ### Validation
 
@@ -50,6 +52,10 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Deployed Supabase `ai` Edge Function version `17` with Qianwen endpoint fallback, async task polling, and source image support.
 - Ran `npm run verify:real-ai -- --video`; the production Qianwen image-to-video path completed successfully, created a `wan2.7-i2v-2026-04-25` video job, saved the returned MP4 into Supabase Storage, created a media asset, and cleaned up the temporary user/reference image records.
 - Ran `npm run verify:real-ai`; Qianwen image generation still fails with Aliyun `url error`, and the 8-credit refund path remains verified. This narrows the remaining image blocker to provider/model/payload compatibility rather than the video pipeline or storage path.
+- Ran `npm run verify:real-ai` after adding the official async image endpoint; Qianwen image generation now creates a real provider task ID but timed out before completion under the old polling window, and the 8-credit refund path remained verified.
+- Deployed Supabase `ai` Edge Function version `19` with the longer Qianwen polling window.
+- Ran `npm run verify:real-ai`; the production Qianwen image workflow completed successfully with `wan2.6-image`, saved the generated PNG into Supabase Storage, created a media asset, recorded provider/model metadata, and cleaned up verification records.
+- Ran `npm run verify:real-ai -- --video`; the production video workflow currently returns a Qianwen account-standing error (`overdue-payment`) from Aliyun. The platform marked the job failed, refunded 24 credits, and cleaned up verification records, so the remaining video blocker is provider account/billing status rather than the Open Video Studio job, storage, or refund path.
 
 ## 2026-07-09
 

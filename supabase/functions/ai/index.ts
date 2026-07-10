@@ -337,7 +337,7 @@ async function submitQianwenGeneration(env: AiEnv, endpoint: string, model: stri
           Authorization: `Bearer ${env.qianwenApiKey}`,
           "Content-Type": "application/json",
           Accept: "application/json",
-          ...(isDashScopeNative && mediaType === "video" ? { "X-DashScope-Async": "enable" } : {}),
+          ...(isDashScopeAsyncEndpoint(candidate) ? { "X-DashScope-Async": "enable" } : {}),
         },
         body: JSON.stringify(qianwenGenerationPayload(model, mediaType, job, isDashScopeNative, candidate)),
       }, env.providerTimeoutMs);
@@ -356,8 +356,8 @@ async function submitQianwenGeneration(env: AiEnv, endpoint: string, model: stri
 
 async function pollQianwenTask(env: AiEnv, generationEndpoint: string, taskId: string, mediaType: "image" | "video") {
   const statusEndpoint = qianwenTaskStatusEndpoint(env, generationEndpoint, taskId);
-  const maxPolls = clampNumber(Deno.env.get("QIANWEN_MAX_POLLS"), mediaType === "video" ? 24 : 12, 1, 80);
-  const pollIntervalMs = clampNumber(Deno.env.get("QIANWEN_POLL_INTERVAL_MS"), mediaType === "video" ? 5000 : 3000, 1000, 30000);
+  const maxPolls = clampNumber(Deno.env.get("QIANWEN_MAX_POLLS"), 36, 1, 80);
+  const pollIntervalMs = clampNumber(Deno.env.get("QIANWEN_POLL_INTERVAL_MS"), 5000, 1000, 30000);
   let latest: any = null;
   for (let index = 0; index < maxPolls; index += 1) {
     if (index > 0) await sleep(pollIntervalMs);
@@ -544,6 +544,7 @@ function qianwenGenerationEndpointCandidates(env: AiEnv, mediaType: "image" | "v
     const nativeBase = `${root}/api/v1`;
     if (mediaType === "image") {
       candidates.push(
+        `${nativeBase}/services/aigc/image-generation/generation`,
         `${nativeBase}/services/aigc/multimodal-generation/generation`,
         `${nativeBase}/services/aigc/text2image/image-synthesis`,
         `${openAiBase}/images/generations`,
@@ -666,6 +667,10 @@ function qianwenGenerationPayload(model: string, mediaType: "image" | "video", j
 function isDashScopeNativeEndpoint(endpoint: string): boolean {
   if (endpoint.includes("/compatible-mode/") || endpoint.includes("/openai/")) return false;
   return endpoint.includes("/api/v1/services/aigc/") || endpoint.includes("dashscope") || endpoint.includes("maas.aliyuncs.com");
+}
+
+function isDashScopeAsyncEndpoint(endpoint: string): boolean {
+  return endpoint.includes("/image-generation/generation") || endpoint.includes("/video-generation/video-synthesis");
 }
 
 function extractQianwenProviderJobId(data: any, fallbackId: unknown): string {
