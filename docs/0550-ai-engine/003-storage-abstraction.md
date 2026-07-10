@@ -24,6 +24,8 @@ Define provider-neutral storage behavior for AI inputs, outputs, and intermediat
 
 The AI storage interface supports putting, reading, deleting, and optionally resolving public URLs for objects. The current implementation includes a local adapter and not-configured placeholders for future cloud storage.
 
+The deployed Supabase AI Edge Function now stores real provider outputs as media objects when the provider returns an `outputUrl` or base64 payload. URL outputs are downloaded server-side and written to Supabase Storage as image/video files; base64 outputs are decoded and written as binary objects. If a provider returns only structured metadata, the function falls back to the existing JSON metadata object so Fake Worker and probe flows remain stable.
+
 ## Acceptance Criteria
 
 - AI workers can use storage through an adapter interface.

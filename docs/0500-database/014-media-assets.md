@@ -92,6 +92,8 @@ Sprint 2 records project, character, generation job, tags, favorite state, visib
 
 MVP Backend Loop stores Fake Worker outputs in Supabase Storage and records each generated output as a `media_assets` row. Gallery, history, and share APIs read from these real asset records instead of static demo data.
 
+The AI Edge Function now records whether generated asset storage came from a provider URL, provider base64 payload, or metadata JSON fallback in `metadata_json.storageKind`, alongside `storageContentType`, provider, model, prompt, credits, and duration metadata. Successful real image/video provider responses should therefore point `storage_key` at an actual stored media object, not only a provider URL.
+
 ## Future Plan
 
 Define storage architecture, processing pipeline, and asset library UX before implementation.

@@ -583,16 +583,9 @@ async function fakeWorkerResult(job: Record<string, any>) {
 async function saveGeneratedAsset(adminClient: any, env: AiEnv, userId: string, job: Record<string, any>, result: Record<string, any>, durationMs: number) {
   const assetId = createId("asset");
   const mediaType = normalizeMediaType(job.media_type);
-  const ext = mediaType === "video" ? "json" : "json";
-  const storageKey = `${userId}/${assetId}/${mediaType}-${job.id}.${ext}`;
-  const payload = JSON.stringify({
-    providerJobId: result.providerJobId,
-    outputUrl: result.outputUrl ?? null,
-    outputBase64: result.outputBase64 ? "[base64 omitted]" : null,
-    raw: result.raw ?? {},
-  });
-  const upload = await adminClient.storage.from(env.supabaseStorageBucket).upload(storageKey, payload, {
-    contentType: "application/json",
+  const storedObject = await storeGeneratedMediaObject(env, userId, assetId, mediaType, job, result);
+  const upload = await adminClient.storage.from(env.supabaseStorageBucket).upload(storedObject.storageKey, storedObject.body, {
+    contentType: storedObject.contentType,
     upsert: false,
   });
   if (upload.error) throw new AiFunctionError("SUPABASE_STORAGE_UPLOAD_FAILED", upload.error.message, 502);
@@ -601,7 +594,7 @@ async function saveGeneratedAsset(adminClient: any, env: AiEnv, userId: string, 
   const asset = {
     id: assetId,
     user_id: userId,
-    file_url: storageKey,
+    file_url: storedObject.storageKey,
     file_type: mediaType,
     consent_confirmed: true,
     owner_user_id: userId,
@@ -610,8 +603,8 @@ async function saveGeneratedAsset(adminClient: any, env: AiEnv, userId: string, 
     generation_job_id: job.id,
     asset_type: mediaType,
     source_type: "generation",
-    storage_key: storageKey,
-    display_name: `${mediaType}-${job.id}.json`,
+    storage_key: storedObject.storageKey,
+    display_name: storedObject.displayName,
     tags_json: [],
     metadata_json: {
       generationJobId: job.id,
@@ -620,6 +613,8 @@ async function saveGeneratedAsset(adminClient: any, env: AiEnv, userId: string, 
       prompt: job.prompt,
       providerJobId: result.providerJobId,
       outputUrl: result.outputUrl ?? null,
+      storageKind: storedObject.storageKind,
+      storageContentType: storedObject.contentType,
       credits: job.cost_credits,
       durationMs,
       resolution: job.resolution,
@@ -634,6 +629,93 @@ async function saveGeneratedAsset(adminClient: any, env: AiEnv, userId: string, 
   const { data, error } = await adminClient.from("media_assets").insert(asset).select("*").single();
   if (error) throw new AiFunctionError("SUPABASE_ASSET_CREATE_FAILED", error.message, 502);
   return data;
+}
+
+async function storeGeneratedMediaObject(env: AiEnv, userId: string, assetId: string, mediaType: "image" | "video", job: Record<string, any>, result: Record<string, any>) {
+  if (result.outputBase64) {
+    const decoded = decodeProviderBase64Output(String(result.outputBase64), mediaType);
+    return {
+      storageKey: `${userId}/${assetId}/${mediaType}-${job.id}.${extensionForContentType(decoded.contentType, mediaType)}`,
+      displayName: `${mediaType}-${job.id}.${extensionForContentType(decoded.contentType, mediaType)}`,
+      contentType: decoded.contentType,
+      body: decoded.body,
+      storageKind: "provider_base64",
+    };
+  }
+
+  if (result.outputUrl) {
+    const downloaded = await downloadProviderOutputUrl(env, String(result.outputUrl), mediaType);
+    return {
+      storageKey: `${userId}/${assetId}/${mediaType}-${job.id}.${extensionForContentType(downloaded.contentType, mediaType)}`,
+      displayName: `${mediaType}-${job.id}.${extensionForContentType(downloaded.contentType, mediaType)}`,
+      contentType: downloaded.contentType,
+      body: downloaded.body,
+      storageKind: "provider_url",
+    };
+  }
+
+  const payload = JSON.stringify({
+    providerJobId: result.providerJobId,
+    outputUrl: result.outputUrl ?? null,
+    outputBase64: result.outputBase64 ? "[base64 omitted]" : null,
+    raw: result.raw ?? {},
+  });
+  return {
+    storageKey: `${userId}/${assetId}/${mediaType}-${job.id}.json`,
+    displayName: `${mediaType}-${job.id}.json`,
+    contentType: "application/json",
+    body: payload,
+    storageKind: "metadata_json",
+  };
+}
+
+async function downloadProviderOutputUrl(env: AiEnv, outputUrl: string, mediaType: "image" | "video") {
+  const response = await fetchWithTimeout(outputUrl, {
+    method: "GET",
+    headers: { Accept: mediaType === "video" ? "video/*,*/*" : "image/*,*/*" },
+  }, env.providerTimeoutMs);
+  if (!response.ok) {
+    throw new AiFunctionError("PROVIDER_OUTPUT_DOWNLOAD_FAILED", `Could not download provider output: ${response.status}`, 502);
+  }
+  const contentType = normalizeGeneratedContentType(response.headers.get("content-type"), mediaType);
+  const body = new Uint8Array(await response.arrayBuffer());
+  if (!body.byteLength) {
+    throw new AiFunctionError("PROVIDER_OUTPUT_EMPTY", "Provider output was empty.", 502);
+  }
+  return { contentType, body };
+}
+
+function decodeProviderBase64Output(outputBase64: string, mediaType: "image" | "video") {
+  const match = outputBase64.match(/^data:([^;]+);base64,(.+)$/);
+  const contentType = normalizeGeneratedContentType(match?.[1] || "", mediaType);
+  const raw = match?.[2] || outputBase64;
+  const binary = atob(raw);
+  const body = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    body[index] = binary.charCodeAt(index);
+  }
+  if (!body.byteLength) {
+    throw new AiFunctionError("PROVIDER_OUTPUT_EMPTY", "Provider base64 output was empty.", 502);
+  }
+  return { contentType, body };
+}
+
+function normalizeGeneratedContentType(contentType: string | null, mediaType: "image" | "video") {
+  const value = String(contentType || "").split(";")[0].trim().toLowerCase();
+  if (mediaType === "video" && value.startsWith("video/")) return value;
+  if (mediaType === "image" && value.startsWith("image/")) return value;
+  return mediaType === "video" ? "video/mp4" : "image/png";
+}
+
+function extensionForContentType(contentType: string, mediaType: "image" | "video") {
+  const value = String(contentType || "").toLowerCase();
+  if (value.includes("webp")) return "webp";
+  if (value.includes("jpeg") || value.includes("jpg")) return "jpg";
+  if (value.includes("gif")) return "gif";
+  if (value.includes("quicktime")) return "mov";
+  if (value.includes("webm")) return "webm";
+  if (value.includes("mp4")) return "mp4";
+  return mediaType === "video" ? "mp4" : "png";
 }
 
 async function signedImageUrl(adminClient: any, env: AiEnv, userId: string, assetId: string, storageKey: string) {

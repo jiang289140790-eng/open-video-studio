@@ -92,6 +92,13 @@ test("AI Edge Function contains server-only provider actions and no browser-secr
   assert.ok(edgeFunction.includes("hmacSha1Base64Url"));
   assert.ok(edgeFunction.includes("/api/generate/webui/text2img"));
   assert.ok(edgeFunction.includes("/api/generate/webui/status"));
+  assert.ok(edgeFunction.includes("storeGeneratedMediaObject"));
+  assert.ok(edgeFunction.includes("downloadProviderOutputUrl"));
+  assert.ok(edgeFunction.includes("decodeProviderBase64Output"));
+  assert.ok(edgeFunction.includes("storageKind"));
+  assert.ok(edgeFunction.includes("provider_url"));
+  assert.ok(edgeFunction.includes("provider_base64"));
+  assert.ok(edgeFunction.includes("metadata_json"));
   assert.ok(edgeFunction.includes("请识别这张图片"));
   assert.ok(edgeFunction.includes("提示词增强助手"));
   assert.equal(/(\u7487|\u6d63\u72b3\u69f8|\u9286|\u9417|\u7ec0|\u59b2)/.test(edgeFunction), false);

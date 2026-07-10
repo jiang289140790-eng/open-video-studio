@@ -30,6 +30,8 @@ Phase 1 implements a local filesystem storage adapter plus media asset metadata 
 
 MVP Backend Loop adds Supabase Storage output-path support through `SupabaseMvpBackendLoop.completeFakeWorkerJob`. The Fake Worker writes simulated JSON output to the configured Supabase Storage bucket under `userId/assetId/fileName`, then stores metadata in `media_assets`.
 
+The production `ai` Edge Function now uses Supabase Storage for real provider outputs. When Qianwen, Liblib, or a future provider returns an image/video URL, the backend downloads the output server-side and stores the binary media object under the generated asset path. When a provider returns base64 media, the backend decodes and stores the binary object. JSON storage remains only as fallback for Fake Worker and metadata-only provider responses.
+
 ## Responsibilities
 
 - Store uploads, generated images, generated videos, thumbnails, previews, exports, and references.
