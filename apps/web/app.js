@@ -1109,7 +1109,7 @@ function injectAppShell() {
   document.body.classList.add("tool-layout");
   document.body.insertAdjacentHTML("afterbegin", `
     <aside class="side-rail" aria-label="Product tools">
-      <a class="rail-brand" href="./index.html" aria-label="Luravyn home"><img src="./brand/luravyn-logo-dark.svg" alt="Luravyn"></a>
+      <a class="rail-brand" href="./index.html" aria-label="Luravyn home"><img src="./brand/luravyn-logo.png" alt="Luravyn"></a>
       <nav class="rail-nav">
         <a href="./zh/app/" class="${active("app.html")}">首页</a>
         <a href="./zh/gallery/" class="${active("gallery.html")}">热门作品</a>
@@ -1215,7 +1215,7 @@ function injectFloatingDock() {
       <button class="floating-action daily-check" type="button" aria-label="每日签到"><span>🎁</span></button>
       <a class="floating-action" href="./zh/free-coins/" aria-label="免费硬币"><span>币</span></a>
       <button class="floating-action" type="button" data-support-widget aria-label="帮助"><span>?</span></button>
-      <button class="floating-avatar" type="button" data-support-widget aria-label="客服头像"><img src="./brand/luravyn-icon.svg" alt=""></button>
+      <button class="floating-avatar" type="button" data-support-widget aria-label="客服头像"><img src="./brand/luravyn-icon.png" alt=""></button>
       <button class="floating-action to-top" type="button" data-scroll-top aria-label="返回顶部"><span>↑</span></button>
     </aside>
   `);
@@ -2110,7 +2110,7 @@ function openSupportWidget() {
   overlay.innerHTML = `
     <div class="support-card">
       <button class="checkin-close" type="button" aria-label="关闭">×</button>
-      <span class="support-avatar"><img src="./brand/luravyn-icon.svg" alt=""></span>
+      <span class="support-avatar"><img src="./brand/luravyn-icon.png" alt=""></span>
       <h2>需要帮助？</h2>
       <p>这里是 Luravyn 的快速帮助入口。真实客服系统接入前，先提供常用路径。</p>
       <div class="support-links">

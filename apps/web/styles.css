@@ -51,9 +51,10 @@
 
 .admin-brand img {
   display: block;
-  width: 154px;
+  width: 166px;
   height: auto;
-  max-height: 44px;
+  max-height: 52px;
+  border-radius: 8px;
 }
 
 .admin-side-nav {
@@ -336,9 +337,10 @@ body.tool-layout .accountnav {
 }
 .rail-brand img {
   display: block;
-  width: 154px;
+  width: 166px;
   height: auto;
-  max-height: 44px;
+  max-height: 52px;
+  border-radius: 8px;
 }
 .rail-nav {
   display: grid;
@@ -401,9 +403,10 @@ body.tool-layout .accountnav {
 .brand { display: inline-flex; align-items: center; gap: 10px; min-width: max-content; font-weight: 850; }
 .brand-wordmark {
   display: block;
-  width: clamp(118px, 13vw, 158px);
+  width: clamp(142px, 15vw, 188px);
   height: auto;
-  max-height: 40px;
+  max-height: 52px;
+  border-radius: 8px;
 }
 .brand-mark {
   display: grid;
@@ -3553,7 +3556,7 @@ body.tool-layout .site-footer {
 }
 
 .admin-brand { display: inline-flex; align-items: center; color: #fff; }
-.admin-brand img { display: block; width: 132px; height: auto; max-height: 38px; }
+.admin-brand img { display: block; width: 150px; height: auto; max-height: 48px; border-radius: 8px; }
 .admin-side-nav { display: grid; gap: 3px; margin-top: 8px; }
 .admin-side-nav a { border-radius: 9px; padding: 8px 10px; color: #d8d5e3; font-size: .86rem; font-weight: 820; line-height: 1.2; }
 .admin-side-nav a:hover, .admin-side-nav a.active { background: rgba(255,98,187,0.18); color: #fff; }
