@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.89.0 |
+| Version | 0.90.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -22,6 +22,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 ## Current Implementation Notes
 
 - MVP readiness now has a consolidated gate. `npm run verify:mvp` orchestrates basic email/password auth, OAuth readiness, demo credit purchase, user generation/assets/history/share, Admin operations, and AI fallback health; `npm run verify:mvp -- --real-ai` adds the cost-bearing real provider probe. Small user testing is gated by email/password auth plus credits, generation/share, and Admin operations. Social OAuth and external real AI providers remain launch blockers until their provider credentials and endpoints are green.
+- Admin System Configuration now includes a Provider Fix Checklist for real AI rollout. It turns current provider blockers into operator actions for Qianwen image/video endpoints and models, Qwen Vision site API key, Liblib template UUID, and the matching `npm run verify:real-ai` image/video probes.
 - Real generation verification now has explicit image and video paths. `npm run verify:real-ai` probes the Qianwen image workflow, while `npm run verify:real-ai -- --video` probes the Qianwen video workflow, job charging, asset persistence, and failure-refund behavior when the external provider fails.
 - Generated media storage now preserves real provider outputs. The Supabase `ai` Edge Function stores provider URL/base64 outputs as binary image/video objects in Supabase Storage, while retaining JSON metadata fallback for Fake Worker and metadata-only probe flows.
 - Basic Supabase auth has a production verifier. `npm run verify:auth-basic` proves password signin, session restore, signout, and cleanup. Current public signup is hitting Supabase email rate limits, so the verifier falls back to a temporary admin-created test user while preserving the browser-safe email/password sign-in path for small user testing.

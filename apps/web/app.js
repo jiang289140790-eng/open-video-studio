@@ -3593,6 +3593,7 @@ function renderAdminSystemReadiness(aiProviders = [], providerError = "", oauthP
     <article class="admin-row muted-row"><div><strong>AI Provider 实时状态</strong><p>后台轻量探测 Qwen Vision / DeepSeek；真实千问和 Liblib 生成请使用成本受控的生产探针。</p></div></article>
     ${providerRows}
   `;
+  renderProviderFixList(aiProviders, providerError);
 }
 
 function providerReadinessDetail(provider) {
@@ -3609,13 +3610,58 @@ function providerReadinessDetail(provider) {
     const endpointHint = provider.imageEndpoint || provider.videoEndpoint
       ? "已配置显式图片/视频 endpoint。"
       : "未配置显式 endpoint，将从 QIANWEN_BASE_URL 推导 DashScope / OpenAI-compatible 路径。";
-    return `Secret 已配置 · ${probe.message || "等待真实生成探针"} · ${endpointHint} 若真实生成返回 Not Found，请检查 Supabase Secrets 的 QIANWEN_IMAGE_ENDPOINT。`;
+    return `Secret 已配置 · ${probe.message || "等待真实生成探针"} · ${endpointHint} 若真实生成返回 Not Found，请检查 QIANWEN_IMAGE_ENDPOINT / QIANWEN_VIDEO_ENDPOINT 和对应模型。`;
   }
   if (providerName === "liblib_generation") {
     return `Secret 已配置 · ${probe.message || "等待真实生成探针"} · 需要同时配置 LIBLIB_TEXT2IMG_TEMPLATE_UUID 后才能提交文生图任务。`;
   }
   if (providerName === "fake_worker") return "内部兜底可用，不产生真实 AI 成本。";
   return probe.message ? `Secret 已配置 · 状态：${probe.message}` : "Secret 已配置，尚未运行实时验证。";
+}
+
+function renderProviderFixList(aiProviders = [], providerError = "") {
+  const target = document.querySelector("[data-admin-provider-fixes]");
+  if (!target) return;
+  const providers = Array.isArray(aiProviders) ? aiProviders : [];
+  const qianwen = providers.find((provider) => provider.provider === "qianwen_generation") || {};
+  const qwen = providers.find((provider) => provider.provider === "qwen_vision") || {};
+  const liblib = providers.find((provider) => provider.provider === "liblib_generation") || {};
+  const fixes = [
+    {
+      title: "千问图片生成",
+      ready: Boolean(qianwen.configured && (qianwen.imageEndpoint || qianwen.endpoint) && qianwen.imageModel),
+      detail: `模型 ${qianwen.imageModel || "缺少 QIANWEN_IMAGE_MODEL"} · 图片 endpoint ${qianwen.imageEndpoint || qianwen.endpoint || "缺少 QIANWEN_IMAGE_ENDPOINT / QIANWEN_BASE_URL"} · 验证 npm run verify:real-ai`,
+      action: "若返回 Not Found，优先修正 QIANWEN_IMAGE_ENDPOINT 和图片模型名。",
+    },
+    {
+      title: "千问视频生成",
+      ready: Boolean(qianwen.configured && (qianwen.videoEndpoint || qianwen.endpoint) && qianwen.videoModel),
+      detail: `模型 ${qianwen.videoModel || "缺少 QIANWEN_VIDEO_MODEL"} · 视频 endpoint ${qianwen.videoEndpoint || qianwen.endpoint || "缺少 QIANWEN_VIDEO_ENDPOINT / QIANWEN_BASE_URL"} · 验证 npm run verify:real-ai -- --video`,
+      action: "若返回 Not Found，优先修正 QIANWEN_VIDEO_ENDPOINT 和视频模型名。",
+    },
+    {
+      title: "Qwen 图片识别",
+      ready: Boolean(qwen.configured && qwen.probe?.ok !== false),
+      detail: `模型 ${qwen.model || "Qwen/Qwen2.5-VL-7B-Instruct"} · endpoint ${qwen.endpoint || "缺少 QWEN_VISION_ENDPOINT"} · 当前 ${qwen.probe?.message || providerError || "等待探测"}`,
+      action: "若显示 Unauthenticated，请更新 QWEN_VISION_SITE_API_KEY。",
+    },
+    {
+      title: "Liblib 文生图",
+      ready: Boolean(liblib.configured),
+      detail: `模板 ${liblib.templateUuid || "缺少 LIBLIB_TEXT2IMG_TEMPLATE_UUID"} · endpoint ${liblib.endpoint || "默认 Liblib API"} · 模型 ${liblib.imageModel || "liblib-text2img-v1"}`,
+      action: "配置 AccessKey、SecretKey、模板 UUID 后再灰度到 Liblib。",
+    },
+  ];
+  target.innerHTML = `
+    <article class="admin-row muted-row"><div><strong>Provider 修复清单</strong><p>这里直接对应 Supabase Secrets 和验证命令，用来修复真实图片/视频生成阻塞。</p></div></article>
+    ${fixes.map((item) => `
+      <article class="admin-row">
+        <span class="status-dot ${item.ready ? "ready" : "blocked"}"></span>
+        <div><strong>${escapeHtml(item.title)}</strong><p>${escapeHtml(item.detail)}</p><small>${escapeHtml(item.action)}</small></div>
+        <em>${item.ready ? "配置完整" : "需处理"}</em>
+      </article>
+    `).join("")}
+  `;
 }
 
 function fillAdminEmptyState() {

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | OPS-ADMIN-001 |
-| Version | 1.4.0 |
+| Version | 1.5.0 |
 | Status | Active |
 | Owner | CTO / Operations |
 | Dependencies | API-ADMIN-001, DB-AUDIT-LOGS-001, BE-ARCH-SECURITY-001 |
@@ -23,6 +23,7 @@ Define how the MVP Admin console is enabled safely for Open Video Studio.
 - Let admins update MVP homepage content without source-code edits.
 - Let admins manage MVP page modules and AI tool listings without source-code edits.
 - Let admins switch AI Workflow provider and rollout status without raw configuration editing.
+- Show provider-specific fix guidance for real AI rollout blockers, including Qianwen image/video endpoints, Qwen Vision site API key, and Liblib template UUID.
 - Keep the admin frontend practical for MVP operations without adding enterprise workspace, team, approval, or organization modules.
 
 ## Admin Modules
@@ -38,7 +39,7 @@ Define how the MVP Admin console is enabled safely for Open Video Studio.
 - Tool Catalog: configure AI tools like product listings, including category, status, provider, model, route, featured state, and credit cost.
 - Workflow Center: switch individual workflows between Fake Worker, Qianwen, DeepSeek, and Qwen Vision providers; change rollout status between published, testing, draft, and deprecated; retain raw row editing for bulk import/export.
 - Homepage Content: publish public homepage copy, CTA links, trust signals, showcase cards, and gallery preview cards.
-- System Configuration: inspect OAuth readiness, Supabase connection, storage bucket, worker mode, and service-key safety posture.
+- System Configuration: inspect OAuth readiness, Supabase connection, storage bucket, worker mode, service-key safety posture, live AI Provider status, and the provider fix checklist.
 - Audit Logs: review high-risk admin actions; visible only to admins.
 
 ## Deployment Steps
@@ -92,6 +93,8 @@ As of the first MVP Admin implementation, database tables are reachable from the
 Supabase Auth currently has no users in this project, so the first admin role can only be assigned after the first real account signs up.
 
 The Admin Console now also asks the `ai` Edge Function for live provider status. System readiness and Workflow Center previews can show whether a provider is configured, whether lightweight probes pass, and which blocker is preventing rollout. Qwen Vision currently reports `Unauthenticated`, so operators should keep the Qwen Vision workflow in testing/draft until the site API key is replaced.
+
+The System Configuration module now includes a Provider Fix Checklist for the real AI rollout. It maps each live blocker to the exact setting and verification command: Qianwen image generation checks `QIANWEN_IMAGE_ENDPOINT` / `QIANWEN_IMAGE_MODEL` and `npm run verify:real-ai`; Qianwen video generation checks `QIANWEN_VIDEO_ENDPOINT` / `QIANWEN_VIDEO_MODEL` and `npm run verify:real-ai -- --video`; Qwen Vision checks `QWEN_VISION_SITE_API_KEY`; Liblib checks `LIBLIB_TEXT2IMG_TEMPLATE_UUID` plus AccessKey and SecretKey.
 
 The Admin Console also asks the `admin` Edge Function to probe Supabase OAuth authorization endpoints for Google, X/Twitter, and Discord. This prevents operators from mistaking visible login buttons for fully enabled OAuth providers. Current production state is that all three providers return Supabase `Unsupported provider: provider is not enabled`.
 

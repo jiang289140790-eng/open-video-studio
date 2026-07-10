@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.85.0 |
+| Version | 0.86.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -32,6 +32,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Extended `npm run verify:real-ai` with `-- --video` / `OVS_VERIFY_REAL_AI_MODE=video` so operators can explicitly probe the Qianwen video workflow, asset persistence, and failure-refund behavior.
 - Updated the Supabase `ai` Edge Function so real provider `outputUrl` and base64 results are stored as binary image/video objects in Supabase Storage. JSON object storage remains as fallback for Fake Worker and metadata-only outputs.
 - Restored the Qwen Vision and DeepSeek default Chinese prompts to valid UTF-8 text inside the AI Edge Function.
+- Added an Admin System Provider Fix Checklist that maps real AI rollout blockers to concrete operator actions: Qianwen image/video endpoint and model fixes, Qwen Vision site API key replacement, Liblib template setup, and the matching image/video verification commands.
 
 ### Validation
 
@@ -43,6 +44,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Ran `npm run verify:user-loop` after deploy; authenticated demo credits, generation, asset readback, history, share link, public asset readback, and cleanup passed.
 - Ran `npm run verify:real-ai -- --video` after deploy; Qianwen video still returns `QIANWEN_GENERATION_FAILED / Not Found`, and the 24-credit refund path remains verified.
 - Ran `npm run test`; production build passed and 66 tests passed.
+- Ran `npm run verify:admin`; live admin dashboard/user reads, credit adjustment, order update, asset review, share revocation, audit logging, and cleanup passed after adding the Provider Fix Checklist.
 
 ## 2026-07-09
 

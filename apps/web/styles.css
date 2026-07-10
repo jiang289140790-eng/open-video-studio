@@ -3305,6 +3305,10 @@ body.tool-layout .site-footer {
   margin-top: 16px;
 }
 
+.provider-fix-list {
+  margin-top: 18px;
+}
+
 .admin-row,
 .oauth-readiness-row {
   display: grid;
@@ -3352,6 +3356,12 @@ body.tool-layout .site-footer {
   color: #aeb5c6;
   font-size: .78rem;
   line-height: 1.45;
+}
+
+.provider-fix-list .admin-row small {
+  display: block;
+  margin-top: 5px;
+  color: #ffc5eb;
 }
 
 .admin-row.muted-row {
