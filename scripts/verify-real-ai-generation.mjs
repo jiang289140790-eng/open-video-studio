@@ -6,6 +6,12 @@ const env = loadEnv(resolve(process.cwd(), ".env.local"));
 const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL || "";
 const anonKey = env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY || "";
 const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY || "";
+const mode = process.argv.includes("--video") || process.env.OVS_VERIFY_REAL_AI_MODE === "video" ? "video" : "image";
+const workflowId = mode === "video" ? "workflow-qianwen-video-v1" : "workflow-qianwen-image-v1";
+const toolSlug = mode === "video" ? "image-to-video" : "generate";
+const prompt = mode === "video"
+  ? "Open Video Studio production verification video: six second cinematic motion preview of a reusable AI creator workspace, smooth camera movement, premium dark interface."
+  : "Open Video Studio production verification image: consistent cinematic AI creator workspace, premium dark interface, reusable character asset.";
 
 if (!supabaseUrl || isPlaceholder(supabaseUrl) || !anonKey || isPlaceholder(anonKey) || !serviceRoleKey || isPlaceholder(serviceRoleKey)) {
   console.log(JSON.stringify({
@@ -32,7 +38,8 @@ const report = {
   ok: false,
   endpoint: aiEndpoint,
   provider: "qianwen_generation",
-  mode: "image",
+  mode,
+  workflowId,
   auth: {
     userCreated: false,
     signedIn: false,
@@ -100,11 +107,13 @@ try {
 
   const createdJob = await invokeAi(accessToken, {
     action: "create-generation-job",
-    mediaType: "image",
+    mediaType: mode,
     provider: "qianwen_generation",
-    workflowId: "workflow-qianwen-image-v1",
-    prompt: "Open Video Studio production verification image: consistent cinematic AI creator workspace, premium dark interface, reusable character asset.",
+    workflowId,
+    toolSlug,
+    prompt,
     aspectRatio: "16:9",
+    durationSeconds: mode === "video" ? 6 : undefined,
   });
   report.generation.jobCreated = Boolean(createdJob.job?.id);
   report.generation.jobId = String(createdJob.job?.id || "");

@@ -109,6 +109,12 @@ This orchestrates email/password auth, OAuth readiness reporting, demo credit pu
 npm run verify:mvp -- --real-ai
 ```
 
+Probe the real video generation path directly only when intentionally testing cost-bearing external generation:
+
+```bash
+npm run verify:real-ai -- --video
+```
+
 ## Environment Variables
 
 Copy `.env.local.example` to `.env.local` and fill in values from the existing Supabase project. Never commit `.env.local` or any real secret.

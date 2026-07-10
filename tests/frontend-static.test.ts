@@ -128,6 +128,7 @@ describe("MVP static frontend", () => {
       "data-buy-credits",
       "data-character-form",
       "data-generate",
+      "data-generate-video",
       "data-asset-list",
       "data-history-list",
       "data-share-title",

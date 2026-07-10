@@ -28,11 +28,14 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Added `npm run verify:auth-basic`, a real Supabase email/password auth verifier for signup, signin, session restore, signout, and cleanup. When public signup is rate-limited, it uses a service-role test-user fallback so the login/session loop can still be verified without exposing secrets to the frontend.
 - Added email/password fallback controls to the sign-in page so small user testing is not blocked while Google, X/Twitter, Telegram, and Discord provider setup is still pending.
 - Updated `npm run verify:mvp`, the consolidated production readiness gate for the four MVP loops. It now treats email/password auth, credit purchase/ledger, user generation-to-share, and Admin operations as the small-user-test gate, while social OAuth and external real AI providers remain reported launch blockers.
+- Added a direct "生成视频" action on the Generate page that switches to video mode and runs the same authenticated AI job pipeline.
+- Extended `npm run verify:real-ai` with `-- --video` / `OVS_VERIFY_REAL_AI_MODE=video` so operators can explicitly probe the Qianwen video workflow, asset persistence, and failure-refund behavior.
 
 ### Validation
 
 - Ran `npm run verify:auth-basic`; Supabase password signin, session restore, signout, and cleanup passed. Public signup currently returned `email rate limit exceeded`, so the verifier used its admin-created temporary user fallback.
 - Ran `npm run verify:mvp`; `readyForSmallUserTesting` returned `true`. Required loops passed: email/password login, credits/order ledger, user generation to Gallery/History/Share, and Admin operations. Optional launch blockers remain: Google/X/Discord providers are not enabled in Supabase, Telegram config is missing, and Qwen Vision times out.
+- Ran `npm run verify:real-ai -- --video`; the deployed `ai` function created a Qianwen video job, charged 24 credits, received `QIANWEN_GENERATION_FAILED / Not Found` from the external provider, refunded the 24 credits, and cleaned up the temporary records. This confirms the video failure-refund path while proving the live video endpoint/model still needs correction before real video output can be marked ready.
 - Ran `npm run test`; production build passed and 66 tests passed.
 
 ## 2026-07-09

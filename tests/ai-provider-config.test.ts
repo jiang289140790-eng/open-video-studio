@@ -227,6 +227,9 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(userLoopScript.includes("SUPABASE_SERVICE_ROLE_KEY"));
   assert.ok(realAiScript.includes("qianwen_generation"));
   assert.ok(realAiScript.includes("workflow-qianwen-image-v1"));
+  assert.ok(realAiScript.includes("workflow-qianwen-video-v1"));
+  assert.ok(realAiScript.includes("--video"));
+  assert.ok(realAiScript.includes("OVS_VERIFY_REAL_AI_MODE"));
   assert.ok(realAiScript.includes("process-generation-job"));
   assert.ok(realAiScript.includes("providerStatus"));
   assert.ok(realAiScript.includes("refund"));

@@ -2603,6 +2603,7 @@ const costTarget = document.querySelector("[data-credit-cost]");
 const modeTarget = document.querySelector("[data-mode-label]");
 const queueTarget = document.querySelector("[data-queue]");
 const generateButton = document.querySelector("[data-generate]");
+const generateVideoButton = document.querySelector("[data-generate-video]");
 const enhanceButton = document.querySelector("[data-enhance]");
 const promptBox = document.querySelector(".hero-textarea");
 
@@ -2688,6 +2689,13 @@ if (generateButton && queueTarget) {
     state.history.unshift(job);
     saveState(state);
     queueTarget.prepend(statusRow(`${title}已完成`, "已保存到资产库和生成历史。", "./zh/assets/", "打开作品"));
+  });
+}
+
+if (generateVideoButton && generateButton) {
+  generateVideoButton.addEventListener("click", () => {
+    document.querySelector('[data-mode="video"]')?.click();
+    generateButton.click();
   });
 }
 

@@ -3029,6 +3029,17 @@ body.tool-layout .site-footer {
   margin: 0;
   font-size: 0.82rem;
 }
+.generate-action-stack {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.generate-action-stack .btn {
+  min-height: 42px;
+  white-space: nowrap;
+}
 .provider-dot {
   display: grid;
   place-items: center;
