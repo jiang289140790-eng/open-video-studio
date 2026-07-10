@@ -91,6 +91,18 @@ Validate the MVP Admin backend after applying the Supabase migration and deployi
 npm run verify:admin
 ```
 
+Run the full MVP readiness gate for the four production loops:
+
+```bash
+npm run verify:mvp
+```
+
+This orchestrates OAuth readiness, demo credit purchase, user generation / asset / history / share, Admin operations, and AI fallback health. Use the cost-bearing real provider probe only when intentionally testing external generation:
+
+```bash
+npm run verify:mvp -- --real-ai
+```
+
 ## Environment Variables
 
 Copy `.env.local.example` to `.env.local` and fill in values from the existing Supabase project. Never commit `.env.local` or any real secret.

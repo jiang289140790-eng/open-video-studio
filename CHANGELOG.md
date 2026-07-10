@@ -21,6 +21,17 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Reference relevant document IDs, task IDs, and decision records.
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
+## 2026-07-10
+
+### Improved
+
+- Added `npm run verify:mvp`, a consolidated production readiness gate for the four MVP loops: real login readiness, credit purchase/ledger, user generation-to-share loop, and Admin operations. It also reports AI fallback/provider health and can optionally include the cost-bearing real provider probe via `-- --real-ai`.
+
+### Validation
+
+- Ran `npm run test`; production build passed and 66 tests passed.
+- Ran `npm run verify:mvp`; the credits, user generation/assets/history/share, and Admin operations loops passed. The report correctly blocks small user testing on OAuth provider enablement because Google, X/Twitter, and Discord are not enabled in Supabase and Telegram public auth values are missing. AI fallback health passed for DeepSeek/Fake Worker generation and refund persistence, while Qwen Vision still times out and Liblib remains unconfigured.
+
 ## 2026-07-09
 
 ### Improved

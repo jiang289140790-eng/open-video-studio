@@ -16,6 +16,7 @@
     "verify:user-loop": "node scripts/verify-user-product-loop.mjs",
     "verify:real-ai": "node scripts/verify-real-ai-generation.mjs",
     "verify:payments": "node scripts/verify-payment-loop.mjs",
+    "verify:mvp": "node scripts/verify-mvp-readiness.mjs",
     "verify:production-config": "node scripts/check-production-config.mjs",
     "verify:admin": "node scripts/verify-admin-console.mjs",
     "verify:ai-assets": "npm run build:server && node --test dist/tests/ai-assets-mcp.test.js",

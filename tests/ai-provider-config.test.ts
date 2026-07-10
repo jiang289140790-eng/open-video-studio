@@ -166,6 +166,7 @@ test("production verification scripts cover OAuth and AI function health", () =>
   const paymentScript = readFileSync(join(root, "scripts", "verify-payment-loop.mjs"), "utf8");
   const userLoopScript = readFileSync(join(root, "scripts", "verify-user-product-loop.mjs"), "utf8");
   const realAiScript = readFileSync(join(root, "scripts", "verify-real-ai-generation.mjs"), "utf8");
+  const mvpReadinessScript = readFileSync(join(root, "scripts", "verify-mvp-readiness.mjs"), "utf8");
   const adminScript = readFileSync(join(root, "scripts", "verify-admin-console.mjs"), "utf8");
   const deployFunctionScript = readFileSync(join(root, "scripts", "deploy-supabase-function.mjs"), "utf8");
 
@@ -175,6 +176,7 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(packageJson.includes("verify:user-loop"));
   assert.ok(packageJson.includes("verify:real-ai"));
   assert.ok(packageJson.includes("verify:payments"));
+  assert.ok(packageJson.includes("verify:mvp"));
   assert.ok(packageJson.includes("verify:admin"));
   assert.ok(packageJson.includes("deploy:function"));
   for (const provider of ["google", "twitter", "discord", "telegram"]) {
@@ -229,6 +231,14 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(realAiScript.includes("refund"));
   assert.ok(realAiScript.includes("media_assets"));
   assert.ok(realAiScript.includes("SUPABASE_SERVICE_ROLE_KEY"));
+  for (const loopName of ["真实登录闭环", "真实积分闭环", "用户生成资产闭环", "后台运营闭环"]) {
+    assert.ok(mvpReadinessScript.includes(loopName), `MVP readiness script should include ${loopName}`);
+  }
+  for (const scriptName of ["verify:oauth", "verify:payments", "verify:user-loop", "verify:admin", "verify:ai", "verify:real-ai"]) {
+    assert.ok(mvpReadinessScript.includes(scriptName), `MVP readiness script should orchestrate ${scriptName}`);
+  }
+  assert.ok(mvpReadinessScript.includes("readyForSmallUserTesting"));
+  assert.ok(mvpReadinessScript.includes("--real-ai"));
   for (const action of ["dashboard-summary", "list-users", "adjust-credits", "update-order-status", "review-asset", "revoke-share-link", "list-audit-logs"]) {
     assert.ok(adminScript.includes(action), `Admin verifier should cover ${action}`);
   }

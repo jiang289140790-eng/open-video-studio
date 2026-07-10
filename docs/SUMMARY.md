@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- MVP readiness now has a consolidated gate. `npm run verify:mvp` orchestrates OAuth readiness, demo credit purchase, user generation/assets/history/share, Admin operations, and AI fallback health; `npm run verify:mvp -- --real-ai` adds the cost-bearing real provider probe. The latest run proves credits, user generation loop, and Admin operations are green, while small user testing remains blocked by disabled OAuth providers.
 - AI asset operations now have a local MCP foundation. The project includes an `ai-assets` MCP server for Civitai and Hugging Face search/detail/download, ComfyUI installation, Liblib template calls, and local SQLite inventory tracking. `npm run verify:ai-assets` validates the tool surface and local asset loop.
 - Supabase AI generation now reserves both `qianwen_generation` and `liblib_generation` as real provider candidates while keeping `fake_worker` as rollback. The Admin Workflow Center can expose Liblib image generation as a grey-rollout option, and provider readiness reports whether Liblib secrets plus template UUID are configured.
 - Credit and demo-order sequencing has been hardened: generation jobs are recorded before credit debit, credit-debit failure marks the job failed without charging, demo purchases create pending orders before credit grants, and fulfillment is only recorded after the ledger grant succeeds.
