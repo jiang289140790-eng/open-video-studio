@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "ai-assets": {
+      "command": "node",
+      "args": ["dist/src/mcp/ai-assets/index.js"],
+      "env": {
+        "CIVITAI_API_TOKEN": "${CIVITAI_API_TOKEN}",
+        "HF_TOKEN": "${HF_TOKEN}",
+        "LIBLIB_ACCESS_KEY": "${LIBLIB_ACCESS_KEY}",
+        "LIBLIB_SECRET_KEY": "${LIBLIB_SECRET_KEY}",
+        "COMFYUI_ROOT": "${COMFYUI_ROOT}",
+        "ASSET_STORAGE_DIR": ".data/ai-assets/downloads",
+        "AI_ASSET_DB_PATH": ".data/ai-assets/assets.sqlite"
+      }
+    }
+  }
+}

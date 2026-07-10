@@ -185,6 +185,47 @@ Agents must not create product code without documented requirements. If document
 - Keep document ownership and lifecycle status current.
 - Never commit API keys, Supabase service role keys, local `.env` files, generated builds, local SQLite files, or private exports.
 
+## AI Asset MCP Server
+
+This repo includes a local MCP server for AI model and workflow asset management. It lets Codex / Claude Code search Civitai and Hugging Face, download model files, install them into ComfyUI, and record the local asset inventory in SQLite.
+
+Build and start it:
+
+```bash
+npm run build:server
+npm run mcp:ai-assets
+```
+
+Local configuration lives in `.env.local` or the MCP client environment:
+
+```env
+CIVITAI_API_TOKEN=
+HF_TOKEN=
+LIBLIB_ACCESS_KEY=
+LIBLIB_SECRET_KEY=
+COMFYUI_ROOT=D:/ComfyUI
+ASSET_STORAGE_DIR=.data/ai-assets/downloads
+AI_ASSET_DB_PATH=.data/ai-assets/assets.sqlite
+```
+
+Available MCP tools:
+
+- `search_assets`: search Civitai or Hugging Face assets.
+- `get_asset_detail`: inspect versions, files, trigger words, tags, license, and download URLs.
+- `download_asset`: stream a selected file into local asset storage and record it in SQLite.
+- `install_to_comfyui`: copy a downloaded file into the correct ComfyUI directory.
+- `list_local_assets`: query the local asset inventory.
+- `remove_asset`: delete local files and mark the asset removed.
+- `call_liblib_template`: submit a Liblib template generation request and record the run.
+
+Example prompt for Codex / Claude Code:
+
+```text
+Search Civitai for high-download, high-rated Flux realistic LoRA models, pick the best one, download it, and install it to ComfyUI/models/loras.
+```
+
+The first version treats GitHub as a reserved provider and treats Liblib as a template-generation provider, not a free model-download source.
+
 ## Acceptance Criteria
 
 - The workspace contains the required directories.

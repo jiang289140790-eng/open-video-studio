@@ -18,6 +18,8 @@
     "verify:payments": "node scripts/verify-payment-loop.mjs",
     "verify:production-config": "node scripts/check-production-config.mjs",
     "verify:admin": "node scripts/verify-admin-console.mjs",
+    "verify:ai-assets": "npm run build:server && node --test dist/tests/ai-assets-mcp.test.js",
+    "mcp:ai-assets": "node dist/src/mcp/ai-assets/index.js",
     "deploy:function": "node scripts/deploy-supabase-function.mjs",
     "test": "npm run build && node --test dist/tests/**/*.test.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
@@ -29,6 +31,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@supabase/supabase-js": "^2.110.0",
     "@vitejs/plugin-react": "^6.0.3",
     "react": "^19.2.7",

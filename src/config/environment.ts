@@ -20,6 +20,13 @@ export interface AppEnvironment {
   qianwenVideoEndpoint?: string;
   qianwenImageModel?: string;
   qianwenVideoModel?: string;
+  liblibAccessKey?: string;
+  liblibSecretKey?: string;
+  liblibBaseUrl?: string;
+  liblibText2ImageTemplateUuid?: string;
+  liblibImageModel?: string;
+  liblibMaxPolls?: number;
+  liblibPollIntervalMs?: number;
   aiProviderDefault?: string;
   aiProviderRolloutMode?: string;
   aiProviderTimeoutMs?: number;
@@ -48,6 +55,13 @@ export function loadEnvironment(filePath?: string): AppEnvironment {
     qianwenVideoEndpoint: emptyToUndefined(value("QIANWEN_VIDEO_ENDPOINT")),
     qianwenImageModel: value("QIANWEN_IMAGE_MODEL", "your-image-model"),
     qianwenVideoModel: value("QIANWEN_VIDEO_MODEL", "your-video-model"),
+    liblibAccessKey: emptyToUndefined(value("LIBLIB_ACCESS_KEY")),
+    liblibSecretKey: emptyToUndefined(value("LIBLIB_SECRET_KEY")),
+    liblibBaseUrl: value("LIBLIB_BASE_URL", "https://openapi.liblibai.cloud"),
+    liblibText2ImageTemplateUuid: emptyToUndefined(value("LIBLIB_TEXT2IMG_TEMPLATE_UUID")),
+    liblibImageModel: value("LIBLIB_IMAGE_MODEL", "liblib-text2img-v1"),
+    liblibMaxPolls: Number(value("LIBLIB_MAX_POLLS", "12")),
+    liblibPollIntervalMs: Number(value("LIBLIB_POLL_INTERVAL_MS", "5000")),
     aiProviderDefault: value("AI_PROVIDER_DEFAULT", "fake_worker"),
     aiProviderRolloutMode: value("AI_PROVIDER_ROLLOUT_MODE", "admin_config"),
     aiProviderTimeoutMs: Number(value("AI_PROVIDER_TIMEOUT_MS", "60000")),

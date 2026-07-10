@@ -24,6 +24,13 @@ test("AI provider environment exposes placeholders without committing secrets", 
     "QIANWEN_VIDEO_ENDPOINT",
     "QIANWEN_IMAGE_MODEL",
     "QIANWEN_VIDEO_MODEL",
+    "LIBLIB_ACCESS_KEY",
+    "LIBLIB_SECRET_KEY",
+    "LIBLIB_BASE_URL",
+    "LIBLIB_TEXT2IMG_TEMPLATE_UUID",
+    "LIBLIB_IMAGE_MODEL",
+    "LIBLIB_MAX_POLLS",
+    "LIBLIB_POLL_INTERVAL_MS",
     "AI_PROVIDER_DEFAULT",
     "AI_PROVIDER_ROLLOUT_MODE",
     "AI_PROVIDER_TIMEOUT_MS",
@@ -35,11 +42,15 @@ test("AI provider environment exposes placeholders without committing secrets", 
   assert.ok(combined.includes("Qwen/Qwen2.5-VL-7B-Instruct"));
   assert.ok(combined.includes("your-image-model"));
   assert.ok(combined.includes("your-video-model"));
+  assert.ok(combined.includes("https://openapi.liblibai.cloud"));
+  assert.ok(combined.includes("liblib-text2img-v1"));
   assert.equal(combined.includes("c83f9e12-0943-4828-8fec-f00ab3b0d0bd"), false);
 
   const env = loadEnvironment();
   assert.equal(env.qwenVisionModel, "Qwen/Qwen2.5-VL-7B-Instruct");
   assert.equal(env.deepseekBaseUrl, "https://api.deepseek.com/v1");
+  assert.equal(env.liblibBaseUrl, "https://openapi.liblibai.cloud");
+  assert.equal(env.liblibImageModel, "liblib-text2img-v1");
   assert.equal(env.aiProviderDefault, "fake_worker");
 });
 
@@ -57,7 +68,7 @@ test("AI Edge Function contains server-only provider actions and no browser-secr
   ]) {
     assert.ok(edgeFunction.includes(action), `AI Edge Function should include ${action}`);
   }
-  for (const provider of ["qwen_vision", "deepseek_text", "qianwen_generation", "fake_worker"]) {
+  for (const provider of ["qwen_vision", "deepseek_text", "qianwen_generation", "liblib_generation", "fake_worker"]) {
     assert.ok(edgeFunction.includes(provider), `AI Edge Function should include ${provider}`);
   }
   assert.ok(edgeFunction.includes("SUPABASE_SERVICE_ROLE_KEY"));
@@ -74,12 +85,40 @@ test("AI Edge Function contains server-only provider actions and no browser-secr
   assert.ok(edgeFunction.includes("multimodal-generation/generation"));
   assert.ok(edgeFunction.includes("video-generation/video-synthesis"));
   assert.ok(edgeFunction.includes("isDashScopeNativeEndpoint"));
+  assert.ok(edgeFunction.includes("LIBLIB_ACCESS_KEY"));
+  assert.ok(edgeFunction.includes("LIBLIB_SECRET_KEY"));
+  assert.ok(edgeFunction.includes("LIBLIB_TEXT2IMG_TEMPLATE_UUID"));
+  assert.ok(edgeFunction.includes("callLiblibGeneration"));
+  assert.ok(edgeFunction.includes("hmacSha1Base64Url"));
+  assert.ok(edgeFunction.includes("/api/generate/webui/text2img"));
+  assert.ok(edgeFunction.includes("/api/generate/webui/status"));
   assert.ok(edgeFunction.includes("请识别这张图片"));
   assert.ok(edgeFunction.includes("提示词增强助手"));
   assert.equal(/(\u7487|\u6d63\u72b3\u69f8|\u9286|\u9417|\u7ec0|\u59b2)/.test(edgeFunction), false);
   assert.equal(edgeFunction.includes("VITE_QWEN"), false);
   assert.equal(edgeFunction.includes("VITE_DEEPSEEK"), false);
   assert.equal(edgeFunction.includes("VITE_QIANWEN"), false);
+});
+
+test("AI Edge Function records jobs and orders before moving credits", () => {
+  const edgeFunction = readFileSync(join(root, "supabase", "functions", "ai", "index.ts"), "utf8");
+  const createGenerationJob = edgeFunction.slice(
+    edgeFunction.indexOf("async function createGenerationJob"),
+    edgeFunction.indexOf("async function processGenerationJob"),
+  );
+  assert.ok(createGenerationJob.includes('.from("generation_jobs").insert(job)'), "generation job should be inserted before credits are charged");
+  assert.ok(createGenerationJob.indexOf('.from("generation_jobs").insert(job)') < createGenerationJob.indexOf("await consumeCredits("));
+  assert.ok(createGenerationJob.includes('status: "failed"'));
+  assert.ok(createGenerationJob.includes("credit_charged: 0"));
+
+  const createDemoCreditPurchase = edgeFunction.slice(
+    edgeFunction.indexOf("async function createDemoCreditPurchase"),
+    edgeFunction.indexOf("async function createShareLink"),
+  );
+  assert.ok(createDemoCreditPurchase.includes('status: "pending"'), "demo order should exist before credits are granted");
+  assert.ok(createDemoCreditPurchase.indexOf('.from("orders").insert') < createDemoCreditPurchase.indexOf('.from("credit_transactions").insert'));
+  assert.ok(createDemoCreditPurchase.includes('status: "fulfilled"'));
+  assert.ok(createDemoCreditPurchase.includes('status: "failed"'));
 });
 
 test("Admin defaults reserve Qwen, DeepSeek, and Qianwen workflows for grey rollout", () => {
@@ -92,9 +131,11 @@ test("Admin defaults reserve Qwen, DeepSeek, and Qianwen workflows for grey roll
     "workflow-deepseek-prompt-v1",
     "workflow-qianwen-image-v1",
     "workflow-qianwen-video-v1",
+    "workflow-liblib-image-v1",
     "qwen_vision",
     "deepseek_text",
     "qianwen_generation",
+    "liblib_generation",
     "fake_worker",
   ]) {
     assert.ok(combined.includes(expected), `Admin defaults should include ${expected}`);
@@ -112,6 +153,7 @@ test("frontend routes generation through AI Edge Function before local fallback"
   assert.ok(appScript.includes("create-share-link"));
   assert.ok(appScript.includes("hydrateRemoteShareByToken"));
   assert.ok(appScript.includes("qianwen_generation"));
+  assert.ok(appScript.includes("liblib_generation"));
   assert.ok(appScript.includes("qwen_vision"));
   assert.ok(appScript.includes("deepseek_text"));
 });

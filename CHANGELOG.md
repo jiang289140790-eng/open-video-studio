@@ -23,6 +23,23 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ## 2026-07-09
 
+### Improved
+
+- Added the local AI Asset MCP foundation for Civitai, Hugging Face, GitHub-reserved workflow discovery, Liblib template calls, local asset downloads, ComfyUI installation, and SQLite inventory tracking.
+- Added `liblib_generation` as a server-side image-generation provider candidate in the Supabase `ai` Edge Function, Admin Tool Catalog defaults, Workflow Center defaults, provider readiness UI, environment templates, and provider configuration tests.
+- Hardened the backend credit/order sequence: generation jobs are inserted before credit debit, failed credit debit marks the job failed with `credit_charged = 0`, and demo credit purchases create a pending order before granting credits and only mark the order fulfilled after the ledger grant succeeds.
+
+### Validation
+
+- Ran `npm run verify:ai-assets`; 6 MCP asset-management tests passed, covering tool registration, Civitai normalization, local download/install/remove loop, ComfyUI directory mapping, Liblib HMAC signing, and secret-free defaults.
+- Ran `npm run test`; production build passed and 66 tests passed, including the new credit/order sequencing guard.
+- Deployed Supabase `ai` Edge Function version `11` and `admin` Edge Function version `7`.
+- Ran `npm run verify:payments`; authenticated demo checkout created a fulfilled order and posted 123 credits, while unauthenticated access failed closed.
+- Ran `npm run verify:admin`; dashboard/user reads, credit adjustment, order update, asset review, share revocation, audit logging, and cleanup passed.
+- Ran `npm run verify:user-loop`; temporary user signup/signin, credit debit, Fake Worker generation, Storage metadata, Gallery/History readback, share link creation, public share readback, and cleanup passed.
+- Ran `npm run verify:ai`; DeepSeek, Fake Worker generation, database persistence, and cancellation refund passed. Qwen Vision currently times out, and Liblib is not configured.
+- Ran `npm run verify:real-ai`; Qianwen still returns `QIANWEN_GENERATION_FAILED / Not Found`, and the 8-credit refund path passed.
+
 ### Fixed
 
 - Rebuilt `apps/web/admin.html` as clean UTF-8 Chinese after detecting a page-level encoding regression in the Admin Console source.

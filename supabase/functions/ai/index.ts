@@ -12,6 +12,7 @@ const corsHeaders = {
 const DEFAULT_QWEN_VISION_ENDPOINT = "https://47-251-244-196.sslip.io/api/ai/vision/analyze";
 const DEFAULT_QWEN_VISION_MODEL = "Qwen/Qwen2.5-VL-7B-Instruct";
 const DEFAULT_DEEPSEEK_BASE_URL = "https://api.deepseek.com/v1";
+const DEFAULT_LIBLIB_BASE_URL = "https://openapi.liblibai.cloud";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -189,9 +190,23 @@ async function createGenerationJob(adminClient: any, env: AiEnv, userId: string,
     updated_at: timestamp,
   };
 
-  await consumeCredits(adminClient, userId, costCredits, job.id, `${mediaType}_generation`);
   const { data, error } = await adminClient.from("generation_jobs").insert(job).select("*").single();
   if (error) throw new AiFunctionError("GENERATION_JOB_CREATE_FAILED", error.message, 502);
+
+  try {
+    await consumeCredits(adminClient, userId, costCredits, job.id, `${mediaType}_generation`);
+  } catch (error) {
+    await updateOwnedJob(adminClient, userId, job.id, {
+      status: "failed",
+      progress: 0,
+      credit_charged: 0,
+      error_code: error instanceof AiFunctionError ? error.code : "CREDITS_CONSUME_FAILED",
+      error_message: error instanceof Error ? error.message : "Credit charge failed.",
+      updated_at: new Date().toISOString(),
+    });
+    throw error;
+  }
+
   return data;
 }
 
@@ -209,7 +224,9 @@ async function processGenerationJob(adminClient: any, env: AiEnv, userId: string
     const provider = String(job.provider || env.aiProviderDefault);
     const result = provider === "qianwen_generation"
       ? await callQianwenGeneration(env, job)
-      : await fakeWorkerResult(job);
+      : provider === "liblib_generation"
+        ? await callLiblibGeneration(env, job)
+        : await fakeWorkerResult(job);
     const durationMs = Date.now() - started;
     const asset = await saveGeneratedAsset(adminClient, env, userId, job, result, durationMs);
     const completed = await updateOwnedJob(adminClient, userId, jobId, {
@@ -303,6 +320,145 @@ async function callQianwenGeneration(env: AiEnv, job: Record<string, any>) {
     outputBase64: data.output_base64 || data.image_base64 || data.video_base64 || data.data?.[0]?.b64_json,
     raw: data,
   };
+}
+
+async function callLiblibGeneration(env: AiEnv, job: Record<string, any>) {
+  if (!env.liblibAccessKey || !env.liblibSecretKey) {
+    throw new AiFunctionError("LIBLIB_NOT_CONFIGURED", "Liblib generation secrets are missing.", 500);
+  }
+  const mediaType = normalizeMediaType(job.media_type);
+  if (mediaType !== "image") {
+    throw new AiFunctionError("LIBLIB_MEDIA_UNSUPPORTED", "Liblib provider currently supports image generation only.", 400);
+  }
+
+  const submitPath = "/api/generate/webui/text2img";
+  const submitData = await callLiblibApi(env, submitPath, liblibTextToImagePayload(env, job));
+  const providerJobId = String(
+    submitData?.data?.generateUuid
+    || submitData?.generateUuid
+    || submitData?.data?.generate_uuid
+    || "",
+  );
+  if (!providerJobId) {
+    throw new AiFunctionError("LIBLIB_GENERATION_FAILED", "Liblib did not return a generateUuid.", 502);
+  }
+
+  const statusPath = "/api/generate/webui/status";
+  const maxPolls = clampNumber(env.liblibMaxPolls, 12, 1, 60);
+  const pollIntervalMs = clampNumber(env.liblibPollIntervalMs, 5000, 1000, 30000);
+  let latest: any = null;
+  for (let index = 0; index < maxPolls; index += 1) {
+    if (index > 0) await sleep(pollIntervalMs);
+    latest = await callLiblibApi(env, statusPath, { generateUuid: providerJobId });
+    const outputUrl = extractLiblibOutputUrl(latest);
+    if (outputUrl) {
+      return { providerJobId, outputUrl, raw: latest };
+    }
+    if (liblibStatusFailed(latest)) {
+      throw new AiFunctionError("LIBLIB_GENERATION_FAILED", liblibStatusMessage(latest), 502);
+    }
+  }
+
+  throw new AiFunctionError("LIBLIB_GENERATION_TIMEOUT", "Liblib generation did not finish before the polling limit.", 504);
+}
+
+function liblibTextToImagePayload(env: AiEnv, job: Record<string, any>) {
+  const size = normalizeLiblibImageSize(job.resolution, job.aspect_ratio);
+  return {
+    templateUuid: env.liblibText2ImageTemplateUuid || job.model || env.liblibImageModel,
+    generateParams: {
+      prompt: String(job.prompt || ""),
+      negativePrompt: String(job.input_params?.negativePrompt || job.input_params?.negative_prompt || ""),
+      steps: clampNumber(job.input_params?.steps, 25, 1, 80),
+      width: size.width,
+      height: size.height,
+      imgCount: clampNumber(job.input_params?.imgCount, 1, 1, 4),
+      seed: Number.isFinite(Number(job.input_params?.seed)) ? Number(job.input_params.seed) : -1,
+      restoreFaces: clampNumber(job.input_params?.restoreFaces, 0, 0, 1),
+    },
+  };
+}
+
+async function callLiblibApi(env: AiEnv, path: string, body: Record<string, unknown>) {
+  const signedUrl = await liblibSignedUrl(env, path);
+  const response = await fetchWithTimeout(signedUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(body),
+  }, env.providerTimeoutMs);
+  const data = await parseProviderResponse(response, "LIBLIB_REQUEST_FAILED");
+  const code = data?.code ?? data?.statusCode;
+  if (code !== undefined && !["0", "200", 0, 200].includes(code)) {
+    throw new AiFunctionError("LIBLIB_REQUEST_FAILED", data?.msg || data?.message || "Liblib request failed.", 502);
+  }
+  return data;
+}
+
+async function liblibSignedUrl(env: AiEnv, path: string) {
+  const timestamp = String(Date.now());
+  const nonce = crypto.randomUUID().replaceAll("-", "");
+  const signature = await hmacSha1Base64Url(env.liblibSecretKey, [path, timestamp, nonce].join("&"));
+  const query = new URLSearchParams({
+    AccessKey: env.liblibAccessKey,
+    Signature: signature,
+    Timestamp: timestamp,
+    SignatureNonce: nonce,
+  });
+  return `${env.liblibBaseUrl.replace(/\/$/, "")}${path}?${query.toString()}`;
+}
+
+async function hmacSha1Base64Url(secret: string, content: string) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-1" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(content));
+  let binary = "";
+  for (const byte of new Uint8Array(signature)) binary += String.fromCharCode(byte);
+  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
+}
+
+function extractLiblibOutputUrl(data: any): string {
+  const root = data?.data ?? data ?? {};
+  const images = root.images || root.imageList || root.outputImages || root.generateImages || root.result?.images || [];
+  const first = Array.isArray(images) ? images[0] : images;
+  return String(
+    first?.imageUrl
+    || first?.url
+    || first?.originImageUrl
+    || first?.previewUrl
+    || root.imageUrl
+    || root.outputUrl
+    || root.result?.imageUrl
+    || "",
+  ).trim();
+}
+
+function liblibStatusFailed(data: any): boolean {
+  const root = data?.data ?? data ?? {};
+  const status = String(root.generateStatus ?? root.status ?? root.state ?? "").toLowerCase();
+  return ["failed", "fail", "error", "timeout", "4", "6", "7"].includes(status);
+}
+
+function liblibStatusMessage(data: any): string {
+  const root = data?.data ?? data ?? {};
+  return String(root.message || root.msg || root.errorMessage || data?.message || "Liblib generation failed.");
+}
+
+function normalizeLiblibImageSize(resolution: unknown, aspectRatio: unknown): { width: number; height: number } {
+  const value = String(resolution || "").trim();
+  const match = value.match(/^(\d+)x(\d+)$/);
+  if (match) return { width: Number(match[1]), height: Number(match[2]) };
+  const ratio = String(aspectRatio || "16:9");
+  if (ratio === "1:1") return { width: 1024, height: 1024 };
+  if (ratio === "9:16") return { width: 768, height: 1344 };
+  return { width: 1344, height: 768 };
 }
 
 function qianwenGenerationEndpoint(env: AiEnv, mediaType: "image" | "video"): string {
@@ -550,6 +706,22 @@ async function createDemoCreditPurchase(adminClient: any, userId: string, body: 
   const timestamp = new Date().toISOString();
   const orderId = createId("order");
   const creditTransactionId = createId("ctx");
+  const orderInsert = await adminClient.from("orders").insert({
+    id: orderId,
+    account_id: userId,
+    user_id: userId,
+    provider_reference: `demo_${method}`,
+    order_type: "credit_purchase",
+    status: "pending",
+    currency,
+    amount_cents: amountCents,
+    credits_granted: credits,
+    credit_transaction_id: null,
+    created_at: timestamp,
+    updated_at: timestamp,
+  }).select("*").single();
+  if (orderInsert.error) throw new AiFunctionError("DEMO_PURCHASE_ORDER_FAILED", orderInsert.error.message, 502);
+
   const creditInsert = await adminClient.from("credit_transactions").insert({
     id: creditTransactionId,
     account_id: userId,
@@ -563,24 +735,22 @@ async function createDemoCreditPurchase(adminClient: any, userId: string, body: 
     reason: "Demo credit purchase fulfilled before real payment gateway is connected",
     created_at: timestamp,
   });
-  if (creditInsert.error) throw new AiFunctionError("DEMO_PURCHASE_CREDIT_FAILED", creditInsert.error.message, 502);
-  const orderInsert = await adminClient.from("orders").insert({
-    id: orderId,
-    account_id: userId,
-    user_id: userId,
-    provider_reference: `demo_${method}`,
-    order_type: "credit_purchase",
+  if (creditInsert.error) {
+    await adminClient.from("orders").update({
+      status: "failed",
+      updated_at: new Date().toISOString(),
+    }).eq("id", orderId).eq("user_id", userId);
+    throw new AiFunctionError("DEMO_PURCHASE_CREDIT_FAILED", creditInsert.error.message, 502);
+  }
+
+  const fulfilled = await adminClient.from("orders").update({
     status: "fulfilled",
-    currency,
-    amount_cents: amountCents,
-    credits_granted: credits,
     credit_transaction_id: creditTransactionId,
-    created_at: timestamp,
-    updated_at: timestamp,
-    completed_at: timestamp,
-  }).select("*").single();
-  if (orderInsert.error) throw new AiFunctionError("DEMO_PURCHASE_ORDER_FAILED", orderInsert.error.message, 502);
-  return orderInsert.data;
+    updated_at: new Date().toISOString(),
+    completed_at: new Date().toISOString(),
+  }).eq("id", orderId).eq("user_id", userId).select("*").single();
+  if (fulfilled.error) throw new AiFunctionError("DEMO_PURCHASE_FULFILL_FAILED", fulfilled.error.message, 502);
+  return fulfilled.data;
 }
 
 async function createShareLink(adminClient: any, userId: string, body: Record<string, unknown>) {
@@ -712,6 +882,7 @@ function providerStatus(env: AiEnv) {
     { provider: "qwen_vision", configured: Boolean(env.qwenVisionSiteApiKey), model: env.qwenVisionModel, endpoint: env.qwenVisionEndpoint },
     { provider: "deepseek_text", configured: Boolean(env.deepseekApiKey), model: env.deepseekModel, endpoint: env.deepseekBaseUrl },
     { provider: "qianwen_generation", configured: Boolean(env.qianwenApiKey && env.qianwenBaseUrl), imageModel: env.qianwenImageModel, videoModel: env.qianwenVideoModel, endpoint: env.qianwenBaseUrl, imageEndpoint: env.qianwenImageEndpoint || "", videoEndpoint: env.qianwenVideoEndpoint || "" },
+    { provider: "liblib_generation", configured: Boolean(env.liblibAccessKey && env.liblibSecretKey && env.liblibText2ImageTemplateUuid), imageModel: env.liblibImageModel, endpoint: env.liblibBaseUrl, templateUuid: env.liblibText2ImageTemplateUuid ? "configured" : "" },
     { provider: "fake_worker", configured: true, model: "local-demo", endpoint: "internal" },
   ];
 }
@@ -809,6 +980,13 @@ function loadAiEnv(): AiEnv {
     qianwenVideoEndpoint: Deno.env.get("QIANWEN_VIDEO_ENDPOINT") ?? "",
     qianwenImageModel: Deno.env.get("QIANWEN_IMAGE_MODEL") || "qianwen-image-v1",
     qianwenVideoModel: Deno.env.get("QIANWEN_VIDEO_MODEL") || "qianwen-video-v1",
+    liblibAccessKey: Deno.env.get("LIBLIB_ACCESS_KEY") ?? "",
+    liblibSecretKey: Deno.env.get("LIBLIB_SECRET_KEY") ?? "",
+    liblibBaseUrl: Deno.env.get("LIBLIB_BASE_URL") || DEFAULT_LIBLIB_BASE_URL,
+    liblibText2ImageTemplateUuid: Deno.env.get("LIBLIB_TEXT2IMG_TEMPLATE_UUID") ?? "",
+    liblibImageModel: Deno.env.get("LIBLIB_IMAGE_MODEL") || "liblib-text2img-v1",
+    liblibMaxPolls: clampNumber(Deno.env.get("LIBLIB_MAX_POLLS"), 12, 1, 60),
+    liblibPollIntervalMs: clampNumber(Deno.env.get("LIBLIB_POLL_INTERVAL_MS"), 5000, 1000, 30000),
     aiProviderDefault: safeProvider(Deno.env.get("AI_PROVIDER_DEFAULT")) || "fake_worker",
     providerTimeoutMs: clampNumber(Deno.env.get("AI_PROVIDER_TIMEOUT_MS"), 60000, 5000, 180000),
   };
@@ -820,11 +998,12 @@ function normalizeMediaType(value: unknown): "image" | "video" {
 
 function safeProvider(value: unknown): string {
   const provider = String(value || "").trim();
-  return ["qwen_vision", "deepseek_text", "qianwen_generation", "fake_worker", "local_api"].includes(provider) ? provider : "";
+  return ["qwen_vision", "deepseek_text", "qianwen_generation", "liblib_generation", "fake_worker", "local_api"].includes(provider) ? provider : "";
 }
 
 function defaultModel(env: AiEnv, mediaType: "image" | "video", provider: string) {
   if (provider === "qianwen_generation") return mediaType === "image" ? env.qianwenImageModel : env.qianwenVideoModel;
+  if (provider === "liblib_generation") return env.liblibImageModel;
   return mediaType === "image" ? "local-image-v0" : "local-video-v0";
 }
 
@@ -861,6 +1040,10 @@ function createShareToken(): string {
   return `s_${crypto.randomUUID().replaceAll("-", "").slice(0, 24)}`;
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function json(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload), {
     status,
@@ -891,6 +1074,13 @@ interface AiEnv {
   qianwenVideoEndpoint: string;
   qianwenImageModel: string;
   qianwenVideoModel: string;
+  liblibAccessKey: string;
+  liblibSecretKey: string;
+  liblibBaseUrl: string;
+  liblibText2ImageTemplateUuid: string;
+  liblibImageModel: string;
+  liblibMaxPolls: number;
+  liblibPollIntervalMs: number;
   aiProviderDefault: string;
   providerTimeoutMs: number;
 }

@@ -3549,7 +3549,7 @@ function renderAdminSystemReadiness(aiProviders = [], providerError = "", oauthP
         </article>
       `;
     }).join("")}
-    <article class="admin-row muted-row"><div><strong>AI Provider 实时状态</strong><p>后台轻量探测 Qwen Vision / DeepSeek；真实千问生成请使用 npm run verify:real-ai 做成本受控的生产探针。</p></div></article>
+    <article class="admin-row muted-row"><div><strong>AI Provider 实时状态</strong><p>后台轻量探测 Qwen Vision / DeepSeek；真实千问和 Liblib 生成请使用成本受控的生产探针。</p></div></article>
     ${providerRows}
   `;
 }
@@ -3569,6 +3569,9 @@ function providerReadinessDetail(provider) {
       ? "已配置显式图片/视频 endpoint。"
       : "未配置显式 endpoint，将从 QIANWEN_BASE_URL 推导 DashScope / OpenAI-compatible 路径。";
     return `Secret 已配置 · ${probe.message || "等待真实生成探针"} · ${endpointHint} 若真实生成返回 Not Found，请检查 Supabase Secrets 的 QIANWEN_IMAGE_ENDPOINT。`;
+  }
+  if (providerName === "liblib_generation") {
+    return `Secret 已配置 · ${probe.message || "等待真实生成探针"} · 需要同时配置 LIBLIB_TEXT2IMG_TEMPLATE_UUID 后才能提交文生图任务。`;
   }
   if (providerName === "fake_worker") return "内部兜底可用，不产生真实 AI 成本。";
   return probe.message ? `Secret 已配置 · 状态：${probe.message}` : "Secret 已配置，尚未运行实时验证。";
@@ -4023,6 +4026,7 @@ function applyWorkflowSwitch(config, change) {
 function workflowModelsForProvider(provider, outputType, fallback = []) {
   if (provider === "fake_worker") return [outputType === "video" ? "local-video-v0" : outputType === "text" ? "local-text-v0" : "local-image-v0"];
   if (provider === "qianwen_generation") return [outputType === "video" ? "qianwen-video-v1" : "qianwen-image-v1"];
+  if (provider === "liblib_generation") return ["liblib-text2img-v1"];
   if (provider === "deepseek_text") return ["deepseek-chat"];
   if (provider === "qwen_vision") return ["Qwen/Qwen2.5-VL-7B-Instruct"];
   return Array.isArray(fallback) && fallback.length ? fallback : [provider];
@@ -4033,6 +4037,9 @@ function workflowDescriptionForProvider(provider, outputType, fallback = "") {
   if (provider === "qianwen_generation") return outputType === "video"
     ? "灰度到千问视频生成：任务失败时标记 failed，并通过积分账本退款。"
     : "灰度到千问图片生成：任务失败时标记 failed，并通过积分账本退款。";
+  if (provider === "liblib_generation") return outputType === "image"
+    ? "灰度到 Liblib 文生图：任务失败或超时时标记 failed，并通过积分账本退款。"
+    : "Liblib 当前仅接入图片生成，视频工作流请继续使用其他 provider。";
   if (provider === "deepseek_text") return "使用 DeepSeek 做提示词增强、中文文案和运营文案，不直接生成资产。";
   if (provider === "qwen_vision") return "使用 Qwen Vision 做上传图片识别、标签、风险和可复用 prompt 建议。";
   return fallback || "预留真实 provider 工作流，启用前需要先完成 Edge Function 适配和密钥配置。";
@@ -4143,7 +4150,7 @@ function renderToolCatalogVisualEditor(config) {
       <label><span>工具名称</span><input data-tool-name value="${escapeHtml(tool.name)}"></label>
       <label><span>分类</span><select data-tool-category>${optionMarkup(["image", "video", "character", "asset", "prompt"], tool.category)}</select></label>
       <label><span>状态</span><select data-tool-status>${optionMarkup(["published", "draft", "hidden"], tool.status)}</select></label>
-      <label><span>服务商</span><select data-tool-provider>${optionMarkup(["fake_worker", "qwen_vision", "deepseek_text", "qianwen_generation", "openai", "gemini", "fal", "replicate", "comfyui", "runpod", "local_api"], tool.provider)}</select></label>
+      <label><span>服务商</span><select data-tool-provider>${optionMarkup(["fake_worker", "qwen_vision", "deepseek_text", "qianwen_generation", "liblib_generation", "openai", "gemini", "fal", "replicate", "comfyui", "runpod", "local_api"], tool.provider)}</select></label>
       <label><span>模型 / 工作流</span><input data-tool-model value="${escapeHtml(tool.model)}"></label>
       <label><span>绑定 Workflow</span><input data-tool-workflow value="${escapeHtml(tool.workflowId)}"></label>
       <label><span>积分价格</span><input data-tool-cost type="number" min="0" max="999" value="${tool.creditCost}"></label>
@@ -4344,7 +4351,7 @@ function renderAdminWorkflowSwitchboard(config, aiProviders = []) {
   const actor = adminData?.actor || {};
   const canWrite = actor.role === "admin";
   const workflows = normalizeWorkflowCenterConfig(config).workflows;
-  const providerOptions = ["fake_worker", "qianwen_generation", "deepseek_text", "qwen_vision"];
+  const providerOptions = ["fake_worker", "qianwen_generation", "liblib_generation", "deepseek_text", "qwen_vision"];
   target.innerHTML = workflows.length ? workflows.map((workflow) => {
     const providerStatus = Array.isArray(aiProviders) ? aiProviders.find((item) => item.provider === workflow.provider) : null;
     const blocked = providerStatus?.configured === false || providerStatus?.probe?.ok === false;
@@ -4379,6 +4386,7 @@ function workflowProviderLabel(provider) {
   return {
     fake_worker: "回滚 Fake",
     qianwen_generation: "切千问",
+    liblib_generation: "切 Liblib",
     deepseek_text: "切 DeepSeek",
     qwen_vision: "切 Qwen"
   }[provider] || provider;
@@ -4426,6 +4434,9 @@ function workflowRolloutHint(workflow, aiProviders = []) {
   }
   if (workflow.provider === "qianwen_generation") {
     return "真实生成候选：此 Workflow 会尝试走千问图片/视频 provider，失败时任务会标记 failed 并自动退款。";
+  }
+  if (workflow.provider === "liblib_generation") {
+    return "真实生成候选：此 Workflow 会尝试走 Liblib 文生图 provider，失败或超时时任务会标记 failed 并自动退款。";
   }
   if (workflow.provider === "fake_worker") {
     return "安全回滚：此 Workflow 会走 Fake Worker，适合演示、灰度和供应商异常时回退。";
