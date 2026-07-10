@@ -50,13 +50,19 @@ Validate OAuth launch readiness without redirecting the browser:
 npm run verify:oauth
 ```
 
+Validate the password auth loop used for small user testing:
+
+```bash
+npm run verify:auth-basic
+```
+
 Validate the whole MVP launch gate:
 
 ```bash
 npm run verify:mvp
 ```
 
-`verify:mvp` treats OAuth as required for small user testing. It also reports whether credits, generation, sharing, Admin operations, and AI fallback health are green, so operators can distinguish a login blocker from unrelated provider rollout blockers.
+`verify:mvp` treats email/password auth, credits, generation/sharing, and Admin operations as required for small user testing. Social OAuth remains a formal launch-readiness blocker, but it does not block the first controlled test cohort while the email/password path is available. The report also surfaces AI fallback health and optional real external AI provider readiness.
 
 The OAuth verifier creates Supabase authorization URLs for Google, X/Twitter, and Discord, then probes the Supabase authorization endpoint without following the browser redirect. It also checks whether the Telegram Login Widget public values are present. It does not print provider secrets.
 
@@ -132,6 +138,7 @@ Set the production Site URL:
 
 - `npm run verify:supabase` returns `ok: true`.
 - `npm run verify:production-config` returns `ok: true`.
+- `npm run verify:auth-basic` returns `ok: true`.
 - `npm run verify:oauth` returns reachable authorization redirects for Google, X/Twitter, and Discord.
 - GitHub Pages build has `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
 - Sign-in page OAuth readiness shows Google, X, and Discord as ready.
@@ -142,6 +149,7 @@ Set the production Site URL:
 As of 2026-07-10:
 
 - `npm run verify:mvp` confirms the credits loop, user generation/assets/history/share loop, and Admin operations loop are working in production.
+- `npm run verify:auth-basic` confirms password signin, session restore, signout, and cleanup. Public signup is currently hitting Supabase email rate limits, so the verifier uses a temporary admin-created test user fallback to prove the login/session loop.
 - Google, X/Twitter, and Discord can create Supabase OAuth authorization URLs from local configuration, but Supabase currently returns `Unsupported provider: provider is not enabled` when the verifier probes the provider authorization endpoints.
 - Telegram is not complete until `VITE_TELEGRAM_BOT_USERNAME` and `VITE_TELEGRAM_AUTH_URL` are configured with a trusted backend hash-verification endpoint.
 - The frontend social-login buttons are present; remaining OAuth work is Supabase Auth Provider enablement and provider-dashboard credentials.

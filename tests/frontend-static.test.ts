@@ -112,8 +112,10 @@ describe("MVP static frontend", () => {
     assert.equal(signin.includes("GitHub"), false);
     assert.equal(signin.includes("Apple"), false);
     assert.ok(signin.includes("登录"));
-    assert.equal(signin.includes("data-auth-email"), false);
-    assert.equal(signin.includes("data-auth-password"), false);
+    assert.equal(signin.includes("data-auth-email"), true);
+    assert.equal(signin.includes("data-auth-password"), true);
+    assert.equal(signin.includes("data-email-auth=\"signin\""), true);
+    assert.equal(signin.includes("data-email-auth=\"signup\""), true);
   });
 
   it("contains working MVP hooks for the target-site-style product loop", () => {

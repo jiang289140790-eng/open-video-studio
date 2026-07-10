@@ -817,6 +817,7 @@ renderOAuthReadiness();
 renderToolHomeDirectory();
 renderCookieBanner();
 hydrateAuthSession();
+bindSupabaseAuthState();
 
 function injectTopNavigation() {
   const topnav = document.querySelector(".topnav");
@@ -1381,6 +1382,31 @@ async function hydrateAuthSession() {
   } else {
     renderState(state);
   }
+}
+
+function bindSupabaseAuthState() {
+  if (!supabase || window.__ovsAuthStateBound) return;
+  window.__ovsAuthStateBound = true;
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === "SIGNED_OUT") {
+      state.user = null;
+      saveState(state);
+      renderState(state);
+      return;
+    }
+    if (session?.user) {
+      state.user = {
+        id: session.user.id,
+        name: String(session.user.user_metadata?.display_name || session.user.email || "创作者"),
+        email: session.user.email || "",
+        provider: "supabase",
+        createdAt: session.user.created_at || new Date().toISOString()
+      };
+      await syncRemoteProductData();
+      saveState(state);
+      renderState(state);
+    }
+  });
 }
 
 async function syncRemoteProductData() {
@@ -2327,6 +2353,13 @@ document.querySelectorAll("[data-email-auth]").forEach((button) => {
     }
     showAuthMessage(mode === "signup" ? "账户已创建。如开启邮箱验证，请检查邮件。" : "登录成功。", "success");
     window.location.href = "./zh/dashboard/";
+  });
+});
+
+document.querySelectorAll("[data-email-auth-form]").forEach((form) => {
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    form.querySelector('[data-email-auth="signin"]')?.click();
   });
 });
 

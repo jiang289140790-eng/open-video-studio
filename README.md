@@ -91,13 +91,19 @@ Validate the MVP Admin backend after applying the Supabase migration and deployi
 npm run verify:admin
 ```
 
+Validate the basic Supabase login loop used for small user testing:
+
+```bash
+npm run verify:auth-basic
+```
+
 Run the full MVP readiness gate for the four production loops:
 
 ```bash
 npm run verify:mvp
 ```
 
-This orchestrates OAuth readiness, demo credit purchase, user generation / asset / history / share, Admin operations, and AI fallback health. Use the cost-bearing real provider probe only when intentionally testing external generation:
+This orchestrates email/password auth, OAuth readiness reporting, demo credit purchase, user generation / asset / history / share, Admin operations, and AI fallback health. Email/password auth is the small-test login gate; social OAuth remains a launch-readiness blocker until providers are configured. Use the cost-bearing real provider probe only when intentionally testing external generation:
 
 ```bash
 npm run verify:mvp -- --real-ai

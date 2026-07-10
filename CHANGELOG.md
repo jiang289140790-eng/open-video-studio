@@ -25,12 +25,15 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
-- Added `npm run verify:mvp`, a consolidated production readiness gate for the four MVP loops: real login readiness, credit purchase/ledger, user generation-to-share loop, and Admin operations. It also reports AI fallback/provider health and can optionally include the cost-bearing real provider probe via `-- --real-ai`.
+- Added `npm run verify:auth-basic`, a real Supabase email/password auth verifier for signup, signin, session restore, signout, and cleanup. When public signup is rate-limited, it uses a service-role test-user fallback so the login/session loop can still be verified without exposing secrets to the frontend.
+- Added email/password fallback controls to the sign-in page so small user testing is not blocked while Google, X/Twitter, Telegram, and Discord provider setup is still pending.
+- Updated `npm run verify:mvp`, the consolidated production readiness gate for the four MVP loops. It now treats email/password auth, credit purchase/ledger, user generation-to-share, and Admin operations as the small-user-test gate, while social OAuth and external real AI providers remain reported launch blockers.
 
 ### Validation
 
+- Ran `npm run verify:auth-basic`; Supabase password signin, session restore, signout, and cleanup passed. Public signup currently returned `email rate limit exceeded`, so the verifier used its admin-created temporary user fallback.
+- Ran `npm run verify:mvp`; `readyForSmallUserTesting` returned `true`. Required loops passed: email/password login, credits/order ledger, user generation to Gallery/History/Share, and Admin operations. Optional launch blockers remain: Google/X/Discord providers are not enabled in Supabase, Telegram config is missing, and Qwen Vision times out.
 - Ran `npm run test`; production build passed and 66 tests passed.
-- Ran `npm run verify:mvp`; the credits, user generation/assets/history/share, and Admin operations loops passed. The report correctly blocks small user testing on OAuth provider enablement because Google, X/Twitter, and Discord are not enabled in Supabase and Telegram public auth values are missing. AI fallback health passed for DeepSeek/Fake Worker generation and refund persistence, while Qwen Vision still times out and Liblib remains unconfigured.
 
 ## 2026-07-09
 

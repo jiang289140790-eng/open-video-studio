@@ -171,6 +171,7 @@ test("production verification scripts cover OAuth and AI function health", () =>
   const deployFunctionScript = readFileSync(join(root, "scripts", "deploy-supabase-function.mjs"), "utf8");
 
   assert.ok(packageJson.includes("verify:oauth"));
+  assert.ok(packageJson.includes("verify:auth-basic"));
   assert.ok(packageJson.includes("verify:ai"));
   assert.ok(packageJson.includes("verify:workflow"));
   assert.ok(packageJson.includes("verify:user-loop"));
@@ -231,10 +232,10 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(realAiScript.includes("refund"));
   assert.ok(realAiScript.includes("media_assets"));
   assert.ok(realAiScript.includes("SUPABASE_SERVICE_ROLE_KEY"));
-  for (const loopName of ["真实登录闭环", "真实积分闭环", "用户生成资产闭环", "后台运营闭环"]) {
+  for (const loopName of ["Real login loop", "Real credits loop", "User generation asset loop", "Admin operations loop"]) {
     assert.ok(mvpReadinessScript.includes(loopName), `MVP readiness script should include ${loopName}`);
   }
-  for (const scriptName of ["verify:oauth", "verify:payments", "verify:user-loop", "verify:admin", "verify:ai", "verify:real-ai"]) {
+  for (const scriptName of ["verify:auth-basic", "verify:oauth", "verify:payments", "verify:user-loop", "verify:admin", "verify:ai", "verify:real-ai"]) {
     assert.ok(mvpReadinessScript.includes(scriptName), `MVP readiness script should orchestrate ${scriptName}`);
   }
   assert.ok(mvpReadinessScript.includes("readyForSmallUserTesting"));
@@ -252,3 +253,4 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(deployFunctionScript.includes("/functions/deploy?slug="));
   assert.equal(deployFunctionScript.includes("console.log(accessToken"), false);
 });
+
