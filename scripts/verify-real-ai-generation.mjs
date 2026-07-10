@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { deflateSync } from "node:zlib";
 import { createClient } from "@supabase/supabase-js";
 
 const env = loadEnv(resolve(process.cwd(), ".env.local"));
@@ -58,6 +59,7 @@ const report = {
     storageKey: "",
     providerRecorded: "",
     modelRecorded: "",
+    referenceImageStorageKey: "",
     errorCode: "",
     errorMessage: "",
   },
@@ -71,6 +73,7 @@ const report = {
 };
 
 let userId = "";
+let referenceStorageKey = "";
 
 try {
   const created = await adminClient.auth.admin.createUser({
@@ -105,6 +108,8 @@ try {
   });
   report.generation.creditsGranted = Boolean(order.order?.id);
 
+  const sourceImageUrl = mode === "video" ? await createReferenceImageUrl() : "";
+
   const createdJob = await invokeAi(accessToken, {
     action: "create-generation-job",
     mediaType: mode,
@@ -114,6 +119,7 @@ try {
     prompt,
     aspectRatio: "16:9",
     durationSeconds: mode === "video" ? 6 : undefined,
+    sourceImageUrl: sourceImageUrl || undefined,
   });
   report.generation.jobCreated = Boolean(createdJob.job?.id);
   report.generation.jobId = String(createdJob.job?.id || "");
@@ -229,6 +235,9 @@ async function cleanup(id) {
   if (storageKeys.length > 0) {
     await adminClient.storage.from(bucket).remove(storageKeys);
   }
+  if (referenceStorageKey) {
+    await adminClient.storage.from(bucket).remove([referenceStorageKey]);
+  }
   await adminClient.from("share_links").delete().eq("owner_user_id", id);
   await adminClient.from("media_assets").delete().eq("owner_user_id", id);
   await adminClient.from("generation_jobs").delete().eq("user_id", id);
@@ -237,6 +246,76 @@ async function cleanup(id) {
   await adminClient.from("profiles").delete().eq("id", id);
   await adminClient.auth.admin.deleteUser(id);
   return true;
+}
+
+async function createReferenceImageUrl() {
+  const bucket = env.SUPABASE_STORAGE_BUCKET || "open-video-studio-assets";
+  referenceStorageKey = `verification/real-ai/${suffix}/reference.png`;
+  report.generation.referenceImageStorageKey = referenceStorageKey;
+  const png = createSolidPng(256, 256);
+  const upload = await adminClient.storage.from(bucket).upload(referenceStorageKey, png, {
+    contentType: "image/png",
+    upsert: true,
+  });
+  if (upload.error) throw new Error(`reference image upload failed: ${upload.error.message}`);
+  const signed = await adminClient.storage.from(bucket).createSignedUrl(referenceStorageKey, 3600);
+  if (signed.error || !signed.data?.signedUrl) throw new Error(`reference image signed URL failed: ${signed.error?.message || "missing signed URL"}`);
+  return signed.data.signedUrl;
+}
+
+function createSolidPng(width, height) {
+  const header = Buffer.alloc(8);
+  header.writeUInt32BE(0x89504e47, 0);
+  header.writeUInt32BE(0x0d0a1a0a, 4);
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(width, 0);
+  ihdr.writeUInt32BE(height, 4);
+  ihdr[8] = 8;
+  ihdr[9] = 2;
+  ihdr[10] = 0;
+  ihdr[11] = 0;
+  ihdr[12] = 0;
+  const raw = Buffer.alloc((width * 3 + 1) * height);
+  for (let y = 0; y < height; y += 1) {
+    const row = y * (width * 3 + 1);
+    raw[row] = 0;
+    for (let x = 0; x < width; x += 1) {
+      const offset = row + 1 + x * 3;
+      raw[offset] = 38 + Math.floor((x / width) * 80);
+      raw[offset + 1] = 88 + Math.floor((y / height) * 90);
+      raw[offset + 2] = 180;
+    }
+  }
+  return Buffer.concat([
+    header,
+    pngChunk("IHDR", ihdr),
+    pngChunk("IDAT", deflateSync(raw)),
+    pngChunk("IEND", Buffer.alloc(0)),
+  ]);
+}
+
+function pngChunk(type, data) {
+  const typeBuffer = Buffer.from(type, "ascii");
+  const length = Buffer.alloc(4);
+  length.writeUInt32BE(data.length, 0);
+  const crc = Buffer.alloc(4);
+  crc.writeUInt32BE(crc32(Buffer.concat([typeBuffer, data])), 0);
+  return Buffer.concat([length, typeBuffer, data, crc]);
+}
+
+function crc32(buffer) {
+  const table = Array.from({ length: 256 }, (_, index) => {
+    let value = index;
+    for (let bit = 0; bit < 8; bit += 1) {
+      value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+    }
+    return value >>> 0;
+  });
+  let value = 0xffffffff;
+  for (const byte of buffer) {
+    value = table[(value ^ byte) & 0xff] ^ (value >>> 8);
+  }
+  return (value ^ 0xffffffff) >>> 0;
 }
 
 function loadEnv(path) {

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.90.0 |
+| Version | 0.91.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -22,6 +22,8 @@ Provide the navigation map for the Open Video Studio knowledge base.
 ## Current Implementation Notes
 
 - MVP readiness now has a consolidated gate. `npm run verify:mvp` orchestrates basic email/password auth, OAuth readiness, demo credit purchase, user generation/assets/history/share, Admin operations, and AI fallback health; `npm run verify:mvp -- --real-ai` adds the cost-bearing real provider probe. Small user testing is gated by email/password auth plus credits, generation/share, and Admin operations. Social OAuth and external real AI providers remain launch blockers until their provider credentials and endpoints are green.
+- The real Qianwen video generation loop now has production evidence. `npm run verify:real-ai -- --video` uploads a temporary reference image, creates an authenticated `wan2.7-i2v-2026-04-25` job, waits for the real provider task, stores the returned MP4 in Supabase Storage, creates a media asset, and cleans up verification records.
+- Qianwen real generation support now distinguishes OpenAI-compatible `/compatible-mode/v1` bases from DashScope native `/api/v1/services/aigc/...` endpoints, retries safe same-base endpoint candidates after `404` or incompatible `stream=False` responses, and can poll native async `task_id` responses until a media output is available. New `QIANWEN_MAX_POLLS` and `QIANWEN_POLL_INTERVAL_MS` settings make real video generation waits configurable without frontend changes.
 - Admin System Configuration now includes a Provider Fix Checklist for real AI rollout. It turns current provider blockers into operator actions for Qianwen image/video endpoints and models, Qwen Vision site API key, Liblib template UUID, and the matching `npm run verify:real-ai` image/video probes.
 - Real generation verification now has explicit image and video paths. `npm run verify:real-ai` probes the Qianwen image workflow, while `npm run verify:real-ai -- --video` probes the Qianwen video workflow, job charging, asset persistence, and failure-refund behavior when the external provider fails.
 - Generated media storage now preserves real provider outputs. The Supabase `ai` Edge Function stores provider URL/base64 outputs as binary image/video objects in Supabase Storage, while retaining JSON metadata fallback for Fake Worker and metadata-only probe flows.

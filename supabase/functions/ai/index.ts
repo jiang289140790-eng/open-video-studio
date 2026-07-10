@@ -167,6 +167,7 @@ async function createGenerationJob(adminClient: any, env: AiEnv, userId: string,
     input_params: {
       prompt,
       sourceAssetId: body.sourceAssetId ?? null,
+      sourceImageUrl: body.sourceImageUrl ?? null,
       characterId: body.characterId ?? null,
       aspectRatio: body.aspectRatio ?? "16:9",
       resolution: body.resolution ?? null,
@@ -302,24 +303,80 @@ async function callQianwenGeneration(env: AiEnv, job: Record<string, any>) {
   const mediaType = normalizeMediaType(job.media_type);
   const model = job.model || defaultModel(env, mediaType, "qianwen_generation");
   const endpoint = qianwenGenerationEndpoint(env, mediaType);
-  const isDashScopeNative = isDashScopeNativeEndpoint(endpoint);
-  const response = await fetchWithTimeout(endpoint, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.qianwenApiKey}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      ...(isDashScopeNative && mediaType === "video" ? { "X-DashScope-Async": "enable" } : {}),
-    },
-    body: JSON.stringify(qianwenGenerationPayload(model, mediaType, job, isDashScopeNative)),
-  }, env.providerTimeoutMs);
-  const data = await parseProviderResponse(response, "QIANWEN_GENERATION_FAILED");
+  const submitted = await submitQianwenGeneration(env, endpoint, model, mediaType, job);
+  const data = submitted.data;
+  const providerJobId = extractQianwenProviderJobId(data, job.id);
+  const outputUrl = extractQianwenOutputUrl(data);
+  const outputBase64 = extractQianwenOutputBase64(data);
+  if (submitted.isDashScopeNative && providerJobId && !outputUrl && !outputBase64) {
+    const completed = await pollQianwenTask(env, submitted.endpoint, providerJobId, mediaType);
+    return {
+      providerJobId,
+      outputUrl: extractQianwenOutputUrl(completed),
+      outputBase64: extractQianwenOutputBase64(completed),
+      raw: { endpoint: submitted.endpoint, submit: data, result: completed },
+    };
+  }
   return {
-    providerJobId: data.id || data.job_id || data.output?.task_id || data.providerJobId || `qianwen_${job.id}`,
-    outputUrl: data.output_url || data.url || data.image_url || data.video_url || data.output?.choices?.[0]?.message?.content?.find?.((item: Record<string, unknown>) => item.image)?.image || data.output?.video_url || data.data?.[0]?.url,
-    outputBase64: data.output_base64 || data.image_base64 || data.video_base64 || data.data?.[0]?.b64_json,
-    raw: data,
+    providerJobId,
+    outputUrl,
+    outputBase64,
+    raw: { endpoint: submitted.endpoint, response: data },
   };
+}
+
+async function submitQianwenGeneration(env: AiEnv, endpoint: string, model: string, mediaType: "image" | "video", job: Record<string, any>) {
+  const candidates = qianwenGenerationEndpointCandidates(env, mediaType, endpoint);
+  let lastError: unknown = null;
+  for (const candidate of candidates) {
+    const isDashScopeNative = isDashScopeNativeEndpoint(candidate);
+    try {
+      const response = await fetchWithTimeout(candidate, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${env.qianwenApiKey}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          ...(isDashScopeNative && mediaType === "video" ? { "X-DashScope-Async": "enable" } : {}),
+        },
+        body: JSON.stringify(qianwenGenerationPayload(model, mediaType, job, isDashScopeNative, candidate)),
+      }, env.providerTimeoutMs);
+      const data = await parseProviderResponse(response, "QIANWEN_GENERATION_FAILED");
+      return { endpoint: candidate, isDashScopeNative, data };
+    } catch (error) {
+      lastError = error;
+      const status = error instanceof AiFunctionError ? error.status : 0;
+      const message = error instanceof Error ? error.message.toLowerCase() : "";
+      const retryableCandidateError = status === 404 || message.includes("stream=false") || message.includes("stream false");
+      if (!retryableCandidateError) throw error;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new AiFunctionError("QIANWEN_GENERATION_FAILED", "Qianwen generation endpoint was not found.", 404);
+}
+
+async function pollQianwenTask(env: AiEnv, generationEndpoint: string, taskId: string, mediaType: "image" | "video") {
+  const statusEndpoint = qianwenTaskStatusEndpoint(env, generationEndpoint, taskId);
+  const maxPolls = clampNumber(Deno.env.get("QIANWEN_MAX_POLLS"), mediaType === "video" ? 24 : 12, 1, 80);
+  const pollIntervalMs = clampNumber(Deno.env.get("QIANWEN_POLL_INTERVAL_MS"), mediaType === "video" ? 5000 : 3000, 1000, 30000);
+  let latest: any = null;
+  for (let index = 0; index < maxPolls; index += 1) {
+    if (index > 0) await sleep(pollIntervalMs);
+    const response = await fetchWithTimeout(statusEndpoint, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${env.qianwenApiKey}`,
+        Accept: "application/json",
+      },
+    }, env.providerTimeoutMs);
+    latest = await parseProviderResponse(response, "QIANWEN_TASK_STATUS_FAILED");
+    const outputUrl = extractQianwenOutputUrl(latest);
+    const outputBase64 = extractQianwenOutputBase64(latest);
+    if (outputUrl || outputBase64) return latest;
+    if (qianwenTaskFailed(latest)) {
+      throw new AiFunctionError("QIANWEN_GENERATION_FAILED", qianwenTaskMessage(latest), 502);
+    }
+  }
+  throw new AiFunctionError("QIANWEN_GENERATION_TIMEOUT", `Qianwen task ${taskId} did not finish before the polling limit.`, 504);
 }
 
 async function callLiblibGeneration(env: AiEnv, job: Record<string, any>) {
@@ -466,6 +523,9 @@ function qianwenGenerationEndpoint(env: AiEnv, mediaType: "image" | "video"): st
   if (explicit) return explicit;
   const base = env.qianwenBaseUrl.replace(/\/$/, "");
   if (/\/(generations|image-synthesis|video-synthesis)$/i.test(base) || base.includes("/services/")) return base;
+  if (isOpenAiCompatibleQianwenBase(base)) {
+    return mediaType === "image" ? `${base}/images/generations` : `${base}/videos/generations`;
+  }
   if (base.includes("dashscope") || base.includes("maas.aliyuncs.com") || /\/api\/v1$/i.test(base)) {
     const apiBase = /\/api\/v1$/i.test(base) ? base : `${base}/api/v1`;
     return mediaType === "image"
@@ -475,9 +535,76 @@ function qianwenGenerationEndpoint(env: AiEnv, mediaType: "image" | "video"): st
   return mediaType === "image" ? `${base}/images/generations` : `${base}/videos/generations`;
 }
 
-function qianwenGenerationPayload(model: string, mediaType: "image" | "video", job: Record<string, any>, dashScopeNative: boolean) {
+function qianwenGenerationEndpointCandidates(env: AiEnv, mediaType: "image" | "video", primary: string): string[] {
+  const base = env.qianwenBaseUrl.replace(/\/$/, "");
+  const roots = qianwenEndpointRoots(base, primary);
+  const candidates = [primary];
+  for (const root of roots) {
+    const openAiBase = `${root}/compatible-mode/v1`;
+    const nativeBase = `${root}/api/v1`;
+    if (mediaType === "image") {
+      candidates.push(
+        `${nativeBase}/services/aigc/multimodal-generation/generation`,
+        `${nativeBase}/services/aigc/text2image/image-synthesis`,
+        `${openAiBase}/images/generations`,
+      );
+    } else {
+      candidates.push(
+        `${nativeBase}/services/aigc/video-generation/video-synthesis`,
+        `${openAiBase}/videos/generations`,
+      );
+    }
+  }
+  return [...new Set(candidates.map((item) => item.replace(/([^:]\/)\/+/g, "$1")))];
+}
+
+function qianwenEndpointRoots(...values: string[]): string[] {
+  const roots: string[] = [];
+  for (const value of values) {
+    const cleaned = String(value || "").replace(/\/$/, "");
+    if (!cleaned) continue;
+    const root = cleaned
+      .replace(/\/compatible-mode\/v1(?:\/.*)?$/i, "")
+      .replace(/\/openai\/v1(?:\/.*)?$/i, "")
+      .replace(/\/api\/v1(?:\/.*)?$/i, "")
+      .replace(/\/images\/generations$/i, "")
+      .replace(/\/videos\/generations$/i, "");
+    if (/^https?:\/\//i.test(root)) roots.push(root);
+  }
+  return [...new Set(roots)];
+}
+
+function qianwenTaskStatusEndpoint(env: AiEnv, generationEndpoint: string, taskId: string): string {
+  const explicitBase = env.qianwenBaseUrl.replace(/\/$/, "");
+  const nativeApiBase = generationEndpoint.includes("/api/v1/")
+    ? generationEndpoint.split("/api/v1/")[0] + "/api/v1"
+    : explicitBase.endsWith("/api/v1")
+      ? explicitBase
+      : `${explicitBase}/api/v1`;
+  return `${nativeApiBase}/tasks/${encodeURIComponent(taskId)}`;
+}
+
+function isOpenAiCompatibleQianwenBase(base: string): boolean {
+  return /\/compatible-mode\/v1$/i.test(base) || /\/openai\/v1$/i.test(base) || /\/v1$/i.test(base) && !base.includes("/api/v1");
+}
+
+function qianwenGenerationPayload(model: string, mediaType: "image" | "video", job: Record<string, any>, dashScopeNative: boolean, endpoint = "") {
   if (dashScopeNative) {
     if (mediaType === "image") {
+      if (endpoint.includes("/text2image/image-synthesis")) {
+        return {
+          model,
+          input: {
+            prompt: String(job.prompt || ""),
+          },
+          parameters: {
+            prompt_extend: true,
+            watermark: false,
+            n: 1,
+            size: normalizeDashScopeImageSize(job.resolution, job.aspect_ratio),
+          },
+        };
+      }
       return {
         model,
         input: {
@@ -537,7 +664,73 @@ function qianwenGenerationPayload(model: string, mediaType: "image" | "video", j
 }
 
 function isDashScopeNativeEndpoint(endpoint: string): boolean {
+  if (endpoint.includes("/compatible-mode/") || endpoint.includes("/openai/")) return false;
   return endpoint.includes("/api/v1/services/aigc/") || endpoint.includes("dashscope") || endpoint.includes("maas.aliyuncs.com");
+}
+
+function extractQianwenProviderJobId(data: any, fallbackId: unknown): string {
+  return String(
+    data?.id
+    || data?.job_id
+    || data?.task_id
+    || data?.output?.task_id
+    || data?.output?.taskId
+    || data?.providerJobId
+    || data?.request_id
+    || `qianwen_${fallbackId}`,
+  );
+}
+
+function extractQianwenOutputUrl(data: any): string {
+  const messageContent = data?.output?.choices?.[0]?.message?.content;
+  const generatedContent = Array.isArray(messageContent)
+    ? messageContent.find((item: Record<string, unknown>) => item?.image || item?.video)
+    : null;
+  const outputResults = data?.output?.results || data?.output?.result || data?.results || data?.result || data?.data;
+  const firstResult = Array.isArray(outputResults) ? outputResults[0] : outputResults;
+  return String(
+    data?.output_url
+    || data?.url
+    || data?.image_url
+    || data?.video_url
+    || data?.output?.url
+    || data?.output?.image_url
+    || data?.output?.video_url
+    || data?.output?.video?.url
+    || data?.output?.image?.url
+    || generatedContent?.image
+    || generatedContent?.video
+    || firstResult?.url
+    || firstResult?.image_url
+    || firstResult?.video_url
+    || firstResult?.orig_url
+    || firstResult?.render_url
+    || "",
+  ).trim();
+}
+
+function extractQianwenOutputBase64(data: any): string {
+  const outputResults = data?.output?.results || data?.results || data?.data;
+  const firstResult = Array.isArray(outputResults) ? outputResults[0] : outputResults;
+  return String(
+    data?.output_base64
+    || data?.image_base64
+    || data?.video_base64
+    || data?.b64_json
+    || firstResult?.b64_json
+    || firstResult?.image_base64
+    || firstResult?.video_base64
+    || "",
+  ).trim();
+}
+
+function qianwenTaskFailed(data: any): boolean {
+  const status = String(data?.output?.task_status || data?.task_status || data?.status || data?.state || "").toLowerCase();
+  return ["failed", "fail", "error", "canceled", "cancelled", "unknown"].includes(status);
+}
+
+function qianwenTaskMessage(data: any): string {
+  return String(data?.output?.message || data?.message || data?.error?.message || "Qianwen generation failed.");
 }
 
 function normalizeImageSize(resolution: unknown, aspectRatio: unknown): string {

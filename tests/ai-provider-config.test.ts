@@ -24,6 +24,8 @@ test("AI provider environment exposes placeholders without committing secrets", 
     "QIANWEN_VIDEO_ENDPOINT",
     "QIANWEN_IMAGE_MODEL",
     "QIANWEN_VIDEO_MODEL",
+    "QIANWEN_MAX_POLLS",
+    "QIANWEN_POLL_INTERVAL_MS",
     "LIBLIB_ACCESS_KEY",
     "LIBLIB_SECRET_KEY",
     "LIBLIB_BASE_URL",
@@ -82,7 +84,19 @@ test("AI Edge Function contains server-only provider actions and no browser-secr
   assert.ok(edgeFunction.includes("QIANWEN_IMAGE_ENDPOINT"));
   assert.ok(edgeFunction.includes("QIANWEN_VIDEO_ENDPOINT"));
   assert.ok(edgeFunction.includes("qianwenGenerationEndpoint"));
+  assert.ok(edgeFunction.includes("qianwenGenerationEndpointCandidates"));
+  assert.ok(edgeFunction.includes("submitQianwenGeneration"));
+  assert.ok(edgeFunction.includes("isOpenAiCompatibleQianwenBase"));
+  assert.ok(edgeFunction.includes("stream=false"));
+  assert.ok(edgeFunction.includes("pollQianwenTask"));
+  assert.ok(edgeFunction.includes("qianwenTaskStatusEndpoint"));
+  assert.ok(edgeFunction.includes("QIANWEN_TASK_STATUS_FAILED"));
+  assert.ok(edgeFunction.includes("QIANWEN_GENERATION_TIMEOUT"));
+  assert.ok(edgeFunction.includes("compatible-mode"));
+  assert.ok(edgeFunction.includes("sourceImageUrl"));
   assert.ok(edgeFunction.includes("multimodal-generation/generation"));
+  assert.ok(edgeFunction.includes("text2image/image-synthesis"));
+  assert.ok(edgeFunction.includes("input: {\n            prompt"));
   assert.ok(edgeFunction.includes("video-generation/video-synthesis"));
   assert.ok(edgeFunction.includes("isDashScopeNativeEndpoint"));
   assert.ok(edgeFunction.includes("LIBLIB_ACCESS_KEY"));
@@ -237,6 +251,9 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(realAiScript.includes("workflow-qianwen-video-v1"));
   assert.ok(realAiScript.includes("--video"));
   assert.ok(realAiScript.includes("OVS_VERIFY_REAL_AI_MODE"));
+  assert.ok(realAiScript.includes("createReferenceImageUrl"));
+  assert.ok(realAiScript.includes("createSolidPng"));
+  assert.ok(realAiScript.includes("sourceImageUrl"));
   assert.ok(realAiScript.includes("process-generation-job"));
   assert.ok(realAiScript.includes("providerStatus"));
   assert.ok(realAiScript.includes("refund"));
