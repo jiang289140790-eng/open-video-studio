@@ -44,21 +44,16 @@
 }
 
 .admin-brand {
-  display: grid;
-  gap: 4px;
+  display: inline-flex;
+  align-items: center;
   color: #fff;
 }
 
-.admin-brand span {
-  color: #ff5fbe;
-  font-size: 2.35rem;
-  font-weight: 950;
-  letter-spacing: 0;
-}
-
-.admin-brand small {
-  color: #fff;
-  font-weight: 900;
+.admin-brand img {
+  display: block;
+  width: 154px;
+  height: auto;
+  max-height: 44px;
 }
 
 .admin-side-nav {
@@ -335,19 +330,15 @@ body.tool-layout .accountnav {
   background: #1a1a1a;
 }
 .rail-brand {
-  display: grid;
-  gap: 4px;
-  padding: 22px 28px 18px;
+  display: inline-flex;
+  align-items: center;
+  padding: 22px 26px 18px;
 }
-.rail-brand span {
-  color: #ff62bb;
-  font-size: 2.55rem;
-  font-weight: 950;
-  line-height: 1;
-}
-.rail-brand strong {
-  color: #f7e8f1;
-  font-size: 0.82rem;
+.rail-brand img {
+  display: block;
+  width: 154px;
+  height: auto;
+  max-height: 44px;
 }
 .rail-nav {
   display: grid;
@@ -408,6 +399,12 @@ body.tool-layout .accountnav {
 }
 
 .brand { display: inline-flex; align-items: center; gap: 10px; min-width: max-content; font-weight: 850; }
+.brand-wordmark {
+  display: block;
+  width: clamp(118px, 13vw, 158px);
+  height: auto;
+  max-height: 40px;
+}
 .brand-mark {
   display: grid;
   place-items: center;
@@ -1456,6 +1453,7 @@ body.tool-layout .site-footer {
   border: 3px solid rgba(255,255,255,0.85);
   background: linear-gradient(135deg, #ffd6ec, #9bdcff);
   color: #181818;
+  overflow: hidden;
 }
 .site-toast {
   position: fixed;
@@ -1587,8 +1585,10 @@ body.tool-layout .site-footer {
   gap: 10px;
   min-width: max-content;
 }
-.floating-avatar span {
-  font-size: 0.72rem;
+.floating-avatar img {
+  display: block;
+  width: 32px;
+  height: 32px;
 }
 .support-overlay {
   position: fixed;
@@ -1622,6 +1622,11 @@ body.tool-layout .site-footer {
   background: linear-gradient(135deg, #ff62bb, #38bdf8);
   color: #fff;
   font-weight: 950;
+}
+.support-avatar img {
+  display: block;
+  width: 42px;
+  height: 42px;
 }
 .support-card h2 {
   max-width: none;
@@ -3547,9 +3552,8 @@ body.tool-layout .site-footer {
   background: #191919;
 }
 
-.admin-brand { display: grid; gap: 4px; color: #fff; }
-.admin-brand span { color: #ff5fbe; font-size: 1.65rem; font-weight: 950; letter-spacing: 0; line-height: 1; }
-.admin-brand small { color: #fff; font-size: .78rem; font-weight: 900; }
+.admin-brand { display: inline-flex; align-items: center; color: #fff; }
+.admin-brand img { display: block; width: 132px; height: auto; max-height: 38px; }
 .admin-side-nav { display: grid; gap: 3px; margin-top: 8px; }
 .admin-side-nav a { border-radius: 9px; padding: 8px 10px; color: #d8d5e3; font-size: .86rem; font-weight: 820; line-height: 1.2; }
 .admin-side-nav a:hover, .admin-side-nav a.active { background: rgba(255,98,187,0.18); color: #fff; }

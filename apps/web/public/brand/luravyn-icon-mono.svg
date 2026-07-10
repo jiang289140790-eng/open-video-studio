@@ -1,0 +1,7 @@
+﻿<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Luravyn monochrome icon</title>
+  <desc id="desc">A monochrome rounded abstract T mark with a small AI core.</desc>
+  <rect x="88" y="92" width="336" height="92" rx="46" fill="#11172D"/>
+  <path d="M209 145H303C317.359 145 329 156.641 329 171V357C329 393.451 299.451 423 263 423C226.549 423 197 393.451 197 357V157C197 150.373 202.373 145 209 145Z" fill="#11172D"/>
+  <circle cx="256" cy="230" r="7" fill="#FFFFFF"/>
+</svg>

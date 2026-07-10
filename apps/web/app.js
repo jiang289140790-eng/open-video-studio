@@ -1109,7 +1109,7 @@ function injectAppShell() {
   document.body.classList.add("tool-layout");
   document.body.insertAdjacentHTML("afterbegin", `
     <aside class="side-rail" aria-label="Product tools">
-      <a class="rail-brand" href="./index.html"><span>ovs.ai</span><strong>Open Video Studio</strong></a>
+      <a class="rail-brand" href="./index.html" aria-label="Luravyn home"><img src="./brand/luravyn-logo-dark.svg" alt="Luravyn"></a>
       <nav class="rail-nav">
         <a href="./zh/app/" class="${active("app.html")}">首页</a>
         <a href="./zh/gallery/" class="${active("gallery.html")}">热门作品</a>
@@ -1215,7 +1215,7 @@ function injectFloatingDock() {
       <button class="floating-action daily-check" type="button" aria-label="每日签到"><span>🎁</span></button>
       <a class="floating-action" href="./zh/free-coins/" aria-label="免费硬币"><span>币</span></a>
       <button class="floating-action" type="button" data-support-widget aria-label="帮助"><span>?</span></button>
-      <button class="floating-avatar" type="button" data-support-widget aria-label="客服头像"><span>OVS</span></button>
+      <button class="floating-avatar" type="button" data-support-widget aria-label="客服头像"><img src="./brand/luravyn-icon.svg" alt=""></button>
       <button class="floating-action to-top" type="button" data-scroll-top aria-label="返回顶部"><span>↑</span></button>
     </aside>
   `);
@@ -2110,15 +2110,15 @@ function openSupportWidget() {
   overlay.innerHTML = `
     <div class="support-card">
       <button class="checkin-close" type="button" aria-label="关闭">×</button>
-      <span class="support-avatar">OVS</span>
+      <span class="support-avatar"><img src="./brand/luravyn-icon.svg" alt=""></span>
       <h2>需要帮助？</h2>
-      <p>这里是 Open Video Studio 的快速帮助入口。真实客服系统接入前，先提供常用路径。</p>
+      <p>这里是 Luravyn 的快速帮助入口。真实客服系统接入前，先提供常用路径。</p>
       <div class="support-links">
         <a href="./zh/app/image-editor/">打开图片工具</a>
         <a href="./zh/app/image-to-video/">打开视频工具</a>
         <a href="./zh/pricing/">查看积分套餐</a>
         <a href="./zh/free-coins/">领取免费硬币</a>
-        <a href="mailto:support@openvideostudio.app">联系支持</a>
+        <a href="mailto:support@luravyn.com">联系支持</a>
       </div>
     </div>
   `;
@@ -2135,11 +2135,11 @@ function openAuthModal(nextUrl = "./zh/dashboard/") {
   overlay.className = "auth-overlay";
   overlay.setAttribute("role", "dialog");
   overlay.setAttribute("aria-modal", "true");
-  overlay.setAttribute("aria-label", "登录 Open Video Studio");
+  overlay.setAttribute("aria-label", "登录 Luravyn");
   overlay.innerHTML = `
     <div class="login-modal-card auth-popup-card">
       <button class="checkin-close" type="button" aria-label="关闭">×</button>
-      <h1>登录到 Open Video Studio</h1>
+      <h1>登录到 Luravyn</h1>
       <p class="muted">使用社交账号继续创作。登录后可以保存作品、领取免费积分、购买积分并管理分享链接。</p>
       <div class="modal-auth-list">
         <button class="modal-auth-btn" type="button" data-modal-auth-provider="google" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot google-dot">G</span>使用 Google 登录 <b>→</b></button>
@@ -3216,7 +3216,7 @@ function renderContentQueue(current) {
 
 function createMockContentItem(campaign, topic, character) {
   const platforms = campaign?.platforms?.length ? campaign.platforms : ["X", "TikTok"];
-  const caption = `${topic}：用 ${campaign?.name || "Open Video Studio"} 把一个创意变成可复用内容包。${campaign?.cta || "开始创作"}`;
+  const caption = `${topic}：用 ${campaign?.name || "Luravyn"} 把一个创意变成可复用内容包。${campaign?.cta || "开始创作"}`;
   return {
     id: `content_${Date.now()}`,
     campaignId: campaign?.id || "camp_local",
