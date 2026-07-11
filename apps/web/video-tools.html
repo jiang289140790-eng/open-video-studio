@@ -5,49 +5,141 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>视频工具 | Luravyn</title>
     <link rel="icon" type="image/png" href="./favicon.png">
-    <meta name="description" content="浏览 Luravyn 视频工具：图片转视频、产品短片、社媒短片、生成历史和我的创作。">
+    <meta name="description" content="浏览 Luravyn 视频工具：图片转视频、产品短片、社媒竖屏视频和生成任务。">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./zh/app/"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
-      <nav class="topnav" aria-label="Primary navigation"><a href="./zh/image-tools/">图像工具</a><a href="./zh/video-tools/" aria-current="page">视频工具</a><a href="./zh/pricing/">购买积分</a><a href="./zh/free-coins/">免费硬币</a><a href="./zh/my-creations/">我的创作</a></nav>
-      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./zh/free-coins/">每日签到</a><a href="./zh/login/">登录</a></nav>
+      <nav class="topnav" aria-label="Primary navigation">
+        <a href="./zh/image-tools/">图像工具</a>
+        <a href="./zh/video-tools/" aria-current="page">视频工具</a>
+        <a href="./zh/assets/">资产库</a>
+        <a href="./zh/my-creations/">我的作品</a>
+        <a href="./zh/pricing/">购买积分</a>
+      </nav>
+      <nav class="accountnav" aria-label="Account navigation">
+        <a class="daily-check" href="./zh/free-coins/">每日奖励</a>
+        <a href="./zh/login/">登录 / 注册</a>
+      </nav>
     </header>
+
     <main class="app-surface tool-detail-page tool-category-page">
       <section class="page-hero compact center">
         <p class="eyebrow">AI 视频工具</p>
-        <h1>把图像资产变成视频</h1>
-        <p class="lead">从图片转视频、产品短片到社媒竖屏视频，所有结果进入我的创作、生成历史和分享链路。</p>
+        <h1>把图片资产变成可复用视频</h1>
+        <p class="lead">选择一个视频工作流，上传图片或从资产库选择素材，设置比例、时长、模型和积分预算，然后提交生成任务。</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="./zh/app/image-to-video/?preset=image-video">上传图片生成视频</a>
+          <a class="btn glass" href="./zh/history/">查看生成任务</a>
+        </div>
       </section>
+
       <section class="tool-directory-bar" aria-label="视频工具筛选">
         <div class="tool-filter-tabs">
           <button class="active" type="button" data-tool-home-filter="all">全部</button>
           <button type="button" data-tool-home-filter="hot">热门</button>
-          <button type="button" data-tool-home-filter="new">最新</button>
-          <button type="button" data-tool-home-filter="video">视频</button>
-          <button type="button" data-tool-home-filter="history">历史</button>
+          <button type="button" data-tool-home-filter="image-video">图生视频</button>
+          <button type="button" data-tool-home-filter="product">产品广告</button>
+          <button type="button" data-tool-home-filter="social">社媒短视频</button>
+          <button type="button" data-tool-home-filter="task">生成任务</button>
         </div>
-        <label class="tool-search-box"><span>搜索视频工具</span><input type="search" placeholder="搜索图片转视频、短片、历史..." data-tool-home-search></label>
+        <label class="tool-search-box"><span>按用途搜索</span><input type="search" placeholder="搜索商品广告、竖屏、图生视频、任务..." data-tool-home-search></label>
       </section>
-      <section class="tool-section" data-tool-home-section="video hot">
-        <div class="tool-section-head"><h2>视频工具</h2><a href="./zh/app/image-to-video/">立即转视频</a></div>
-        <div class="card-carousel video-row">
-          <a class="tool-poster art-7 locked" href="./zh/app/image-to-video/" data-tool-home-card data-tool-tags="video hot image to video 图片转视频"><strong>图片转视频</strong><span>静态资产转短视频</span></a>
-          <a class="tool-poster art-1 locked" href="./zh/app/image-to-video/" data-tool-home-card data-tool-tags="video product teaser 产品短片"><strong>产品短片</strong><span>主视觉生成发布片</span></a>
-          <a class="tool-poster art-13 locked" href="./zh/app/image-to-video/" data-tool-home-card data-tool-tags="video new social reel 社媒视频"><strong>社媒竖屏视频</strong><span>适合广告和短内容</span></a>
-          <a class="tool-poster art-4" href="./zh/history/" data-tool-home-card data-tool-tags="video history 生成历史 任务"><strong>生成历史</strong><span>查看任务和成本</span></a>
-          <a class="tool-poster art-9" href="./zh/my-creations/" data-tool-home-card data-tool-tags="video history creations 我的创作 资产"><strong>我的创作</strong><span>管理生成作品</span></a>
+
+      <section class="tool-section" data-tool-home-section="video hot image-video product social">
+        <div class="tool-section-head">
+          <div>
+            <h2>核心视频工作流</h2>
+            <small>不同入口会自动带入比例、时长、提示词和积分预估。</small>
+          </div>
+          <a href="./zh/app/image-to-video/?preset=image-video">上传图片生成视频</a>
+        </div>
+        <div class="tool-market-grid video-workflow-grid">
+          <a class="video-workflow-card art-7 featured" href="./zh/app/image-to-video/?preset=image-video" data-tool-home-card data-tool-tags="video hot image-video 图生视频 图片转视频">
+            <span class="workflow-kicker">图生视频</span>
+            <strong>图片转视频</strong>
+            <p>上传一张角色、商品或场景图，生成 5～10 秒动态视频。</p>
+            <dl class="tool-specs">
+              <div><dt>模型</dt><dd>Wan / Kling / Fake Worker</dd></div>
+              <div><dt>比例</dt><dd>16:9、9:16、1:1</dd></div>
+              <div><dt>时长</dt><dd>5秒 / 10秒</dd></div>
+              <div><dt>积分</dt><dd>24 起</dd></div>
+            </dl>
+            <em>预计 1～3 分钟</em>
+            <b>立即生成</b>
+          </a>
+
+          <a class="video-workflow-card art-1" href="./zh/app/image-to-video/?preset=product-teaser" data-tool-home-card data-tool-tags="video hot product 产品短片 商品广告 电商">
+            <span class="workflow-kicker">产品广告</span>
+            <strong>产品短片</strong>
+            <p>自动使用商品展示模板、镜头推进、广告字幕和品牌展示节奏。</p>
+            <dl class="tool-specs">
+              <div><dt>模型</dt><dd>Wan / Qianwen Video</dd></div>
+              <div><dt>比例</dt><dd>16:9、1:1</dd></div>
+              <div><dt>时长</dt><dd>10秒</dd></div>
+              <div><dt>积分</dt><dd>32 起</dd></div>
+            </dl>
+            <em>适合电商主图和新品发布</em>
+            <b>生成产品短片</b>
+          </a>
+
+          <a class="video-workflow-card art-13" href="./zh/app/image-to-video/?preset=social-reel" data-tool-home-card data-tool-tags="video new social 社媒竖屏 短视频 TikTok Reels Shorts">
+            <span class="workflow-kicker">社媒短视频</span>
+            <strong>社媒竖屏视频</strong>
+            <p>自动选择 9:16、强开场运镜和短视频节奏，适合 TikTok / Reels / Shorts。</p>
+            <dl class="tool-specs">
+              <div><dt>模型</dt><dd>Hailuo / Wan / Fake Worker</dd></div>
+              <div><dt>比例</dt><dd>9:16</dd></div>
+              <div><dt>时长</dt><dd>5～10秒</dd></div>
+              <div><dt>积分</dt><dd>28 起</dd></div>
+            </dl>
+            <em>适合广告、爆款开场和内容测试</em>
+            <b>生成竖屏视频</b>
+          </a>
         </div>
       </section>
+
+      <section class="tool-section" data-tool-home-section="task asset work">
+        <div class="tool-section-head">
+          <div>
+            <h2>生成后的管理入口</h2>
+            <small>把输入素材、运行任务和成功作品分开管理。</small>
+          </div>
+        </div>
+        <div class="tool-market-grid support-flow-grid">
+          <a class="support-flow-card" href="./zh/assets/" data-tool-home-card data-tool-tags="asset 素材 资产库 上传 图片 参考图">
+            <strong>资产库</strong>
+            <p>管理输入素材：上传图片、角色参考图、商品图、Logo 和未来视频素材。</p>
+            <span>从资产库选择素材</span>
+          </a>
+          <a class="support-flow-card" href="./zh/history/" data-tool-home-card data-tool-tags="task 生成任务 排队 失败 积分">
+            <strong>生成任务</strong>
+            <p>查看排队中、生成中、成功、失败、积分消耗和失败原因。</p>
+            <span>查看生成任务</span>
+          </a>
+          <a class="support-flow-card" href="./zh/my-creations/" data-tool-home-card data-tool-tags="work 我的作品 下载 分享 收藏">
+            <strong>我的作品</strong>
+            <p>管理成功生成的内容：预览、下载、收藏、分享和继续生成。</p>
+            <span>打开我的作品</span>
+          </a>
+        </div>
+      </section>
+
       <section class="tool-conversion-strip">
-        <div><p class="eyebrow">推荐流程</p><h2>先选图像资产，再转成视频</h2><p class="muted">视频工具页直接连接资产库、生成历史和分享页，让用户能完成可复用内容闭环。</p></div>
-        <div class="tool-conversion-actions"><a class="btn primary" href="./zh/assets/">选择资产</a><a class="btn glass" href="./zh/history/">查看历史</a></div>
+        <div>
+          <p class="eyebrow">推荐闭环</p>
+          <h2>上传图片 → 生成视频 → 保存作品 → 下载 / 分享</h2>
+          <p class="muted">现阶段优先把图片转视频做成完整闭环，再扩展首尾帧、视频延长、口型同步和批量工作流。</p>
+        </div>
+        <div class="tool-conversion-actions">
+          <a class="btn primary" href="./zh/app/image-to-video/?preset=image-video">上传图片生成视频</a>
+          <a class="btn glass" href="./zh/assets/">选择资产</a>
+        </div>
       </section>
-      <p class="empty-tool-state" data-tool-home-empty hidden>没有找到匹配视频工具。</p>
+
+      <p class="empty-tool-state" data-tool-home-empty hidden>没有找到匹配视频工具。试试“图生视频”“产品广告”或“社媒短视频”。</p>
     </main>
     <script type="module" src="./app.js"></script>
   </body>
 </html>
-
-

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | REVIEW-TARGET-FEATURE-MAP-001 |
-| Version | 1.8.0 |
+| Version | 1.9.0 |
 | Status | Active |
 | Owner | Product / Frontend |
 | Dependencies | FE-BIBLE-001, REVIEW-LEGACY-001 |
@@ -30,11 +30,11 @@ Map the referenced AI tool site into product capabilities, page structure, and u
 | Root static page routing | `apps/web/*.html` | User-facing links across root product pages now route through localized public aliases while canonical files remain build targets |
 | Localized account and creation routes | `apps/web/public/zh/{login,account,dashboard,gallery,assets,history,share}/index.html` | Account, gallery, asset, history, and share flows have target-style Chinese route aliases |
 | Image tools category | `apps/web/image-tools.html` | Searchable category page for image generation, editing, face swap, styling, pose, and image combination routes |
-| Video tools category | `apps/web/video-tools.html` | Searchable category page for image-to-video, short video, history, and creation management routes |
+| Video tools category | `apps/web/video-tools.html` | Task-based workflow market for image-to-video, product teaser, social reel, asset selection, generation tasks, and finished works |
 | Pricing / credits | `apps/web/pricing.html` | One-time credit packs, discount messaging, trust metrics, examples |
 | Free coins / referral | `apps/web/free-coins.html` plus compatibility route `apps/web/referral.html` | Daily check-in, referral reward, task-based credit earning |
 | My creations | `apps/web/my-creations.html` | Assets, history, share links, search/filter, signed-in creation shelf |
-| Image to video tool | `apps/web/image-to-video.html` | Upload, prompt, preview, credit estimate, generate action, examples |
+| Image to video tool | `apps/web/image-to-video.html` | Preset-aware upload, prompt, aspect ratio, duration, model preference, preview, credit estimate, mobile generate action, and examples |
 | Image generation tool | `apps/web/generate.html` | Mode cards, character selector, prompt enhancer, preview, recent results |
 | Gallery / explore | `apps/web/gallery.html` | Masonry feed, filters, generate similar, copy prompt, share, save |
 | Authentication | `apps/web/signin.html` | Email auth, social auth options, real Supabase integration hooks |
@@ -50,8 +50,8 @@ Map the referenced AI tool site into product capabilities, page structure, and u
 - Tool directory: large feature banners, quick action cards, categorized horizontal rows.
 - Credit commerce: credit packs, visible price, discounts, trust section, examples.
 - Growth loop: check-in, referral link, reward steps, task rewards.
-- Creation loop: upload/reference, prompt, mode, preview, credit estimate, generate.
-- Asset loop: saved outputs, history, search, filters, share, retry.
+- Video creation loop: choose workflow preset, upload/reference, select ratio/duration/model, review credit estimate, generate, save output to assets and generation tasks.
+- Asset loop: saved outputs, generation tasks, search, filters, share, retry.
 - Public loop: share page, generate similar action.
 - Trust / conversion: metrics, user-style quotes, visual examples, upgrade CTA.
 

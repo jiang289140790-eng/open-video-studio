@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.88.0 |
+| Version | 0.89.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,10 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Rebuilt the MVP Video Tools surface into a task-based workflow market instead of a thin navigation page. The page now explains image-to-video, product teaser, and social reel workflows with model options, ratio, duration, credit estimates, expected generation time, and distinct preset links.
+- Rebuilt the Image to Video Studio around workflow presets. `?preset=image-video`, `?preset=product-teaser`, and `?preset=social-reel` now update the prompt, aspect ratio, duration, model preference, credit estimate, preview copy, mobile generate bar, and generation payload without changing the backend architecture.
+- Standardized the first-pass product vocabulary on the core video workflow surfaces: `免费积分`, `每日奖励`, `生成任务`, `我的作品`, and `资产库` replace mixed credit/history/creation naming.
+- Improved mobile behavior for video workflow filters and the image-to-video generator by making category filters horizontally scrollable, simplifying dense controls, and adding a sticky mobile CTA.
 - Hardened social-login redirect handling so browser OAuth calls use a canonical app return URL (`signin.html` / `dashboard.html`) instead of relative localized aliases that can break under GitHub Pages subpaths.
 - Updated OAuth verification output and production auth documentation to separate Supabase in-app Redirect URLs from external provider callback URLs. Discord/X/Google developer consoles must use `https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback`.
 - Switched the X social login integration from the legacy Supabase `twitter` provider id to the current OAuth 2.0 `x` provider id, matching the enabled dashboard provider.
@@ -42,6 +46,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for the new video workflow presets, task-based Video Tools page, mobile CTA, and terminology.
 - Ran `npm run verify:oauth`; Google, X / Twitter OAuth 2.0, and Discord authorization URLs are reachable through Supabase and report `providerCallbackUrl=https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback`. Telegram remains unconfigured until Bot username, Bot token secret, and the `telegram-auth` function deployment are completed.
 - Deployed Supabase `telegram-auth` Edge Function version `1` with JWT verification disabled for the external Telegram callback and HMAC verification enabled inside the function.
 - Deployed Supabase `admin` Edge Function version `8` so the Admin Console OAuth readiness probe uses the current `x` provider id.

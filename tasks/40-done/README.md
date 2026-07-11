@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | TASK-DONE-001 |
-| Version | 0.2.0 |
+| Version | 0.3.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | TASK-001 |
@@ -24,6 +24,7 @@ Archive completed tasks with verification evidence and follow-up notes.
 
 ## Completed Tasks
 
+- 2026-07-11: Video workflow surface consolidation. Rebuilt Video Tools as a task-based workflow market, added distinct image-to-video/product-teaser/social-reel preset routing, updated the Image to Video Studio with preset-aware ratio, duration, model, cost, preview, mobile CTA, and generation payload handling, and standardized core vocabulary around assets, generation tasks, works, rewards, and credits. Verification: `npm run test` passed with 74 tests.
 - 2026-07-11: OAuth redirect hardening. Replaced relative social-login return URLs with canonical app return URLs, updated the OAuth verification report to show the exact external provider callback URL, and clarified Supabase versus Discord/X/Google redirect configuration. Verification: `npm run verify:oauth` confirms Discord reaches the provider while Google/X remain disabled and Telegram remains unconfigured.
 - 2026-07-11: Social OAuth provider activation fix. Switched X login to Supabase OAuth 2.0 provider id `x`, deployed the Admin readiness probe update, added and deployed the `telegram-auth` Edge Function for Telegram Login Widget callbacks, and stored the public Telegram auth URL in GitHub variables. Verification: `npm run verify:oauth` confirms Google, X, and Discord reach provider authorization hosts; `npm run test` passes; Telegram function probe fails closed until Bot token secret is configured.
 - 2026-07-11: Technical SEO and mobile visual QA baseline. Added `npm run seo:apply`, generated sitemap/robots/hreflang/localized SEO aliases, repaired mobile Studio/Dashboard overflow, and added SEO/mobile regression tests. Verification: `npm run seo:apply`, browser mobile QA across 13 pages and 4 viewport widths, `npm run build`, `npm run test`, and `npm run verify:i18n`.

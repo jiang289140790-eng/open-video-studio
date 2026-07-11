@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>图片转视频 | Luravyn</title>
     <link rel="icon" type="image/png" href="./favicon.png">
-    <meta name="description" content="把参考图片转成 AI 视频，并保留提示词、角色和生成历史。">
+    <meta name="description" content="把参考图片转成 AI 视频，并保留提示词、角色、生成任务和我的作品。">
     <link rel="canonical" href="https://luravyn.com/zh/app/image-to-video/">
     <link rel="alternate" hreflang="zh-CN" href="https://luravyn.com/zh/app/image-to-video/">
     <link rel="alternate" hreflang="en" href="https://luravyn.com/en/app/image-to-video/">
@@ -16,61 +16,134 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Luravyn">
     <meta property="og:title" content="图片转视频 | Luravyn">
-    <meta property="og:description" content="把参考图片转成 AI 视频，并保留提示词、角色和生成历史。">
+    <meta property="og:description" content="上传图片，选择比例、时长和模型，生成可保存、下载和分享的 AI 视频。">
     <meta property="og:url" content="https://luravyn.com/zh/app/image-to-video/">
     <meta property="og:image" content="https://luravyn.com/brand/luravyn-logo-hero.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="图片转视频 | Luravyn">
-    <meta name="twitter:description" content="把参考图片转成 AI 视频，并保留提示词、角色和生成历史。">
+    <meta name="twitter:description" content="上传图片，选择比例、时长和模型，生成可保存、下载和分享的 AI 视频。">
     <meta name="theme-color" content="#111111">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./index.html"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
-      <nav class="topnav" aria-label="Primary navigation"><a href="./zh/app/generate/">图像工具</a><a href="./zh/app/image-to-video/" aria-current="page">视频工具</a><a href="./zh/pricing/">购买积分</a><a href="./zh/free-coins/">免费硬币</a><a href="./zh/my-creations/">我的创作</a></nav>
-      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./zh/free-coins/">每日签到</a><a href="./zh/login/">登录</a></nav>
+      <nav class="topnav" aria-label="Primary navigation">
+        <a href="./zh/app/generate/">图像工具</a>
+        <a href="./zh/video-tools/" aria-current="page">视频工具</a>
+        <a href="./zh/assets/">资产库</a>
+        <a href="./zh/my-creations/">我的作品</a>
+        <a href="./zh/pricing/">购买积分</a>
+      </nav>
+      <nav class="accountnav" aria-label="Account navigation">
+        <a class="daily-check" href="./zh/free-coins/">每日奖励</a>
+        <a href="./zh/login/">登录 / 注册</a>
+      </nav>
       <a class="btn primary" href="./zh/pricing/"><span data-credit-balance>40</span> 积分</a>
     </header>
-    <main class="studio-shell video-tool-page">
+
+    <main class="studio-shell video-tool-page" data-video-generator>
       <section class="studio-panel control-panel">
-        <p class="eyebrow">AI 视频</p>
-        <h1>图片转视频</h1>
-        <p class="lead">上传一张产品图、角色图或场景图，生成可保存、可分享、可复用的短视频资产。</p>
-        <div class="mode-grid" aria-label="Mode cards">
-          <button class="mode-card active" data-mode="video"><span>视频</span><strong>图片转视频</strong><em>24 积分</em></button>
-          <button class="mode-card" data-mode="image"><span>图片</span><strong>先生成参考图</strong><em>8 积分</em></button>
+        <p class="eyebrow">AI 视频生成器</p>
+        <h1 data-video-preset-title>图片转视频</h1>
+        <p class="lead" data-video-preset-description>上传一张角色、商品或场景图，生成可保存、可下载、可分享的短视频资产。</p>
+
+        <div class="preset-summary" data-video-preset-summary>
+          <span>当前预设</span>
+          <strong>图生视频 · 24 积分起</strong>
+          <p>支持 16:9、9:16、1:1；5秒 / 10秒；结果自动进入生成任务和我的作品。</p>
         </div>
+
+        <div class="mode-grid video-mode-grid" aria-label="Mode cards">
+          <button class="mode-card active" data-mode="video" data-video-preset-button="image-video" data-video-cost="24"><span>图生视频</span><strong>图片转视频</strong><em>24 积分起</em></button>
+          <button class="mode-card" data-mode="video" data-video-preset-button="product-teaser" data-video-cost="32"><span>产品广告</span><strong>产品短片</strong><em>32 积分起</em></button>
+          <button class="mode-card" data-mode="video" data-video-preset-button="social-reel" data-video-cost="28"><span>社媒短视频</span><strong>竖屏视频</strong><em>28 积分起</em></button>
+        </div>
+
+        <div class="video-options-grid">
+          <label class="studio-field">输出比例
+            <select data-video-ratio>
+              <option value="16:9">16:9 横屏</option>
+              <option value="9:16">9:16 竖屏</option>
+              <option value="1:1">1:1 方形</option>
+            </select>
+          </label>
+          <label class="studio-field">视频时长
+            <select data-video-duration>
+              <option value="5">5 秒</option>
+              <option value="10">10 秒</option>
+            </select>
+          </label>
+          <label class="studio-field">生成模型
+            <select data-video-model>
+              <option value="fake_worker">Fake Worker 演示</option>
+              <option value="qianwen_video">千问视频</option>
+              <option value="wan">Wan</option>
+              <option value="kling">Kling</option>
+              <option value="hailuo">Hailuo</option>
+            </select>
+          </label>
+        </div>
+
         <label class="upload-zone">上传参考图片
-          <input type="file" aria-label="Upload reference image">
-          <span>支持角色、产品、海报、场景参考图</span>
+          <input type="file" aria-label="Upload reference image" accept="image/*">
+          <span>手机端可从相册选择或拍照；桌面端可上传角色图、商品图、海报图或场景图。</span>
         </label>
+        <div class="asset-picker-actions">
+          <a class="btn glass" href="./zh/assets/">从资产库选择</a>
+          <button class="btn glass" type="button" data-demo-reference>使用示例图片</button>
+        </div>
+
         <label class="studio-field">动作描述
-          <textarea class="textarea hero-textarea">将这张图转换成 8 秒电影感短视频，镜头缓慢推进，灯光高级，适合社交媒体发布。</textarea>
+          <textarea class="textarea hero-textarea" data-video-prompt rows="6">将这张图转换成 5 秒电影感短视频，镜头缓慢推进，主体保持清晰，灯光高级，适合发布到社媒。</textarea>
         </label>
         <button class="btn glass" data-enhance type="button">优化提示词</button>
       </section>
+
       <section class="studio-panel preview-panel">
-        <div class="preview-head"><div><p class="eyebrow">预览</p><h2>生成预览</h2></div><span class="credit-pill" data-credit-cost>24 积分</span></div>
-        <div class="creative-preview art-7"><span class="play-dot"></span><strong data-mode-label>视频生成</strong></div>
-        <div class="sticky-generate"><div><strong>准备生成</strong><p>结果会保存到我的创作、资产库和历史记录。</p></div><button class="btn primary" data-generate type="button">生成视频</button></div>
-        <div class="recent-results" data-queue><h2>最近结果</h2></div>
+        <div class="preview-head">
+          <div>
+            <p class="eyebrow">实时预览</p>
+            <h2>生成预览</h2>
+          </div>
+          <span class="credit-pill" data-credit-cost>24 积分</span>
+        </div>
+        <div class="creative-preview art-7" data-video-preview>
+          <span class="play-dot"></span>
+          <strong data-mode-label>视频生成</strong>
+          <small data-video-preview-meta>16:9 · 5秒 · Fake Worker 演示</small>
+        </div>
+        <div class="sticky-generate">
+          <div>
+            <strong>准备生成</strong>
+            <p data-video-cost-note>预计消耗 24 积分。结果会保存到生成任务、资产库和我的作品。</p>
+          </div>
+          <button class="btn primary" data-generate type="button">生成视频</button>
+        </div>
+        <div class="recent-results" data-queue><h2>生成任务</h2></div>
       </section>
     </main>
+
     <section class="app-surface tool-section">
-      <div class="tool-section-head"><h2>更多视频工具</h2><a href="./zh/app/">查看更多</a></div>
+      <div class="tool-section-head"><h2>更多视频预设</h2><a href="./zh/video-tools/">返回视频工具</a></div>
       <div class="card-carousel video-row">
-        <a class="tool-poster art-1 locked" href="./zh/app/image-to-video/"><strong>Product Teaser</strong><span>产品短片</span></a>
-        <a class="tool-poster art-13 locked" href="./zh/app/image-to-video/"><strong>Social Reel</strong><span>社媒视频</span></a>
-        <a class="tool-poster art-4 locked" href="./zh/history/"><strong>My Creations</strong><span>生成历史</span></a>
+        <a class="tool-poster art-7" href="./zh/app/image-to-video/?preset=image-video"><strong>图片转视频</strong><span>通用图生视频</span></a>
+        <a class="tool-poster art-1" href="./zh/app/image-to-video/?preset=product-teaser"><strong>产品短片</strong><span>商品广告模板</span></a>
+        <a class="tool-poster art-13" href="./zh/app/image-to-video/?preset=social-reel"><strong>社媒竖屏视频</strong><span>9:16 短视频预设</span></a>
+        <a class="tool-poster art-4" href="./zh/history/"><strong>生成任务</strong><span>查看状态、失败和积分</span></a>
       </div>
     </section>
+
     <section class="app-surface prompt-result">
-      <div class="prompt-panel"><span class="badge">上传图片</span><p>选择一张角色、产品或海报参考图。</p></div>
-      <div class="result-panel art-7"><span class="play-dot"></span><strong>生成 8 秒短片</strong></div>
-      <div class="prompt-panel"><span class="badge success">保存资产</span><p>视频会保存到我的创作、资产库和生成历史。</p></div>
+      <div class="prompt-panel"><span class="badge">输入素材</span><p>上传图片或从资产库选择参考图。</p></div>
+      <div class="result-panel art-7"><span class="play-dot"></span><strong>生成视频结果</strong></div>
+      <div class="prompt-panel"><span class="badge success">保存作品</span><p>成功视频会保存到生成任务、资产库和我的作品，并支持下载和分享。</p></div>
     </section>
+
+    <div class="mobile-generate-bar">
+      <a class="btn glass" href="./zh/assets/">选资产</a>
+      <button class="btn primary" type="button" data-mobile-generate>上传图片生成视频</button>
+    </div>
     <script type="module" src="./app.js"></script>
   </body>
 </html>
-

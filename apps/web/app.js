@@ -104,12 +104,12 @@ const I18N_CORE_TERMS = [
   "图像工具",
   "视频工具",
   "购买积分",
-  "免费硬币",
-  "我的创作",
-  "每日签到",
+  "免费积分",
+  "我的作品",
+  "每日奖励",
   "登录",
   "控制台",
-  "生成历史",
+  "生成任务",
   "资产库",
   "管理后台",
   "开始生成",
@@ -136,7 +136,7 @@ const I18N_PRODUCT_TERMS = Array.from(new Set([
   "图片生成器",
   "生成预览",
   "准备生成",
-  "结果会保存到资产库和生成历史。",
+  "结果会保存到资产库和生成任务。",
   "积分不足",
   "打开作品",
   "真实生成暂不可用",
@@ -170,12 +170,12 @@ const I18N_MESSAGES = {
     "图像工具": "Image tools",
     "视频工具": "Video tools",
     "购买积分": "Buy credits",
-    "免费硬币": "Free coins",
-    "我的创作": "My creations",
-    "每日签到": "Daily check-in",
+    "免费积分": "Free credits",
+    "我的作品": "My works",
+    "每日奖励": "Daily rewards",
     "登录": "Sign in",
     "控制台": "Dashboard",
-    "生成历史": "History",
+    "生成任务": "Generation jobs",
     "资产库": "Assets",
     "管理后台": "Admin",
     "立即升级": "Upgrade now",
@@ -189,7 +189,7 @@ const I18N_MESSAGES = {
     "图片生成器": "Image generator",
     "生成预览": "Generation preview",
     "准备生成": "Ready to generate",
-    "结果会保存到资产库和生成历史。": "Results save to Assets and History.",
+    "结果会保存到资产库和生成任务。": "Results save to Assets and Generation jobs.",
     "生成": "Generate",
     "优化提示词": "Enhance prompt",
     "积分不足": "Not enough credits",
@@ -232,14 +232,14 @@ const I18N_MESSAGES = {
     "图像工具": "画像ツール",
     "视频工具": "動画ツール",
     "购买积分": "クレジット購入",
-    "免费硬币": "無料コイン",
-    "我的创作": "マイ作品",
-    "每日签到": "デイリーチェックイン",
+    "免费积分": "無料クレジット",
+    "我的作品": "マイ作品",
+    "每日奖励": "デイリー報酬",
     "登录": "ログイン",
     "开始生成": "生成を開始",
     "生成": "生成",
     "资产库": "アセット",
-    "生成历史": "履歴",
+    "生成任务": "生成ジョブ",
     "控制台": "ダッシュボード",
     "管理后台": "管理",
     "角色": "キャラクター",
@@ -262,7 +262,7 @@ const I18N_MESSAGES = {
     "图片生成器": "画像ジェネレーター",
     "生成预览": "生成プレビュー",
     "准备生成": "生成準備完了",
-    "结果会保存到资产库和生成历史。": "結果はアセットと履歴に保存されます。",
+    "结果会保存到资产库和生成任务。": "結果はアセットと生成ジョブに保存されます。",
     "积分不足": "クレジット不足",
     "打开作品": "作品を開く",
     "真实生成暂不可用": "実生成は現在利用できません",
@@ -293,14 +293,14 @@ const I18N_MESSAGES = {
     "图像工具": "이미지 도구",
     "视频工具": "비디오 도구",
     "购买积分": "크레딧 구매",
-    "免费硬币": "무료 코인",
-    "我的创作": "내 작업",
-    "每日签到": "데일리 체크인",
+    "免费积分": "무료 크레딧",
+    "我的作品": "내 작품",
+    "每日奖励": "데일리 리워드",
     "登录": "로그인",
     "开始生成": "생성 시작",
     "生成": "생성",
     "资产库": "에셋",
-    "生成历史": "히스토리",
+    "生成任务": "생성 작업",
     "控制台": "대시보드",
     "管理后台": "관리자",
     "角色": "캐릭터",
@@ -323,7 +323,7 @@ const I18N_MESSAGES = {
     "图片生成器": "이미지 생성기",
     "生成预览": "생성 미리보기",
     "准备生成": "생성 준비 완료",
-    "结果会保存到资产库和生成历史。": "결과는 에셋과 생성 기록에 저장됩니다.",
+    "结果会保存到资产库和生成任务。": "결과는 에셋과 생성 작업에 저장됩니다.",
     "积分不足": "크레딧 부족",
     "打开作品": "작품 열기",
     "真实生成暂不可用": "실제 생성은 현재 사용할 수 없습니다",
@@ -664,14 +664,20 @@ function applyToolCatalogConfig(config) {
   const normalized = normalizeToolCatalogConfig(config);
   const toolMap = new Map(normalized.tools.map((tool) => [tool.slug, tool]));
   document.querySelectorAll("[data-tool-home-card]").forEach((card) => {
-    const slug = toolSlugFromHref(card.getAttribute("href") || "");
+    const existingHref = card.getAttribute("href") || "";
+    const preservesPresetRoute = existingHref.includes("?preset=");
+    const slug = toolSlugFromHref(existingHref);
     const tool = toolMap.get(slug);
     if (!tool) return;
     card.hidden = tool.status !== "published";
-    card.setAttribute("href", tool.route);
-    card.dataset.toolTags = `${tool.category} ${tool.status} ${tool.featured ? "hot featured" : ""} ${tool.provider} ${tool.model} ${tool.name}`;
-    const strong = card.querySelector("strong");
-    if (strong) strong.textContent = tool.name;
+    if (!preservesPresetRoute) {
+      card.setAttribute("href", tool.route);
+      card.dataset.toolTags = `${tool.category} ${tool.status} ${tool.featured ? "hot featured" : ""} ${tool.provider} ${tool.model} ${tool.name}`;
+      const strong = card.querySelector("strong");
+      if (strong) strong.textContent = tool.name;
+    } else {
+      card.dataset.toolTags = `${card.dataset.toolTags || ""} ${tool.provider} ${tool.model} ${tool.status}`;
+    }
     let meta = card.querySelector("[data-tool-config-meta]");
     if (!meta) {
       meta = document.createElement("small");
@@ -871,20 +877,20 @@ function injectTopNavigation() {
       <div class="nav-menu">
         <button class="nav-trigger" type="button" aria-expanded="false">视频工具 <span>⌄</span></button>
         <div class="nav-dropdown compact-dropdown">
-          <a href="./zh/video-tools/"><strong>全部视频工具</strong><small>浏览图片转视频、短片和创作管理入口</small></a>
+          <a href="./zh/video-tools/"><strong>全部视频工具</strong><small>浏览图生视频、产品广告和社媒短视频</small></a>
           <a href="./zh/app/image-to-video/"><strong>图片转视频</strong><small>把静态资产转成短视频</small></a>
-          <a href="./zh/history/"><strong>生成历史</strong><small>查看任务、成本和输出</small></a>
-          <a href="./zh/my-creations/"><strong>我的创作</strong><small>管理生成作品</small></a>
+          <a href="./zh/history/"><strong>生成任务</strong><small>查看任务状态、成本和失败原因</small></a>
+          <a href="./zh/my-creations/"><strong>我的作品</strong><small>管理成功生成的作品</small></a>
         </div>
       </div>
       <a href="./zh/pricing/">购买积分</a>
-      <a href="./zh/free-coins/">免费硬币</a>
-      <a href="./zh/my-creations/">我的创作</a>
+      <a href="./zh/free-coins/">免费积分</a>
+      <a href="./zh/my-creations/">我的作品</a>
     `;
   }
   if (accountnav && !accountnav.querySelector(".language-menu")) {
     accountnav.innerHTML = `
-      <a class="daily-check" href="./zh/free-coins/">🎁 每日签到</a>
+      <a class="daily-check" href="./zh/free-coins/">🎁 每日奖励</a>
       ${languageMenuMarkup()}
       <a href="./zh/login/" data-auth-modal>登录</a>
     `;
@@ -1037,7 +1043,7 @@ function openCookiePreferences() {
       <button class="checkin-close" type="button" aria-label="关闭">×</button>
       <p class="eyebrow">Cookie</p>
       <h2>管理 Cookie 偏好</h2>
-      <label><span><strong>必要存储</strong><small>登录状态、积分演示、语言和生成历史。</small></span><input type="checkbox" checked disabled></label>
+      <label><span><strong>必要存储</strong><small>登录状态、积分演示、语言和生成任务。</small></span><input type="checkbox" checked disabled></label>
       <label><span><strong>产品分析</strong><small>帮助理解页面使用情况，后续接入真实分析前仅保存偏好。</small></span><input type="checkbox" data-cookie-analytics ${current.analytics ? "checked" : ""}></label>
       <label><span><strong>营销偏好</strong><small>用于优惠提示和推荐活动偏好，当前不会连接第三方广告 API。</small></span><input type="checkbox" data-cookie-marketing ${current.marketing ? "checked" : ""}></label>
       <div class="cookie-modal-actions">
@@ -1097,7 +1103,7 @@ function renderAccountNavigation(current) {
   if (!accountnav) return;
   if (!current.user) {
     accountnav.innerHTML = `
-      <a class="daily-check" href="./zh/free-coins/">🎁 每日签到</a>
+      <a class="daily-check" href="./zh/free-coins/">🎁 每日奖励</a>
       ${languageMenuMarkup()}
       <a href="./zh/login/" data-auth-modal>登录</a>
     `;
@@ -1105,7 +1111,7 @@ function renderAccountNavigation(current) {
   }
   const initial = (current.user.name || "创作者").trim().charAt(0).toUpperCase();
   accountnav.innerHTML = `
-    <a class="daily-check" href="./zh/free-coins/">🎁 每日签到</a>
+    <a class="daily-check" href="./zh/free-coins/">🎁 每日奖励</a>
     <a class="account-credit" href="./zh/pricing/"><span data-credit-balance>${current.credits}</span> 积分</a>
     ${languageMenuMarkup()}
     <div class="account-menu">
@@ -1122,11 +1128,11 @@ function renderAccountNavigation(current) {
         <a href="./zh/analytics/">Analytics</a>
         <a href="./zh/automation/">Automation</a>
         <a href="./zh/settings/">Settings</a>
-        <a href="./zh/my-creations/">我的创作</a>
-        <a href="./zh/history/">生成历史</a>
+        <a href="./zh/my-creations/">我的作品</a>
+        <a href="./zh/history/">生成任务</a>
         <a href="./zh/assets/">资产库</a>
         <a href="./zh/admin/">管理后台</a>
-        <a href="./zh/free-coins/">免费硬币</a>
+        <a href="./zh/free-coins/">免费积分</a>
         <a href="./zh/pricing/">购买积分</a>
         <button type="button" data-logout>退出登录</button>
       </div>
@@ -1171,8 +1177,8 @@ function injectAppShell() {
         <span>AI 视频</span>
         <a href="./zh/video-tools/" class="${active("video-tools.html")}">全部视频工具</a>
         <a href="./zh/app/image-to-video/" class="${active("image-to-video.html")}">图片转视频</a>
-        <a href="./zh/my-creations/" class="${active("my-creations.html")}">我的创作</a>
-        <a href="./zh/history/" class="${active("history.html")}">生成历史</a>
+        <a href="./zh/my-creations/" class="${active("my-creations.html")}">我的作品</a>
+        <a href="./zh/history/" class="${active("history.html")}">生成任务</a>
         <a href="./zh/admin/" class="${active("admin.html")}">管理后台</a>
       </nav>
       <div class="rail-actions">
@@ -1208,8 +1214,8 @@ function injectGlobalFooter() {
         <h3>视频工具</h3>
         <a href="./zh/video-tools/">全部视频工具</a>
         <a href="./zh/app/image-to-video/">图片转视频</a>
-        <a href="./zh/history/">生成历史</a>
-        <a href="./zh/my-creations/">我的创作</a>
+        <a href="./zh/history/">生成任务</a>
+        <a href="./zh/my-creations/">我的作品</a>
         <a href="./zh/campaigns/">Campaigns</a>
         <a href="./zh/ai-studio/">AI Studio</a>
         <a href="./zh/pipeline/">Content Pipeline</a>
@@ -1244,8 +1250,8 @@ function injectFloatingDock() {
   if (document.querySelector(".floating-dock") || document.body.classList.contains("share-body")) return;
   document.body.insertAdjacentHTML("beforeend", `
     <aside class="floating-dock" aria-label="Quick actions">
-      <button class="floating-action daily-check" type="button" aria-label="每日签到"><span>🎁</span></button>
-      <a class="floating-action" href="./zh/free-coins/" aria-label="免费硬币"><span>币</span></a>
+      <button class="floating-action daily-check" type="button" aria-label="每日奖励"><span>🎁</span></button>
+      <a class="floating-action" href="./zh/free-coins/" aria-label="免费积分"><span>分</span></a>
       <button class="floating-action" type="button" data-support-widget aria-label="帮助"><span>?</span></button>
       <button class="floating-avatar" type="button" data-support-widget aria-label="客服头像"><img src="./brand/luravyn-icon.png" alt=""></button>
       <button class="floating-action to-top" type="button" data-scroll-top aria-label="返回顶部"><span>↑</span></button>
@@ -1291,7 +1297,7 @@ function injectToolWorkbench() {
         <div class="tool-preview-canvas art-7" data-tool-demo-preview></div>
         <div class="tool-output-status" data-tool-demo-status>
           <strong>等待生成</strong>
-          <span>生成结果会保存到资产库和生成历史。</span>
+          <span>生成结果会保存到资产库和生成任务。</span>
         </div>
         <div class="tool-template-row">
           <button type="button" data-template-prompt="产品发布主视觉，霓虹灯光，干净背景">产品发布</button>
@@ -1343,7 +1349,7 @@ function injectToolDiscovery() {
     <section class="tool-usecase-band">
       <article><span>01</span><strong>${isVideo ? "从图片进入视频" : "上传或选择资产"}</strong><p>${isVideo ? "选择图片、角色或产品图，进入短视频生成流程。" : "从本地上传或从资产库选择参考图，保持创作素材可复用。"}</p></article>
       <article><span>02</span><strong>选择模板并调整提示词</strong><p>用模板快速起步，再改角色、风格、比例和输出用途。</p></article>
-      <article><span>03</span><strong>保存到我的创作</strong><p>演示生成会进入资产、历史和分享链路，方便继续复用。</p></article>
+      <article><span>03</span><strong>保存到我的作品</strong><p>演示生成会进入资产、生成任务和分享链路，方便继续复用。</p></article>
     </section>
     <section class="tool-related-section" data-tool-related>
       <div class="tool-section-head">
@@ -1370,7 +1376,7 @@ function injectToolDiscovery() {
       </div>
       <div class="tool-conversion-actions">
         <a class="btn primary" href="./zh/login/" data-auth-modal>登录继续</a>
-        <a class="btn glass" href="./zh/free-coins/">领取免费硬币</a>
+        <a class="btn glass" href="./zh/free-coins/">领取免费积分</a>
       </div>
     </section>
   `);
@@ -2149,7 +2155,7 @@ function openSupportWidget() {
         <a href="./zh/app/image-editor/">打开图片工具</a>
         <a href="./zh/app/image-to-video/">打开视频工具</a>
         <a href="./zh/pricing/">查看积分套餐</a>
-        <a href="./zh/free-coins/">领取免费硬币</a>
+        <a href="./zh/free-coins/">领取免费积分</a>
         <a href="mailto:support@luravyn.com">联系支持</a>
       </div>
     </div>
@@ -2237,7 +2243,7 @@ function runToolDemoGeneration() {
     preview.classList.add("art-3");
   }
   if (status) {
-    status.innerHTML = `<strong>已生成演示结果</strong><span>消耗 ${cost} 积分，已保存到资产库和生成历史。</span><a href="./zh/assets/">查看资产</a>`;
+    status.innerHTML = `<strong>已生成演示结果</strong><span>消耗 ${cost} 积分，已保存到资产库和生成任务。</span><a href="./zh/assets/">查看资产</a>`;
   }
 }
 
@@ -2299,7 +2305,7 @@ function openCheckInModal() {
   overlay.className = "checkin-overlay";
   overlay.setAttribute("role", "dialog");
   overlay.setAttribute("aria-modal", "true");
-  overlay.setAttribute("aria-label", "每日签到");
+  overlay.setAttribute("aria-label", "每日奖励");
   overlay.innerHTML = `
     <div class="checkin-modal">
       <button class="checkin-close" type="button" aria-label="关闭">×</button>
@@ -2678,18 +2684,143 @@ const enhanceButton = document.querySelector("[data-enhance]");
 const promptBox = document.querySelector(".hero-textarea");
 
 const modeCosts = { image: 8, video: 24, character: 12 };
+const videoWorkflowPresets = {
+  "image-video": {
+    title: "图片转视频",
+    description: "上传一张角色、商品或场景图，生成可保存、可下载、可分享的短视频资产。",
+    summary: "图生视频 · 24 积分起",
+    detail: "支持 16:9、9:16、1:1；5秒 / 10秒；结果自动进入生成任务和我的作品。",
+    prompt: "将这张图转换成 5 秒电影感短视频，镜头缓慢推进，主体保持清晰，灯光高级，适合发布到社媒。",
+    ratio: "16:9",
+    duration: "5",
+    model: "fake_worker",
+    cost: 24,
+    preview: "16:9 · 5秒 · Fake Worker 演示",
+    art: "art-7"
+  },
+  "product-teaser": {
+    title: "产品短片",
+    description: "为商品图生成广告感短片，自动强化主体展示、镜头推进、字幕节奏和品牌氛围。",
+    summary: "产品广告 · 32 积分起",
+    detail: "默认 10 秒、16:9 或 1:1，适合商品主视觉、新品发布和电商广告。",
+    prompt: "把这张商品图生成 10 秒产品广告短片，镜头从产品细节缓慢推进到完整主体，加入高级棚拍灯光、干净背景、品牌发布感和可放置字幕的留白区域。",
+    ratio: "16:9",
+    duration: "10",
+    model: "qianwen_video",
+    cost: 32,
+    preview: "16:9 · 10秒 · 产品广告预设",
+    art: "art-1"
+  },
+  "social-reel": {
+    title: "社媒竖屏视频",
+    description: "为 TikTok、Reels 和 Shorts 自动设置 9:16、强开场运镜和短视频节奏。",
+    summary: "社媒短视频 · 28 积分起",
+    detail: "默认 9:16、5 秒强开场，适合广告测试、创作者内容和爆款封面动效。",
+    prompt: "把这张图片生成 5 秒 9:16 竖屏短视频，前 2 秒有强视觉开场，镜头轻微推进，主体保持稳定，节奏适合 TikTok、Reels 和 Shorts。",
+    ratio: "9:16",
+    duration: "5",
+    model: "hailuo",
+    cost: 28,
+    preview: "9:16 · 5秒 · 社媒竖屏预设",
+    art: "art-13"
+  }
+};
 
 modeButtons.forEach((button) => {
   button.addEventListener("click", () => {
+    const preset = button.dataset.videoPresetButton;
+    if (preset) {
+      applyVideoPreset(preset, { updateUrl: true });
+      return;
+    }
     modeButtons.forEach((item) => item.classList.remove("active"));
     button.classList.add("active");
     const mode = button.dataset.mode || "image";
-    if (costTarget) costTarget.textContent = `${modeCosts[mode] || 8} 积分`;
+    const cost = Number(button.dataset.videoCost || modeCosts[mode] || 8);
+    if (costTarget) costTarget.textContent = `${cost} 积分`;
     if (modeTarget) {
       modeTarget.textContent = mode === "video" ? "视频生成" : mode === "character" ? "角色生成" : "图片生成";
     }
   });
 });
+
+applyInitialVideoPreset();
+
+function applyInitialVideoPreset() {
+  if (!document.querySelector("[data-video-generator]")) return;
+  const preset = new URLSearchParams(window.location.search).get("preset") || "image-video";
+  applyVideoPreset(videoWorkflowPresets[preset] ? preset : "image-video", { updateUrl: false });
+  document.querySelectorAll("[data-video-ratio], [data-video-duration], [data-video-model]").forEach((input) => {
+    input.addEventListener("change", updateVideoEstimateFromControls);
+  });
+  document.querySelector("[data-mobile-generate]")?.addEventListener("click", () => generateButton?.click());
+  document.querySelector("[data-demo-reference]")?.addEventListener("click", () => {
+    showSiteToast("已选择示例参考图。真实上传会在提交生成时保存到资产库。");
+  });
+}
+
+function applyVideoPreset(presetId, options = {}) {
+  const preset = videoWorkflowPresets[presetId] || videoWorkflowPresets["image-video"];
+  if (!document.querySelector("[data-video-generator]")) return;
+  modeButtons.forEach((item) => {
+    item.classList.toggle("active", item.dataset.videoPresetButton === presetId);
+  });
+  document.querySelector("[data-video-preset-title]") && (document.querySelector("[data-video-preset-title]").textContent = preset.title);
+  document.querySelector("[data-video-preset-description]") && (document.querySelector("[data-video-preset-description]").textContent = preset.description);
+  const summary = document.querySelector("[data-video-preset-summary]");
+  if (summary) {
+    summary.innerHTML = `<span>当前预设</span><strong>${escapeHtml(preset.summary)}</strong><p>${escapeHtml(preset.detail)}</p>`;
+  }
+  const ratioInput = document.querySelector("[data-video-ratio]");
+  const durationInput = document.querySelector("[data-video-duration]");
+  const modelInput = document.querySelector("[data-video-model]");
+  if (ratioInput) ratioInput.value = preset.ratio;
+  if (durationInput) durationInput.value = preset.duration;
+  if (modelInput) modelInput.value = preset.model;
+  if (promptBox) promptBox.value = preset.prompt;
+  if (costTarget) costTarget.textContent = `${preset.cost} 积分`;
+  if (modeTarget) modeTarget.textContent = preset.title;
+  const preview = document.querySelector("[data-video-preview]");
+  if (preview) {
+    preview.classList.remove("art-1", "art-7", "art-13");
+    preview.classList.add(preset.art);
+  }
+  const previewMeta = document.querySelector("[data-video-preview-meta]");
+  if (previewMeta) previewMeta.textContent = preset.preview;
+  const costNote = document.querySelector("[data-video-cost-note]");
+  if (costNote) costNote.textContent = `预计消耗 ${preset.cost} 积分。结果会保存到生成任务、资产库和我的作品。`;
+  if (options.updateUrl && window.history?.replaceState) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("preset", presetId);
+    window.history.replaceState(null, "", url);
+  }
+}
+
+function updateVideoEstimateFromControls() {
+  const preset = getActiveVideoPreset() || videoWorkflowPresets["image-video"];
+  const duration = Number(document.querySelector("[data-video-duration]")?.value || preset.duration);
+  const cost = Math.max(preset.cost, duration >= 10 ? preset.cost + 8 : preset.cost);
+  const ratio = document.querySelector("[data-video-ratio]")?.value || preset.ratio;
+  const model = document.querySelector("[data-video-model]")?.selectedOptions?.[0]?.textContent || preset.model;
+  if (costTarget) costTarget.textContent = `${cost} 积分`;
+  const previewMeta = document.querySelector("[data-video-preview-meta]");
+  if (previewMeta) previewMeta.textContent = `${ratio} · ${duration}秒 · ${model}`;
+  const costNote = document.querySelector("[data-video-cost-note]");
+  if (costNote) costNote.textContent = `预计消耗 ${cost} 积分。结果会保存到生成任务、资产库和我的作品。`;
+}
+
+function getActiveVideoPreset() {
+  const button = document.querySelector("[data-video-preset-button].active");
+  const id = button?.dataset.videoPresetButton || "";
+  const preset = videoWorkflowPresets[id];
+  if (!preset) return null;
+  const duration = Number(document.querySelector("[data-video-duration]")?.value || preset.duration);
+  return {
+    ...preset,
+    id,
+    cost: Math.max(preset.cost, duration >= 10 ? preset.cost + 8 : preset.cost)
+  };
+}
 
 if (enhanceButton && promptBox) {
   enhanceButton.addEventListener("click", async () => {
@@ -2721,10 +2852,14 @@ if (enhanceButton && promptBox) {
 if (generateButton && queueTarget) {
   generateButton.addEventListener("click", async () => {
     const activeMode = document.querySelector("[data-mode].active")?.dataset.mode || "image";
-    const cost = modeCosts[activeMode] || 8;
-    const title = activeMode === "video" ? "生成视频场景" : activeMode === "character" ? "生成角色种子" : "生成图片作品";
+    const activePreset = getActiveVideoPreset();
+    const cost = activePreset?.cost || Number(document.querySelector("[data-mode].active")?.dataset.videoCost || modeCosts[activeMode] || 8);
+    const title = activePreset?.title || (activeMode === "video" ? "生成视频场景" : activeMode === "character" ? "生成角色种子" : "生成图片作品");
     const prompt = promptBox?.value.trim() || "生成 AI 场景";
     const character = document.querySelector(".selector-grid select")?.value?.split(" - ")[0] || "Mira";
+    const ratio = document.querySelector("[data-video-ratio]")?.value || "";
+    const durationSeconds = Number(document.querySelector("[data-video-duration]")?.value || 0) || undefined;
+    const model = document.querySelector("[data-video-model]")?.value || "";
     generateButton.disabled = true;
     generateButton.textContent = "生成中";
     try {
@@ -2733,10 +2868,14 @@ if (generateButton && queueTarget) {
         prompt,
         title,
         character,
-        cost
+        cost,
+        ratio,
+        durationSeconds,
+        model,
+        preset: activePreset?.id || ""
       });
       if (remoteResult) {
-        queueTarget.prepend(statusRow(`${title}已完成`, "真实任务已保存到 Supabase 资产库和生成历史。", "./zh/assets/", "打开作品"));
+        queueTarget.prepend(statusRow(`${title}已完成`, "真实任务已保存到 Supabase 资产库和生成任务。", "./zh/assets/", "打开作品"));
         return;
       }
     } catch (error) {
@@ -2753,12 +2892,12 @@ if (generateButton && queueTarget) {
     }
     state.credits -= cost;
     const id = `asset_${Date.now()}`;
-    const asset = { id, type: activeMode === "video" ? "video" : "image", title, prompt, character, credits: cost, status: "completed", visibility: "private", favorite: false };
-    const job = { id: `job_${Date.now()}`, type: asset.type, title, prompt, provider: "local_api", model: activeMode === "video" ? "local-video-v0" : "local-image-v0", status: "completed", credits: cost, duration: activeMode === "video" ? "8s" : "12s", assetId: id };
+    const asset = { id, type: activeMode === "video" ? "video" : "image", title, prompt, character, credits: cost, status: "completed", visibility: "private", favorite: false, ratio, duration: durationSeconds, preset: activePreset?.id || "" };
+    const job = { id: `job_${Date.now()}`, type: asset.type, title, prompt, provider: model || "local_api", model: activeMode === "video" ? model || "local-video-v0" : "local-image-v0", status: "completed", credits: cost, duration: activeMode === "video" ? `${durationSeconds || 8}s` : "12s", assetId: id, ratio, preset: activePreset?.id || "" };
     state.assets.unshift(asset);
     state.history.unshift(job);
     saveState(state);
-    queueTarget.prepend(statusRow(`${title}已完成`, "已保存到资产库和生成历史。", "./zh/assets/", "打开作品"));
+    queueTarget.prepend(statusRow(`${title}已完成`, "已保存到资产库和生成任务。", "./zh/assets/", "打开作品"));
   });
 }
 
@@ -2783,7 +2922,10 @@ async function runRemoteGeneration(input) {
     prompt: input.prompt,
     workflowId,
     toolSlug: mediaType === "video" ? "image-to-video" : "generate",
-    durationSeconds: mediaType === "video" ? 6 : undefined
+    durationSeconds: mediaType === "video" ? input.durationSeconds || 6 : undefined,
+    aspectRatio: input.ratio || undefined,
+    modelPreference: input.model || undefined,
+    preset: input.preset || undefined
   });
   const job = createResult.job;
   const processed = await invokeAi("process-generation-job", { jobId: job.id });
@@ -5265,5 +5407,3 @@ if (selectedCharacterName) {
 }
 
 renderState(state);
-
-

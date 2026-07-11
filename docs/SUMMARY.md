@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.93.0 |
+| Version | 0.94.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,9 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- The video creation surface has started moving from broad tool discovery toward a real closed-loop workflow. `video-tools.html` now presents task-based video workflows with clear capability, cost, time, and output expectations; `image-to-video.html` supports URL-driven workflow presets for image-to-video, product teaser, and social reel use cases while preserving the existing Supabase/Fake Worker generation path.
+- Product vocabulary on the first video workflow pass is now more consistent: user-facing navigation and workflow copy use `免费积分`, `每日奖励`, `生成任务`, `我的作品`, and `资产库` so users can distinguish input assets, running jobs, finished works, and credit actions.
+- Mobile video workflow behavior has a first production-oriented baseline. Video filters scroll horizontally, dense generator controls stack cleanly, and the image-to-video studio has a sticky mobile action bar for the primary generation path.
 - Social-login redirect handling now uses canonical app return URLs for Supabase `redirectTo` and documents the external OAuth provider callback separately. Google, X / Twitter OAuth 2.0, and Discord now reach their authorization endpoints through Supabase. Telegram uses a separate `telegram-auth` Edge Function because it is not a built-in Supabase Auth provider. External provider consoles must register `https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback`.
 - Technical SEO now has a generated, repeatable baseline. `npm run seo:apply` refreshes canonical, hreflang, robots, Open Graph, Twitter metadata, localized `/zh`, `/en`, `/ja`, `/ko` alias pages, `robots.txt`, and `sitemap.xml`; public routes use clean `https://luravyn.com/{locale}/.../` canonicals while private app/admin surfaces remain `noindex,follow`.
 - Mobile visual QA now covers Homepage, Gallery, Generate, Image to Video, Characters, Assets, History, Dashboard, Pricing, Free Coins, Sign In, Admin, and Share across 375px, 390px, 412px, and 768px viewport widths. The latest pass found and fixed Studio panel and Dashboard row overflow on narrow screens.

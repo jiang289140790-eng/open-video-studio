@@ -65,7 +65,7 @@ describe("MVP static frontend", () => {
 
   it("keeps required commercial navigation items available", () => {
     const combined = requiredPages.map(readPage).join("\n");
-    for (const item of ["工具", "作品探索", "图像工具", "角色", "购买积分", "免费硬币", "我的创作", "控制台", "生成历史", "积分", "登录"]) {
+    for (const item of ["工具", "作品探索", "图像工具", "角色", "购买积分", "免费积分", "我的作品", "控制台", "生成任务", "积分", "登录"]) {
       assert.ok(combined.includes(item), `navigation should include ${item}`);
     }
   });
@@ -304,8 +304,14 @@ describe("MVP static frontend", () => {
       "tool-category-page",
       "图片编辑器",
       "图片转视频",
-      "选择资产",
-      "查看历史"
+      "产品短片",
+      "社媒竖屏视频",
+      "preset=image-video",
+      "preset=product-teaser",
+      "preset=social-reel",
+      "预计 1～3 分钟",
+      "生成任务",
+      "选择资产"
     ]) {
       assert.ok(`${imageTools}\n${videoTools}\n${appScript}\n${viteConfig}`.includes(expected), `tool category pages should include ${expected}`);
     }
@@ -518,7 +524,7 @@ describe("MVP static frontend", () => {
     const appScript = readPage("app.js");
     assert.ok(appScript.includes("const active = (target) => page === target"));
     assert.ok(appScript.includes("my-creations.html"));
-    assert.ok(appScript.includes("生成历史"));
+    assert.ok(appScript.includes("生成任务"));
     assert.equal(appScript.includes('href="./app.html" class="rail-active"'), false);
   });
 
@@ -532,7 +538,7 @@ describe("MVP static frontend", () => {
       "account-credit",
       "退出登录",
       "控制台",
-      "免费硬币"
+      "免费积分"
     ]) {
       assert.ok(`${appScript}\n${styles}`.includes(expected), `account navigation should include ${expected}`);
     }
@@ -744,6 +750,7 @@ describe("MVP static frontend", () => {
   it("contains actionable tool detail workbenches", () => {
     const appScript = readPage("app.js");
     const styles = readPage("styles.css");
+    const imageToVideo = readPage("image-to-video.html");
     for (const expected of [
       "injectToolWorkbench",
       "tool-workbench",
@@ -758,9 +765,19 @@ describe("MVP static frontend", () => {
       "tool-usecase-band",
       "tool-conversion-strip",
       "生成演示结果",
-      "已保存到资产库和生成历史"
+      "已保存到资产库和生成任务",
+      "data-video-preset-button=\"image-video\"",
+      "data-video-preset-button=\"product-teaser\"",
+      "data-video-preset-button=\"social-reel\"",
+      "data-video-ratio",
+      "data-video-duration",
+      "data-video-model",
+      "data-mobile-generate",
+      "videoWorkflowPresets",
+      "applyVideoPreset",
+      "getActiveVideoPreset"
     ]) {
-      assert.ok(`${appScript}\n${styles}`.includes(expected), `tool workbench should include ${expected}`);
+      assert.ok(`${appScript}\n${styles}\n${imageToVideo}`.includes(expected), `tool workbench should include ${expected}`);
     }
   });
 
@@ -774,7 +791,7 @@ describe("MVP static frontend", () => {
       "data-support-widget",
       "openSupportWidget",
       "support-overlay",
-      "领取免费硬币",
+      "领取免费积分",
       "data-scroll-top"
     ]) {
       assert.ok(`${appScript}\n${styles}`.includes(expected), `floating quick actions should include ${expected}`);
