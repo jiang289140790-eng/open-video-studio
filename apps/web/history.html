@@ -28,12 +28,24 @@
   <body>
     <header class="topbar">
       <a class="brand" href="./index.html"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
-      <nav class="topnav" aria-label="Primary navigation"><a href="./zh/app/generate/">图像工具</a><a href="./zh/app/image-to-video/">视频工具</a><a href="./zh/pricing/">购买积分</a><a href="./zh/free-coins/">免费硬币</a><a href="./zh/my-creations/">我的创作</a></nav>
-      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./zh/free-coins/">每日签到</a><a href="./zh/login/">登录</a></nav>
+      <nav class="topnav" aria-label="Primary navigation"><a href="./zh/app/generate/">图像工具</a><a href="./zh/app/image-to-video/">视频工具</a><a href="./zh/assets/">资产库</a><a href="./zh/my-creations/">我的作品</a><a href="./zh/pricing/">购买积分</a></nav>
+      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./zh/free-coins/">每日奖励</a><a href="./zh/login/">登录 / 注册</a></nav>
       <a class="btn primary" href="./zh/app/generate/">重试提示词</a>
     </header>
     <main class="app-surface">
-      <section class="page-hero compact"><p class="eyebrow">生成历史</p><h1>每次提示词、模型、积分和输出都在这里</h1></section>
+      <section class="page-hero compact"><p class="eyebrow">生成任务</p><h1>查看任务状态、失败原因、积分退款和输出资产</h1></section>
+      <section class="studio-toolbar history-toolbar">
+        <input class="search" data-history-search placeholder="搜索提示词、模型、服务商或作品">
+        <div class="chip-row">
+          <button class="chip active" type="button" data-history-filter="all">全部</button>
+          <button class="chip" type="button" data-history-filter="running">生成中</button>
+          <button class="chip" type="button" data-history-filter="completed">已完成</button>
+          <button class="chip" type="button" data-history-filter="failed">失败</button>
+          <button class="chip" type="button" data-history-filter="video">视频</button>
+          <button class="chip" type="button" data-history-filter="image">图片</button>
+        </div>
+        <button class="btn glass" type="button" data-refresh-history>刷新任务状态</button>
+      </section>
       <section class="history-list" data-history-list>
         <article class="history-row"><span class="thumb art-3"></span><div><h3>产品发布主视觉</h3><p>提示词：紫色灯光下的电影感产品发布</p><small>服务商 local_api - 模型 local-image-v0 - 已完成 - 8 积分 - 18 秒</small></div><div class="row-actions"><button>重试</button><a href="./zh/share/">分享</a></div></article>
         <article class="history-row"><span class="thumb art-7"></span><div><h3>竖屏短片</h3><p>提示词：把主视觉转成社媒短片</p><small>服务商 local_api - 模型 local-video-v0 - 运行中 - 24 积分 - 8 秒</small></div><div class="row-actions"><button>取消</button><a href="./zh/assets/">输出</a></div></article>

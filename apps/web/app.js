@@ -1418,6 +1418,7 @@ async function hydrateAuthSession() {
     };
     await syncRemoteProductData();
     saveState(state);
+    renderState(state);
   } else {
     renderState(state);
   }
@@ -1458,6 +1459,7 @@ async function syncRemoteProductData() {
   ]);
   if (!assetsResult.error && Array.isArray(assetsResult.data)) {
     state.assets = assetsResult.data.map(mapRemoteAsset);
+    await attachRemoteAssetDownloadUrls(state.assets);
   }
   if (!jobsResult.error && Array.isArray(jobsResult.data)) {
     state.history = jobsResult.data.map(mapRemoteJob);
@@ -1499,6 +1501,7 @@ async function hydrateRemoteShareByToken() {
   if (assetResult.error || !assetResult.data) return;
   const asset = mapRemoteAsset(assetResult.data);
   asset.visibility = "public";
+  await attachRemoteAssetDownloadUrls([asset]);
   upsertById(state.assets, asset);
   upsertById(state.shares, {
     id: String(shareResult.data.id),
@@ -1511,6 +1514,8 @@ async function hydrateRemoteShareByToken() {
 
 function mapRemoteAsset(asset, index = 0) {
   const metadata = parseMaybeJson(asset.metadata_json);
+  const storageKey = String(asset.storage_key || asset.file_url || "").trim();
+  const outputUrl = String(metadata.outputUrl || metadata.providerOutputUrl || "").trim();
   return {
     id: String(asset.id),
     type: asset.asset_type === "video" ? "video" : "image",
@@ -1521,11 +1526,19 @@ function mapRemoteAsset(asset, index = 0) {
     status: String(asset.processing_status || "ready"),
     visibility: String(asset.visibility_status || "private"),
     favorite: Boolean(asset.is_favorite),
+    storageKey,
+    outputUrl,
+    contentType: String(metadata.storageContentType || asset.file_type || ""),
+    provider: String(metadata.provider || ""),
+    model: String(metadata.model || ""),
+    downloadUrl: outputUrl,
+    previewUrl: outputUrl,
     remote: true
   };
 }
 
 function mapRemoteJob(job) {
+  const inputParams = parseMaybeJson(job.input_params);
   return {
     id: String(job.id),
     type: job.media_type === "video" ? "video" : "image",
@@ -1536,8 +1549,35 @@ function mapRemoteJob(job) {
     status: String(job.status || "queued"),
     credits: Number(job.cost_credits || job.credit_charged || 0),
     duration: job.latency ? `${Math.round(Number(job.latency) / 1000)}s` : String(job.duration_seconds ? `${job.duration_seconds}s` : "等待中"),
-    assetId: String(job.result_asset_id || "")
+    assetId: String(job.result_asset_id || ""),
+    progress: Number(job.progress || 0),
+    errorCode: String(job.error_code || ""),
+    errorMessage: String(job.error_message || ""),
+    refundAmount: Number(job.refund?.amount || 0),
+    sourceAssetId: String(job.source_asset_id || inputParams.sourceAssetId || ""),
+    remote: true
   };
+}
+
+async function attachRemoteAssetDownloadUrls(assets) {
+  if (!supabase || !Array.isArray(assets)) return;
+  await Promise.all(assets.map(async (asset) => {
+    if (!asset.remote || !asset.storageKey) return;
+    try {
+      const publicResult = supabase.storage.from(supabaseStorageBucket).getPublicUrl(asset.storageKey);
+      if (publicResult?.data?.publicUrl) {
+        asset.publicUrl = publicResult.data.publicUrl;
+        asset.previewUrl = asset.previewUrl || publicResult.data.publicUrl;
+      }
+      const signed = await supabase.storage.from(supabaseStorageBucket).createSignedUrl(asset.storageKey, 3600);
+      if (!signed.error && signed.data?.signedUrl) {
+        asset.downloadUrl = signed.data.signedUrl;
+        asset.previewUrl = signed.data.signedUrl;
+      }
+    } catch {
+      asset.downloadUrl = asset.outputUrl || asset.publicUrl || asset.downloadUrl || "";
+    }
+  }));
 }
 
 function parseMaybeJson(value) {
@@ -3072,14 +3112,19 @@ if (generateButton && queueTarget) {
         reference
       });
       if (remoteResult) {
+        const remoteAssetId = String(remoteResult.asset?.id || remoteResult.job?.result_asset_id || "");
+        const remoteAsset = state.assets.find((asset) => asset.id === remoteAssetId);
+        if (remoteAsset) renderGeneratedPreview(remoteAsset, state.history.find((job) => job.assetId === remoteAsset.id) || remoteResult.job || {});
         updateGenerationProgress(progressRow, "completed", "真实任务已保存到 Supabase 资产库、生成任务和我的作品。", 100, {
           assetHref: "./zh/assets/",
-          downloadHref: "#"
+          downloadHref: remoteAsset?.downloadUrl || "",
+          downloadName: remoteAsset ? downloadFileName(remoteAsset) : "luravyn-generation"
         });
         return;
       }
     } catch (error) {
-      updateGenerationProgress(progressRow, "retrying", `${error.message || "真实生成暂不可用"}，正在切换到本地演示生成。`, 38);
+      const refundText = error.refund?.amount ? `远端已退回 ${error.refund.amount} 积分。` : "未重复扣除远端积分。";
+      updateGenerationProgress(progressRow, "retrying", `${error.message || "真实生成暂不可用"}，${refundText} 正在切换到本地演示生成。`, 38);
     } finally {
       generateButton.disabled = false;
       generateButton.textContent = activeMode === "video" ? "生成视频" : "生成";
@@ -3125,7 +3170,8 @@ if (generateButton && queueTarget) {
       assetId: id,
       ratio,
       preset: activePreset?.id || "",
-      progress: 100
+      progress: 100,
+      remote: false
     };
     updateGenerationProgress(progressRow, "running", "Fake Worker 正在生成预览和输出元数据。", 64);
     await wait(180);
@@ -3173,7 +3219,10 @@ async function runRemoteGeneration(input) {
   const job = createResult.job;
   const processed = await invokeAi("process-generation-job", { jobId: job.id });
   if (processed.error) {
-    throw new Error(processed.error.message || "AI 生成失败，积分已自动退回。");
+    const error = new Error(processed.error.message || "AI 生成失败，积分已自动退回。");
+    error.refund = processed.refund || null;
+    error.job = processed.job || null;
+    throw error;
   }
   mergeRemoteGenerationResult(processed.job, processed.asset, input);
   await syncRemoteProductData();
@@ -3213,7 +3262,9 @@ function mergeRemoteGenerationResult(job, asset, input = {}) {
     status: String(job.status || "completed"),
     credits: mappedAsset.credits,
     duration: job.latency ? `${Math.round(Number(job.latency) / 1000)}s` : "实时",
-    assetId
+    assetId,
+    progress: Number(job.progress || 100),
+    remote: true
   };
   upsertById(state.assets, mappedAsset);
   upsertById(state.history, mappedJob);
@@ -3297,10 +3348,13 @@ function updateGenerationProgress(row, status, message, progress, actions = {}) 
 function statusLabel(status) {
   const labels = {
     queued: "排队中",
+    pending: "等待中",
     running: "生成中",
     completed: "已完成",
     failed: "失败",
-    retrying: "切换中"
+    retrying: "切换中",
+    cancelled: "已取消",
+    canceled: "已取消"
   };
   return labels[status] || status;
 }
@@ -3458,21 +3512,146 @@ function renderAssets(current) {
 function renderHistory(current) {
   const target = document.querySelector("[data-history-list]");
   if (!target) return;
-  target.innerHTML = current.history.map((job) => `
+  document.querySelectorAll("[data-history-filter]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.historyFilter === historyFilter);
+  });
+  const filtered = current.history.filter((job) => {
+    const normalizedStatus = normalizeJobStatus(job.status);
+    const matchesFilter =
+      historyFilter === "all" ||
+      job.type === historyFilter ||
+      normalizedStatus === historyFilter ||
+      (historyFilter === "running" && ["queued", "running", "retrying", "pending"].includes(normalizedStatus));
+    const haystack = `${job.title} ${job.prompt} ${job.provider} ${job.model} ${job.status} ${job.type}`.toLowerCase();
+    return matchesFilter && (!historySearch || haystack.includes(historySearch));
+  });
+  target.innerHTML = filtered.length ? filtered.map((job) => {
+    const asset = current.assets.find((item) => item.id === job.assetId);
+    const canCancel = ["queued", "pending", "running", "retrying"].includes(normalizeJobStatus(job.status));
+    const progress = Math.max(0, Math.min(100, Number(job.progress || (job.status === "completed" ? 100 : 0))));
+    return `
     <article class="history-row">
       <span class="thumb ${job.type === "video" ? "art-7" : "art-3"}"></span>
-      <div><h3>${escapeHtml(job.title)}</h3><p>提示词：${escapeHtml(job.prompt)}</p><small>服务商 ${escapeHtml(job.provider)} - 模型 ${escapeHtml(job.model)} - ${job.status === "completed" ? "已完成" : escapeHtml(job.status)} - ${job.credits} 积分 - ${escapeHtml(job.duration)}</small></div>
+      <div class="history-row-body">
+        <h3>${escapeHtml(job.title)}</h3>
+        <p>提示词：${escapeHtml(job.prompt)}</p>
+        <small>服务商 ${escapeHtml(job.provider)} - 模型 ${escapeHtml(job.model)} - ${statusLabel(normalizeJobStatus(job.status))} - ${job.credits} 积分 - ${escapeHtml(job.duration)}</small>
+        ${job.errorMessage ? `<em class="history-error">失败原因：${escapeHtml(job.errorMessage)}${job.refundAmount ? ` · 已退回 ${job.refundAmount} 积分` : ""}</em>` : ""}
+        <div class="generation-progress-track history-progress"><span style="width: ${progress}%"></span></div>
+      </div>
       <div class="row-actions">
-        <button data-retry-job="${job.id}">重试</button>
-        <a href="./zh/assets/">输出</a>
-        <button data-share-asset="${job.assetId}">分享</button>
+        ${job.remote ? `<button data-refresh-job="${job.id}">刷新</button>` : ""}
+        ${canCancel && job.remote ? `<button data-cancel-job="${job.id}">取消</button>` : `<button data-retry-job="${job.id}">重试</button>`}
+        ${asset?.downloadUrl ? `<a href="${asset.downloadUrl}" download="${escapeHtml(downloadFileName(asset))}">下载</a>` : ""}
+        ${job.assetId ? `<a href="./zh/assets/">输出</a><button data-share-asset="${job.assetId}">分享</button>` : ""}
       </div>
     </article>
-  `).join("");
+  `; }).join("") : `
+    <article class="empty-state creation-empty">
+      <div><p class="eyebrow">没有匹配任务</p><h2>换个筛选条件，或开始一次新生成</h2><p class="muted">任务创建后会显示状态、积分、失败原因、退款和输出资产。</p></div>
+      <a class="btn primary" href="./zh/app/image-to-video/">上传图片生成视频</a>
+    </article>
+  `;
+}
+
+async function refreshRemoteGenerationJobs(button) {
+  if (!supabase) {
+    showSiteToast("Supabase 未配置，当前只能查看本地演示任务。");
+    return;
+  }
+  const remoteJobs = state.history.filter((job) => job.remote && ["queued", "pending", "running", "retrying", "failed"].includes(normalizeJobStatus(job.status)));
+  if (!remoteJobs.length) {
+    showSiteToast("没有需要刷新的远端任务。");
+    return;
+  }
+  if (button) {
+    button.disabled = true;
+    button.textContent = "刷新中";
+  }
+  try {
+    for (const job of remoteJobs) {
+      await refreshRemoteGenerationJob(job.id, { silent: true });
+    }
+    await syncRemoteProductData();
+    saveState(state);
+    renderState(state);
+    showSiteToast("生成任务状态已刷新。");
+  } catch (error) {
+    showSiteToast(error.message || "任务刷新失败。");
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = "刷新任务状态";
+    }
+  }
+}
+
+async function refreshRemoteGenerationJob(jobId, options = {}) {
+  if (!supabase || !jobId) return null;
+  const result = await invokeAi("check-generation-status", { jobId });
+  const mapped = mapRemoteJob(result.job);
+  const existing = state.history.find((job) => job.id === mapped.id);
+  upsertById(state.history, { ...existing, ...mapped });
+  saveState(state);
+  if (!options.silent) {
+    renderState(state);
+    showSiteToast(`任务状态：${statusLabel(normalizeJobStatus(mapped.status))}`);
+  }
+  return mapped;
+}
+
+async function cancelRemoteGenerationJob(jobId, button) {
+  if (!supabase || !jobId) {
+    showSiteToast("只有远端任务可以取消。");
+    return;
+  }
+  if (button) {
+    button.disabled = true;
+    button.textContent = "取消中";
+  }
+  try {
+    const result = await invokeAi("cancel-generation-job", { jobId });
+    const mapped = mapRemoteJob({ ...result.job, refund: result.refund });
+    mapped.refundAmount = Number(result.refund?.amount || 0);
+    upsertById(state.history, mapped);
+    await syncRemoteProductData();
+    saveState(state);
+    renderState(state);
+    showSiteToast(mapped.refundAmount ? `任务已取消，已退回 ${mapped.refundAmount} 积分。` : "任务已取消。");
+  } catch (error) {
+    showSiteToast(error.message || "任务取消失败。");
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = "取消";
+    }
+  }
+}
+
+function normalizeJobStatus(status) {
+  const value = String(status || "").toLowerCase();
+  if (["completed", "ready", "success", "succeeded"].includes(value)) return "completed";
+  if (["failed", "error"].includes(value)) return "failed";
+  if (["cancelled", "canceled"].includes(value)) return "cancelled";
+  if (["retrying"].includes(value)) return "retrying";
+  if (["running", "processing"].includes(value)) return "running";
+  if (["queued", "pending"].includes(value)) return "queued";
+  return value || "queued";
+}
+
+function downloadFileName(asset) {
+  const safeTitle = String(asset?.title || "luravyn-generation").replace(/[^a-zA-Z0-9\u4e00-\u9fa5._-]+/g, "-").replace(/^-+|-+$/g, "") || "luravyn-generation";
+  if (asset?.contentType?.includes("video")) return `${safeTitle}.mp4`;
+  if (asset?.contentType?.includes("png")) return `${safeTitle}.png`;
+  if (asset?.type === "video") return `${safeTitle}.mp4`;
+  if (asset?.type === "image") return `${safeTitle}.png`;
+  return `${safeTitle}.json`;
 }
 
 let creationFilter = "all";
 let creationSearch = "";
+let historyFilter = "all";
+let historySearch = "";
 
 function renderCreations(current) {
   const list = document.querySelector("[data-creation-list]");
@@ -5486,11 +5665,41 @@ function renderShare(current) {
   const title = document.querySelector("[data-share-title]");
   if (!title) return;
   const asset = getCurrentShareAsset(current);
-  if (!asset) return;
+  const frame = document.querySelector("[data-share-frame]");
+  const download = document.querySelector("[data-share-download]");
+  if (!asset) {
+    title.textContent = "分享链接不可用";
+    document.querySelectorAll("[data-share-prompt]").forEach((node) => node.textContent = "这个作品可能已被撤销、归档或不存在。");
+    document.querySelectorAll("[data-share-character]").forEach((node) => node.textContent = "-");
+    document.querySelectorAll("[data-share-model]").forEach((node) => node.textContent = "-");
+    document.querySelectorAll("[data-share-credits]").forEach((node) => node.textContent = "0");
+    document.querySelectorAll("[data-share-status]").forEach((node) => node.textContent = "不可用");
+    document.querySelectorAll("[data-share-type]").forEach((node) => node.textContent = "Unavailable");
+    if (frame) frame.className = "share-frame art-9 unavailable-share-frame";
+    if (download) download.hidden = true;
+    return;
+  }
   title.textContent = asset.title;
   document.querySelectorAll("[data-share-prompt]").forEach((node) => node.textContent = `提示词：${asset.prompt}`);
   document.querySelectorAll("[data-share-character]").forEach((node) => node.textContent = asset.character);
+  document.querySelectorAll("[data-share-model]").forEach((node) => node.textContent = asset.model || asset.provider || (asset.type === "video" ? "video-generation" : "image-generation"));
   document.querySelectorAll("[data-share-credits]").forEach((node) => node.textContent = String(asset.credits));
+  document.querySelectorAll("[data-share-status]").forEach((node) => node.textContent = asset.visibility === "public" ? "公开" : "可预览");
+  document.querySelectorAll("[data-share-type]").forEach((node) => node.textContent = asset.type === "video" ? "视频作品" : "图片作品");
+  if (frame) {
+    frame.className = `share-frame ${asset.type === "video" ? "art-7" : "art-1"} ${asset.downloadUrl || asset.previewUrl ? "has-reference-preview" : ""}`;
+    if (asset.previewUrl || asset.downloadUrl) {
+      frame.style.setProperty("--reference-image", `url("${asset.previewUrl || asset.downloadUrl}")`);
+    }
+  }
+  if (download) {
+    const href = asset.downloadUrl || asset.outputUrl || asset.publicUrl || "";
+    download.hidden = !href;
+    if (href) {
+      download.href = href;
+      download.setAttribute("download", downloadFileName(asset));
+    }
+  }
 }
 
 function getCurrentShareAsset(current = state) {
@@ -5520,6 +5729,22 @@ document.querySelectorAll("[data-creation-filter]").forEach((button) => {
     creationFilter = button.dataset.creationFilter || "all";
     renderCreations(state);
   });
+});
+
+document.querySelector("[data-history-search]")?.addEventListener("input", (event) => {
+  historySearch = event.currentTarget.value.trim().toLowerCase();
+  renderHistory(state);
+});
+
+document.querySelectorAll("[data-history-filter]").forEach((button) => {
+  button.addEventListener("click", () => {
+    historyFilter = button.dataset.historyFilter || "all";
+    renderHistory(state);
+  });
+});
+
+document.querySelector("[data-refresh-history]")?.addEventListener("click", async (event) => {
+  await refreshRemoteGenerationJobs(event.currentTarget);
 });
 
 document.querySelectorAll("[data-tool-home-filter]").forEach((button) => {
@@ -5575,6 +5800,29 @@ document.addEventListener("click", async (event) => {
   if (shareButton) {
     event.preventDefault();
     createShare(shareButton.dataset.shareAsset);
+    return;
+  }
+
+  const refreshJobButton = event.target.closest("[data-refresh-job]");
+  if (refreshJobButton) {
+    event.preventDefault();
+    refreshJobButton.disabled = true;
+    refreshJobButton.textContent = "刷新中";
+    try {
+      await refreshRemoteGenerationJob(refreshJobButton.dataset.refreshJob);
+    } catch (error) {
+      showSiteToast(error.message || "任务刷新失败。");
+    } finally {
+      refreshJobButton.disabled = false;
+      refreshJobButton.textContent = "刷新";
+    }
+    return;
+  }
+
+  const cancelJobButton = event.target.closest("[data-cancel-job]");
+  if (cancelJobButton) {
+    event.preventDefault();
+    await cancelRemoteGenerationJob(cancelJobButton.dataset.cancelJob, cancelJobButton);
     return;
   }
 

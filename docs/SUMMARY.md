@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.95.0 |
+| Version | 0.96.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,8 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Generation History is now closer to a production task center. It can search prompt/model/provider/title text, filter by running/completed/failed/image/video, refresh all remote tasks, refresh or cancel a single remote task, display progress, surface failure reasons and refund amounts, and link completed outputs to Assets, Share, and downloads.
+- Public Share pages now resolve active Supabase `share_links` by token, hydrate the related `media_assets` row, attach Storage signed/public output URLs when available, show unavailable-link fallback copy for revoked/missing assets, and expose model/type/status/download metadata without requiring frontend provider changes.
 - Image-to-Video now has a first actionable input-to-output loop. The generator can accept an uploaded reference image, an in-page asset-library selection, or a demo reference image; logged-in Supabase users can upload the reference to Storage, create a reference `media_assets` row, and pass `sourceAssetId` / `sourceImageUrl` to the existing `ai` Edge Function without changing backend architecture.
 - The Image-to-Video task area now shows production-shaped generation states for queued, running, retrying, failed, and completed work. Local Fake Worker fallback outputs create asset/history records, update the preview, and expose download/open actions so users can complete a visible generate -> save -> review -> download/share loop during MVP testing.
 - Browser configuration now includes `VITE_SUPABASE_STORAGE_BUCKET` as a public bucket-name setting. Third-party secrets remain server-only; the bucket name is only used so the browser can upload user-selected reference images through Supabase Auth and Storage policies.

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.90.0 |
+| Version | 0.91.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,10 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Strengthened the generation task and share loop. History now supports search, status/type filters, remote status refresh, single-job refresh, cancellable remote jobs, visible failure reasons, refund messaging, progress bars, output links, and download actions.
+- Public share pages now hydrate remote Supabase assets by share token, show unavailable-link fallback states, display asset type/model/status metadata, and expose signed Storage/public output downloads when available.
+- Remote product sync now attaches Supabase Storage public/signed URLs to `media_assets`, and authenticated session hydration renders immediately after remote data sync so Gallery/History/Share surfaces reflect the latest backend state.
+- Added regression coverage for history search/filter/refresh/cancel hooks, remote asset download URL attachment, share download metadata, and front-end AI Edge Function status/cancel actions.
 - Added the first actionable Image-to-Video input loop. Users can upload a reference image, select an existing image asset in-page, or choose a demo reference image without leaving the generator.
 - Added browser-side Supabase Storage upload support for video reference images. When Supabase Auth and Storage are configured, the uploaded reference image is stored in the configured bucket, recorded as a `media_assets` reference image, and passed into generation as `sourceAssetId` / `sourceImageUrl`.
 - Aligned the Image-to-Video provider selector with the existing `ai` Edge Function contract by passing provider values such as `fake_worker` and `qianwen_generation` instead of unsupported model aliases.
@@ -52,6 +56,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for generation task refresh/cancel, remote Storage download URLs, share-page metadata/download actions, and authenticated remote data render.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for reference uploads, in-page asset picker hooks, source asset URL parameters, progress rows, output downloads, generated preview actions, and provider-aligned generation payloads.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for the new video workflow presets, task-based Video Tools page, mobile CTA, and terminology.
 - Ran `npm run verify:oauth`; Google, X / Twitter OAuth 2.0, and Discord authorization URLs are reachable through Supabase and report `providerCallbackUrl=https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback`. Telegram remains unconfigured until Bot username, Bot token secret, and the `telegram-auth` function deployment are completed.

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | TASK-DONE-001 |
-| Version | 0.4.0 |
+| Version | 0.5.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | TASK-001 |
@@ -24,6 +24,7 @@ Archive completed tasks with verification evidence and follow-up notes.
 
 ## Completed Tasks
 
+- 2026-07-11: Generation task and share download loop. Added History search/filter controls, remote all-job and single-job refresh, cancellable remote jobs, visible failure/refund/progress states, remote Storage signed/public download URL attachment, and public Share page type/model/status/download metadata with unavailable-link fallback. Verification: `npm run test` passed with 74 tests.
 - 2026-07-11: Image-to-Video input and progress loop. Added reference image upload, in-page asset picker, demo reference selection, Supabase Storage reference upload wiring, source asset/source image generation payloads, visible generation progress states, Fake Worker output download metadata, generated preview actions, and Asset Library / Generation Task output actions. Verification: `npm run test` passed with 74 tests.
 - 2026-07-11: Video workflow surface consolidation. Rebuilt Video Tools as a task-based workflow market, added distinct image-to-video/product-teaser/social-reel preset routing, updated the Image to Video Studio with preset-aware ratio, duration, model, cost, preview, mobile CTA, and generation payload handling, and standardized core vocabulary around assets, generation tasks, works, rewards, and credits. Verification: `npm run test` passed with 74 tests.
 - 2026-07-11: OAuth redirect hardening. Replaced relative social-login return URLs with canonical app return URLs, updated the OAuth verification report to show the exact external provider callback URL, and clarified Supabase versus Discord/X/Google redirect configuration. Verification: `npm run verify:oauth` confirms Discord reaches the provider while Google/X remain disabled and Telegram remains unconfigured.

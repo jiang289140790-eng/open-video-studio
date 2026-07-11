@@ -28,9 +28,10 @@
   <body class="share-body">
     <main class="share-page">
       <a class="brand" href="./index.html"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
-      <section class="share-frame art-1">
+      <section class="share-frame art-1" data-share-frame>
         <span class="play-dot"></span>
         <h1 data-share-title>霓虹发布短片</h1>
+        <p data-share-type>视频作品</p>
       </section>
       <aside class="share-meta">
         <p class="eyebrow">公开分享页</p>
@@ -38,14 +39,15 @@
         <p class="muted" data-share-prompt>提示词：电影感产品发布，固定主持人，紫色工作室灯光，平滑镜头运动。</p>
         <dl>
           <div><dt>角色</dt><dd data-share-character>Mira</dd></div>
-          <div><dt>模型</dt><dd>local-video-v0</dd></div>
+          <div><dt>模型</dt><dd data-share-model>local-video-v0</dd></div>
           <div><dt>积分</dt><dd data-share-credits>24</dd></div>
-          <div><dt>状态</dt><dd>公开</dd></div>
+          <div><dt>状态</dt><dd data-share-status>公开</dd></div>
         </dl>
         <div class="share-actions">
           <button class="btn primary full" type="button" data-share-generate>生成相似作品</button>
           <button class="btn glass full" type="button" data-share-copy-prompt>复制提示词</button>
           <button class="btn glass full" type="button" data-share-save>保存到我的资产</button>
+          <a class="btn glass full" href="#" data-share-download hidden>下载作品</a>
         </div>
         <div class="share-conversion">
           <span>想创建自己的作品？</span>

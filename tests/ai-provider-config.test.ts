@@ -171,6 +171,9 @@ test("frontend routes generation through AI Edge Function before local fallback"
   assert.ok(appScript.includes("runRemoteGeneration"));
   assert.ok(appScript.includes("create-generation-job"));
   assert.ok(appScript.includes("process-generation-job"));
+  assert.ok(appScript.includes("check-generation-status"));
+  assert.ok(appScript.includes("cancel-generation-job"));
+  assert.ok(appScript.includes("attachRemoteAssetDownloadUrls"));
   assert.ok(appScript.includes("syncRemoteProductData"));
   assert.ok(appScript.includes("demo-credit-purchase"));
   assert.ok(appScript.includes("runRemoteDemoCreditPurchase"));
@@ -295,4 +298,3 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(deployFunctionScript.includes("/functions/deploy?slug="));
   assert.equal(deployFunctionScript.includes("console.log(accessToken"), false);
 });
-

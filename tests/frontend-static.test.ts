@@ -131,7 +131,20 @@ describe("MVP static frontend", () => {
       "data-generate-video",
       "data-asset-list",
       "data-history-list",
+      "data-history-search",
+      "data-history-filter",
+      "data-refresh-history",
+      "data-refresh-job",
+      "data-cancel-job",
+      "refreshRemoteGenerationJobs",
+      "refreshRemoteGenerationJob",
+      "cancelRemoteGenerationJob",
       "data-share-title",
+      "data-share-download",
+      "data-share-model",
+      "data-share-status",
+      "attachRemoteAssetDownloadUrls",
+      "downloadFileName",
       "daily-check",
       "data-language",
       "openUnlockModal",
@@ -933,8 +946,12 @@ describe("MVP static frontend", () => {
       "data-share-generate",
       "data-share-copy-prompt",
       "data-share-save",
+      "data-share-download",
+      "data-share-model",
+      "data-share-status",
       "share-conversion",
-      "getCurrentShareAsset"
+      "getCurrentShareAsset",
+      "hydrateRemoteShareByToken"
     ]) {
       assert.ok(`${share}\n${appScript}\n${styles}`.includes(expected), `share page should include ${expected}`);
     }

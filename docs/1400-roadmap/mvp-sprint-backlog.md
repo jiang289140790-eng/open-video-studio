@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.10.0 |
+| Version | 1.11.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -190,9 +190,10 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 ### MVP-S3-007 Dashboard And Generation History
 
 - Priority: P1.
+- Status: In Progress.
 - Estimated Time: 1 day.
 - Dependencies: MVP-S3-002, MVP-S3-004.
-- Acceptance Criteria: user has a post-login dashboard showing recent jobs, recent assets, credits, and next action; generation history filters by status, provider, model, character, and prompt.
+- Acceptance Criteria: user has a post-login dashboard showing recent jobs, recent assets, credits, and next action; generation history filters by status, provider, model, character, and prompt; remote tasks can be refreshed/cancelled; failed tasks show reason/refund state; completed outputs can be opened, shared, and downloaded.
 - Related Documents: PAGE-DASHBOARD-001, DB-GENERATION-JOBS-001.
 
 ### MVP-S3-008 Mobile UX Repair
@@ -239,6 +240,15 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Acceptance Criteria: user can upload a reference image, choose an existing image asset without leaving the generator, use a demo reference, submit a generation with `sourceAssetId` / `sourceImageUrl` when available, see queued/running/retrying/failed/completed task progress, save Fake Worker fallback output to assets/history, open the Asset Library, download output metadata, and continue to share/reuse the result.
 - Related Documents: PAGE-GENERATE-001, API-GEN-VIDEO-001, DB-GENERATION-JOBS-001, DB-MEDIA-ASSETS-001, BE-ARCH-STORAGE-001.
 
+### MVP-S3-013 Generation Task And Share Download Loop
+
+- Priority: P0.
+- Status: Completed.
+- Estimated Time: 0.5 day.
+- Dependencies: MVP-S3-012, MVP-S3-005, MVP-S3-007, API-GEN-VIDEO-001, DB-GENERATION-JOBS-001, DB-MEDIA-ASSETS-001, DB-SHARE-LINKS-001.
+- Acceptance Criteria: History supports search, status/type filters, all-job refresh, single-job refresh, cancellable remote jobs, visible failure reasons, refund messaging, progress bars, output links, share actions, and downloadable completed outputs; public Share pages resolve Supabase share tokens, show unavailable-link fallback states, display type/model/status metadata, and expose Storage-backed downloads when available.
+- Related Documents: PAGE-GENERATE-001, PAGE-GALLERY-001, DB-GENERATION-JOBS-001, DB-MEDIA-ASSETS-001, DB-SHARE-LINKS-001, BE-ARCH-STORAGE-001.
+
 ## Sprint 4: Admin And MVP Integration
 
 ### MVP-S4-001 Admin Read APIs
@@ -282,6 +292,41 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 ## Future Plan
 
 Move Phase 2 and Phase 3 concepts out of MVP execution until the MVP is usable.
+
+## MVP Closure Plan From Product Review
+
+The next execution phase should reduce surface complexity and complete one fully usable user loop before adding more tool categories.
+
+### P0: Core Generation Loop
+
+- Login or register.
+- Upload or select an image asset.
+- Select video preset, ratio, duration, and provider/model.
+- Show expected credits, generation time, and output format before submission.
+- Submit generation job.
+- Show queue/running/completed/failed/cancelled states.
+- Refund credits visibly when a charged job fails or is cancelled.
+- Save successful output as a reusable asset.
+- Preview, download, share, and reuse the output.
+
+### P1: Workflow Differentiation
+
+- Tool cards must either route to different workflows or pass distinct presets into one generator.
+- Image-to-video, product teaser, and social reel should preserve different defaults for ratio, duration, prompt structure, credit estimate, and output intent.
+- Rename user-facing concepts consistently: Asset Library, Generation Tasks, My Works, Daily Rewards, Credits.
+
+### P1: Mobile Product Usability
+
+- Mobile navigation should prioritize Logo, Credits, Account/Menu, and a sticky primary generation action.
+- Tool filters should scroll horizontally and remain touch-safe.
+- Upload should support gallery selection, camera capture, asset picker, replace, and remove flows.
+- Video preview must respect vertical social formats and keep download/share controls reachable.
+
+### P2: Commercial Readiness
+
+- Add real provider health and fallback messaging where users submit jobs.
+- Complete Stripe/PayPal live account configuration, webhook fulfillment, refund/reconciliation, and tax/invoice policy before paid traffic.
+- Add content policy, privacy policy, terms, and moderation review gates before broad public sharing.
 
 ## AI Context
 
