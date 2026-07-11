@@ -4,6 +4,7 @@ const STORE_KEY = "ovs_mvp_state_v1";
 const COOKIE_PREF_KEY = "ovs_cookie_preferences_v1";
 const AUTH_RETURN_KEY = "ovs_auth_return_target_v1";
 const VIDEO_DRAFT_KEY = "ovs_video_generation_draft_v1";
+const GENERATION_RECOVERY_KEY = "ovs_generation_recovery_v1";
 const APP_SHELL_PAGES = new Set([
   "app.html",
   "gallery.html",
@@ -3046,6 +3047,165 @@ function clearVideoGenerationDraft() {
   document.querySelector("[data-video-generator]")?.removeAttribute("data-video-draft-saved");
 }
 
+function clearGenerationRecovery() {
+  localStorage.removeItem(GENERATION_RECOVERY_KEY);
+  localStorage.removeItem("ovs_retry_prompt");
+}
+
+function buildGenerationRecoveryReference(sourceAsset) {
+  if (!sourceAsset || sourceAsset.type === "video") return null;
+  const sourceImageUrl = sourceAsset.sourceImageUrl || sourceAsset.previewUrl || sourceAsset.downloadUrl || "";
+  const previewUrl = sourceAsset.previewUrl || sourceAsset.downloadUrl || "";
+  const hasLocalBlob = [sourceImageUrl, previewUrl].some((value) => String(value || "").startsWith("blob:"));
+  const needsReupload = hasLocalBlob || Boolean(sourceAsset.fileName && !sourceAsset.remote && !sourceAsset.sourceImageUrl && !sourceAsset.downloadUrl);
+  return {
+    id: sourceAsset.id,
+    title: sourceAsset.title,
+    type: sourceAsset.type || "image",
+    prompt: sourceAsset.prompt || "",
+    character: sourceAsset.character || "Mira",
+    credits: Number(sourceAsset.credits || 0),
+    status: sourceAsset.status || "ready",
+    visibility: sourceAsset.visibility || "private",
+    favorite: Boolean(sourceAsset.favorite),
+    remote: Boolean(sourceAsset.remote),
+    sourceAssetId: sourceAsset.remote ? sourceAsset.id : sourceAsset.sourceAssetId || "",
+    sourceImageUrl: needsReupload ? "" : sourceImageUrl,
+    previewUrl: needsReupload ? "" : previewUrl,
+    sourceType: sourceAsset.sourceType || "reference_image",
+    needsReupload
+  };
+}
+
+function buildGenerationRecoveryFromJob(job) {
+  if (!job) return null;
+  const asset = state.assets.find((item) => item.id === job.assetId || item.id === job.sourceAssetId);
+  const sourceAsset = state.assets.find((item) => item.id === job.sourceAssetId || item.id === job.referenceId) || asset || job.reference;
+  return {
+    kind: job.type === "video" ? "image-to-video" : "image-generation",
+    source: "job",
+    jobId: job.id,
+    assetId: job.assetId || "",
+    savedAt: Date.now(),
+    title: job.title || "重新生成",
+    prompt: job.prompt || "",
+    ratio: job.ratio || sourceAsset?.ratio || "",
+    durationSeconds: job.durationSeconds || sourceAsset?.durationSeconds || 0,
+    model: job.model || "",
+    provider: job.provider || "",
+    preset: job.preset || (job.type === "video" ? "image-video" : ""),
+    status: normalizeJobStatus(job.status),
+    errorMessage: job.errorMessage || "",
+    refundAmount: Number(job.refundAmount || 0),
+    reference: buildGenerationRecoveryReference(sourceAsset)
+  };
+}
+
+function buildGenerationRecoveryFromAsset(asset) {
+  if (!asset) return null;
+  const sourceAsset = state.assets.find((item) => item.id === asset.referenceId || item.id === asset.sourceAssetId);
+  return {
+    kind: asset.type === "video" ? "image-to-video" : "image-generation",
+    source: "asset",
+    assetId: asset.id,
+    savedAt: Date.now(),
+    title: asset.title || "重新生成",
+    prompt: asset.prompt || "",
+    ratio: asset.ratio || "",
+    durationSeconds: asset.durationSeconds || 0,
+    model: asset.model || "",
+    provider: asset.provider || "",
+    preset: asset.preset || (asset.type === "video" ? "social-reel" : ""),
+    status: normalizeJobStatus(asset.status || "completed"),
+    reference: buildGenerationRecoveryReference(sourceAsset || asset)
+  };
+}
+
+function persistGenerationRecovery(recovery) {
+  if (!recovery) return null;
+  localStorage.setItem(GENERATION_RECOVERY_KEY, JSON.stringify(recovery));
+  if (recovery.prompt) localStorage.setItem("ovs_retry_prompt", recovery.prompt);
+  return recovery;
+}
+
+function applyGenerationRecovery() {
+  if (!promptBox) return false;
+  const recovery = parseMaybeJson(localStorage.getItem(GENERATION_RECOVERY_KEY));
+  if (!recovery.kind) return false;
+  if (Date.now() - Number(recovery.savedAt || 0) > 24 * 60 * 60 * 1000) {
+    localStorage.removeItem(GENERATION_RECOVERY_KEY);
+    return false;
+  }
+  promptBox.value = recovery.prompt || promptBox.value;
+  if (document.querySelector("[data-video-generator]")) {
+    if (recovery.preset && videoWorkflowPresets[recovery.preset]) {
+      applyVideoPreset(recovery.preset, { updateUrl: false });
+    }
+    const ratioInput = document.querySelector("[data-video-ratio]");
+    const durationInput = document.querySelector("[data-video-duration]");
+    const modelInput = document.querySelector("[data-video-model]");
+    if (ratioInput && recovery.ratio) ratioInput.value = normalizeVideoAspectRatio(recovery.ratio);
+    if (durationInput && recovery.durationSeconds) durationInput.value = String(recovery.durationSeconds);
+    if (modelInput && recovery.model && Array.from(modelInput.options).some((option) => option.value === recovery.model)) {
+      modelInput.value = recovery.model;
+    }
+    if (!selectedVideoReference && recovery.reference?.id) {
+      if (recovery.reference.needsReupload) {
+        setVideoUploadStatus("已恢复上次任务，请重新选择本地参考图。", "idle");
+      } else {
+        selectVideoReference(recovery.reference, { addToAssets: false, status: "已恢复上次任务的参考图。" });
+      }
+    }
+    updateVideoEstimateFromControls();
+    updateVideoPreflight();
+  }
+  showGenerationRecoveryNotice(recovery);
+  clearGenerationRecovery();
+  return true;
+}
+
+function getGenerationRecoveryRoute(recovery) {
+  return recovery?.kind === "image-to-video" ? "./zh/app/image-to-video/" : "./zh/app/generate/";
+}
+
+function renderJobRecoveryHint(job) {
+  const status = normalizeJobStatus(job.status);
+  if (!["failed", "cancelled", "canceled"].includes(status)) return "";
+  const refundCopy = job.refundAmount
+    ? `已退回 ${Number(job.refundAmount)} 积分`
+    : "不会重复扣费，重新提交前会重新估算积分";
+  const nextStep = job.type === "video" ? "保留视频参数和参考图继续生成" : "带回提示词重新生成";
+  return `
+    <div class="history-recovery-hint" data-history-recovery-hint>
+      <strong>${statusLabel(status)}任务可恢复</strong>
+      <span>${escapeHtml(refundCopy)} · ${escapeHtml(nextStep)}</span>
+    </div>
+  `;
+}
+
+function showGenerationRecoveryNotice(recovery) {
+  const target = document.querySelector("[data-video-preflight]") || document.querySelector("[data-queue]") || document.querySelector(".studio-panel");
+  if (!target) {
+    showSiteToast("已恢复上次生成内容，可重新提交。");
+    return;
+  }
+  document.querySelector("[data-generation-recovery-notice]")?.remove();
+  const refundCopy = recovery.refundAmount ? `已退回 ${recovery.refundAmount} 积分。` : "没有检测到额外扣费。";
+  const errorCopy = recovery.errorMessage ? `失败原因：${recovery.errorMessage}` : "你可以调整参数后重新提交。";
+  const notice = document.createElement("article");
+  notice.className = "generation-recovery-notice";
+  notice.dataset.generationRecoveryNotice = "true";
+  notice.innerHTML = `
+    <div>
+      <span>任务恢复</span>
+      <strong>${escapeHtml(recovery.title || "已恢复上次生成")}</strong>
+      <p>${escapeHtml(errorCopy)} ${escapeHtml(refundCopy)}</p>
+    </div>
+    <button class="btn glass" type="button" data-dismiss-recovery>知道了</button>
+  `;
+  target.before(notice);
+}
+
 async function handleVideoReferenceUpload(event) {
   const file = event.target?.files?.[0];
   if (!file) return;
@@ -3483,6 +3643,7 @@ if (generateButton && queueTarget) {
         const remoteAsset = state.assets.find((asset) => asset.id === remoteAssetId);
         if (remoteAsset) renderGeneratedPreview(remoteAsset, state.history.find((job) => job.assetId === remoteAsset.id) || remoteResult.job || {});
         clearVideoGenerationDraft();
+        clearGenerationRecovery();
         updateGenerationProgress(progressRow, "completed", "真实任务已保存到 Supabase 资产库、生成任务和我的作品。", 100, {
           assetHref: "./zh/assets/",
           historyHref: "./zh/history/",
@@ -3500,9 +3661,29 @@ if (generateButton && queueTarget) {
         await syncRemoteProductData();
         saveState(state);
       }
+      const failedJob = state.history.find((job) => job.id === failedJobId) || {
+        id: failedJobId,
+        type: activeMode === "video" ? "video" : "image",
+        title,
+        prompt,
+        provider: model || "fake_worker",
+        model: model || "",
+        status: "failed",
+        credits: cost,
+        ratio,
+        durationSeconds,
+        preset: activePreset?.id || "",
+        referenceId: reference?.id || "",
+        sourceAssetId: reference?.id || "",
+        reference,
+        errorMessage: error.message || "真实生成暂不可用",
+        refundAmount: Number(error.refund?.amount || 0)
+      };
+      persistGenerationRecovery(buildGenerationRecoveryFromJob(failedJob));
       updateGenerationProgress(progressRow, "retrying", `${error.message || "真实生成暂不可用"}，${refundText} 正在切换到本地演示生成。`, 38, {
         historyHref: "./zh/history/",
-        refreshJobId: failedJobId
+        refreshJobId: failedJobId,
+        retryJobId: failedJobId
       });
     } finally {
       generateButton.disabled = false;
@@ -3568,6 +3749,7 @@ if (generateButton && queueTarget) {
     renderState(state);
     renderGeneratedPreview(asset, job);
     clearVideoGenerationDraft();
+    clearGenerationRecovery();
     updateGenerationProgress(progressRow, "completed", "已保存到资产库、生成任务和我的作品，可下载或继续分享。", 100, {
       assetHref: "./zh/assets/",
       historyHref: "./zh/history/",
@@ -3744,11 +3926,12 @@ function updateGenerationProgress(row, status, message, progress, actions = {}) 
   const refreshAction = actions.refreshJobId ? `<button type="button" data-refresh-job="${escapeHtml(actions.refreshJobId)}">刷新</button>` : "";
   const cancelAction = actions.cancelJobId ? `<button type="button" data-cancel-job="${escapeHtml(actions.cancelJobId)}">取消</button>` : "";
   const shareAction = actions.shareAssetId ? `<button type="button" data-share-asset="${escapeHtml(actions.shareAssetId)}">分享</button>` : "";
+  const retryJobAction = actions.retryJobId ? `<button type="button" data-retry-job="${escapeHtml(actions.retryJobId)}">重新提交</button>` : "";
   const retryAction = actions.retryAssetId ? `<button type="button" data-retry-asset="${escapeHtml(actions.retryAssetId)}">重新生成</button>` : "";
   const downloadAction = actions.downloadHref && actions.downloadHref !== "#"
     ? `<a href="${actions.downloadHref}" download="${escapeHtml(actions.downloadName || "luravyn-generation.json")}">下载</a>`
     : "";
-  actionTarget.innerHTML = `${historyAction}${refreshAction}${cancelAction}${openAction}${downloadAction}${shareAction}${retryAction}`;
+  actionTarget.innerHTML = `${historyAction}${refreshAction}${cancelAction}${openAction}${downloadAction}${shareAction}${retryJobAction}${retryAction}`;
 }
 
 function statusLabel(status) {
@@ -3834,8 +4017,8 @@ function useGeneratedOutputAsReference(assetId) {
   const asset = state.assets.find((item) => item.id === assetId);
   if (!asset) return;
   if (asset.type === "video") {
-    localStorage.setItem("ovs_retry_prompt", asset.prompt || "");
-    window.location.href = "./zh/app/image-to-video/?preset=social-reel";
+    const recovery = persistGenerationRecovery(buildGenerationRecoveryFromAsset(asset));
+    window.location.href = `${getGenerationRecoveryRoute(recovery)}?preset=${encodeURIComponent(recovery?.preset || "social-reel")}`;
     return;
   }
   selectVideoReference({
@@ -4013,6 +4196,7 @@ function renderHistory(current) {
         <small>服务商 ${escapeHtml(job.provider)} - 模型 ${escapeHtml(job.model)} - ${statusLabel(normalizeJobStatus(job.status))} - ${job.credits} 积分 - ${escapeHtml(job.duration)}</small>
         ${renderJobCreditFlow(job, current)}
         ${job.errorMessage ? `<em class="history-error">失败原因：${escapeHtml(job.errorMessage)}${job.refundAmount ? ` · 已退回 ${job.refundAmount} 积分` : ""}</em>` : ""}
+        ${renderJobRecoveryHint(job)}
         <div class="generation-progress-track history-progress"><span style="width: ${progress}%"></span></div>
       </div>
       <div class="row-actions">
@@ -6315,9 +6499,9 @@ document.addEventListener("click", async (event) => {
   if (shareGenerateButton) {
     const asset = getCurrentShareAsset();
     if (!asset) return;
-    localStorage.setItem("ovs_retry_prompt", asset.prompt || "");
+    const recovery = persistGenerationRecovery(buildGenerationRecoveryFromAsset(asset));
     localStorage.setItem("ovs_selected_character", asset.character || "");
-    window.location.href = "./zh/app/generate/";
+    window.location.href = getGenerationRecoveryRoute(recovery);
     return;
   }
 
@@ -6377,12 +6561,21 @@ document.addEventListener("click", async (event) => {
     return;
   }
 
+  const dismissRecoveryButton = event.target.closest("[data-dismiss-recovery]");
+  if (dismissRecoveryButton) {
+    event.preventDefault();
+    dismissRecoveryButton.closest("[data-generation-recovery-notice]")?.remove();
+    return;
+  }
+
   const retryAssetButton = event.target.closest("[data-retry-asset]");
   if (retryAssetButton) {
+    event.preventDefault();
     const asset = state.assets.find((item) => item.id === retryAssetButton.dataset.retryAsset);
     if (asset) {
-      localStorage.setItem("ovs_retry_prompt", asset.prompt || "");
-      window.location.href = "./zh/app/generate/";
+      const recovery = persistGenerationRecovery(buildGenerationRecoveryFromAsset(asset));
+      const presetQuery = recovery?.kind === "image-to-video" && recovery.preset ? `?preset=${encodeURIComponent(recovery.preset)}` : "";
+      window.location.href = `${getGenerationRecoveryRoute(recovery)}${presetQuery}`;
     }
     return;
   }
@@ -6396,10 +6589,12 @@ document.addEventListener("click", async (event) => {
 
   const retryJobButton = event.target.closest("[data-retry-job]");
   if (retryJobButton) {
+    event.preventDefault();
     const job = state.history.find((item) => item.id === retryJobButton.dataset.retryJob);
     if (job) {
-      localStorage.setItem("ovs_retry_prompt", job.prompt || "");
-      window.location.href = "./zh/app/generate/";
+      const recovery = persistGenerationRecovery(buildGenerationRecoveryFromJob(job));
+      const presetQuery = recovery?.kind === "image-to-video" && recovery.preset ? `?preset=${encodeURIComponent(recovery.preset)}` : "";
+      window.location.href = `${getGenerationRecoveryRoute(recovery)}${presetQuery}`;
     }
     return;
   }
@@ -6534,8 +6729,9 @@ if (intervalToggle) {
   });
 }
 
+const recoveredGeneration = applyGenerationRecovery();
 const retryPrompt = localStorage.getItem("ovs_retry_prompt");
-if (retryPrompt && promptBox) {
+if (!recoveredGeneration && retryPrompt && promptBox) {
   promptBox.value = retryPrompt;
   localStorage.removeItem("ovs_retry_prompt");
 }

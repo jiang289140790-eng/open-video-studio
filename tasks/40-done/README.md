@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | TASK-DONE-001 |
-| Version | 1.3.0 |
+| Version | 1.4.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | TASK-001 |
@@ -24,6 +24,7 @@ Archive completed tasks with verification evidence and follow-up notes.
 
 ## Completed Tasks
 
+- 2026-07-11: Generation failure recovery guidance. Added reusable recovery context for retrying failed/cancelled jobs and regenerated assets, including prompt, preset, video settings, model, reference metadata, failure reason, and refund amount; History and live task cards now explain recovery and route users back to the right generator. Verification: `npm run test` passed with 74 tests.
 - 2026-07-11: Credit ledger visibility. Added Dashboard credit ledger rows, History job-level credit-flow notes, remote `credit_transactions` mapping, and local ledger recording for demo checkout, daily rewards, free-credit tasks, tool demos, and Fake Worker generation. Verification: `npm run test` passed with 74 tests.
 - 2026-07-11: Image-to-Video login draft restore. Saved the current preset, prompt, ratio, duration, model, and safe reference metadata before login/social OAuth/unlock/real-generation auth gates; restored the draft after authentication; avoided persisting local blob/file contents by requiring re-upload for local-only references. Verification: `npm run test` passed with 74 tests.
 - 2026-07-11: Auth return continuity. Added normalized same-origin return target persistence for social login, email login, unlock modals, protected tool gates, Telegram login handoff, and real generation auth prompts so users can return to the exact tool route/preset after signing in. Verification: `npm run test` passed with 74 tests.

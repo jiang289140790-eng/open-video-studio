@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.99.0 |
+| Version | 1.0.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,9 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Added generation failure recovery guidance. Retry actions now preserve a recovery context with prompt, workflow type, preset, video ratio, duration, model, reference asset metadata, failure reason, and refund amount so users can continue from a failed or cancelled job instead of starting from a blank generator.
+- Generation History now shows a visible recovery hint for failed/cancelled jobs, including refund status and the recommended next step. Live generation task cards can expose a `重新提交` action for remote failures while still linking users to Generation Tasks.
+- Generated result, My Works, Dashboard, Share, and History retry actions now use the same recovery path and route image jobs to Generate while routing video jobs to Image-to-Video with the right preset.
 - Added user-visible credit ledger surfaces. Dashboard now includes a credit ledger panel showing recent purchases, rewards, generation debits, and refunds; Generation History rows now show the credit impact tied to each job.
 - Remote Supabase sync now reads `credit_transactions` as ledger rows instead of only reducing them into a balance, while still using RLS-protected current-user reads and posted transactions for the visible balance.
 - Local MVP actions now record ledger entries for Fake Worker generation debits, tool demo generation debits, daily check-in rewards, free-credit task rewards, and demo checkout grants so the product explains credit movement even before live payment/provider rollout is complete.
@@ -80,6 +83,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for generation recovery storage, recovery notices, failed-job recovery hints, retry-job progress actions, and regenerated routing hooks.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for Dashboard credit ledger hooks, History job credit-flow hooks, remote credit transaction mapping, and local credit ledger recording.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for Image-to-Video draft persistence hooks, restore markers, and local-file reupload guardrails.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for auth return persistence, normalized return targets, preserved `next` parameters, and login modal return hooks.

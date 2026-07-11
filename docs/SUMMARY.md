@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 1.4.0 |
+| Version | 1.5.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Generation failures are now recoverable from the product surface. Retry actions preserve a small local recovery context with prompt, workflow type, preset, video ratio, duration, model, reference asset metadata, failure reason, and refund amount; Generate/Image-to-Video restores that context and shows a recovery notice so users can adjust and resubmit without losing the previous setup.
 - Credit movement is now visible to users instead of being hidden behind a balance number. The Dashboard injects a credit ledger panel for recent purchases, rewards, generation debits, and refunds; Generation History rows show the credit impact tied to each job. Remote Supabase sessions map `credit_transactions` into the browser state while local MVP actions record matching ledger entries for demo checkout, rewards, and Fake Worker generation.
 - Image-to-Video now preserves draft creation context across login. Before opening login, social OAuth, Telegram handoff, unlock modals, or real-generation auth gates, the frontend saves the current preset, prompt, ratio, duration, model, and safe reference metadata; after the user returns, the generator restores those choices and asks for a re-upload only when the previous reference was a local blob/file that should not be persisted.
 - Authentication return flow now preserves creation context. When an unauthenticated user opens a locked tool, starts a protected demo generation, or submits a real generation job, the frontend stores a same-origin normalized return target and uses it for social OAuth, Telegram login handoff, and email sign-in/sign-up. Query parameters such as Image-to-Video presets or source assets are preserved, and stale return targets are cleared once the session is restored.
