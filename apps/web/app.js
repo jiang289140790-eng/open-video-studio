@@ -3441,15 +3441,58 @@ function renderGeneratedPreview(asset, job) {
   const preview = document.querySelector("[data-video-preview]");
   if (!preview) return;
   preview.classList.add("generated-output-preview");
+  preview.classList.toggle("has-reference-preview", Boolean(asset.previewUrl || asset.downloadUrl || asset.publicUrl));
+  if (asset.previewUrl || asset.downloadUrl || asset.publicUrl) {
+    preview.style.setProperty("--reference-image", `url("${asset.previewUrl || asset.downloadUrl || asset.publicUrl}")`);
+  }
+  const downloadHref = asset.downloadUrl || asset.outputUrl || asset.publicUrl || "";
+  const downloadAction = downloadHref
+    ? `<a href="${escapeHtml(downloadHref)}" download="${escapeHtml(downloadFileName(asset))}" data-generated-download>下载作品</a>`
+    : "";
+  const outputLabel = asset.type === "video" ? "视频作品" : "图片作品";
   preview.innerHTML = `
-    <span class="play-dot"></span>
-    <strong>${escapeHtml(asset.title)}</strong>
-    <small>${escapeHtml(asset.ratio || "")} · ${escapeHtml(job.duration || "")} · 已保存</small>
-    <div class="preview-actions">
-      <a href="./zh/assets/">打开资产库</a>
-      <a href="${asset.downloadUrl}" download="${escapeHtml(asset.title)}.json">下载结果</a>
-    </div>
+    <article class="generated-output-card" data-generated-output="${escapeHtml(asset.id)}">
+      <div class="generated-output-player ${asset.type === "video" ? "video-player-shell" : "image-player-shell"}">
+        <span class="play-dot"></span>
+        <strong>${escapeHtml(outputLabel)}</strong>
+        <small>已保存到资产库、生成任务和我的作品</small>
+      </div>
+      <div class="generated-output-meta">
+        <p class="eyebrow">生成完成</p>
+        <h3>${escapeHtml(asset.title)}</h3>
+        <p>${escapeHtml(asset.prompt || "已生成可复用作品。")}</p>
+        <dl>
+          <div><dt>规格</dt><dd>${escapeHtml(asset.ratio || "自动")} · ${escapeHtml(job.duration || asset.duration || "实时")}</dd></div>
+          <div><dt>模型</dt><dd>${escapeHtml(asset.model || job.model || asset.provider || job.provider || "fake_worker")}</dd></div>
+          <div><dt>积分</dt><dd>${Number(asset.credits || job.credits || 0)} 积分</dd></div>
+          <div><dt>状态</dt><dd>${statusLabel(normalizeJobStatus(job.status || asset.status || "completed"))}</dd></div>
+        </dl>
+        <div class="preview-actions generated-output-actions">
+          <a href="./zh/assets/">打开资产库</a>
+          ${downloadAction}
+          <button type="button" data-share-asset="${escapeHtml(asset.id)}">分享</button>
+          <button type="button" data-retry-asset="${escapeHtml(asset.id)}">重新生成</button>
+          <button type="button" data-use-generated-output="${escapeHtml(asset.id)}">${asset.type === "video" ? "生成相似视频" : "设为参考图"}</button>
+        </div>
+      </div>
+    </article>
   `;
+}
+
+function useGeneratedOutputAsReference(assetId) {
+  const asset = state.assets.find((item) => item.id === assetId);
+  if (!asset) return;
+  if (asset.type === "video") {
+    localStorage.setItem("ovs_retry_prompt", asset.prompt || "");
+    window.location.href = "./zh/app/image-to-video/?preset=social-reel";
+    return;
+  }
+  selectVideoReference({
+    ...asset,
+    sourceAssetId: asset.remote ? asset.id : undefined,
+    sourceImageUrl: asset.sourceImageUrl || asset.previewUrl || asset.downloadUrl || ""
+  }, { addToAssets: false });
+  showSiteToast("已把生成结果设为下一次图片转视频参考图。");
 }
 
 function wait(ms) {
@@ -5890,6 +5933,13 @@ document.addEventListener("click", async (event) => {
       localStorage.setItem("ovs_retry_prompt", asset.prompt || "");
       window.location.href = "./zh/app/generate/";
     }
+    return;
+  }
+
+  const useGeneratedOutputButton = event.target.closest("[data-use-generated-output]");
+  if (useGeneratedOutputButton) {
+    event.preventDefault();
+    useGeneratedOutputAsReference(useGeneratedOutputButton.dataset.useGeneratedOutput);
     return;
   }
 

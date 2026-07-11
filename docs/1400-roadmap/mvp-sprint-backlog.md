@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.12.0 |
+| Version | 1.13.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -257,6 +257,15 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Dependencies: MVP-S3-012, API-GEN-VIDEO-001, DB-MEDIA-ASSETS-001, BE-ARCH-STORAGE-001.
 - Acceptance Criteria: before submitting an image-to-video job, the user can see the selected reference image, ratio, duration, provider/model, estimated time, output format, credit cost, and save destination; submitting without a reference image is blocked with a clear prompt to upload, choose from assets, or use a demo reference.
 - Related Documents: PAGE-GENERATE-001, API-GEN-VIDEO-001, DB-MEDIA-ASSETS-001.
+
+### MVP-S3-015 Generated Result Output Card
+
+- Priority: P0.
+- Status: Completed.
+- Estimated Time: 0.25 day.
+- Dependencies: MVP-S3-012, MVP-S3-013, DB-MEDIA-ASSETS-001, DB-SHARE-LINKS-001.
+- Acceptance Criteria: completed generation results render as a player-style output card with saved-location copy, title, prompt, specification, provider/model, credits, status, download, share, regenerate, and continue-use actions; image outputs can be reused as the next image-to-video reference; video outputs can restart a similar video flow with the saved prompt.
+- Related Documents: PAGE-GENERATE-001, PAGE-GALLERY-001, DB-MEDIA-ASSETS-001, DB-SHARE-LINKS-001.
 
 ## Sprint 4: Admin And MVP Integration
 

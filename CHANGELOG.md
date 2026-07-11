@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.92.0 |
+| Version | 0.93.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,9 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Upgraded the generated result preview into a post-generation output card. Completed generations now show a player-style output area with title, prompt, specification, provider/model, credit cost, status, saved-location copy, download, share, regenerate, and continue-use actions.
+- Added result reuse behavior: image outputs can be set as the next Image-to-Video reference, while video outputs can restart a similar video flow with the saved prompt.
+- Added responsive styles and static regression coverage for the generated output card, generated download action, and output reuse control.
 - Added an Image-to-Video preflight panel before generation submit. Users now see the selected reference image, ratio, duration, provider/model, estimated time, output format, credit cost, and save destination before spending credits.
 - Image-to-Video now blocks submission until a reference image is selected through upload, Asset Library, URL source, or demo reference, tightening the core upload -> generate -> save loop.
 - Added responsive preflight styling and regression coverage for the preflight fields and no-reference guard.
@@ -59,6 +62,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for the generated result output card and post-generation actions.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for the Image-to-Video preflight panel and no-reference submit guard.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for generation task refresh/cancel, remote Storage download URLs, share-page metadata/download actions, and authenticated remote data render.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for reference uploads, in-page asset picker hooks, source asset URL parameters, progress rows, output downloads, generated preview actions, and provider-aligned generation payloads.
