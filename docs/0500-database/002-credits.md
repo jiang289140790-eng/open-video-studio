@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DB-CREDITS-001 |
-| Version | 1.1.0 |
+| Version | 1.2.0 |
 | Status | Active |
 | Owner | Billing / Monetization Data Owner |
 | Dependencies | PB-006, DB-USERS-001, DB-ORDERS-001, DB-SUBSCRIPTIONS-001 |
@@ -55,6 +55,8 @@ Credits are granted through subscription renewal, purchase, promotion, admin adj
 
 MVP Backend Loop grants `40` starter credits on signup and consumes credits when image or video generation jobs are created. Payments remain out of scope for this loop.
 
+MVP product surfaces now expose credit movement directly to users. Dashboard shows recent ledger rows from `credit_transactions` for posted purchases, rewards, generation debits, and refunds; Generation History links job rows to source-specific credit impacts when `source_id` matches the generation job or output asset. Local Fake Worker and demo checkout actions mirror the same ledger semantics in browser state until the remote transaction exists.
+
 ## Permissions
 
 Users may view their own credit balance and usage history. Admins may view workspace usage. Adjustments require elevated billing permission and audit logging.
@@ -72,6 +74,7 @@ Support multi-currency credit valuation, model-specific cost mapping, enterprise
 - Credit usage is explainable to users and reconcilable by billing.
 - Expensive operations can reference credit impact without duplicating billing rules.
 - Starter grants and generation consumption are recorded as ledger transactions.
+- Users can see recent credit grants, debits, and refunds in the product surface without needing admin access.
 
 ## Future Plan
 

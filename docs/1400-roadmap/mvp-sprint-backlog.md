@@ -312,6 +312,15 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Acceptance Criteria: when an unauthenticated user has configured an Image-to-Video draft and then opens login, social OAuth, Telegram login, an unlock modal, or a real-generation auth gate, the current preset, prompt, ratio, duration, model, and safe reference metadata are stored locally; after returning from authentication the generator restores those choices; local blob/file references are never persisted and instead require re-upload; completed generations clear the temporary draft.
 - Related Documents: PAGE-AUTH-001, PAGE-GENERATE-001, API-AUTH-001, DB-MEDIA-ASSETS-001.
 
+### MVP-S3-021 Credit Ledger Visibility
+
+- Priority: P0.
+- Status: Completed.
+- Estimated Time: 0.25 day.
+- Dependencies: MVP-S3-013, MVP-S3-017, DB-CREDITS-001, API-CREDITS-001.
+- Acceptance Criteria: Dashboard shows a recent credit ledger for purchases, rewards, generation debits, and refunds; History rows show job-linked credit impacts; remote Supabase sessions map current-user `credit_transactions` into the product surface; local MVP fallback actions record equivalent ledger entries so credit movement remains explainable before live provider/payment rollout.
+- Related Documents: DB-CREDITS-001, PAGE-DASHBOARD-001, PAGE-HISTORY-001, API-CREDITS-001.
+
 ## Sprint 4: Admin And MVP Integration
 
 ### MVP-S4-001 Admin Read APIs

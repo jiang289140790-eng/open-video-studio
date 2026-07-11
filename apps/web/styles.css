@@ -1240,6 +1240,35 @@ body.tool-layout .tool-card {
   font-style: normal;
   font-weight: 850;
 }
+.history-credit-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: 8px;
+}
+.history-credit-flow small {
+  color: #aeb5c6;
+}
+.credit-in,
+.credit-out {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  border-radius: 999px;
+  padding: 0 10px;
+  font-weight: 900;
+}
+.credit-in {
+  color: #86efac;
+  background: rgba(34, 197, 94, 0.14);
+  border: 1px solid rgba(34, 197, 94, 0.28);
+}
+.credit-out {
+  color: #fda4af;
+  background: rgba(244, 63, 94, 0.14);
+  border: 1px solid rgba(244, 63, 94, 0.28);
+}
 .history-progress {
   max-width: 420px;
 }
@@ -1385,6 +1414,26 @@ body.tool-layout .tool-card {
   color: #fff;
 }
 .dashboard-row p {
+  color: #aeb5c6;
+}
+.credit-ledger-panel {
+  background: linear-gradient(145deg, rgba(255, 95, 190, 0.12), rgba(56, 189, 248, 0.08));
+}
+.credit-ledger-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(255,255,255,0.05);
+}
+.credit-ledger-row strong {
+  color: #fff;
+}
+.credit-ledger-row p {
+  margin-top: 4px;
   color: #aeb5c6;
 }
 .dashboard-row button,

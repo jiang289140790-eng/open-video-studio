@@ -394,6 +394,11 @@ const defaultState = {
     { id: "job_launch", type: "image", title: "产品发布主视觉", prompt: "紫色灯光下的电影感产品发布", provider: "local_api", model: "local-image-v0", status: "completed", credits: 8, duration: "18s", assetId: "asset_launch" },
     { id: "job_teaser", type: "video", title: "竖屏短片", prompt: "把主视觉转成社媒短片", provider: "local_api", model: "local-video-v0", status: "completed", credits: 24, duration: "8s", assetId: "asset_teaser" }
   ],
+  creditLedger: [
+    { id: "credit_starter", amount: 40, category: "starter", status: "posted", reason: "新用户启动积分", sourceType: "signup", sourceId: "starter", createdAt: "2026-07-07T09:00:00.000Z" },
+    { id: "credit_job_launch", amount: -8, category: "generation", status: "posted", reason: "生成图片作品", sourceType: "generation_job", sourceId: "job_launch", createdAt: "2026-07-07T09:05:00.000Z" },
+    { id: "credit_job_teaser", amount: -24, category: "generation", status: "posted", reason: "生成视频作品", sourceType: "generation_job", sourceId: "job_teaser", createdAt: "2026-07-07T09:12:00.000Z" }
+  ],
   shares: [
     { id: "share_teaser", token: "demo-share", assetId: "asset_teaser", title: "Vertical teaser" }
   ],
@@ -732,6 +737,7 @@ state.rewards = {
   ...(state.rewards || {})
 };
 state.orders = Array.isArray(state.orders) ? state.orders : [...defaultState.orders];
+state.creditLedger = Array.isArray(state.creditLedger) ? state.creditLedger : structuredClone(defaultState.creditLedger);
 state.campaigns = Array.isArray(state.campaigns) ? state.campaigns : structuredClone(defaultState.campaigns);
 state.contentItems = Array.isArray(state.contentItems) ? state.contentItems : structuredClone(defaultState.contentItems);
 state.contentQueue = Array.isArray(state.contentQueue) ? state.contentQueue : structuredClone(defaultState.contentQueue);
@@ -1455,9 +1461,10 @@ function bindSupabaseAuthState() {
 
 async function syncRemoteProductData() {
   if (!supabase || !state.user?.id) return;
-  const [assetsResult, jobsResult, creditsResult, sharesResult] = await Promise.all([
+  const [assetsResult, jobsResult, creditsResult, creditBalanceResult, sharesResult] = await Promise.all([
     supabase.from("media_assets").select("*").eq("owner_user_id", state.user.id).is("deleted_at", null).order("updated_at", { ascending: false }).limit(80),
     supabase.from("generation_jobs").select("*").eq("user_id", state.user.id).order("created_at", { ascending: false }).limit(80),
+    supabase.from("credit_transactions").select("id,balance_impact,status,operation_category,source_type,source_id,reason,created_at").eq("user_id", state.user.id).order("created_at", { ascending: false }).limit(100),
     supabase.from("credit_transactions").select("balance_impact,status").eq("user_id", state.user.id),
     supabase.from("share_links").select("*").eq("owner_user_id", state.user.id).eq("visibility_status", "active").is("revoked_at", null).order("created_at", { ascending: false }).limit(80)
   ]);
@@ -1470,7 +1477,15 @@ async function syncRemoteProductData() {
     enrichAssetsWithGenerationJobs();
   }
   if (!creditsResult.error && Array.isArray(creditsResult.data)) {
-    state.credits = creditsResult.data
+    state.creditLedger = creditsResult.data.map(mapRemoteCreditTransaction);
+  }
+  const balanceRows = !creditBalanceResult.error && Array.isArray(creditBalanceResult.data)
+    ? creditBalanceResult.data
+    : !creditsResult.error && Array.isArray(creditsResult.data)
+      ? creditsResult.data
+      : null;
+  if (balanceRows) {
+    state.credits = balanceRows
       .filter((row) => row.status === "posted")
       .reduce((sum, row) => sum + Number(row.balance_impact || 0), 0);
   }
@@ -1567,6 +1582,46 @@ function mapRemoteJob(job) {
     sourceAssetId: String(job.source_asset_id || inputParams.sourceAssetId || ""),
     remote: true
   };
+}
+
+function mapRemoteCreditTransaction(row) {
+  return {
+    id: String(row.id || `credit_${Date.now()}`),
+    amount: Number(row.balance_impact || 0),
+    category: String(row.operation_category || "credit"),
+    status: String(row.status || "posted"),
+    reason: String(row.reason || creditCategoryLabel(row.operation_category, row.balance_impact)),
+    sourceType: String(row.source_type || ""),
+    sourceId: String(row.source_id || ""),
+    createdAt: String(row.created_at || new Date().toISOString()),
+    remote: true
+  };
+}
+
+function recordCreditLedger(input) {
+  state.creditLedger = Array.isArray(state.creditLedger) ? state.creditLedger : [];
+  state.creditLedger.unshift({
+    id: input.id || `credit_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`,
+    amount: Number(input.amount || 0),
+    category: input.category || "local",
+    status: input.status || "posted",
+    reason: input.reason || creditCategoryLabel(input.category, input.amount),
+    sourceType: input.sourceType || "local",
+    sourceId: input.sourceId || "",
+    createdAt: input.createdAt || new Date().toISOString(),
+    remote: false
+  });
+  state.creditLedger = state.creditLedger.slice(0, 100);
+}
+
+function creditCategoryLabel(category, amount = 0) {
+  const normalized = String(category || "").toLowerCase();
+  if (normalized.includes("refund")) return "生成失败退款";
+  if (normalized.includes("generation")) return Number(amount) < 0 ? "生成任务扣费" : "生成任务调整";
+  if (normalized.includes("purchase")) return "购买积分到账";
+  if (normalized.includes("reward") || normalized.includes("starter")) return "奖励积分到账";
+  if (normalized.includes("admin")) return "后台积分调整";
+  return Number(amount) >= 0 ? "积分增加" : "积分扣减";
 }
 
 function enrichAssetsWithGenerationJobs() {
@@ -2313,6 +2368,13 @@ function runToolDemoGeneration() {
   const toolName = document.querySelector(".tool-detail-copy h1")?.textContent?.trim() || "AI 工具";
   const asset = { id, type: "image", title: `${toolName} 演示结果`, prompt, character: "Mira", credits: cost, status: "completed", visibility: "private", favorite: false };
   const job = { id: `job_${Date.now()}`, type: "image", title: asset.title, prompt, provider: "local_api", model: "local-tool-demo-v0", status: "completed", credits: cost, duration: "9s", assetId: id };
+  recordCreditLedger({
+    amount: -cost,
+    category: "generation",
+    reason: `${toolName} 演示生成扣费`,
+    sourceType: "generation_job",
+    sourceId: job.id
+  });
   state.assets.unshift(asset);
   state.history.unshift(job);
   saveState(state);
@@ -2427,6 +2489,13 @@ function openCheckInModal() {
     const currentDay = Math.min(state.rewards.checkInDay || 0, 6);
     const reward = rewards[currentDay];
     state.credits += reward;
+    recordCreditLedger({
+      amount: reward,
+      category: "reward",
+      reason: `每日奖励 Day ${currentDay + 1}`,
+      sourceType: "daily_checkin",
+      sourceId: today
+    });
     state.rewards.checkInDay = currentDay === 6 ? 0 : currentDay + 1;
     state.rewards.lastCheckInDate = today;
     saveState(state);
@@ -2526,6 +2595,13 @@ document.querySelectorAll("[data-claim-task]").forEach((button) => {
     }
     const credits = Number(button.dataset.taskCredits || "0");
     state.credits += credits;
+    recordCreditLedger({
+      amount: credits,
+      category: "reward",
+      reason: "免费积分任务奖励",
+      sourceType: "reward_task",
+      sourceId: task
+    });
     state.rewards.taskClaims.push(task);
     saveState(state);
     button.textContent = `已领取 ${credits} 积分`;
@@ -2685,9 +2761,17 @@ function openCheckoutModal({ credits, planName, price, promo = "" }) {
     }
     ensureUser("checkout");
     state.credits += credits;
+    const localOrderId = `order_${Date.now()}`;
+    recordCreditLedger({
+      amount: credits,
+      category: "purchase",
+      reason: `${planName} 演示购买到账`,
+      sourceType: "order",
+      sourceId: localOrderId
+    });
     state.orders = [
       {
-        id: `order_${Date.now()}`,
+        id: localOrderId,
         planName,
         credits,
         price,
@@ -3412,6 +3496,10 @@ if (generateButton && queueTarget) {
     } catch (error) {
       const refundText = error.refund?.amount ? `远端已退回 ${error.refund.amount} 积分。` : "未重复扣除远端积分。";
       const failedJobId = String(error.job?.id || progressRow.dataset.remoteJobId || "");
+      if (supabase && state.user) {
+        await syncRemoteProductData();
+        saveState(state);
+      }
       updateGenerationProgress(progressRow, "retrying", `${error.message || "真实生成暂不可用"}，${refundText} 正在切换到本地演示生成。`, 38, {
         historyHref: "./zh/history/",
         refreshJobId: failedJobId
@@ -3465,6 +3553,13 @@ if (generateButton && queueTarget) {
       progress: 100,
       remote: false
     };
+    recordCreditLedger({
+      amount: -cost,
+      category: "generation",
+      reason: `${title} 本地演示生成扣费`,
+      sourceType: "generation_job",
+      sourceId: jobId
+    });
     updateGenerationProgress(progressRow, "running", "Fake Worker 正在生成预览和输出元数据。", 64);
     await wait(180);
     state.assets.unshift(asset);
@@ -3916,6 +4011,7 @@ function renderHistory(current) {
         <h3>${escapeHtml(job.title)}</h3>
         <p>提示词：${escapeHtml(job.prompt)}</p>
         <small>服务商 ${escapeHtml(job.provider)} - 模型 ${escapeHtml(job.model)} - ${statusLabel(normalizeJobStatus(job.status))} - ${job.credits} 积分 - ${escapeHtml(job.duration)}</small>
+        ${renderJobCreditFlow(job, current)}
         ${job.errorMessage ? `<em class="history-error">失败原因：${escapeHtml(job.errorMessage)}${job.refundAmount ? ` · 已退回 ${job.refundAmount} 积分` : ""}</em>` : ""}
         <div class="generation-progress-track history-progress"><span style="width: ${progress}%"></span></div>
       </div>
@@ -3932,6 +4028,44 @@ function renderHistory(current) {
       <a class="btn primary" href="./zh/app/image-to-video/">上传图片生成视频</a>
     </article>
   `;
+}
+
+function renderJobCreditFlow(job, current) {
+  const entries = getJobCreditLedger(job, current);
+  if (!entries.length) {
+    return job.credits
+      ? `<div class="history-credit-flow" data-history-credit-flow><span class="credit-out">-${Number(job.credits)} 积分</span><small>生成扣费待流水同步</small></div>`
+      : "";
+  }
+  return `
+    <div class="history-credit-flow" data-history-credit-flow>
+      ${entries.slice(0, 3).map((entry) => `
+        <span class="${entry.amount >= 0 ? "credit-in" : "credit-out"}">${formatCreditAmount(entry.amount)}</span>
+        <small>${escapeHtml(entry.reason)}${entry.status !== "posted" ? ` · ${escapeHtml(entry.status)}` : ""}</small>
+      `).join("")}
+    </div>
+  `;
+}
+
+function getJobCreditLedger(job, current) {
+  const ledger = Array.isArray(current.creditLedger) ? current.creditLedger : [];
+  return ledger
+    .filter((entry) => {
+      const sourceId = String(entry.sourceId || "");
+      return sourceId && (sourceId === String(job.id) || sourceId === String(job.assetId));
+    })
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+}
+
+function formatCreditAmount(amount) {
+  const value = Number(amount || 0);
+  return `${value >= 0 ? "+" : ""}${value} 积分`;
+}
+
+function formatCreditTime(value) {
+  const date = new Date(value || "");
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
 async function refreshRemoteGenerationJobs(button) {
@@ -4132,6 +4266,7 @@ async function createShare(assetId) {
 }
 
 function renderDashboard(current) {
+  renderDashboardCreditLedger(current);
   const stats = {
     credits: document.querySelector("[data-dashboard-credits]"),
     jobs: document.querySelector("[data-dashboard-jobs]"),
@@ -4223,6 +4358,42 @@ function renderDashboard(current) {
       </article>
     `;
   }
+}
+
+function renderDashboardCreditLedger(current) {
+  const target = ensureDashboardCreditLedgerPanel();
+  if (!target) return;
+  const ledger = Array.isArray(current.creditLedger) ? current.creditLedger : [];
+  target.innerHTML = ledger.length ? ledger.slice(0, 5).map((entry) => `
+    <article class="credit-ledger-row" data-credit-ledger-row>
+      <span class="${entry.amount >= 0 ? "credit-in" : "credit-out"}">${formatCreditAmount(entry.amount)}</span>
+      <div>
+        <strong>${escapeHtml(entry.reason || creditCategoryLabel(entry.category, entry.amount))}</strong>
+        <p>${escapeHtml(creditCategoryLabel(entry.category, entry.amount))}${entry.status !== "posted" ? ` · ${escapeHtml(entry.status)}` : ""}${entry.createdAt ? ` · ${escapeHtml(formatCreditTime(entry.createdAt))}` : ""}</p>
+      </div>
+    </article>
+  `).join("") : `
+    <article class="empty-state compact" data-credit-ledger-empty>
+      <h3>暂无积分流水</h3>
+      <p class="muted">购买、签到、生成扣费和失败退款会显示在这里。</p>
+    </article>
+  `;
+}
+
+function ensureDashboardCreditLedgerPanel() {
+  let target = document.querySelector("[data-dashboard-credit-ledger]");
+  if (target) return target;
+  const grid = document.querySelector(".dashboard-grid");
+  if (!grid) return null;
+  grid.insertAdjacentHTML("afterbegin", `
+    <article class="panel credit-ledger-panel">
+      <h2>积分流水</h2>
+      <p class="muted">最近的购买、奖励、生成扣费和退款记录。</p>
+      <div class="dashboard-list credit-ledger-list" data-dashboard-credit-ledger></div>
+      <a class="btn glass" href="./zh/pricing/">购买积分</a>
+    </article>
+  `);
+  return document.querySelector("[data-dashboard-credit-ledger]");
 }
 
 function renderContentOperatingSystem(current) {

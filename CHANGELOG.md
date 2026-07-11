@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.98.0 |
+| Version | 0.99.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,9 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Added user-visible credit ledger surfaces. Dashboard now includes a credit ledger panel showing recent purchases, rewards, generation debits, and refunds; Generation History rows now show the credit impact tied to each job.
+- Remote Supabase sync now reads `credit_transactions` as ledger rows instead of only reducing them into a balance, while still using RLS-protected current-user reads and posted transactions for the visible balance.
+- Local MVP actions now record ledger entries for Fake Worker generation debits, tool demo generation debits, daily check-in rewards, free-credit task rewards, and demo checkout grants so the product explains credit movement even before live payment/provider rollout is complete.
 - Added Image-to-Video draft restoration across authentication gates. When a user opens login, social OAuth, Telegram login, an unlock modal, or a real-generation auth prompt from the video generator, the page now saves the current preset, prompt, ratio, duration, model, and safely restorable reference metadata in local browser storage.
 - Returning users now get the previous Image-to-Video draft restored after authentication, including prompt and output settings. Local blob/file references are not stored; those drafts ask the user to reselect the local reference image instead of persisting private file contents.
 - Completed real or Fake Worker video generations now clear the temporary draft so stale login context does not overwrite future generation choices.
@@ -77,6 +80,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for Dashboard credit ledger hooks, History job credit-flow hooks, remote credit transaction mapping, and local credit ledger recording.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for Image-to-Video draft persistence hooks, restore markers, and local-file reupload guardrails.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for auth return persistence, normalized return targets, preserved `next` parameters, and login modal return hooks.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for aspect-ratio preview attributes, generated-output ratio frames, and mobile preview guardrails.
