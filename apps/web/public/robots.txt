@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /dashboard.html
+Disallow: /assets.html
+Disallow: /history.html
+Disallow: /my-creations.html
+Disallow: /settings.html
+Disallow: /accounts.html
+Disallow: /zh/admin/
+Disallow: /zh/dashboard/
+Disallow: /zh/assets/
+Disallow: /zh/history/
+Disallow: /zh/my-creations/
+Disallow: /zh/settings/
+Disallow: /zh/accounts/
+
+Sitemap: https://luravyn.com/sitemap.xml
+Sitemap: https://jiang289140790-eng.github.io/open-video-studio/sitemap.xml

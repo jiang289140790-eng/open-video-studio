@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.92.0 |
+| Version | 0.93.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,9 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Technical SEO now has a generated, repeatable baseline. `npm run seo:apply` refreshes canonical, hreflang, robots, Open Graph, Twitter metadata, localized `/zh`, `/en`, `/ja`, `/ko` alias pages, `robots.txt`, and `sitemap.xml`; public routes use clean `https://luravyn.com/{locale}/.../` canonicals while private app/admin surfaces remain `noindex,follow`.
+- Mobile visual QA now covers Homepage, Gallery, Generate, Image to Video, Characters, Assets, History, Dashboard, Pricing, Free Coins, Sign In, Admin, and Share across 375px, 390px, 412px, and 768px viewport widths. The latest pass found and fixed Studio panel and Dashboard row overflow on narrow screens.
+- Regression coverage now includes SEO artifact checks and mobile layout guardrails through `tests/seo-mobile.test.ts`, alongside the existing build and i18n gates.
 - MVP payments are now prewired for Stripe and PayPal while preserving the no-charge demo checkout fallback. The browser exposes only public provider config (`VITE_STRIPE_PUBLISHABLE_KEY`, `VITE_PAYPAL_CLIENT_ID`), while the Supabase `ai` Edge Function owns `create-payment-checkout`, `payment-provider-status`, Stripe Checkout Session creation, and PayPal Orders creation. Real fulfillment still requires live provider accounts, Edge Function secrets, webhook verification, PayPal capture, idempotency, refund/reconciliation, and tax/invoice policy.
 - The primary pricing page has been restored to clean UTF-8 Chinese and aligned with the Luravyn product surface. It now presents one-time credit packages, Stripe/PayPal payment choices, safe unconfigured-provider copy, and mobile-safe checkout behavior.
 - Mobile product surface rules were tightened for navigation wrapping, headline sizing, pricing cards, and scrollable checkout modals. Static regression coverage now guards these rules.

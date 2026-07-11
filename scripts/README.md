@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | SCRIPT-README-001 |
-| Version | 0.7.0 |
+| Version | 0.8.0 |
 | Status | Active |
 | Owner | Engineering |
 | Dependencies | OVSB-001, DOC-STD-001, DEVOPS-INDEX-001 |
@@ -21,6 +21,7 @@ Store maintenance, validation, generation, and operational scripts used to suppo
 
 ## Current Scripts
 
+- `npm run seo:apply`: regenerates public HTML metadata, localized `/zh`, `/en`, `/ja`, `/ko` alias pages, `robots.txt`, and `sitemap.xml` from `scripts/apply-seo.mjs`. Run it after public route, canonical, title, description, locale, or indexability changes.
 - `npm run verify:supabase`: checks Supabase URL, database reachability, and the configured Storage bucket.
 - `npm run verify:production-config`: checks required local and GitHub Pages environment variables for deployment readiness.
 - `npm run verify:admin`: checks the Admin Edge Function, admin schema readiness, and authenticated admin operation loop. When `SUPABASE_SERVICE_ROLE_KEY` is available, it creates a temporary admin user, verifies dashboard/user reads, credit adjustment, order status update, asset review, share revocation, audit logging, and cleanup.

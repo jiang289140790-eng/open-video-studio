@@ -8,6 +8,7 @@
     "build": "tsc -p tsconfig.json && vite build",
     "build:server": "tsc -p tsconfig.json",
     "build:web": "vite build",
+    "seo:apply": "node scripts/apply-seo.mjs",
     "verify:supabase": "node scripts/verify-supabase.mjs",
     "verify:auth-basic": "node scripts/verify-basic-auth.mjs",
     "verify:oauth": "node scripts/verify-oauth.mjs",

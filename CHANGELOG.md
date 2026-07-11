@@ -25,6 +25,10 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Added a repeatable technical SEO generation flow through `npm run seo:apply`, producing canonical metadata, hreflang alternates, `robots.txt`, `sitemap.xml`, Open Graph/Twitter metadata, and localized `/zh`, `/en`, `/ja`, `/ko` public route aliases.
+- Added mobile visual QA coverage for Homepage, Gallery, Generate, Image to Video, Characters, Assets, History, Dashboard, Pricing, Free Coins, Sign In, Admin, and Share across 375px, 390px, 412px, and 768px viewport widths.
+- Fixed narrow-screen overflow on Generate/Image to Video Studio panels and Dashboard rows so mobile users no longer get horizontal page scrolling on the core product loop.
+- Added SEO and mobile layout regression coverage in `tests/seo-mobile.test.ts`, and documented the new SEO generator and mobile QA baseline.
 - Prewired Stripe and PayPal as the MVP payment providers without requiring live accounts yet. The pricing UI now shows Stripe/PayPal payment choices, and the browser only uses public `VITE_*` provider configuration.
 - Added server-side payment checkout creation to the Supabase `ai` Edge Function through `create-payment-checkout` and provider readiness through `payment-provider-status`. Provider secrets stay server-only in Supabase Edge Function secrets.
 - Rebuilt `apps/web/pricing.html` as a clean UTF-8 Chinese Luravyn pricing page with one-time credit packages, payment trust notes, Stripe/PayPal entry points, and demo fallback copy while accounts are unconfigured.
@@ -34,8 +38,10 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran `npm run seo:apply`; generated SEO artifacts successfully.
+- Ran mobile visual QA against 13 core pages at 375px, 390px, 412px, and 768px widths; no remaining horizontal overflow or missing primary CTA failures were detected after the layout fix.
 - Ran `npm run build`; production build passed.
-- Ran `npm run test`; production build passed and 70 tests passed.
+- Ran `npm run test`; production build passed and 74 tests passed.
 - Ran `npm run verify:i18n`; Chinese, English, Japanese, and Korean product glossary coverage remained 100%.
 - Deployed Supabase `ai` Edge Function version `20`.
 - Ran `npm run verify:payments` after deployment; unauthenticated access failed closed, demo checkout created a fulfilled order, ledger entry, and correct credit balance.

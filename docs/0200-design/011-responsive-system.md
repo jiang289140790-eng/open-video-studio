@@ -4,7 +4,7 @@
 |---|---|
 | ID | DS-011 |
 | Unique ID | DS-011 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Active |
 | Owner | Design Systems Lead |
 | Dependencies | DS-007, DS-010, DS-012 |
@@ -45,6 +45,41 @@ Experience categories:
 - Page specs identify supported viewport categories.
 - Controls remain readable and usable across supported categories.
 - Unsupported workflow complexity is handled explicitly rather than broken responsively.
+- Primary MVP surfaces must pass mobile overflow checks at 375px, 390px, 412px, and 768px viewport widths before public deployment.
+- Mobile Studio, Dashboard, pricing, authentication, Gallery, asset, history, admin, and share surfaces must keep primary CTAs reachable without horizontal page scrolling.
+
+## Current Mobile QA Baseline
+
+The MVP mobile QA baseline covers:
+
+- Homepage.
+- Explore / Gallery.
+- Generate Studio.
+- Image to Video.
+- Characters.
+- Assets.
+- History.
+- Dashboard.
+- Pricing.
+- Free Coins.
+- Sign In.
+- Admin.
+- Public Share.
+
+Verified breakpoints:
+
+- 375 x 812.
+- 390 x 844.
+- 412 x 915.
+- 768 x 1024.
+
+Current implementation guardrails:
+
+- Tool-layout app surfaces use viewport-relative width on mobile.
+- Studio panels and preview panels must allow shrinking below desktop card widths.
+- Dashboard wide cards must stop spanning multiple columns on mobile.
+- Dashboard row actions must wrap to a full-width row on mobile.
+- Checkout and modal surfaces must scroll inside the viewport rather than pushing users off-screen.
 
 ## Future Evolution
 

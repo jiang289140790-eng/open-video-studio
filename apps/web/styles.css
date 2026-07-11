@@ -3477,6 +3477,25 @@ body.tool-layout .site-footer {
 
 @media (max-width: 720px) {
   .hero, .section, .app-surface, .studio-shell, .auth-layout, .share-page, .final-cta { width: min(100% - 28px, var(--max)); }
+  body.tool-layout .app-surface,
+  body.tool-layout .studio-shell,
+  body.tool-layout .section,
+  body.tool-layout .site-footer {
+    width: calc(100vw - 28px);
+    max-width: calc(100vw - 28px);
+  }
+  .app-surface,
+  .studio-shell,
+  .studio-panel,
+  .panel,
+  .dashboard-grid,
+  .dashboard-sections,
+  .dashboard-row,
+  .mode-card,
+  .creative-preview {
+    min-width: 0;
+  }
+  .studio-panel { width: 100%; padding: 18px; }
   .topbar { gap: 10px; padding: 12px 14px; }
   .brand { max-width: 100%; min-width: 0; }
   .brand-wordmark { width: min(152px, 68vw); max-height: 44px; }
@@ -3501,6 +3520,16 @@ body.tool-layout .site-footer {
   .showcase-card.tall { grid-row: auto; }
   .section-head, .pricing-preview, .final-cta, .preview-head, .sticky-generate, .result-row, .history-row, .library-card { align-items: stretch; flex-direction: column; }
   .pricing-grid, .character-strip, .quote-grid, .usecase-grid, .step-grid, .metric-grid, .character-grid, .selector-grid, .mode-grid, .creation-grid, .creation-grid-dynamic, .creation-hero, .creation-split, .tool-grid { grid-template-columns: 1fr; }
+  .dashboard-grid .wide { grid-column: auto; }
+  .dashboard-row {
+    grid-template-columns: 52px minmax(0, 1fr);
+    align-items: start;
+  }
+  .dashboard-row button,
+  .dashboard-row a {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
   .creation-hero { min-height: auto; padding: 22px; }
   .creation-job-row { grid-template-columns: 1fr; }
   .social-auth-grid { grid-template-columns: 1fr; }

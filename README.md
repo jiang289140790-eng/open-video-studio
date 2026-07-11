@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | OVSB-001 |
-| Version | 0.5.0 |
+| Version | 0.6.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | DOC-STD-001, ID-REG-001, TASK-001, TASK-DONE-STD-001, REF-001, DOC-LIFE-001, OWNERS-001, KNOW-001, CHANGELOG-001 |
@@ -113,6 +113,12 @@ Probe the real video generation path directly only when intentionally testing co
 
 ```bash
 npm run verify:real-ai -- --video
+```
+
+Regenerate public SEO metadata, localized route aliases, `robots.txt`, and `sitemap.xml` after public route or metadata changes:
+
+```bash
+npm run seo:apply
 ```
 
 ## Environment Variables
