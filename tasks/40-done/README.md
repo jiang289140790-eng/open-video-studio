@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | TASK-DONE-001 |
-| Version | 1.7.0 |
+| Version | 1.8.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | TASK-001 |
@@ -24,6 +24,7 @@ Archive completed tasks with verification evidence and follow-up notes.
 
 ## Completed Tasks
 
+- 2026-07-11: MVP product analytics events. Added a local privacy-aware event queue for signup/signin, password recovery, pricing CTA clicks, checkout, generation submit/block/fail/complete, and asset sharing. Events are stored locally under `ovs_product_events_v1` with non-sensitive properties and are enabled by analytics consent or local QA mode. Verification: `npm run test` passed with 74 tests.
 - 2026-07-11: Email password reset flow. Added a password reset request action to Sign In, created the reset-password page, added the `/zh/reset-password/` alias, wired Supabase `resetPasswordForEmail` and `updateUser({ password })`, and documented the authentication recovery path. Verification: `npm run test` passed with 74 tests.
 - 2026-07-11: Image-to-Video reusable media URL normalization. Unified reference image selection across `sourceImageUrl`, `previewUrl`, `publicUrl`, `downloadUrl`, `outputUrl`, and storage file URL fields; added real reference thumbnails for picker cards and selected-reference cards; avoided treating JSON metadata downloads as image inputs. Verification: `npm run test` passed with 74 tests.
 - 2026-07-11: Image-to-Video asset picker usability. Added search, favorite/public/recent filters, asset metadata, empty-result recovery actions, upload/demo-reference shortcuts, and a repaired modal footer link for the reference-image chooser. Verification: `npm run test` passed with 74 tests.

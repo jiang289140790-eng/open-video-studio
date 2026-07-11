@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.21.0 |
+| Version | 1.22.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -217,6 +217,7 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 ### MVP-S3-009 Product Analytics Events
 
 - Priority: P1.
+- Status: Completed.
 - Estimated Time: 0.5 day.
 - Dependencies: MVP-S3-001 through MVP-S3-006.
 - Acceptance Criteria: local/dev-safe events exist for signup, generation submit/complete, asset share, credit purchase, and pricing CTA click.

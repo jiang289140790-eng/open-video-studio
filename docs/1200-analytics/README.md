@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ANALYTICS-INDEX-001 |
-| Version | 0.2.0 |
+| Version | 0.3.0 |
 | Status | Active |
 | Owner | Analytics Lead |
 | Dependencies | OVSB-001, DOC-STD-001, PRD-INDEX-001, DB-INDEX-001, SEC-INDEX-001 |
@@ -28,9 +28,31 @@ Own metrics, event taxonomy, funnels, dashboards, experiments, attribution, data
 - Analytics work respects privacy and data minimization.
 - Decision-critical metrics are governed, auditable, and explainable.
 
+## Current Implementation
+
+The MVP frontend includes a local product-event recorder for the first conversion loop. Events are stored in browser local storage under `ovs_product_events_v1`, capped at 250 rows, and do not leave the browser. Recording is enabled when the user accepts analytics cookies or when the site runs in local development / file preview mode for QA.
+
+Tracked MVP events include:
+
+- `signup_completed`
+- `signin_completed`
+- `password_reset_requested`
+- `password_updated`
+- `pricing_cta_clicked`
+- `credit_purchase_started`
+- `credit_purchase_confirmed`
+- `payment_checkout_created`
+- `credit_purchase_completed`
+- `generation_submitted`
+- `generation_blocked`
+- `generation_failed`
+- `generation_completed`
+- `asset_shared`
+
+Event properties must stay non-sensitive. Do not store prompt text, email addresses, tokens, third-party keys, payment details, or raw provider payloads in product analytics.
+
 ## Future Plan
 
-- Add event taxonomy.
 - Add north-star metric.
 - Add dashboard registry.
 - Add experimentation standard.

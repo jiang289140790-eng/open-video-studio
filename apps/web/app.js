@@ -2,6 +2,8 @@
 
 const STORE_KEY = "ovs_mvp_state_v1";
 const COOKIE_PREF_KEY = "ovs_cookie_preferences_v1";
+const PRODUCT_EVENT_KEY = "ovs_product_events_v1";
+const PRODUCT_EVENT_LIMIT = 250;
 const AUTH_RETURN_KEY = "ovs_auth_return_target_v1";
 const VIDEO_DRAFT_KEY = "ovs_video_generation_draft_v1";
 const GENERATION_RECOVERY_KEY = "ovs_generation_recovery_v1";
@@ -1022,7 +1024,55 @@ function saveCookiePreferences(preferences) {
   }));
   document.querySelector(".cookie-banner")?.remove();
   document.querySelector(".cookie-preferences-overlay")?.remove();
+  trackProductEvent("cookie_preferences_saved", {
+    analytics: Boolean(preferences.analytics),
+    marketing: Boolean(preferences.marketing)
+  });
   showSiteToast("Cookie 偏好已保存");
+}
+
+function isLocalAnalyticsDebug() {
+  return ["localhost", "127.0.0.1", ""].includes(window.location.hostname) || window.location.protocol === "file:";
+}
+
+function shouldTrackProductEvent() {
+  const preferences = getCookiePreferences();
+  return Boolean(preferences?.analytics) || isLocalAnalyticsDebug();
+}
+
+function getCurrentAnalyticsPage() {
+  const path = window.location.pathname.split("/").filter(Boolean).pop() || "index.html";
+  return path.endsWith(".html") ? path : `${path}/`;
+}
+
+function sanitizeAnalyticsProperties(properties = {}) {
+  return Object.fromEntries(Object.entries(properties)
+    .filter(([, value]) => value === null || ["string", "number", "boolean"].includes(typeof value))
+    .map(([key, value]) => [key, typeof value === "string" ? value.slice(0, 160) : value]));
+}
+
+function readProductEvents() {
+  try {
+    const rows = JSON.parse(localStorage.getItem(PRODUCT_EVENT_KEY) || "[]");
+    return Array.isArray(rows) ? rows : [];
+  } catch {
+    return [];
+  }
+}
+
+function trackProductEvent(name, properties = {}) {
+  if (!name || !shouldTrackProductEvent()) return null;
+  const event = {
+    id: `evt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    name,
+    page: getCurrentAnalyticsPage(),
+    path: window.location.pathname,
+    createdAt: new Date().toISOString(),
+    properties: sanitizeAnalyticsProperties(properties)
+  };
+  const events = [event, ...readProductEvents()].slice(0, PRODUCT_EVENT_LIMIT);
+  localStorage.setItem(PRODUCT_EVENT_KEY, JSON.stringify(events));
+  return event;
 }
 
 function renderCookieBanner() {
@@ -1788,6 +1838,10 @@ document.querySelectorAll("[data-auth-provider]").forEach((button) => {
       return;
     }
     const returnTarget = persistAuthReturnTarget(getRequestedAuthReturnTarget("dashboard.html"));
+    trackProductEvent("auth_method_selected", {
+      method: provider,
+      returnTarget
+    });
     const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: getAuthRedirectUrl(returnTarget) } });
     if (error) showAuthMessage(error.message, "error");
   });
@@ -2554,6 +2608,10 @@ document.querySelectorAll("[data-email-auth]").forEach((button) => {
       };
       saveState(state);
     }
+    trackProductEvent(mode === "signup" ? "signup_completed" : "signin_completed", {
+      method: "email",
+      hasUser: Boolean(result.data.user)
+    });
     showAuthMessage(mode === "signup" ? "账户已创建。如开启邮箱验证，请检查邮件。" : "登录成功。", "success");
     window.location.href = getAuthRedirectUrl(getRequestedAuthReturnTarget("dashboard.html"));
   });
@@ -2590,6 +2648,7 @@ document.querySelectorAll("[data-password-reset-request]").forEach((button) => {
       showAuthMessage(error.message, "error");
       return;
     }
+    trackProductEvent("password_reset_requested", { method: "email" });
     showAuthMessage("密码重置邮件已发送。请打开邮件里的链接设置新密码。", "success");
   });
 });
@@ -2642,6 +2701,7 @@ document.querySelectorAll("[data-password-update]").forEach((button) => {
       };
       saveState(state);
     }
+    trackProductEvent("password_updated", { method: "email" });
     showAuthMessage("密码已更新。正在进入控制台。", "success");
     window.setTimeout(() => {
       window.location.href = getAuthRedirectUrl(getRequestedAuthReturnTarget("dashboard.html"));
@@ -2655,6 +2715,11 @@ document.querySelectorAll("[data-buy-credits]").forEach((button) => {
     const credits = Number(button.dataset.buyCredits || "0");
     const planName = button.dataset.planName || button.textContent.trim() || "积分套餐";
     const price = button.querySelector("strong")?.textContent?.trim() || button.dataset.planPrice || "演示结账";
+    trackProductEvent("pricing_cta_clicked", {
+      credits,
+      planName,
+      price
+    });
     openCheckoutModal({ credits, planName, price });
   });
 });
@@ -2762,6 +2827,12 @@ function openCreditOfferModal() {
 
 function openCheckoutModal({ credits, planName, price, promo = "" }) {
   document.querySelector(".checkout-overlay")?.remove();
+  trackProductEvent("credit_purchase_started", {
+    credits,
+    planName,
+    price,
+    promo: Boolean(promo)
+  });
   const overlay = document.createElement("section");
   overlay.className = "checkout-overlay";
   overlay.setAttribute("role", "dialog");
@@ -2817,6 +2888,12 @@ function openCheckoutModal({ credits, planName, price, promo = "" }) {
   overlay.querySelector("[data-confirm-checkout]")?.addEventListener("click", async () => {
     const confirmButton = overlay.querySelector("[data-confirm-checkout]");
     const method = overlay.querySelector("[data-checkout-method].active")?.dataset.checkoutMethod || "paypal";
+    trackProductEvent("credit_purchase_confirmed", {
+      provider: method,
+      credits,
+      planName,
+      amountCents: parsePriceToCents(price)
+    });
     confirmButton.disabled = true;
     confirmButton.textContent = "正在创建结账";
     try {
@@ -2827,6 +2904,11 @@ function openCheckoutModal({ credits, planName, price, promo = "" }) {
         amountCents: parsePriceToCents(price)
       });
       if (checkout?.checkoutUrl) {
+        trackProductEvent("payment_checkout_created", {
+          provider: method,
+          credits,
+          hasCheckoutUrl: true
+        });
         overlay.querySelector(".checkout-note").textContent = "真实结账会话已创建，正在跳转到支付页面。";
         window.location.href = checkout.checkoutUrl;
         return;
@@ -2846,6 +2928,11 @@ function openCheckoutModal({ credits, planName, price, promo = "" }) {
         state.rewards.taskClaims = Array.from(new Set([...state.rewards.taskClaims, "purchase"]));
         await syncRemoteProductData();
         saveState(state);
+        trackProductEvent("credit_purchase_completed", {
+          provider: method,
+          credits,
+          fulfillment: "remote_demo"
+        });
         confirmButton.textContent = `已到账 ${credits} 积分`;
         overlay.querySelector(".checkout-note").textContent = "演示订单已写入 Supabase，真实支付 API 接入前不会产生扣款。";
         window.setTimeout(() => {
@@ -2882,6 +2969,11 @@ function openCheckoutModal({ credits, planName, price, promo = "" }) {
     ];
     state.rewards.taskClaims = Array.from(new Set([...state.rewards.taskClaims, "purchase"]));
     saveState(state);
+    trackProductEvent("credit_purchase_completed", {
+      provider: method,
+      credits,
+      fulfillment: "local_demo"
+    });
     overlay.querySelector("[data-confirm-checkout]").textContent = `已到账 ${credits} 积分`;
     overlay.querySelector(".checkout-note").textContent = "演示积分已进入余额。真实支付 API 接入前不会产生扣款。";
     window.setTimeout(() => {
@@ -3838,10 +3930,25 @@ if (generateButton && queueTarget) {
     const reference = selectedVideoReference;
     if (document.querySelector("[data-video-generator]") && !reference) {
       updateVideoPreflight();
+      trackProductEvent("generation_blocked", {
+        reason: "missing_reference",
+        mediaType: activeMode === "video" ? "video" : "image",
+        preset: activePreset?.id || "",
+        cost
+      });
       showSiteToast("请先上传图片、从资产库选择图片，或使用示例参考图。");
       document.querySelector("[data-video-upload]")?.focus();
       return;
     }
+    trackProductEvent("generation_submitted", {
+      mediaType: activeMode === "video" ? "video" : "image",
+      preset: activePreset?.id || "",
+      cost,
+      ratio,
+      durationSeconds: durationSeconds || 0,
+      provider: model || "auto",
+      hasReference: Boolean(reference)
+    });
     const progressRow = createGenerationProgressRow({
       title,
       cost,
@@ -3882,6 +3989,14 @@ if (generateButton && queueTarget) {
         const remoteAssetId = String(remoteResult.asset?.id || remoteResult.job?.result_asset_id || "");
         const remoteAsset = state.assets.find((asset) => asset.id === remoteAssetId);
         if (remoteAsset) renderGeneratedPreview(remoteAsset, state.history.find((job) => job.assetId === remoteAsset.id) || remoteResult.job || {});
+        trackProductEvent("generation_completed", {
+          mediaType: activeMode === "video" ? "video" : "image",
+          preset: activePreset?.id || "",
+          cost,
+          provider: model || "workflow",
+          remote: true,
+          hasAsset: Boolean(remoteAssetId)
+        });
         clearVideoGenerationDraft();
         clearGenerationRecovery();
         updateGenerationProgress(progressRow, "completed", "真实任务已保存到 Supabase 资产库、生成任务和我的作品。", 100, {
@@ -3919,6 +4034,14 @@ if (generateButton && queueTarget) {
         errorMessage: error.message || "真实生成暂不可用",
         refundAmount: Number(error.refund?.amount || 0)
       };
+      trackProductEvent("generation_failed", {
+        mediaType: activeMode === "video" ? "video" : "image",
+        preset: activePreset?.id || "",
+        cost,
+        provider: model || "workflow",
+        remote: true,
+        refunded: Boolean(error.refund?.amount)
+      });
       persistGenerationRecovery(buildGenerationRecoveryFromJob(failedJob));
       updateGenerationProgress(progressRow, "retrying", `${error.message || "真实生成暂不可用"}，${refundText} 正在切换到本地演示生成。`, 38, {
         historyHref: "./zh/history/",
@@ -3932,6 +4055,13 @@ if (generateButton && queueTarget) {
 
     ensureUser("email");
     if (state.credits < cost) {
+      trackProductEvent("generation_failed", {
+        mediaType: activeMode === "video" ? "video" : "image",
+        preset: activePreset?.id || "",
+        cost,
+        reason: "insufficient_credits",
+        remote: false
+      });
       updateGenerationProgress(progressRow, "failed", "积分不足，请先购买积分再生成这个作品。", 0, {
         assetHref: "./zh/pricing/",
         assetLabel: "购买积分",
@@ -3988,6 +4118,14 @@ if (generateButton && queueTarget) {
     saveState(state);
     renderState(state);
     renderGeneratedPreview(asset, job);
+    trackProductEvent("generation_completed", {
+      mediaType: asset.type,
+      preset: activePreset?.id || "",
+      cost,
+      provider: job.provider,
+      remote: false,
+      hasAsset: true
+    });
     clearVideoGenerationDraft();
     clearGenerationRecovery();
     updateGenerationProgress(progressRow, "completed", "已保存到资产库、生成任务和我的作品，可下载或继续分享。", 100, {
@@ -4681,6 +4819,11 @@ async function createShare(assetId) {
         };
         upsertById(state.shares, share);
         saveState(state);
+        trackProductEvent("asset_shared", {
+          mediaType: asset.type || "asset",
+          remote: true,
+          visibility: asset.visibility || "public"
+        });
         window.location.href = `./zh/share/?token=${encodeURIComponent(share.token)}`;
         return;
       }
@@ -4692,6 +4835,11 @@ async function createShare(assetId) {
   const share = { id: `share_${Date.now()}`, token: `share-${Date.now()}`, assetId: asset.id, title: asset.title };
   state.shares.unshift(share);
   saveState(state);
+  trackProductEvent("asset_shared", {
+    mediaType: asset.type || "asset",
+    remote: false,
+    visibility: asset.visibility || "public"
+  });
   window.location.href = `./zh/share/?token=${share.token}`;
 }
 

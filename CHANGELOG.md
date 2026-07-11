@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 1.3.0 |
+| Version | 1.4.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Added a local, privacy-aware MVP product analytics queue. The frontend now records signup/signin, password recovery, pricing CTA clicks, checkout start/confirm/complete, generation submit/block/fail/complete, and asset share events to browser local storage when analytics consent is granted or the site runs locally for QA. Event properties are intentionally non-sensitive and avoid prompt text, email addresses, tokens, keys, and payment details.
 - Added email password recovery to the MVP authentication surface. Users can request a Supabase reset email from Sign In, open the localized `/zh/reset-password/` recovery route, set a new password through Supabase Auth, and return to Dashboard. The Sign In password field markup was also repaired so the email auth form remains valid HTML.
 - Unified reusable media URL handling for Image-to-Video. Asset picker selection, URL-source selection, failure recovery, generated-output reuse, generated preview, and Share preview now use one normalized media URL path across `previewUrl`, `sourceImageUrl`, `publicUrl`, `downloadUrl`, `outputUrl`, and storage file URLs. Reference thumbnails and picker cards now show the actual reusable image when available.
 - Improved the Image-to-Video asset picker. The reference-image chooser now supports asset search, favorite/public/recent filters, clearer asset metadata, direct upload and demo-reference actions from empty states, and a repaired modal footer link so users can keep moving through upload/select -> generate without leaving the workflow.
@@ -86,6 +87,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for the local product analytics event key, recorder, sanitization helper, signup, generation, asset share, credit purchase, and pricing CTA event hooks.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for the password reset page, localized reset route, reset request hook, and Supabase password update hook.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for normalized reference media URL helpers and reference thumbnail hooks.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for Image-to-Video asset picker search/filter hooks, empty-state upload/demo actions, and picker rendering helpers.
