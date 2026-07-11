@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.95.0 |
+| Version | 0.96.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,9 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Added aspect-ratio-aware Image-to-Video preview behavior. Selecting 16:9, 9:16, or 1:1 now changes the preview frame shape, and completed output cards preserve the selected ratio so vertical social videos look like vertical outputs instead of generic dashboard cards.
+- Remote and local generation mapping now carries ratio and duration metadata into assets/history where available, so Gallery/History/generated-preview surfaces can keep output intent after sync.
+- Added mobile guardrails for 9:16 and 1:1 preview sizing so vertical outputs remain inspectable without forcing horizontal overflow on narrow screens.
 - Improved the live Image-to-Video generation task card. After submit, the card now exposes the remote job ID lifecycle through job-created callbacks, links to Generation Tasks, supports single-job refresh and cancellation while running, and keeps failed/retrying tasks connected to History instead of leaving users with an ambiguous in-page status.
 - Completed Image-to-Video jobs now surface open-assets, view-history, download, share, and regenerate actions directly from the live task card for both Supabase-backed results and Fake Worker fallback outputs.
 - Unified row-action link styling so task-card links and buttons share the same touch-friendly pill treatment.
@@ -68,6 +71,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for aspect-ratio preview attributes, generated-output ratio frames, and mobile preview guardrails.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for live task-card job-created callbacks, progress actions, refresh/cancel hooks, share, and regenerate actions.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for the Image-to-Video reference upload panel and upload-state controls.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for the generated result output card and post-generation actions.

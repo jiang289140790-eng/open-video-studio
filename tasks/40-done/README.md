@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | TASK-DONE-001 |
-| Version | 0.9.0 |
+| Version | 1.0.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | TASK-001 |
@@ -24,6 +24,7 @@ Archive completed tasks with verification evidence and follow-up notes.
 
 ## Completed Tasks
 
+- 2026-07-11: Aspect-ratio-aware video preview. Added 16:9, 9:16, and 1:1 preview framing, mobile-safe vertical preview sizing, generated-output ratio preservation, and remote/local ratio-duration metadata mapping for Image-to-Video outputs. Verification: `npm run test` passed with 74 tests.
 - 2026-07-11: Live generation task card actions. Added job-created callbacks, remote job ID handoff, in-card refresh, cancel, Generation Tasks link, open Assets, download, share, and regenerate actions for Image-to-Video results across Supabase and Fake Worker fallback paths. Verification: `npm run test` passed with 74 tests.
 - 2026-07-11: Image-to-Video reference upload controls. Added gallery selection, mobile camera capture, replace, delete, file metadata, local/uploading/ready/error upload state display, and remote-upload-failed/local-fallback behavior for reference images. Verification: `npm run test` passed with 74 tests.
 - 2026-07-11: Generated result output card. Replaced the thin generated-preview link list with a player-style output card showing saved destination, title, prompt, specification, provider/model, credits, status, download, share, regenerate, and continue-use actions. Image outputs can become the next reference image; video outputs restart a similar video flow with the saved prompt. Verification: `npm run test` passed with 74 tests.

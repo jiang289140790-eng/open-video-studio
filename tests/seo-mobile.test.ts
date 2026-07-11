@@ -82,6 +82,9 @@ describe("mobile visual safety", () => {
       ".studio-panel { width: 100%; padding: 18px; }",
       ".dashboard-grid .wide { grid-column: auto; }",
       ".dashboard-row button",
+      '.creative-preview[data-preview-ratio="9:16"]',
+      '.generated-output-player[data-generated-ratio="9:16"]',
+      "min-height: min(62vh, 560px)",
     ]) {
       assert.ok(styles.includes(expected), `styles should include mobile guard: ${expected}`);
     }

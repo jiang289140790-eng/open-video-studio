@@ -1049,7 +1049,28 @@ body.tool-layout .tool-card {
   align-items: center;
   gap: 16px;
 }
-.creative-preview { min-height: 460px; display: grid; place-items: center; margin: 18px 0; text-align: center; }
+.creative-preview {
+  width: 100%;
+  min-height: 460px;
+  display: grid;
+  place-items: center;
+  margin: 18px auto;
+  text-align: center;
+}
+.creative-preview[data-preview-ratio="16:9"] {
+  aspect-ratio: 16 / 9;
+  min-height: clamp(320px, 42vw, 520px);
+}
+.creative-preview[data-preview-ratio="9:16"] {
+  width: min(420px, 100%);
+  aspect-ratio: 9 / 16;
+  min-height: clamp(500px, 72vh, 680px);
+}
+.creative-preview[data-preview-ratio="1:1"] {
+  width: min(620px, 100%);
+  aspect-ratio: 1 / 1;
+  min-height: min(620px, calc(100vw - 44px));
+}
 .creative-preview.has-reference-preview,
 .creative-preview.generated-output-preview,
 .share-frame.has-reference-preview,
@@ -1122,6 +1143,21 @@ body.tool-layout .tool-card {
     radial-gradient(circle at 70% 44%, rgba(255,98,187,0.38), transparent 24%),
     linear-gradient(135deg, rgba(15,23,42,0.92), rgba(76,29,149,0.88));
   text-align: center;
+}
+.generated-output-player[data-generated-ratio="9:16"] {
+  width: min(240px, 100%);
+  min-height: 390px;
+  aspect-ratio: 9 / 16;
+  justify-self: center;
+}
+.generated-output-player[data-generated-ratio="1:1"] {
+  width: min(320px, 100%);
+  min-height: 320px;
+  aspect-ratio: 1 / 1;
+  justify-self: center;
+}
+.generated-output-player[data-generated-ratio="16:9"] {
+  aspect-ratio: 16 / 9;
 }
 .generated-output-player strong {
   font-size: clamp(1.4rem, 4vw, 2.4rem);
@@ -3987,6 +4023,23 @@ body.tool-layout .site-footer {
   }
   .generated-output-player {
     min-height: 210px;
+  }
+  .creative-preview[data-preview-ratio="16:9"] {
+    min-height: 220px;
+  }
+  .creative-preview[data-preview-ratio="9:16"] {
+    width: min(86vw, 360px);
+    min-height: min(62vh, 560px);
+  }
+  .creative-preview[data-preview-ratio="1:1"] {
+    width: min(86vw, 420px);
+    min-height: min(86vw, 420px);
+  }
+  .generated-output-player[data-generated-ratio="9:16"] {
+    min-height: 340px;
+  }
+  .generated-output-player[data-generated-ratio="1:1"] {
+    min-height: 260px;
   }
   .generated-output-actions {
     justify-content: stretch;

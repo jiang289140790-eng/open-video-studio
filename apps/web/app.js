@@ -1463,6 +1463,7 @@ async function syncRemoteProductData() {
   }
   if (!jobsResult.error && Array.isArray(jobsResult.data)) {
     state.history = jobsResult.data.map(mapRemoteJob);
+    enrichAssetsWithGenerationJobs();
   }
   if (!creditsResult.error && Array.isArray(creditsResult.data)) {
     state.credits = creditsResult.data
@@ -1531,6 +1532,8 @@ function mapRemoteAsset(asset, index = 0) {
     contentType: String(metadata.storageContentType || asset.file_type || ""),
     provider: String(metadata.provider || ""),
     model: String(metadata.model || ""),
+    ratio: String(metadata.aspectRatio || metadata.ratio || ""),
+    durationSeconds: Number(metadata.durationSeconds || 0) || undefined,
     downloadUrl: outputUrl,
     previewUrl: outputUrl,
     remote: true
@@ -1539,6 +1542,7 @@ function mapRemoteAsset(asset, index = 0) {
 
 function mapRemoteJob(job) {
   const inputParams = parseMaybeJson(job.input_params);
+  const durationSeconds = Number(job.duration_seconds || inputParams.durationSeconds || 0) || undefined;
   return {
     id: String(job.id),
     type: job.media_type === "video" ? "video" : "image",
@@ -1548,7 +1552,9 @@ function mapRemoteJob(job) {
     model: String(job.model || "local-demo"),
     status: String(job.status || "queued"),
     credits: Number(job.cost_credits || job.credit_charged || 0),
-    duration: job.latency ? `${Math.round(Number(job.latency) / 1000)}s` : String(job.duration_seconds ? `${job.duration_seconds}s` : "等待中"),
+    duration: job.latency ? `${Math.round(Number(job.latency) / 1000)}s` : String(durationSeconds ? `${durationSeconds}s` : "等待中"),
+    durationSeconds,
+    ratio: String(job.aspect_ratio || inputParams.aspectRatio || ""),
     assetId: String(job.result_asset_id || ""),
     progress: Number(job.progress || 0),
     errorCode: String(job.error_code || ""),
@@ -1557,6 +1563,24 @@ function mapRemoteJob(job) {
     sourceAssetId: String(job.source_asset_id || inputParams.sourceAssetId || ""),
     remote: true
   };
+}
+
+function enrichAssetsWithGenerationJobs() {
+  if (!Array.isArray(state.assets) || !Array.isArray(state.history)) return;
+  state.assets = state.assets.map((asset) => {
+    const job = state.history.find((entry) => entry.assetId && entry.assetId === asset.id);
+    if (!job) return asset;
+    return {
+      ...asset,
+      prompt: asset.prompt || job.prompt || "",
+      credits: asset.credits || job.credits || 0,
+      provider: asset.provider || job.provider || "",
+      model: asset.model || job.model || "",
+      ratio: asset.ratio || job.ratio || "",
+      durationSeconds: asset.durationSeconds || job.durationSeconds,
+      duration: asset.duration || job.duration
+    };
+  });
 }
 
 async function attachRemoteAssetDownloadUrls(assets) {
@@ -2969,6 +2993,21 @@ function selectVideoReference(reference, options = {}) {
   updateVideoPreflight();
 }
 
+function normalizeVideoAspectRatio(ratio) {
+  const value = String(ratio || "").trim();
+  if (value === "9:16" || value === "vertical" || value === "1080x1920") return "9:16";
+  if (value === "1:1" || value === "square" || value === "1024x1024") return "1:1";
+  return "16:9";
+}
+
+function updateVideoPreviewRatio(ratio) {
+  const preview = document.querySelector("[data-video-preview]");
+  if (!preview) return;
+  const normalized = normalizeVideoAspectRatio(ratio);
+  preview.setAttribute("data-preview-ratio", normalized);
+  preview.setAttribute("data-preview-orientation", normalized === "9:16" ? "vertical" : normalized === "1:1" ? "square" : "wide");
+}
+
 function updateVideoReferenceCard(reference, statusText = "", status = "local") {
   const card = document.querySelector("[data-video-reference-card]");
   if (!card) return;
@@ -3091,6 +3130,7 @@ function applyVideoPreset(presetId, options = {}) {
     preview.classList.remove("art-1", "art-7", "art-13");
     preview.classList.add(preset.art);
   }
+  updateVideoPreviewRatio(preset.ratio);
   const previewMeta = document.querySelector("[data-video-preview-meta]");
   if (previewMeta) previewMeta.textContent = preset.preview;
   const costNote = document.querySelector("[data-video-cost-note]");
@@ -3112,6 +3152,7 @@ function updateVideoEstimateFromControls() {
   if (costTarget) costTarget.textContent = `${cost} 积分`;
   const previewMeta = document.querySelector("[data-video-preview-meta]");
   if (previewMeta) previewMeta.textContent = `${ratio} · ${duration}秒 · ${model}`;
+  updateVideoPreviewRatio(ratio);
   const costNote = document.querySelector("[data-video-cost-note]");
   if (costNote) costNote.textContent = `预计消耗 ${cost} 积分。结果会保存到生成任务、资产库和我的作品。`;
   updateVideoPreflight();
@@ -3155,6 +3196,7 @@ function getVideoPreflightEstimate() {
 function updateVideoPreflight() {
   if (!document.querySelector("[data-video-preflight]")) return;
   const estimate = getVideoPreflightEstimate();
+  updateVideoPreviewRatio(estimate.ratio);
   const referenceLabel = selectedVideoReference
     ? `${selectedVideoReference.title || "参考图"} · ${selectedVideoReference.remote ? "已上传" : "本地/演示"}`
     : "未选择";
@@ -3398,6 +3440,9 @@ function mergeRemoteGenerationResult(job, asset, input = {}) {
   if (!job || !asset) return;
   const assetId = String(asset.id || job.result_asset_id || `asset_${Date.now()}`);
   const mediaType = String(asset.asset_type || job.media_type || input.mode || "image");
+  const inputParams = parseMaybeJson(job.input_params);
+  const ratio = String(job.aspect_ratio || input.ratio || inputParams.aspectRatio || "");
+  const durationSeconds = Number(job.duration_seconds || input.durationSeconds || inputParams.durationSeconds || 0) || undefined;
   const mappedAsset = {
     id: assetId,
     type: mediaType === "video" ? "video" : "image",
@@ -3408,6 +3453,9 @@ function mergeRemoteGenerationResult(job, asset, input = {}) {
     status: String(job.status || "completed"),
     visibility: String(asset.visibility_status || "private"),
     favorite: Boolean(asset.is_favorite),
+    ratio,
+    durationSeconds,
+    duration: durationSeconds ? `${durationSeconds}s` : "",
     remote: true
   };
   const mappedJob = {
@@ -3419,7 +3467,9 @@ function mergeRemoteGenerationResult(job, asset, input = {}) {
     model: String(job.model || "local-demo"),
     status: String(job.status || "completed"),
     credits: mappedAsset.credits,
-    duration: job.latency ? `${Math.round(Number(job.latency) / 1000)}s` : "实时",
+    duration: job.latency ? `${Math.round(Number(job.latency) / 1000)}s` : durationSeconds ? `${durationSeconds}s` : "实时",
+    durationSeconds,
+    ratio,
     assetId,
     progress: Number(job.progress || 100),
     remote: true
@@ -3546,6 +3596,8 @@ function createGeneratedDownloadUrl(input) {
 function renderGeneratedPreview(asset, job) {
   const preview = document.querySelector("[data-video-preview]");
   if (!preview) return;
+  const outputRatio = normalizeVideoAspectRatio(asset.ratio || asset.aspectRatio || job.ratio || job.aspectRatio || "16:9");
+  updateVideoPreviewRatio(outputRatio);
   preview.classList.add("generated-output-preview");
   preview.classList.toggle("has-reference-preview", Boolean(asset.previewUrl || asset.downloadUrl || asset.publicUrl));
   if (asset.previewUrl || asset.downloadUrl || asset.publicUrl) {
@@ -3558,7 +3610,7 @@ function renderGeneratedPreview(asset, job) {
   const outputLabel = asset.type === "video" ? "视频作品" : "图片作品";
   preview.innerHTML = `
     <article class="generated-output-card" data-generated-output="${escapeHtml(asset.id)}">
-      <div class="generated-output-player ${asset.type === "video" ? "video-player-shell" : "image-player-shell"}">
+      <div class="generated-output-player ${asset.type === "video" ? "video-player-shell" : "image-player-shell"}" data-generated-ratio="${escapeHtml(outputRatio)}">
         <span class="play-dot"></span>
         <strong>${escapeHtml(outputLabel)}</strong>
         <small>已保存到资产库、生成任务和我的作品</small>
@@ -3568,7 +3620,7 @@ function renderGeneratedPreview(asset, job) {
         <h3>${escapeHtml(asset.title)}</h3>
         <p>${escapeHtml(asset.prompt || "已生成可复用作品。")}</p>
         <dl>
-          <div><dt>规格</dt><dd>${escapeHtml(asset.ratio || "自动")} · ${escapeHtml(job.duration || asset.duration || "实时")}</dd></div>
+          <div><dt>规格</dt><dd>${escapeHtml(outputRatio)} · ${escapeHtml(job.duration || asset.duration || "实时")}</dd></div>
           <div><dt>模型</dt><dd>${escapeHtml(asset.model || job.model || asset.provider || job.provider || "fake_worker")}</dd></div>
           <div><dt>积分</dt><dd>${Number(asset.credits || job.credits || 0)} 积分</dd></div>
           <div><dt>状态</dt><dd>${statusLabel(normalizeJobStatus(job.status || asset.status || "completed"))}</dd></div>

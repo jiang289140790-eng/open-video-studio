@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.15.0 |
+| Version | 1.16.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -284,6 +284,15 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Dependencies: MVP-S3-012, MVP-S3-013, MVP-S3-016, API-GEN-VIDEO-001, DB-GENERATION-JOBS-001.
 - Acceptance Criteria: after submit, the Image-to-Video task card shows a visible task lifecycle, receives the remote job ID when Supabase creates a job, links to Generation Tasks, allows running remote jobs to refresh or cancel, keeps failed/retrying jobs connected to History, and exposes Assets, download, share, and regenerate actions when an output is available.
 - Related Documents: PAGE-GENERATE-001, DB-GENERATION-JOBS-001, DB-MEDIA-ASSETS-001, DB-SHARE-LINKS-001.
+
+### MVP-S3-018 Aspect-Ratio-Aware Video Preview
+
+- Priority: P1.
+- Status: Completed.
+- Estimated Time: 0.25 day.
+- Dependencies: MVP-S3-011, MVP-S3-015, MVP-S3-017, DS-011.
+- Acceptance Criteria: Image-to-Video preview changes shape for 16:9, 9:16, and 1:1 output choices; completed generated-output cards preserve the selected aspect ratio; mobile vertical previews remain inspectable without horizontal overflow; local and remote asset/history mapping carries ratio and duration metadata where available.
+- Related Documents: PAGE-GENERATE-001, DS-011, DB-GENERATION-JOBS-001, DB-MEDIA-ASSETS-001.
 
 ## Sprint 4: Admin And MVP Integration
 
