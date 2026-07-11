@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 1.7.0 |
+| Version | 1.8.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Email authentication now has a password recovery loop. `signin.html` can request a Supabase reset email, `/zh/reset-password/` preserves the recovery callback, and `reset-password.html` updates the password through the authenticated Supabase recovery session before returning users to Dashboard.
 - Reusable media references now use a normalized URL path in the Image-to-Video loop. Reference selection and previews can pull from `sourceImageUrl`, `previewUrl`, `publicUrl`, `downloadUrl`, `outputUrl`, and storage file URL fields, while avoiding JSON metadata downloads as image inputs. This makes existing assets more reliably reusable as generation references.
 - Image-to-Video asset selection is now more usable inside the core generation loop. The Asset Library picker can search by asset text, filter favorite/public/recent image assets, show source/status metadata, and recover from empty results with direct upload, demo reference, or full Asset Library actions.
 - Generation failures are now recoverable from the product surface. Retry actions preserve a small local recovery context with prompt, workflow type, preset, video ratio, duration, model, reference asset metadata, failure reason, and refund amount; Generate/Image-to-Video restores that context and shows a recovery notice so users can adjust and resubmit without losing the previous setup.

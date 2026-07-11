@@ -4,7 +4,7 @@
 |---|---|
 | ID | API-AUTH-001 |
 | Unique ID | API-AUTH-001 |
-| Version | 1.5.0 |
+| Version | 1.6.0 |
 | Status | Active |
 | Owner | API Platform Lead / Security Lead |
 | Dependencies | DB-USERS-001, SEC-INDEX-001 |
@@ -49,6 +49,8 @@ Responses may include authentication status, user reference, session metadata, r
 - `AUTH_VERIFICATION_REQUIRED`
 - `AUTH_RATE_LIMITED`
 - `AUTH_PROVIDER_UNAVAILABLE`
+- `AUTH_PASSWORD_RESET_SENT`
+- `AUTH_PASSWORD_RESET_INVALID`
 
 ## Rate Limit
 
@@ -76,6 +78,8 @@ MVP Backend Loop adds Supabase Auth integration through `SupabaseMvpBackendLoop.
 Social auth support now uses `SupabaseMvpBackendLoop.createOAuthSignInUrl` for Google, X/Twitter, and Discord through Supabase OAuth. Provider secrets and redirect settings must be configured inside Supabase, not committed to the repository.
 
 The static MVP frontend also calls Supabase Auth directly for browser signup, signin, and OAuth redirects through browser-safe Vite variables: `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. These public values must point to the same Supabase project used by the backend environment.
+
+Email password recovery uses Supabase Auth from the browser. The sign-in page calls `resetPasswordForEmail` with a same-origin redirect target, and the recovery page calls `updateUser({ password })` after Supabase establishes the recovery session from the email link. No service role key or third-party secret is exposed to the browser.
 
 Telegram login is exposed as a frontend entry through Telegram Login Widget configuration variables: `VITE_TELEGRAM_BOT_USERNAME` and `VITE_TELEGRAM_AUTH_URL`. Telegram identity data must be verified by a trusted backend using Telegram's signed hash before creating or linking a user.
 

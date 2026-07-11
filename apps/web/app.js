@@ -80,6 +80,7 @@ const AUTH_ROUTE_ALIASES = new Map([
   ["my-creations", "my-creations.html"],
   ["login", "signin.html"],
   ["signin", "signin.html"],
+  ["reset-password", "reset-password.html"],
   ["share", "share.html"]
 ]);
 const PAYMENT_PROVIDERS = [
@@ -861,6 +862,7 @@ loadHomepageConfig();
 loadPageBuilderConfig();
 loadToolCatalogConfig();
 applyStoredLanguage();
+showAuthUrlMessage();
 renderOAuthReadiness();
 renderToolHomeDirectory();
 renderCookieBanner();
@@ -1742,6 +1744,19 @@ function showAuthMessage(message, tone = "info") {
   target.dataset.tone = tone;
 }
 
+function showAuthUrlMessage() {
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const searchParams = new URLSearchParams(window.location.search);
+  const errorDescription = hashParams.get("error_description") || searchParams.get("error_description");
+  if (errorDescription) {
+    showAuthMessage(errorDescription.replace(/\+/g, " "), "error");
+    return;
+  }
+  if (hashParams.get("type") === "recovery") {
+    showAuthMessage("请设置一个新的账户密码。", "success");
+  }
+}
+
 function getOAuthReadiness() {
   return [
     { name: "Google", ready: Boolean(supabase), action: "Supabase Authentication > Providers > Google，填写 Client ID / Secret，并加入站点回调 URL。" },
@@ -2548,6 +2563,89 @@ document.querySelectorAll("[data-email-auth-form]").forEach((form) => {
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     form.querySelector('[data-email-auth="signin"]')?.click();
+  });
+});
+
+document.querySelectorAll("[data-password-reset-request]").forEach((button) => {
+  button.addEventListener("click", async (event) => {
+    event.preventDefault();
+    const email = document.querySelector("[data-auth-email]")?.value.trim();
+    if (!email) {
+      showAuthMessage("请先输入邮箱。", "error");
+      return;
+    }
+    if (!supabase) {
+      showAuthMessage("Supabase 尚未配置。添加 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY 后即可发送重置邮件。", "error");
+      return;
+    }
+    const originalLabel = button.textContent;
+    button.disabled = true;
+    button.textContent = "正在发送...";
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: getPasswordResetRedirectUrl()
+    });
+    button.disabled = false;
+    button.textContent = originalLabel || "忘记密码？发送重置邮件";
+    if (error) {
+      showAuthMessage(error.message, "error");
+      return;
+    }
+    showAuthMessage("密码重置邮件已发送。请打开邮件里的链接设置新密码。", "success");
+  });
+});
+
+document.querySelectorAll("[data-password-update-form]").forEach((form) => {
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    form.querySelector("[data-password-update]")?.click();
+  });
+});
+
+document.querySelectorAll("[data-password-update]").forEach((button) => {
+  button.addEventListener("click", async (event) => {
+    event.preventDefault();
+    const password = document.querySelector("[data-new-password]")?.value || "";
+    const confirmation = document.querySelector("[data-confirm-password]")?.value || "";
+    if (!password || !confirmation) {
+      showAuthMessage("请填写并确认新密码。", "error");
+      return;
+    }
+    if (password.length < 8) {
+      showAuthMessage("新密码至少需要 8 位。", "error");
+      return;
+    }
+    if (password !== confirmation) {
+      showAuthMessage("两次输入的密码不一致。", "error");
+      return;
+    }
+    if (!supabase) {
+      showAuthMessage("Supabase 尚未配置。添加 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY 后即可更新密码。", "error");
+      return;
+    }
+    const originalLabel = button.textContent;
+    button.disabled = true;
+    button.textContent = "正在更新...";
+    const { data, error } = await supabase.auth.updateUser({ password });
+    button.disabled = false;
+    button.textContent = originalLabel || "更新密码";
+    if (error) {
+      showAuthMessage(error.message, "error");
+      return;
+    }
+    if (data.user) {
+      state.user = {
+        id: data.user.id,
+        name: String(data.user.user_metadata?.display_name || data.user.email || "创作者"),
+        email: data.user.email || "",
+        provider: "supabase",
+        createdAt: data.user.created_at || new Date().toISOString()
+      };
+      saveState(state);
+    }
+    showAuthMessage("密码已更新。正在进入控制台。", "success");
+    window.setTimeout(() => {
+      window.location.href = getAuthRedirectUrl(getRequestedAuthReturnTarget("dashboard.html"));
+    }, 700);
   });
 });
 
@@ -4235,6 +4333,10 @@ function normalizeAuthReturnTarget(nextUrl = "dashboard.html") {
 
 function getAuthRedirectUrl(nextUrl = "dashboard.html") {
   return new URL(normalizeAuthReturnTarget(nextUrl), getAppBaseUrl()).href;
+}
+
+function getPasswordResetRedirectUrl() {
+  return new URL("reset-password.html", getAppBaseUrl()).href;
 }
 
 let characterFilter = "all";

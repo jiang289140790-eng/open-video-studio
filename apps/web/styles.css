@@ -3712,6 +3712,44 @@ body.tool-layout .site-footer {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
+.email-auth-actions.single {
+  grid-template-columns: 1fr;
+}
+.password-reset-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.password-reset-row button,
+.password-reset-row a {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #ff62bb;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+.password-reset-row button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+.password-reset-page .login-modal-shell {
+  min-height: calc(100vh - 56px);
+  background:
+    radial-gradient(circle at 22% 18%, rgba(120, 97, 255, 0.26), transparent 30%),
+    radial-gradient(circle at 76% 22%, rgba(255, 98, 187, 0.22), transparent 34%),
+    #101014;
+}
+.password-reset-card {
+  text-align: left;
+}
+.password-reset-card .hero-actions {
+  margin-top: 12px;
+}
 .email-auth-form .small {
   margin: 0;
   font-size: 0.82rem;

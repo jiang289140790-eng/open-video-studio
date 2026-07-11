@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | PAGE-AUTH-001 |
-| Version | 1.3.0 |
+| Version | 1.4.0 |
 | Status | Active |
 | Owner | Frontend Lead / Security Lead |
 | Dependencies | API-AUTH-001, DB-USERS-001, SEC-INDEX-001, DS-012 |
@@ -82,16 +82,19 @@ Authentication pages may be crawlable only if useful for brand navigation, but s
 - Error states are secure and helpful.
 - Session success routes users to the correct destination.
 - MVP account entry offers Google, X, Telegram, Discord, and email options.
+- Email users can request a password reset and set a new password from the recovery link.
 
 ## Current Implementation
 
 `apps/web/signin.html` presents social authentication options for Google, X, Telegram, and Discord before the email form. Google, X, and Discord call Supabase Auth from the browser when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are configured. Telegram renders a Telegram Login Widget when `VITE_TELEGRAM_BOT_USERNAME` and `VITE_TELEGRAM_AUTH_URL` are configured. Missing configuration is shown as an explicit page message rather than silently creating a fake local account.
 
+Email authentication now includes a password recovery path. The sign-in page can request a Supabase password reset email, and `apps/web/reset-password.html` lets a user with a valid recovery session update their password before returning to Dashboard. The localized `/zh/reset-password/` alias preserves query strings and hash fragments from Supabase recovery emails.
+
 Product pages now use a target-style app shell with a persistent left tool rail and compact top navigation so authenticated creation flows feel like a mature AI tool product rather than a marketing-only website.
 
 ## Future Plan
 
-Complete production redirect configuration in Supabase, enable provider credentials for Google, X/Twitter, and Discord, add a backend Telegram signed-hash callback, then add password recovery, email verification handling, and account settings.
+Complete production redirect configuration in Supabase, enable provider credentials for Google, X/Twitter, and Discord, add a backend Telegram signed-hash callback, then add email verification handling and account settings.
 
 ## AI Context
 

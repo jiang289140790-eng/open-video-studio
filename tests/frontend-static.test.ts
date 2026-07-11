@@ -44,6 +44,7 @@ const requiredPages = [
   "privacy.html",
   "cookie.html",
   "signin.html",
+  "reset-password.html",
   "share.html",
   "admin.html"
 ];
@@ -116,6 +117,13 @@ describe("MVP static frontend", () => {
     assert.equal(signin.includes("data-auth-password"), true);
     assert.equal(signin.includes("data-email-auth=\"signin\""), true);
     assert.equal(signin.includes("data-email-auth=\"signup\""), true);
+    assert.equal(signin.includes("data-password-reset-request"), true);
+    assert.equal(signin.includes("data-reset-password-link"), true);
+    const resetPassword = readPage("reset-password.html");
+    assert.equal(resetPassword.includes("data-password-update-form"), true);
+    assert.equal(resetPassword.includes("data-new-password"), true);
+    assert.equal(resetPassword.includes("data-confirm-password"), true);
+    assert.equal(resetPassword.includes("data-password-update"), true);
   });
 
   it("contains working MVP hooks for the target-site-style product loop", () => {
@@ -125,6 +133,12 @@ describe("MVP static frontend", () => {
       "data-auth-provider=\"x\"",
       "data-telegram-auth",
       "data-auth-provider=\"discord\"",
+      "data-password-reset-request",
+      "data-password-update",
+      "data-password-update-form",
+      "getPasswordResetRedirectUrl",
+      "resetPasswordForEmail",
+      "updateUser({ password",
       "data-buy-credits",
       "data-character-form",
       "data-generate",
@@ -371,6 +385,7 @@ describe("MVP static frontend", () => {
       ["zh/free-coins/index.html", "../../free-coins.html"],
       ["zh/my-creations/index.html", "../../my-creations.html"],
       ["zh/login/index.html", "../../signin.html"],
+      ["zh/reset-password/index.html", "../../reset-password.html"],
       ["zh/account/index.html", "../../dashboard.html"],
       ["zh/dashboard/index.html", "../../dashboard.html"],
       ["zh/gallery/index.html", "../../gallery.html"],

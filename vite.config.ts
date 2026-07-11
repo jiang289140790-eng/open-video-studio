@@ -50,6 +50,7 @@ export default defineConfig({
         privacy: resolve(webRoot, "privacy.html"),
         cookie: resolve(webRoot, "cookie.html"),
         signin: resolve(webRoot, "signin.html"),
+        resetPassword: resolve(webRoot, "reset-password.html"),
         share: resolve(webRoot, "share.html"),
         admin: resolve(webRoot, "admin.html"),
         app: resolve(webRoot, "app-shell.html"),

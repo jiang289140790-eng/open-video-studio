@@ -55,20 +55,23 @@
         </div>
 
         <form class="email-auth-form" data-email-auth-form>
-          <div class="divider-label"><span>或使用邮箱</span></div>
-          <label>邮箱
+          <div class="divider-label"><span>&#x6216;&#x4F7F;&#x7528;&#x90AE;&#x7BB1;</span></div>
+          <label>&#x90AE;&#x7BB1;
             <input type="email" name="email" data-auth-email autocomplete="email" placeholder="creator@example.com" required>
           </label>
-          <label>密码
-            <input type="password" name="password" data-auth-password autocomplete="current-password" placeholder="至少 8 位密码" required minlength="8">
+          <label>&#x5BC6;&#x7801;
+            <input type="password" name="password" data-auth-password autocomplete="current-password" placeholder="&#x81F3;&#x5C11; 8 &#x4F4D;&#x5BC6;&#x7801;" required minlength="8">
           </label>
           <div class="email-auth-actions">
-            <button class="btn primary" type="submit" data-email-auth="signin">登录</button>
-            <button class="btn glass" type="button" data-email-auth="signup">创建账户</button>
+            <button class="btn primary" type="submit" data-email-auth="signin">&#x767B;&#x5F55;</button>
+            <button class="btn glass" type="button" data-email-auth="signup">&#x521B;&#x5EFA;&#x8D26;&#x6237;</button>
           </div>
-          <p class="muted small">社交登录启用前，邮箱登录可用于真实注册、登录、退出和会话恢复测试。</p>
+          <div class="password-reset-row">
+            <button type="button" data-password-reset-request>&#x5FD8;&#x8BB0;&#x5BC6;&#x7801;&#xFF1F;&#x53D1;&#x9001;&#x91CD;&#x7F6E;&#x90AE;&#x4EF6;</button>
+            <a href="./zh/reset-password/" data-reset-password-link>&#x5DF2;&#x6709;&#x91CD;&#x7F6E;&#x94FE;&#x63A5;&#xFF1F;&#x8BBE;&#x7F6E;&#x65B0;&#x5BC6;&#x7801;</a>
+          </div>
+          <p class="muted small">&#x90AE;&#x7BB1;&#x767B;&#x5F55;&#x53EF;&#x7528;&#x4E8E;&#x771F;&#x5B9E;&#x6CE8;&#x518C;&#x3001;&#x767B;&#x5F55;&#x3001;&#x9000;&#x51FA;&#x3001;&#x4F1A;&#x8BDD;&#x6062;&#x590D;&#x548C;&#x5BC6;&#x7801;&#x91CD;&#x7F6E;&#x6D4B;&#x8BD5;&#x3002;</p>
         </form>
-
         <p class="auth-message" data-auth-message>配置 Supabase OAuth 后，Google / X / Discord 会进行真实登录；Telegram 需要配置 Telegram Bot 和回调校验。</p>
         <p class="login-terms">继续即表示你同意我们的 <a href="./zh/app/">服务条款</a> 和 <a href="./zh/app/">隐私政策</a>。</p>
       </section>

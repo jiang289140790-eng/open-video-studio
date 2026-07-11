@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.20.0 |
+| Version | 1.21.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -140,11 +140,20 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 ### MVP-S3-001 Auth UI And Session State
 
 - Priority: P0.
-- Status: In Progress.
+- Status: Completed.
 - Estimated Time: 1 day.
 - Dependencies: Sprint 1, API-AUTH-001, PAGE-AUTH-001.
-- Acceptance Criteria: user can sign up/sign in with email or social OAuth entry points, see authenticated header state, and access protected product pages with a persisted local MVP session.
+- Acceptance Criteria: user can sign up/sign in with email or social OAuth entry points, request password reset email, set a new password from recovery link, see authenticated header state, and access protected product pages with a persisted local MVP session.
 - Related Documents: API-AUTH-001, PAGE-AUTH-001, DB-USERS-001.
+
+### MVP-S3-025 Email Password Recovery Flow
+
+- Priority: P0.
+- Status: Completed.
+- Estimated Time: 0.5 day.
+- Dependencies: MVP-S3-001, API-AUTH-001, PAGE-AUTH-001.
+- Acceptance Criteria: Sign In exposes a reset email action, Supabase recovery redirects resolve through `/zh/reset-password/`, users can submit a new password with confirmation, invalid links show safe error copy, and tests cover the required page and hooks.
+- Related Documents: PAGE-AUTH-001, API-AUTH-001, BE-ARCH-AUTH-001.
 
 ### MVP-S3-002 Connected Generate Flow
 
