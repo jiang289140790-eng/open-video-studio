@@ -29,6 +29,7 @@ Create `.env.local` from `.env.local.example` and fill:
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 - `SUPABASE_STORAGE_BUCKET`
+- `VITE_SUPABASE_STORAGE_BUCKET`
 - `VITE_TELEGRAM_BOT_USERNAME`
 - `VITE_TELEGRAM_AUTH_URL`
 
@@ -73,6 +74,7 @@ The Admin Console now performs the same Google, X / Twitter OAuth 2.0, and Disco
 Set these GitHub repository Variables:
 
 - `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_STORAGE_BUCKET`
 - `VITE_TELEGRAM_BOT_USERNAME`
 - `VITE_TELEGRAM_AUTH_URL`
 
@@ -84,6 +86,7 @@ Recommended CLI commands after values are known:
 
 ```bash
 gh variable set VITE_SUPABASE_URL --repo jiang289140790-eng/open-video-studio --body "https://PROJECT_REF.supabase.co"
+gh variable set VITE_SUPABASE_STORAGE_BUCKET --repo jiang289140790-eng/open-video-studio --body "open-video-studio-assets"
 gh secret set VITE_SUPABASE_ANON_KEY --repo jiang289140790-eng/open-video-studio
 gh variable set VITE_TELEGRAM_BOT_USERNAME --repo jiang289140790-eng/open-video-studio --body "YOUR_BOT_USERNAME"
 gh variable set VITE_TELEGRAM_AUTH_URL --repo jiang289140790-eng/open-video-studio --body "https://wyvswkxogkmywduhrhkw.supabase.co/functions/v1/telegram-auth"

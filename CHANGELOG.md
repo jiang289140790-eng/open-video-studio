@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.89.0 |
+| Version | 0.90.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,12 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Added the first actionable Image-to-Video input loop. Users can upload a reference image, select an existing image asset in-page, or choose a demo reference image without leaving the generator.
+- Added browser-side Supabase Storage upload support for video reference images. When Supabase Auth and Storage are configured, the uploaded reference image is stored in the configured bucket, recorded as a `media_assets` reference image, and passed into generation as `sourceAssetId` / `sourceImageUrl`.
+- Aligned the Image-to-Video provider selector with the existing `ai` Edge Function contract by passing provider values such as `fake_worker` and `qianwen_generation` instead of unsupported model aliases.
+- Added visible generation progress for the Image-to-Video flow: queued, running, retrying, failed, and completed states now render in the task area before the output is saved.
+- Added local Fake Worker output download metadata, generated preview actions, and Asset Library / Generation Task actions so MVP users can open, download, share, or reuse outputs after generation.
+- Added `VITE_SUPABASE_STORAGE_BUCKET` to environment templates for browser-safe direct reference image uploads.
 - Rebuilt the MVP Video Tools surface into a task-based workflow market instead of a thin navigation page. The page now explains image-to-video, product teaser, and social reel workflows with model options, ratio, duration, credit estimates, expected generation time, and distinct preset links.
 - Rebuilt the Image to Video Studio around workflow presets. `?preset=image-video`, `?preset=product-teaser`, and `?preset=social-reel` now update the prompt, aspect ratio, duration, model preference, credit estimate, preview copy, mobile generate bar, and generation payload without changing the backend architecture.
 - Standardized the first-pass product vocabulary on the core video workflow surfaces: `免费积分`, `每日奖励`, `生成任务`, `我的作品`, and `资产库` replace mixed credit/history/creation naming.
@@ -46,6 +52,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for reference uploads, in-page asset picker hooks, source asset URL parameters, progress rows, output downloads, generated preview actions, and provider-aligned generation payloads.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for the new video workflow presets, task-based Video Tools page, mobile CTA, and terminology.
 - Ran `npm run verify:oauth`; Google, X / Twitter OAuth 2.0, and Discord authorization URLs are reachable through Supabase and report `providerCallbackUrl=https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback`. Telegram remains unconfigured until Bot username, Bot token secret, and the `telegram-auth` function deployment are completed.
 - Deployed Supabase `telegram-auth` Edge Function version `1` with JWT verification disabled for the external Telegram callback and HMAC verification enabled inside the function.

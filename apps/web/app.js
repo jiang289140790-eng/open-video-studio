@@ -59,6 +59,7 @@ const PROTECTED_PRODUCT_PAGES = new Set([
 ]);
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
+const supabaseStorageBucket = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || "open-video-studio-assets";
 const telegramBotUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "";
 const telegramAuthUrl = import.meta.env.VITE_TELEGRAM_AUTH_URL || "";
 const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
@@ -2706,7 +2707,7 @@ const videoWorkflowPresets = {
     prompt: "把这张商品图生成 10 秒产品广告短片，镜头从产品细节缓慢推进到完整主体，加入高级棚拍灯光、干净背景、品牌发布感和可放置字幕的留白区域。",
     ratio: "16:9",
     duration: "10",
-    model: "qianwen_video",
+    model: "qianwen_generation",
     cost: 32,
     preview: "16:9 · 10秒 · 产品广告预设",
     art: "art-1"
@@ -2719,12 +2720,14 @@ const videoWorkflowPresets = {
     prompt: "把这张图片生成 5 秒 9:16 竖屏短视频，前 2 秒有强视觉开场，镜头轻微推进，主体保持稳定，节奏适合 TikTok、Reels 和 Shorts。",
     ratio: "9:16",
     duration: "5",
-    model: "hailuo",
+    model: "qianwen_generation",
     cost: 28,
     preview: "9:16 · 5秒 · 社媒竖屏预设",
     art: "art-13"
   }
 };
+
+let selectedVideoReference = null;
 
 modeButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -2754,9 +2757,193 @@ function applyInitialVideoPreset() {
     input.addEventListener("change", updateVideoEstimateFromControls);
   });
   document.querySelector("[data-mobile-generate]")?.addEventListener("click", () => generateButton?.click());
-  document.querySelector("[data-demo-reference]")?.addEventListener("click", () => {
-    showSiteToast("已选择示例参考图。真实上传会在提交生成时保存到资产库。");
+  document.querySelector("[data-video-upload]")?.addEventListener("change", handleVideoReferenceUpload);
+  document.querySelector("[data-open-asset-picker]")?.addEventListener("click", openVideoAssetPicker);
+  document.querySelector("[data-close-asset-picker]")?.addEventListener("click", closeVideoAssetPicker);
+  document.querySelector("[data-asset-picker]")?.addEventListener("click", (event) => {
+    if (event.target?.matches("[data-asset-picker]")) closeVideoAssetPicker();
   });
+  applyVideoSourceFromUrl();
+  document.querySelector("[data-demo-reference]")?.addEventListener("click", () => {
+    const demoUrl = new URL("./home-assets/ovs-home-06.png", window.location.href).href;
+    selectVideoReference({
+      id: "demo-reference-image",
+      title: "示例参考图",
+      type: "image",
+      prompt: "图片转视频示例参考图",
+      character: "Mira",
+      credits: 0,
+      status: "ready",
+      visibility: "private",
+      favorite: false,
+      previewUrl: demoUrl,
+      sourceImageUrl: demoUrl,
+      sourceType: "reference_image"
+    }, { addToAssets: false });
+    showSiteToast("已选择示例参考图。提交后会作为图片转视频首帧。");
+  });
+}
+
+function applyVideoSourceFromUrl() {
+  const sourceId = new URLSearchParams(window.location.search).get("source");
+  if (!sourceId) return;
+  const asset = state.assets.find((item) => item.id === sourceId);
+  if (!asset || asset.type === "video") return;
+  selectVideoReference({
+    ...asset,
+    sourceAssetId: asset.remote ? asset.id : undefined,
+    sourceImageUrl: asset.sourceImageUrl || asset.previewUrl || ""
+  }, { addToAssets: false });
+}
+
+async function handleVideoReferenceUpload(event) {
+  const file = event.target?.files?.[0];
+  if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    showSiteToast("请上传图片文件作为视频参考图。");
+    return;
+  }
+  const localPreviewUrl = URL.createObjectURL(file);
+  const reference = {
+    id: `reference_${Date.now()}`,
+    type: "image",
+    title: file.name.replace(/\.[^.]+$/, "") || "上传参考图",
+    prompt: "用户上传的图片转视频参考图",
+    character: "Mira",
+    credits: 0,
+    status: "ready",
+    visibility: "private",
+    favorite: false,
+    previewUrl: localPreviewUrl,
+    sourceType: "reference_image",
+    fileName: file.name,
+    fileSize: file.size
+  };
+  selectVideoReference(reference);
+  showSiteToast("参考图已选择，正在准备生成输入。");
+
+  if (!supabase) return;
+  try {
+    const remoteReference = await uploadVideoReferenceToSupabase(file, reference);
+    selectVideoReference(remoteReference);
+    showSiteToast("参考图已上传到 Supabase Storage，可用于真实图片转视频。");
+  } catch (error) {
+    showSiteToast(`${error.message || "参考图上传失败"}，仍可使用本地演示生成。`);
+  }
+}
+
+async function uploadVideoReferenceToSupabase(file, reference) {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const user = sessionData.session?.user;
+  if (!user) throw new Error("请先登录后上传参考图。");
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_") || "reference.png";
+  const storageKey = `${user.id}/references/${Date.now()}-${safeName}`;
+  const upload = await supabase.storage.from(supabaseStorageBucket).upload(storageKey, file, {
+    contentType: file.type || "image/png",
+    upsert: false
+  });
+  if (upload.error) throw new Error(upload.error.message || "Storage 上传失败。");
+  const signed = await supabase.storage.from(supabaseStorageBucket).createSignedUrl(storageKey, 3600);
+  const assetId = `ref_${Date.now()}`;
+  const assetRecord = {
+    id: assetId,
+    user_id: user.id,
+    owner_user_id: user.id,
+    file_url: storageKey,
+    file_type: "image",
+    consent_confirmed: true,
+    asset_type: "image",
+    source_type: "reference_image",
+    storage_key: storageKey,
+    display_name: reference.title,
+    tags_json: ["reference", "image-to-video"],
+    metadata_json: {
+      prompt: reference.prompt,
+      source: "video_reference_upload",
+      originalFileName: file.name,
+      fileSize: file.size
+    },
+    processing_status: "ready",
+    rights_status: "user_uploaded",
+    moderation_status: "pending",
+    visibility_status: "private"
+  };
+  const inserted = await supabase.from("media_assets").insert(assetRecord).select("*").single();
+  if (inserted.error) throw new Error(inserted.error.message || "参考资产记录创建失败。");
+  return {
+    ...reference,
+    id: String(inserted.data.id),
+    remote: true,
+    storageKey,
+    sourceAssetId: String(inserted.data.id),
+    sourceImageUrl: signed.data?.signedUrl || "",
+    title: String(inserted.data.display_name || reference.title)
+  };
+}
+
+function selectVideoReference(reference, options = {}) {
+  selectedVideoReference = reference;
+  const label = document.querySelector("[data-video-reference-label]");
+  if (label) {
+    label.textContent = `${reference.title || "参考图"} · ${reference.remote ? "已上传" : "本地可用"}`;
+  }
+  const preview = document.querySelector("[data-video-preview]");
+  if (preview) {
+    preview.classList.add("has-reference-preview");
+    if (reference.previewUrl || reference.sourceImageUrl) {
+      preview.style.setProperty("--reference-image", `url("${reference.previewUrl || reference.sourceImageUrl}")`);
+    }
+  }
+  if (options.addToAssets !== false && !state.assets.some((asset) => asset.id === reference.id)) {
+    state.assets.unshift({
+      ...reference,
+      status: "ready",
+      visibility: "private",
+      favorite: false
+    });
+    saveState(state);
+    renderState(state);
+  }
+}
+
+function openVideoAssetPicker() {
+  const overlay = document.querySelector("[data-asset-picker]");
+  const list = document.querySelector("[data-video-asset-options]");
+  if (!overlay || !list) return;
+  const imageAssets = state.assets.filter((asset) => asset.type !== "video").slice(0, 12);
+  list.innerHTML = imageAssets.length ? imageAssets.map((asset, index) => `
+    <button type="button" class="asset-picker-option" data-select-video-asset="${escapeHtml(asset.id)}">
+      <span class="thumb ${["art-3", "art-8", "art-10", "art-12"][index % 4]}"></span>
+      <strong>${escapeHtml(asset.title)}</strong>
+      <small>${escapeHtml(asset.prompt || "可作为图片转视频参考图")}</small>
+    </button>
+  `).join("") : `
+    <article class="empty-state compact">
+      <h3>还没有可选图片资产</h3>
+      <p class="muted">你可以先上传参考图，或使用示例图片开始。</p>
+    </article>
+  `;
+  list.querySelectorAll("[data-select-video-asset]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const asset = state.assets.find((item) => item.id === button.dataset.selectVideoAsset);
+      if (!asset) return;
+      selectVideoReference({
+        ...asset,
+        sourceAssetId: asset.remote ? asset.id : undefined,
+        sourceImageUrl: asset.sourceImageUrl || asset.previewUrl || ""
+      }, { addToAssets: false });
+      closeVideoAssetPicker();
+      showSiteToast("已选择资产作为图片转视频参考图。");
+    });
+  });
+  overlay.hidden = false;
+  document.body.classList.add("modal-open");
+}
+
+function closeVideoAssetPicker() {
+  const overlay = document.querySelector("[data-asset-picker]");
+  if (overlay) overlay.hidden = true;
+  document.body.classList.remove("modal-open");
 }
 
 function applyVideoPreset(presetId, options = {}) {
@@ -2860,9 +3047,18 @@ if (generateButton && queueTarget) {
     const ratio = document.querySelector("[data-video-ratio]")?.value || "";
     const durationSeconds = Number(document.querySelector("[data-video-duration]")?.value || 0) || undefined;
     const model = document.querySelector("[data-video-model]")?.value || "";
+    const reference = selectedVideoReference;
+    const progressRow = createGenerationProgressRow({
+      title,
+      cost,
+      reference,
+      mediaType: activeMode === "video" ? "video" : "image"
+    });
+    queueTarget.prepend(progressRow);
     generateButton.disabled = true;
     generateButton.textContent = "生成中";
     try {
+      updateGenerationProgress(progressRow, "queued", "任务已进入队列，正在准备参考图和积分扣费。", 18);
       const remoteResult = await runRemoteGeneration({
         mode: activeMode,
         prompt,
@@ -2872,32 +3068,77 @@ if (generateButton && queueTarget) {
         ratio,
         durationSeconds,
         model,
-        preset: activePreset?.id || ""
+        preset: activePreset?.id || "",
+        reference
       });
       if (remoteResult) {
-        queueTarget.prepend(statusRow(`${title}已完成`, "真实任务已保存到 Supabase 资产库和生成任务。", "./zh/assets/", "打开作品"));
+        updateGenerationProgress(progressRow, "completed", "真实任务已保存到 Supabase 资产库、生成任务和我的作品。", 100, {
+          assetHref: "./zh/assets/",
+          downloadHref: "#"
+        });
         return;
       }
     } catch (error) {
-      queueTarget.prepend(statusRow("真实生成暂不可用", `${error.message || "已切回本地演示生成。"} 未重复扣除远端积分。`, "./zh/admin/", "检查后台"));
+      updateGenerationProgress(progressRow, "retrying", `${error.message || "真实生成暂不可用"}，正在切换到本地演示生成。`, 38);
     } finally {
       generateButton.disabled = false;
-      generateButton.textContent = "生成";
+      generateButton.textContent = activeMode === "video" ? "生成视频" : "生成";
     }
 
     ensureUser("email");
     if (state.credits < cost) {
-    queueTarget.prepend(statusRow("积分不足", "请先购买积分再生成这个作品。", "./zh/pricing/", "购买积分"));
+      updateGenerationProgress(progressRow, "failed", "积分不足，请先购买积分再生成这个作品。", 0, {
+        assetHref: "./zh/pricing/",
+        assetLabel: "购买积分"
+      });
       return;
     }
     state.credits -= cost;
     const id = `asset_${Date.now()}`;
-    const asset = { id, type: activeMode === "video" ? "video" : "image", title, prompt, character, credits: cost, status: "completed", visibility: "private", favorite: false, ratio, duration: durationSeconds, preset: activePreset?.id || "" };
-    const job = { id: `job_${Date.now()}`, type: asset.type, title, prompt, provider: model || "local_api", model: activeMode === "video" ? model || "local-video-v0" : "local-image-v0", status: "completed", credits: cost, duration: activeMode === "video" ? `${durationSeconds || 8}s` : "12s", assetId: id, ratio, preset: activePreset?.id || "" };
+    const jobId = `job_${Date.now()}`;
+    const asset = {
+      id,
+      type: activeMode === "video" ? "video" : "image",
+      title,
+      prompt,
+      character,
+      credits: cost,
+      status: "completed",
+      visibility: "private",
+      favorite: false,
+      ratio,
+      duration: durationSeconds,
+      preset: activePreset?.id || "",
+      referenceId: reference?.id || "",
+      downloadUrl: createGeneratedDownloadUrl({ title, prompt, cost, ratio, durationSeconds, model, reference, type: activeMode === "video" ? "video" : "image" })
+    };
+    const job = {
+      id: jobId,
+      type: asset.type,
+      title,
+      prompt,
+      provider: model || "local_api",
+      model: activeMode === "video" ? model || "local-video-v0" : "local-image-v0",
+      status: "completed",
+      credits: cost,
+      duration: activeMode === "video" ? `${durationSeconds || 8}s` : "12s",
+      assetId: id,
+      ratio,
+      preset: activePreset?.id || "",
+      progress: 100
+    };
+    updateGenerationProgress(progressRow, "running", "Fake Worker 正在生成预览和输出元数据。", 64);
+    await wait(180);
     state.assets.unshift(asset);
     state.history.unshift(job);
     saveState(state);
-    queueTarget.prepend(statusRow(`${title}已完成`, "已保存到资产库和生成任务。", "./zh/assets/", "打开作品"));
+    renderState(state);
+    renderGeneratedPreview(asset, job);
+    updateGenerationProgress(progressRow, "completed", "已保存到资产库、生成任务和我的作品，可下载或继续分享。", 100, {
+      assetHref: "./zh/assets/",
+      downloadHref: asset.downloadUrl,
+      downloadName: `${asset.title}.json`
+    });
   });
 }
 
@@ -2924,7 +3165,9 @@ async function runRemoteGeneration(input) {
     toolSlug: mediaType === "video" ? "image-to-video" : "generate",
     durationSeconds: mediaType === "video" ? input.durationSeconds || 6 : undefined,
     aspectRatio: input.ratio || undefined,
-    modelPreference: input.model || undefined,
+    provider: input.model || undefined,
+    sourceAssetId: input.reference?.sourceAssetId || (input.reference?.remote ? input.reference.id : undefined),
+    sourceImageUrl: input.reference?.sourceImageUrl || undefined,
     preset: input.preset || undefined
   });
   const job = createResult.job;
@@ -3014,6 +3257,92 @@ function statusRow(title, body, href, action) {
   row.className = "result-row";
   row.innerHTML = `<span class="thumb art-3"></span><div><strong>${title}</strong><p>${body}</p></div><a href="${href}">${action}</a>`;
   return row;
+}
+
+function createGenerationProgressRow(input) {
+  const row = document.createElement("article");
+  row.className = "result-row generation-progress-row";
+  row.dataset.generationStatus = "queued";
+  row.innerHTML = `
+    <span class="thumb ${input.mediaType === "video" ? "art-7" : "art-3"}"></span>
+    <div class="generation-progress-body">
+      <strong>${escapeHtml(input.title)}</strong>
+      <p data-generation-progress-message>${input.reference?.title ? `参考图：${escapeHtml(input.reference.title)}。` : "等待参考图或提示词输入。"}</p>
+      <div class="generation-progress-track"><span data-generation-progress-bar style="width: 0%"></span></div>
+      <small data-generation-progress-meta>排队中 · ${input.cost} 积分</small>
+    </div>
+    <div class="row-actions" data-generation-progress-actions></div>
+  `;
+  return row;
+}
+
+function updateGenerationProgress(row, status, message, progress, actions = {}) {
+  if (!row) return;
+  row.dataset.generationStatus = status;
+  row.querySelector("[data-generation-progress-message]") && (row.querySelector("[data-generation-progress-message]").textContent = message);
+  const bar = row.querySelector("[data-generation-progress-bar]");
+  if (bar) bar.style.width = `${Math.max(0, Math.min(100, Number(progress) || 0))}%`;
+  const meta = row.querySelector("[data-generation-progress-meta]");
+  if (meta) meta.textContent = `${statusLabel(status)} · ${Math.max(0, Math.min(100, Number(progress) || 0))}%`;
+  const actionTarget = row.querySelector("[data-generation-progress-actions]");
+  if (!actionTarget) return;
+  const openLabel = actions.assetLabel || "打开作品";
+  const openAction = actions.assetHref ? `<a href="${actions.assetHref}">${escapeHtml(openLabel)}</a>` : "";
+  const downloadAction = actions.downloadHref && actions.downloadHref !== "#"
+    ? `<a href="${actions.downloadHref}" download="${escapeHtml(actions.downloadName || "luravyn-generation.json")}">下载</a>`
+    : "";
+  actionTarget.innerHTML = `${openAction}${downloadAction}`;
+}
+
+function statusLabel(status) {
+  const labels = {
+    queued: "排队中",
+    running: "生成中",
+    completed: "已完成",
+    failed: "失败",
+    retrying: "切换中"
+  };
+  return labels[status] || status;
+}
+
+function createGeneratedDownloadUrl(input) {
+  const payload = {
+    product: "Luravyn",
+    type: input.type,
+    title: input.title,
+    prompt: input.prompt,
+    ratio: input.ratio,
+    durationSeconds: input.durationSeconds,
+    provider: input.model || "fake_worker",
+    credits: input.cost,
+    reference: input.reference ? {
+      id: input.reference.id,
+      title: input.reference.title,
+      remote: Boolean(input.reference.remote)
+    } : null,
+    generatedAt: new Date().toISOString(),
+    note: "MVP Fake Worker download metadata. Real providers will replace this with media file downloads."
+  };
+  return `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(payload, null, 2))}`;
+}
+
+function renderGeneratedPreview(asset, job) {
+  const preview = document.querySelector("[data-video-preview]");
+  if (!preview) return;
+  preview.classList.add("generated-output-preview");
+  preview.innerHTML = `
+    <span class="play-dot"></span>
+    <strong>${escapeHtml(asset.title)}</strong>
+    <small>${escapeHtml(asset.ratio || "")} · ${escapeHtml(job.duration || "")} · 已保存</small>
+    <div class="preview-actions">
+      <a href="./zh/assets/">打开资产库</a>
+      <a href="${asset.downloadUrl}" download="${escapeHtml(asset.title)}.json">下载结果</a>
+    </div>
+  `;
+}
+
+function wait(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
 function getAppBaseUrl() {
@@ -3116,7 +3445,11 @@ function renderAssets(current) {
       <article class="library-card" data-asset data-asset-kind="${asset.type === "video" ? "视频" : "图片"}" data-asset-favorite="${asset.favorite ? "收藏" : ""}">
         <span class="thumb ${asset.type === "video" ? "art-7" : ["art-3", "art-8", "art-10"][index % 3]}"></span>
         <div><h3>${escapeHtml(asset.title)}</h3><p>${asset.type === "video" ? "视频" : "图片"} - ${asset.visibility === "public" ? "公开" : "私密"} - 角色 ${escapeHtml(asset.character)}</p></div>
-        <button data-share-asset="${asset.id}">分享</button>
+        <div class="row-actions">
+          ${asset.type === "image" ? `<a href="./zh/app/image-to-video/?source=${encodeURIComponent(asset.id)}">转视频</a>` : ""}
+          ${asset.downloadUrl ? `<a href="${asset.downloadUrl}" download="${escapeHtml(asset.title)}.json">下载</a>` : ""}
+          <button data-share-asset="${asset.id}">分享</button>
+        </div>
       </article>
     `).join("");
   });
@@ -3129,7 +3462,11 @@ function renderHistory(current) {
     <article class="history-row">
       <span class="thumb ${job.type === "video" ? "art-7" : "art-3"}"></span>
       <div><h3>${escapeHtml(job.title)}</h3><p>提示词：${escapeHtml(job.prompt)}</p><small>服务商 ${escapeHtml(job.provider)} - 模型 ${escapeHtml(job.model)} - ${job.status === "completed" ? "已完成" : escapeHtml(job.status)} - ${job.credits} 积分 - ${escapeHtml(job.duration)}</small></div>
-      <div class="row-actions"><button data-retry-job="${job.id}">重试</button><button data-share-asset="${job.assetId}">分享</button></div>
+      <div class="row-actions">
+        <button data-retry-job="${job.id}">重试</button>
+        <a href="./zh/assets/">输出</a>
+        <button data-share-asset="${job.assetId}">分享</button>
+      </div>
     </article>
   `).join("");
 }

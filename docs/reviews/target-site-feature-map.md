@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | REVIEW-TARGET-FEATURE-MAP-001 |
-| Version | 1.9.0 |
+| Version | 2.0.0 |
 | Status | Active |
 | Owner | Product / Frontend |
 | Dependencies | FE-BIBLE-001, REVIEW-LEGACY-001 |
@@ -34,7 +34,7 @@ Map the referenced AI tool site into product capabilities, page structure, and u
 | Pricing / credits | `apps/web/pricing.html` | One-time credit packs, discount messaging, trust metrics, examples |
 | Free coins / referral | `apps/web/free-coins.html` plus compatibility route `apps/web/referral.html` | Daily check-in, referral reward, task-based credit earning |
 | My creations | `apps/web/my-creations.html` | Assets, history, share links, search/filter, signed-in creation shelf |
-| Image to video tool | `apps/web/image-to-video.html` | Preset-aware upload, prompt, aspect ratio, duration, model preference, preview, credit estimate, mobile generate action, and examples |
+| Image to video tool | `apps/web/image-to-video.html` | Preset-aware upload, in-page asset picker, prompt, aspect ratio, duration, provider preference, source asset/source image payload, task progress, preview, credit estimate, mobile generate action, output download, and examples |
 | Image generation tool | `apps/web/generate.html` | Mode cards, character selector, prompt enhancer, preview, recent results |
 | Gallery / explore | `apps/web/gallery.html` | Masonry feed, filters, generate similar, copy prompt, share, save |
 | Authentication | `apps/web/signin.html` | Email auth, social auth options, real Supabase integration hooks |
@@ -50,7 +50,7 @@ Map the referenced AI tool site into product capabilities, page structure, and u
 - Tool directory: large feature banners, quick action cards, categorized horizontal rows.
 - Credit commerce: credit packs, visible price, discounts, trust section, examples.
 - Growth loop: check-in, referral link, reward steps, task rewards.
-- Video creation loop: choose workflow preset, upload/reference, select ratio/duration/model, review credit estimate, generate, save output to assets and generation tasks.
+- Video creation loop: choose workflow preset, upload or choose reference image, select ratio/duration/provider, review credit estimate, generate, watch task progress, save output to assets and generation tasks, then download/share/reuse.
 - Asset loop: saved outputs, generation tasks, search, filters, share, retry.
 - Public loop: share page, generate similar action.
 - Trust / conversion: metrics, user-style quotes, visual examples, upgrade CTA.

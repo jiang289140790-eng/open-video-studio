@@ -772,10 +772,29 @@ describe("MVP static frontend", () => {
       "data-video-ratio",
       "data-video-duration",
       "data-video-model",
+      "data-video-upload",
+      "data-video-reference-label",
+      "data-open-asset-picker",
+      "data-asset-picker",
+      "data-video-asset-options",
       "data-mobile-generate",
       "videoWorkflowPresets",
       "applyVideoPreset",
-      "getActiveVideoPreset"
+      "getActiveVideoPreset",
+      "selectedVideoReference",
+      "handleVideoReferenceUpload",
+      "uploadVideoReferenceToSupabase",
+      "openVideoAssetPicker",
+      "applyVideoSourceFromUrl",
+      "createGenerationProgressRow",
+      "updateGenerationProgress",
+      "createGeneratedDownloadUrl",
+      "renderGeneratedPreview",
+      "sourceImageUrl",
+      "sourceAssetId",
+      "generation-progress-track",
+      "asset-picker-overlay",
+      "preview-actions"
     ]) {
       assert.ok(`${appScript}\n${styles}\n${imageToVideo}`.includes(expected), `tool workbench should include ${expected}`);
     }

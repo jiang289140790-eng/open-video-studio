@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.9.0 |
+| Version | 1.10.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -229,6 +229,15 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Dependencies: MVP-S3-002, MVP-S3-004, PAGE-GENERATE-001, API-GEN-VIDEO-001.
 - Acceptance Criteria: Video Tools explains distinct image-to-video, product teaser, and social reel workflows; each workflow shows model, ratio, duration, credit, and time expectations; each workflow routes to the Image to Video Studio with a preset; the generator applies preset-specific prompt, aspect ratio, duration, model preference, credit estimate, preview copy, mobile CTA, and generation payload while preserving the existing backend path.
 - Related Documents: PAGE-GENERATE-001, API-GEN-VIDEO-001, DB-GENERATION-JOBS-001, DB-MEDIA-ASSETS-001, DS-011.
+
+### MVP-S3-012 Image-to-Video Input And Output Loop
+
+- Priority: P0.
+- Status: Completed.
+- Estimated Time: 0.5 day.
+- Dependencies: MVP-S3-011, MVP-S3-002, BE-ARCH-STORAGE-001, API-GEN-VIDEO-001, DB-MEDIA-ASSETS-001.
+- Acceptance Criteria: user can upload a reference image, choose an existing image asset without leaving the generator, use a demo reference, submit a generation with `sourceAssetId` / `sourceImageUrl` when available, see queued/running/retrying/failed/completed task progress, save Fake Worker fallback output to assets/history, open the Asset Library, download output metadata, and continue to share/reuse the result.
+- Related Documents: PAGE-GENERATE-001, API-GEN-VIDEO-001, DB-GENERATION-JOBS-001, DB-MEDIA-ASSETS-001, BE-ARCH-STORAGE-001.
 
 ## Sprint 4: Admin And MVP Integration
 

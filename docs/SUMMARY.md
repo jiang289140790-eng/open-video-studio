@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.94.0 |
+| Version | 0.95.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,9 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Image-to-Video now has a first actionable input-to-output loop. The generator can accept an uploaded reference image, an in-page asset-library selection, or a demo reference image; logged-in Supabase users can upload the reference to Storage, create a reference `media_assets` row, and pass `sourceAssetId` / `sourceImageUrl` to the existing `ai` Edge Function without changing backend architecture.
+- The Image-to-Video task area now shows production-shaped generation states for queued, running, retrying, failed, and completed work. Local Fake Worker fallback outputs create asset/history records, update the preview, and expose download/open actions so users can complete a visible generate -> save -> review -> download/share loop during MVP testing.
+- Browser configuration now includes `VITE_SUPABASE_STORAGE_BUCKET` as a public bucket-name setting. Third-party secrets remain server-only; the bucket name is only used so the browser can upload user-selected reference images through Supabase Auth and Storage policies.
 - The video creation surface has started moving from broad tool discovery toward a real closed-loop workflow. `video-tools.html` now presents task-based video workflows with clear capability, cost, time, and output expectations; `image-to-video.html` supports URL-driven workflow presets for image-to-video, product teaser, and social reel use cases while preserving the existing Supabase/Fake Worker generation path.
 - Product vocabulary on the first video workflow pass is now more consistent: user-facing navigation and workflow copy use `免费积分`, `每日奖励`, `生成任务`, `我的作品`, and `资产库` so users can distinguish input assets, running jobs, finished works, and credit actions.
 - Mobile video workflow behavior has a first production-oriented baseline. Video filters scroll horizontally, dense generator controls stack cleanly, and the image-to-video studio has a sticky mobile action bar for the primary generation path.

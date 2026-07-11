@@ -132,11 +132,13 @@ Required for live Supabase verification:
 - `SUPABASE_STORAGE_BUCKET`
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
+- `VITE_SUPABASE_STORAGE_BUCKET`
 
 Required for GitHub Pages social login build:
 
 - GitHub Variable: `VITE_SUPABASE_URL`
 - GitHub Secret: `VITE_SUPABASE_ANON_KEY`
+- GitHub Variable: `VITE_SUPABASE_STORAGE_BUCKET`
 - GitHub Variable: `VITE_TELEGRAM_BOT_USERNAME`
 - GitHub Variable: `VITE_TELEGRAM_AUTH_URL`
 
