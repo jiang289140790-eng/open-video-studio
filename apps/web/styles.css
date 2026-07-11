@@ -690,6 +690,14 @@ body.tool-layout .accountnav {
 .showcase-card.wide { grid-column: span 6; }
 .showcase-card span, .gallery-item span { color: #dbeafe; font-size: 0.8rem; font-weight: 850; text-transform: uppercase; }
 .showcase-card strong, .gallery-item h3 { margin-top: 5px; font-size: 1.2rem; }
+.thumb.has-reference-preview {
+  background-image:
+    linear-gradient(180deg, rgba(8, 8, 12, 0.05), rgba(8, 8, 12, 0.28)),
+    var(--reference-image),
+    linear-gradient(135deg, #1f2a44, #6d28d9);
+  background-size: cover;
+  background-position: center;
+}
 .showcase-card.has-image,
 .creation-card.has-image {
   background-image:

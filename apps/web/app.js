@@ -2984,10 +2984,12 @@ function applyVideoSourceFromUrl() {
   if (!sourceId) return;
   const asset = state.assets.find((item) => item.id === sourceId);
   if (!asset || asset.type === "video") return;
+  const sourceImageUrl = getReferenceImageUrl(asset);
   selectVideoReference({
     ...asset,
     sourceAssetId: asset.remote ? asset.id : undefined,
-    sourceImageUrl: asset.sourceImageUrl || asset.previewUrl || ""
+    previewUrl: getAssetPreviewUrl(asset),
+    sourceImageUrl
   }, { addToAssets: false });
 }
 
@@ -3078,8 +3080,8 @@ function clearGenerationRecovery() {
 
 function buildGenerationRecoveryReference(sourceAsset) {
   if (!sourceAsset || sourceAsset.type === "video") return null;
-  const sourceImageUrl = sourceAsset.sourceImageUrl || sourceAsset.previewUrl || sourceAsset.downloadUrl || "";
-  const previewUrl = sourceAsset.previewUrl || sourceAsset.downloadUrl || "";
+  const sourceImageUrl = getReferenceImageUrl(sourceAsset);
+  const previewUrl = getAssetPreviewUrl(sourceAsset);
   const hasLocalBlob = [sourceImageUrl, previewUrl].some((value) => String(value || "").startsWith("blob:"));
   const needsReupload = hasLocalBlob || Boolean(sourceAsset.fileName && !sourceAsset.remote && !sourceAsset.sourceImageUrl && !sourceAsset.downloadUrl);
   return {
@@ -3329,23 +3331,25 @@ async function uploadVideoReferenceToSupabase(file, reference) {
 }
 
 function selectVideoReference(reference, options = {}) {
-  selectedVideoReference = reference;
+  const normalizedReference = normalizeVideoReference(reference);
+  selectedVideoReference = normalizedReference;
   const label = document.querySelector("[data-video-reference-label]");
   if (label) {
-    label.textContent = `${reference.title || "参考图"} · ${reference.remote ? "已上传" : "本地可用"}`;
+    label.textContent = `${normalizedReference.title || "参考图"} · ${normalizedReference.remote ? "已上传" : "本地可用"}`;
   }
-  updateVideoReferenceCard(reference, options.status || reference.uploadStatus || (reference.remote ? "已上传到 Supabase Storage。" : "本地可用。"), reference.remote ? "ready" : "local");
-  setVideoUploadStatus(reference.remote ? "已上传" : "已选择", reference.remote ? "ready" : "local");
+  updateVideoReferenceCard(normalizedReference, options.status || normalizedReference.uploadStatus || (normalizedReference.remote ? "已上传到 Supabase Storage。" : "本地可用。"), normalizedReference.remote ? "ready" : "local");
+  setVideoUploadStatus(normalizedReference.remote ? "已上传" : "已选择", normalizedReference.remote ? "ready" : "local");
   const preview = document.querySelector("[data-video-preview]");
   if (preview) {
     preview.classList.add("has-reference-preview");
-    if (reference.previewUrl || reference.sourceImageUrl) {
-      preview.style.setProperty("--reference-image", `url("${reference.previewUrl || reference.sourceImageUrl}")`);
+    const previewUrl = getAssetPreviewUrl(normalizedReference);
+    if (previewUrl) {
+      preview.style.setProperty("--reference-image", `url("${previewUrl}")`);
     }
   }
-  if (options.addToAssets !== false && !state.assets.some((asset) => asset.id === reference.id)) {
+  if (options.addToAssets !== false && !state.assets.some((asset) => asset.id === normalizedReference.id)) {
     state.assets.unshift({
-      ...reference,
+      ...normalizedReference,
       status: "ready",
       visibility: "private",
       favorite: false
@@ -3378,7 +3382,14 @@ function updateVideoReferenceCard(reference, statusText = "", status = "local") 
   card.dataset.referenceStatus = status;
   const label = card.querySelector("[data-video-reference-label]");
   const meta = card.querySelector("[data-video-reference-meta]");
+  const thumb = card.querySelector("[data-video-reference-thumb]");
   if (label) label.textContent = `${reference.title || reference.fileName || "参考图"} · ${reference.remote ? "远端已保存" : "本地参考"}`;
+  const previewUrl = getAssetPreviewUrl(reference);
+  if (thumb) {
+    thumb.classList.toggle("has-reference-preview", Boolean(previewUrl));
+    if (previewUrl) thumb.style.setProperty("--reference-image", `url("${previewUrl}")`);
+    else thumb.style.removeProperty("--reference-image");
+  }
   const detailParts = [
     reference.fileName || reference.title || "参考图",
     reference.fileSize ? formatFileSize(reference.fileSize) : "",
@@ -3408,6 +3419,11 @@ function clearVideoReference() {
   if (label) label.textContent = "尚未选择参考图";
   const card = document.querySelector("[data-video-reference-card]");
   if (card) card.hidden = true;
+  const thumb = document.querySelector("[data-video-reference-thumb]");
+  if (thumb) {
+    thumb.classList.remove("has-reference-preview");
+    thumb.style.removeProperty("--reference-image");
+  }
   document.querySelector("[data-replace-video-reference]")?.setAttribute("hidden", "");
   document.querySelector("[data-clear-video-reference]")?.setAttribute("hidden", "");
   setVideoUploadStatus("等待选择", "idle");
@@ -3425,6 +3441,51 @@ function formatFileSize(bytes) {
   if (!value) return "";
   if (value < 1024 * 1024) return `${Math.max(1, Math.round(value / 1024))} KB`;
   return `${(value / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function normalizeVideoReference(reference = {}) {
+  const previewUrl = getAssetPreviewUrl(reference);
+  const sourceImageUrl = getReferenceImageUrl(reference);
+  return {
+    ...reference,
+    previewUrl,
+    sourceImageUrl
+  };
+}
+
+function getAssetPreviewUrl(asset = {}) {
+  return [
+    asset.previewUrl,
+    asset.sourceImageUrl,
+    asset.publicUrl,
+    asset.downloadUrl,
+    asset.outputUrl,
+    asset.fileUrl,
+    asset.file_url
+  ].map((value) => String(value || "").trim()).find(isRenderableMediaUrl) || "";
+}
+
+function getReferenceImageUrl(asset = {}) {
+  return [
+    asset.sourceImageUrl,
+    asset.previewUrl,
+    asset.publicUrl,
+    asset.downloadUrl,
+    asset.outputUrl,
+    asset.fileUrl,
+    asset.file_url
+  ].map((value) => String(value || "").trim()).find(isReferenceImageUrl) || "";
+}
+
+function isRenderableMediaUrl(value) {
+  if (!value) return false;
+  return value.startsWith("http://") || value.startsWith("https://") || value.startsWith("blob:") || value.startsWith("data:image/") || value.startsWith("./") || value.startsWith("/");
+}
+
+function isReferenceImageUrl(value) {
+  if (!value) return false;
+  if (value.startsWith("data:application/json")) return false;
+  return value.startsWith("http://") || value.startsWith("https://") || value.startsWith("blob:") || value.startsWith("data:image/");
 }
 
 function openVideoAssetPicker() {
@@ -3445,6 +3506,7 @@ function renderVideoAssetPickerOptions() {
   const imageAssets = getFilteredVideoAssetOptions();
   const allImageAssets = state.assets.filter((asset) => asset.type !== "video");
   list.innerHTML = imageAssets.length ? imageAssets.map((asset, index) => {
+    const previewUrl = getAssetPreviewUrl(asset);
     const meta = [
       asset.favorite ? "收藏" : "",
       asset.visibility === "public" ? "公开" : "私密",
@@ -3453,7 +3515,7 @@ function renderVideoAssetPickerOptions() {
     ].filter(Boolean).join(" · ");
     return `
     <button type="button" class="asset-picker-option" data-select-video-asset="${escapeHtml(asset.id)}">
-      <span class="thumb ${["art-3", "art-8", "art-10", "art-12"][index % 4]}"></span>
+      <span class="thumb ${["art-3", "art-8", "art-10", "art-12"][index % 4]} ${previewUrl ? "has-reference-preview" : ""}"${previewUrl ? ` style="--reference-image: url('${escapeHtml(previewUrl)}')"` : ""}></span>
       <span>
         <strong>${escapeHtml(asset.title)}</strong>
         <em>${escapeHtml(meta || "可作为图片转视频参考图")}</em>
@@ -3475,13 +3537,15 @@ function renderVideoAssetPickerOptions() {
     button.addEventListener("click", () => {
       const asset = state.assets.find((item) => item.id === button.dataset.selectVideoAsset);
       if (!asset) return;
+      const sourceImageUrl = getReferenceImageUrl(asset);
       selectVideoReference({
         ...asset,
         sourceAssetId: asset.remote ? asset.id : undefined,
-        sourceImageUrl: asset.sourceImageUrl || asset.previewUrl || ""
+        previewUrl: getAssetPreviewUrl(asset),
+        sourceImageUrl
       }, { addToAssets: false });
       closeVideoAssetPicker();
-      showSiteToast("已选择资产作为图片转视频参考图。");
+      showSiteToast(sourceImageUrl ? "已选择资产作为图片转视频参考图。" : "已选择资产。这个资产缺少真实图片地址，真实生成前可能需要重新上传。");
     });
   });
   list.querySelector("[data-clear-asset-picker-search]")?.addEventListener("click", () => {
@@ -4053,9 +4117,10 @@ function renderGeneratedPreview(asset, job) {
   const outputRatio = normalizeVideoAspectRatio(asset.ratio || asset.aspectRatio || job.ratio || job.aspectRatio || "16:9");
   updateVideoPreviewRatio(outputRatio);
   preview.classList.add("generated-output-preview");
-  preview.classList.toggle("has-reference-preview", Boolean(asset.previewUrl || asset.downloadUrl || asset.publicUrl));
-  if (asset.previewUrl || asset.downloadUrl || asset.publicUrl) {
-    preview.style.setProperty("--reference-image", `url("${asset.previewUrl || asset.downloadUrl || asset.publicUrl}")`);
+  const previewUrl = getAssetPreviewUrl(asset);
+  preview.classList.toggle("has-reference-preview", Boolean(previewUrl));
+  if (previewUrl) {
+    preview.style.setProperty("--reference-image", `url("${previewUrl}")`);
   }
   const downloadHref = asset.downloadUrl || asset.outputUrl || asset.publicUrl || "";
   const downloadAction = downloadHref
@@ -4102,7 +4167,8 @@ function useGeneratedOutputAsReference(assetId) {
   selectVideoReference({
     ...asset,
     sourceAssetId: asset.remote ? asset.id : undefined,
-    sourceImageUrl: asset.sourceImageUrl || asset.previewUrl || asset.downloadUrl || ""
+    previewUrl: getAssetPreviewUrl(asset),
+    sourceImageUrl: getReferenceImageUrl(asset)
   }, { addToAssets: false });
   showSiteToast("已把生成结果设为下一次图片转视频参考图。");
 }
@@ -6500,9 +6566,10 @@ function renderShare(current) {
   document.querySelectorAll("[data-share-status]").forEach((node) => node.textContent = asset.visibility === "public" ? "公开" : "可预览");
   document.querySelectorAll("[data-share-type]").forEach((node) => node.textContent = asset.type === "video" ? "视频作品" : "图片作品");
   if (frame) {
-    frame.className = `share-frame ${asset.type === "video" ? "art-7" : "art-1"} ${asset.downloadUrl || asset.previewUrl ? "has-reference-preview" : ""}`;
-    if (asset.previewUrl || asset.downloadUrl) {
-      frame.style.setProperty("--reference-image", `url("${asset.previewUrl || asset.downloadUrl}")`);
+    const previewUrl = getAssetPreviewUrl(asset);
+    frame.className = `share-frame ${asset.type === "video" ? "art-7" : "art-1"} ${previewUrl ? "has-reference-preview" : ""}`;
+    if (previewUrl) {
+      frame.style.setProperty("--reference-image", `url("${previewUrl}")`);
     }
   }
   if (download) {

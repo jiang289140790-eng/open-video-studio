@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 1.1.0 |
+| Version | 1.2.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Unified reusable media URL handling for Image-to-Video. Asset picker selection, URL-source selection, failure recovery, generated-output reuse, generated preview, and Share preview now use one normalized media URL path across `previewUrl`, `sourceImageUrl`, `publicUrl`, `downloadUrl`, `outputUrl`, and storage file URLs. Reference thumbnails and picker cards now show the actual reusable image when available.
 - Improved the Image-to-Video asset picker. The reference-image chooser now supports asset search, favorite/public/recent filters, clearer asset metadata, direct upload and demo-reference actions from empty states, and a repaired modal footer link so users can keep moving through upload/select -> generate without leaving the workflow.
 - Added generation failure recovery guidance. Retry actions now preserve a recovery context with prompt, workflow type, preset, video ratio, duration, model, reference asset metadata, failure reason, and refund amount so users can continue from a failed or cancelled job instead of starting from a blank generator.
 - Generation History now shows a visible recovery hint for failed/cancelled jobs, including refund status and the recommended next step. Live generation task cards can expose a `重新提交` action for remote failures while still linking users to Generation Tasks.
@@ -84,6 +85,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for normalized reference media URL helpers and reference thumbnail hooks.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for Image-to-Video asset picker search/filter hooks, empty-state upload/demo actions, and picker rendering helpers.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for generation recovery storage, recovery notices, failed-job recovery hints, retry-job progress actions, and regenerated routing hooks.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for Dashboard credit ledger hooks, History job credit-flow hooks, remote credit transaction mapping, and local credit ledger recording.

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.19.0 |
+| Version | 1.20.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -337,6 +337,15 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Estimated Time: 0.25 day.
 - Dependencies: MVP-S3-014, MVP-S3-016, MVP-S3-020, DB-MEDIA-ASSETS-001.
 - Acceptance Criteria: the Image-to-Video reference asset picker supports search, favorite/public/recent image filters, visible asset source/status metadata, empty-result recovery actions, direct upload, demo-reference fallback, and a valid link to the full Asset Library without leaving users stuck in a modal dead end.
+- Related Documents: PAGE-GENERATE-001, DB-MEDIA-ASSETS-001, BE-ARCH-STORAGE-001.
+
+### MVP-S3-024 Reusable Media URL Normalization
+
+- Priority: P0.
+- Status: Completed.
+- Estimated Time: 0.25 day.
+- Dependencies: MVP-S3-016, MVP-S3-023, DB-MEDIA-ASSETS-001, BE-ARCH-STORAGE-001.
+- Acceptance Criteria: Image-to-Video can reuse existing image assets whether their media URL is stored as `sourceImageUrl`, `previewUrl`, `publicUrl`, `downloadUrl`, `outputUrl`, or storage file URL; generated-output reuse, source query parameters, asset picker cards, selected-reference cards, generated previews, and share previews all use the same media URL normalization; JSON metadata downloads are not treated as image inputs.
 - Related Documents: PAGE-GENERATE-001, DB-MEDIA-ASSETS-001, BE-ARCH-STORAGE-001.
 
 ## Sprint 4: Admin And MVP Integration
