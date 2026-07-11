@@ -4732,7 +4732,8 @@ function downloadFileName(asset) {
 
 let creationFilter = "all";
 let creationSearch = "";
-let historyFilter = "all";
+const initialHistoryFilter = new URLSearchParams(window.location.search).get("status") || new URLSearchParams(window.location.search).get("filter") || "all";
+let historyFilter = ["all", "running", "completed", "failed", "video", "image"].includes(initialHistoryFilter) ? initialHistoryFilter : "all";
 let historySearch = "";
 
 function renderCreations(current) {
@@ -4845,6 +4846,8 @@ async function createShare(assetId) {
 
 function renderDashboard(current) {
   renderDashboardCreditLedger(current);
+  renderDashboardNextActions(current);
+  renderDashboardAssetsList(current);
   const stats = {
     credits: document.querySelector("[data-dashboard-credits]"),
     jobs: document.querySelector("[data-dashboard-jobs]"),
@@ -4870,13 +4873,22 @@ function renderDashboard(current) {
 
   const recent = document.querySelector("[data-dashboard-recent]");
   if (recent) {
-    recent.innerHTML = current.history.slice(0, 4).map((job) => `
+    recent.innerHTML = current.history.length ? current.history.slice(0, 4).map((job) => `
       <article class="dashboard-row">
         <span class="thumb ${job.type === "video" ? "art-7" : "art-3"}"></span>
         <div><strong>${escapeHtml(job.title)}</strong><p>${job.status === "completed" ? "已完成" : escapeHtml(job.status)} · ${job.credits} 积分</p></div>
-        <button type="button" data-retry-job="${job.id}">重试</button>
+        <div class="row-actions">
+          <a href="./zh/history/">查看</a>
+          <button type="button" data-retry-job="${job.id}">重试</button>
+        </div>
       </article>
-    `).join("");
+    `).join("") : `
+      <article class="empty-state compact">
+        <h3>还没有生成任务</h3>
+        <p class="muted">上传参考图或输入提示词后，任务状态会显示在这里。</p>
+        <a class="btn primary" href="./zh/app/image-to-video/">上传图片生成视频</a>
+      </article>
+    `;
   }
 
   const characters = document.querySelector("[data-dashboard-characters]");
@@ -4936,6 +4948,57 @@ function renderDashboard(current) {
       </article>
     `;
   }
+}
+
+function renderDashboardNextActions(current) {
+  const target = document.querySelector("[data-dashboard-next-actions]");
+  if (!target) return;
+  const runningJobs = current.history.filter((job) => ["queued", "pending", "running", "retrying"].includes(normalizeJobStatus(job.status)));
+  const failedJobs = current.history.filter((job) => ["failed", "cancelled", "canceled"].includes(normalizeJobStatus(job.status)));
+  const firstImage = current.assets.find((asset) => asset.type === "image");
+  const actions = [];
+  if (current.credits < 8) {
+    actions.push({ title: "积分不足", detail: "购买或领取免费积分后继续生成。", href: "./zh/pricing/", label: "购买积分", art: "art-10" });
+  }
+  if (runningJobs.length) {
+    actions.push({ title: "查看运行中的任务", detail: `${runningJobs.length} 个任务正在排队或生成中。`, href: "./zh/history/", label: "查看任务", art: "art-7" });
+  }
+  if (failedJobs.length) {
+    actions.push({ title: "恢复失败任务", detail: `${failedJobs.length} 个任务可查看原因、退款和重试。`, href: "./zh/history/?status=failed", label: "处理失败", art: "art-8" });
+  }
+  if (firstImage) {
+    actions.push({ title: "把最近图片转成视频", detail: firstImage.title, href: `./zh/app/image-to-video/?source=${encodeURIComponent(firstImage.id)}`, label: "转视频", art: "art-3" });
+  }
+  actions.push({ title: "开始一次新生成", detail: "上传图片、选择角色或输入提示词。", href: "./zh/app/image-to-video/", label: "上传图片生成视频", art: "art-12" });
+  target.innerHTML = actions.slice(0, 4).map((action) => `
+    <article class="dashboard-row">
+      <span class="thumb ${action.art}"></span>
+      <div><strong>${escapeHtml(action.title)}</strong><p>${escapeHtml(action.detail)}</p></div>
+      <a href="${action.href}">${escapeHtml(action.label)}</a>
+    </article>
+  `).join("");
+}
+
+function renderDashboardAssetsList(current) {
+  const target = document.querySelector("[data-dashboard-assets-list]");
+  if (!target) return;
+  target.innerHTML = current.assets.length ? current.assets.slice(0, 4).map((asset, index) => `
+    <article class="dashboard-row">
+      <span class="thumb ${asset.type === "video" ? "art-7" : ["art-3", "art-8", "art-10"][index % 3]}"></span>
+      <div><strong>${escapeHtml(asset.title)}</strong><p>${asset.type === "video" ? "视频" : "图片"} · ${asset.visibility === "public" ? "公开" : "私密"} · ${asset.credits || 0} 积分</p></div>
+      <div class="row-actions">
+        ${asset.type === "image" ? `<a href="./zh/app/image-to-video/?source=${encodeURIComponent(asset.id)}">转视频</a>` : ""}
+        ${asset.downloadUrl ? `<a href="${escapeHtml(asset.downloadUrl)}" download="${escapeHtml(downloadFileName(asset))}">下载</a>` : ""}
+        <button type="button" data-share-asset="${escapeHtml(asset.id)}">分享</button>
+      </div>
+    </article>
+  `).join("") : `
+    <article class="empty-state compact">
+      <h3>还没有可复用资产</h3>
+      <p class="muted">生成完成后，图片、视频和参考图会自动进入资产库。</p>
+      <a class="btn primary" href="./zh/app/image-to-video/">上传图片生成视频</a>
+    </article>
+  `;
 }
 
 function renderDashboardCreditLedger(current) {

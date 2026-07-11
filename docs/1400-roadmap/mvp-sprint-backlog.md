@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.22.0 |
+| Version | 1.23.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -199,7 +199,7 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 ### MVP-S3-007 Dashboard And Generation History
 
 - Priority: P1.
-- Status: In Progress.
+- Status: Completed.
 - Estimated Time: 1 day.
 - Dependencies: MVP-S3-002, MVP-S3-004.
 - Acceptance Criteria: user has a post-login dashboard showing recent jobs, recent assets, credits, and next action; generation history filters by status, provider, model, character, and prompt; remote tasks can be refreshed/cancelled; failed tasks show reason/refund state; completed outputs can be opened, shared, and downloaded.

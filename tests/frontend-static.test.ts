@@ -1001,17 +1001,26 @@ describe("MVP static frontend", () => {
       "lastCheckInDate",
       "referralCopies",
       "data-dashboard-recent",
+      "data-dashboard-assets-list",
+      "data-dashboard-next-actions",
       "data-dashboard-characters",
       "data-dashboard-shares-list",
+      "renderDashboardAssetsList",
+      "renderDashboardNextActions",
+      "initialHistoryFilter",
       "dashboard-row",
-      "Top performing content",
-      "Accounts needing attention",
-      "Content volume",
-      "Social traffic",
+      "表现最好的内容",
+      "需要处理的账号",
+      "内容生产量",
+      "社交流量",
       "referral-progress"
     ]) {
       assert.ok(`${referral}\n${dashboard}\n${appScript}\n${styles}`.includes(expected), `reward/dashboard center should include ${expected}`);
     }
+    assert.ok(dashboard.includes("继续你的 AI 内容生产流程"));
+    assert.ok(dashboard.includes("最近资产"));
+    assert.ok(dashboard.includes("下一步建议"));
+    assert.ok(readPage("history.html").includes("查看任务状态、失败原因、退款和输出资产"));
   });
 
   it("contains Stripe and PayPal checkout entry points with safe demo fallback", () => {

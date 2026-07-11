@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>生成历史 | Luravyn</title>
+    <title>生成任务 | Luravyn</title>
     <link rel="icon" type="image/png" href="./favicon.png">
-    <meta name="description" content="Luravyn 登录后产品页面。">
+    <meta name="description" content="查看 Luravyn 生成任务状态、失败原因、退款、输出资产、下载和分享操作。">
     <link rel="canonical" href="https://luravyn.com/zh/history/">
     <link rel="alternate" hreflang="zh-CN" href="https://luravyn.com/zh/history/">
     <link rel="alternate" hreflang="en" href="https://luravyn.com/en/history/">
@@ -15,28 +15,43 @@
     <meta name="robots" content="noindex,follow">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Luravyn">
-    <meta property="og:title" content="生成历史 | Luravyn">
-    <meta property="og:description" content="Luravyn 登录后产品页面。">
+    <meta property="og:title" content="生成任务 | Luravyn">
+    <meta property="og:description" content="查看生成任务状态、失败原因、退款、输出资产、下载和分享操作。">
     <meta property="og:url" content="https://luravyn.com/zh/history/">
     <meta property="og:image" content="https://luravyn.com/brand/luravyn-logo-hero.png">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="生成历史 | Luravyn">
-    <meta name="twitter:description" content="Luravyn 登录后产品页面。">
+    <meta name="twitter:title" content="生成任务 | Luravyn">
+    <meta name="twitter:description" content="查看生成任务状态、失败原因、退款、输出资产、下载和分享操作。">
     <meta name="theme-color" content="#111111">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./index.html"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
-      <nav class="topnav" aria-label="Primary navigation"><a href="./zh/app/generate/">图像工具</a><a href="./zh/app/image-to-video/">视频工具</a><a href="./zh/assets/">资产库</a><a href="./zh/my-creations/">我的作品</a><a href="./zh/pricing/">购买积分</a></nav>
-      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./zh/free-coins/">每日奖励</a><a href="./zh/login/">登录 / 注册</a></nav>
-      <a class="btn primary" href="./zh/app/generate/">重试提示词</a>
+      <nav class="topnav" aria-label="Primary navigation">
+        <a href="./zh/app/generate/">图像工具</a>
+        <a href="./zh/app/image-to-video/">视频工具</a>
+        <a href="./zh/assets/">资产库</a>
+        <a href="./zh/my-creations/">我的作品</a>
+        <a href="./zh/pricing/">购买积分</a>
+      </nav>
+      <nav class="accountnav" aria-label="Account navigation">
+        <a class="daily-check" href="./zh/free-coins/">每日奖励</a>
+        <a href="./zh/login/">登录 / 注册</a>
+      </nav>
+      <a class="btn primary" href="./zh/app/image-to-video/">重新生成</a>
     </header>
+
     <main class="app-surface">
-      <section class="page-hero compact"><p class="eyebrow">生成任务</p><h1>查看任务状态、失败原因、积分退款和输出资产</h1></section>
+      <section class="page-hero compact">
+        <p class="eyebrow">生成任务</p>
+        <h1>查看任务状态、失败原因、退款和输出资产</h1>
+        <p class="lead">这里用于追踪排队中、生成中、已完成、失败和已取消的任务。完成后的输出可以打开、下载、分享或重新生成。</p>
+      </section>
+
       <section class="studio-toolbar history-toolbar">
-        <input class="search" data-history-search placeholder="搜索提示词、模型、服务商或作品">
-        <div class="chip-row">
+        <input class="search" data-history-search placeholder="搜索提示词、模型、服务商、角色或作品">
+        <div class="chip-row" aria-label="生成任务筛选">
           <button class="chip active" type="button" data-history-filter="all">全部</button>
           <button class="chip" type="button" data-history-filter="running">生成中</button>
           <button class="chip" type="button" data-history-filter="completed">已完成</button>
@@ -46,12 +61,37 @@
         </div>
         <button class="btn glass" type="button" data-refresh-history>刷新任务状态</button>
       </section>
+
       <section class="history-list" data-history-list>
-        <article class="history-row"><span class="thumb art-3"></span><div><h3>产品发布主视觉</h3><p>提示词：紫色灯光下的电影感产品发布</p><small>服务商 local_api - 模型 local-image-v0 - 已完成 - 8 积分 - 18 秒</small></div><div class="row-actions"><button>重试</button><a href="./zh/share/">分享</a></div></article>
-        <article class="history-row"><span class="thumb art-7"></span><div><h3>竖屏短片</h3><p>提示词：把主视觉转成社媒短片</p><small>服务商 local_api - 模型 local-video-v0 - 运行中 - 24 积分 - 8 秒</small></div><div class="row-actions"><button>取消</button><a href="./zh/assets/">输出</a></div></article>
+        <article class="history-row">
+          <span class="thumb art-3"></span>
+          <div class="history-row-body">
+            <h3>产品发布主视觉</h3>
+            <p>提示词：紫色灯光下的电影感产品发布</p>
+            <small>服务商 local_api - 模型 local-image-v0 - 已完成 - 8 积分 - 18s</small>
+            <div class="generation-progress-track history-progress"><span style="width: 100%"></span></div>
+          </div>
+          <div class="row-actions">
+            <button type="button">重试</button>
+            <a href="./zh/assets/">输出</a>
+            <a href="./zh/share/">分享</a>
+          </div>
+        </article>
+        <article class="history-row">
+          <span class="thumb art-7"></span>
+          <div class="history-row-body">
+            <h3>竖屏短片</h3>
+            <p>提示词：把主视觉转成社媒短片</p>
+            <small>服务商 local_api - 模型 local-video-v0 - 生成中 - 24 积分 - 8s</small>
+            <div class="generation-progress-track history-progress"><span style="width: 48%"></span></div>
+          </div>
+          <div class="row-actions">
+            <button type="button">取消</button>
+            <a href="./zh/assets/">输出</a>
+          </div>
+        </article>
       </section>
     </main>
     <script type="module" src="./app.js"></script>
   </body>
 </html>
-

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | PAGE-DASHBOARD-001 |
-| Version | 1.1.0 |
+| Version | 1.2.0 |
 | Status | Active |
 | Owner | Frontend Lead / Product Lead |
 | Dependencies | PB-008, PB-009, DS-007, DS-010, API-GALLERY-001, API-CREDITS-001 |
@@ -85,6 +85,12 @@ Authenticated dashboard is not indexable.
 - Important account, credit, generation, or review states are visible.
 - Dashboard does not duplicate detailed gallery, pricing, or admin behavior.
 - Dashboard summarizes content operations without replacing dedicated Campaigns, AI Studio, Pipeline, Queue, Accounts, Calendar, or Analytics pages.
+
+## Current Implementation
+
+`apps/web/dashboard.html` is the authenticated command center. It shows credit balance, generation task count, asset count, share count, content operations metrics, credit ledger, next-action recommendations, recent generation tasks, recent reusable assets, saved characters, public share links, top content, account attention, and quick links back to Generate, Image-to-Video, Assets, History, Pricing, Campaigns, AI Studio, Pipeline, and Calendar.
+
+`apps/web/history.html` owns the detailed generation task view. It supports search, status/type filters, all-job refresh, single-job refresh, cancellation for running remote jobs, failed-task reason/refund display, recovery hints, progress bars, output links, share actions, and downloads for completed assets.
 
 ## Future Plan
 
