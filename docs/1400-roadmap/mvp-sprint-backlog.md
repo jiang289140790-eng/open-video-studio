@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.16.0 |
+| Version | 1.17.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -293,6 +293,15 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Dependencies: MVP-S3-011, MVP-S3-015, MVP-S3-017, DS-011.
 - Acceptance Criteria: Image-to-Video preview changes shape for 16:9, 9:16, and 1:1 output choices; completed generated-output cards preserve the selected aspect ratio; mobile vertical previews remain inspectable without horizontal overflow; local and remote asset/history mapping carries ratio and duration metadata where available.
 - Related Documents: PAGE-GENERATE-001, DS-011, DB-GENERATION-JOBS-001, DB-MEDIA-ASSETS-001.
+
+### MVP-S3-019 Auth Return Continuity
+
+- Priority: P0.
+- Status: Completed.
+- Estimated Time: 0.25 day.
+- Dependencies: MVP-S3-001, MVP-S3-011, MVP-S3-012, PAGE-AUTH-001.
+- Acceptance Criteria: users who hit a login gate from a tool, generation submit, protected demo generation, or social/email login flow return to the intended same-origin product route after authentication; Image-to-Video preset/source query parameters are preserved; stale return targets are cleared after session restore; default header login still routes to Dashboard.
+- Related Documents: PAGE-AUTH-001, PAGE-GENERATE-001, API-AUTH-001.
 
 ## Sprint 4: Admin And MVP Integration
 

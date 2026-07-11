@@ -2,6 +2,7 @@
 
 const STORE_KEY = "ovs_mvp_state_v1";
 const COOKIE_PREF_KEY = "ovs_cookie_preferences_v1";
+const AUTH_RETURN_KEY = "ovs_auth_return_target_v1";
 const APP_SHELL_PAGES = new Set([
   "app.html",
   "gallery.html",
@@ -1417,6 +1418,7 @@ async function hydrateAuthSession() {
       createdAt: data.session.user.created_at || new Date().toISOString()
     };
     await syncRemoteProductData();
+    localStorage.removeItem(AUTH_RETURN_KEY);
     saveState(state);
     renderState(state);
   } else {
@@ -1443,6 +1445,7 @@ function bindSupabaseAuthState() {
         createdAt: session.user.created_at || new Date().toISOString()
       };
       await syncRemoteProductData();
+      localStorage.removeItem(AUTH_RETURN_KEY);
       saveState(state);
       renderState(state);
     }
@@ -1711,10 +1714,8 @@ document.querySelectorAll("[data-auth-provider]").forEach((button) => {
       showAuthMessage("Supabase 尚未配置。添加 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY 后即可启用真实社交登录。", "error");
       return;
     }
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: getAuthRedirectUrl("dashboard.html") }
-    });
+    const returnTarget = persistAuthReturnTarget(getRequestedAuthReturnTarget("dashboard.html"));
+    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: getAuthRedirectUrl(returnTarget) } });
     if (error) showAuthMessage(error.message, "error");
   });
 });
@@ -1722,6 +1723,7 @@ document.querySelectorAll("[data-auth-provider]").forEach((button) => {
 document.querySelectorAll("[data-telegram-auth]").forEach((button) => {
   button.addEventListener("click", (event) => {
     event.preventDefault();
+    persistAuthReturnTarget(getRequestedAuthReturnTarget("dashboard.html"));
     if (!telegramBotUsername || !telegramAuthUrl) {
       showAuthMessage("Telegram 登录需要先配置 VITE_TELEGRAM_BOT_USERNAME 和 VITE_TELEGRAM_AUTH_URL，并在后端校验 Telegram 返回签名。", "error");
       return;
@@ -1907,7 +1909,9 @@ document.addEventListener("click", async (event) => {
   const authModalLink = event.target.closest("[data-auth-modal]");
   if (authModalLink) {
     event.preventDefault();
-    openAuthModal(authModalLink.getAttribute("href") || "./zh/dashboard/");
+    const authHref = authModalLink.getAttribute("href") || "";
+    const defaultNext = /(?:login|signin)/.test(authHref) ? "./zh/dashboard/" : authHref || getCurrentAuthReturnTarget();
+    openAuthModal(defaultNext);
     return;
   }
 
@@ -1950,7 +1954,7 @@ document.addEventListener("click", async (event) => {
   const toolGenerateButton = event.target.closest("[data-tool-demo-generate]");
   if (toolGenerateButton) {
     if (!state.user) {
-      openUnlockModal(window.location.pathname.split("/").pop() || "./zh/app/generate/");
+      openUnlockModal(getCurrentAuthReturnTarget());
       return;
     }
     runToolDemoGeneration();
@@ -2234,6 +2238,7 @@ function openSupportWidget() {
 }
 
 function openAuthModal(nextUrl = "./zh/dashboard/") {
+  const returnTarget = persistAuthReturnTarget(nextUrl);
   document.querySelector(".auth-overlay")?.remove();
   const overlay = document.createElement("section");
   overlay.className = "auth-overlay";
@@ -2246,10 +2251,10 @@ function openAuthModal(nextUrl = "./zh/dashboard/") {
       <h1>登录到 Luravyn</h1>
       <p class="muted">使用社交账号继续创作。登录后可以保存作品、领取免费积分、购买积分并管理分享链接。</p>
       <div class="modal-auth-list">
-        <button class="modal-auth-btn" type="button" data-modal-auth-provider="google" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot google-dot">G</span>使用 Google 登录 <b>→</b></button>
-        <button class="modal-auth-btn" type="button" data-modal-auth-provider="x" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot x-dot">X</span>使用 X 登录 <b>→</b></button>
-        <button class="modal-auth-btn" type="button" data-modal-auth-provider="telegram" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot tg-dot">TG</span>使用 Telegram 登录 <b>→</b></button>
-        <button class="modal-auth-btn" type="button" data-modal-auth-provider="discord" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot dc-dot">DC</span>使用 Discord 登录 <b>→</b></button>
+        <button class="modal-auth-btn" type="button" data-modal-auth-provider="google" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot google-dot">G</span>使用 Google 登录 <b>→</b></button>
+        <button class="modal-auth-btn" type="button" data-modal-auth-provider="x" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot x-dot">X</span>使用 X 登录 <b>→</b></button>
+        <button class="modal-auth-btn" type="button" data-modal-auth-provider="telegram" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot tg-dot">TG</span>使用 Telegram 登录 <b>→</b></button>
+        <button class="modal-auth-btn" type="button" data-modal-auth-provider="discord" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot dc-dot">DC</span>使用 Discord 登录 <b>→</b></button>
       </div>
       <p class="auth-message" data-auth-message>配置 Supabase OAuth 后，Google / X / Discord 会进行真实登录；Telegram 需要配置 Bot 和回调校验。</p>
       <p class="login-terms">继续即表示你同意我们的 <a href="./zh/terms/">服务条款</a> 和 <a href="./zh/privacy/">隐私政策</a>。</p>
@@ -2263,6 +2268,7 @@ function openAuthModal(nextUrl = "./zh/dashboard/") {
 }
 
 async function startSocialAuth(provider, nextUrl = "./zh/dashboard/") {
+  const returnTarget = persistAuthReturnTarget(nextUrl);
   const message = document.querySelector(".auth-overlay [data-auth-message]") || document.querySelector("[data-auth-message]");
   const setMessage = (text, tone = "error") => {
     if (!message) return;
@@ -2275,14 +2281,14 @@ async function startSocialAuth(provider, nextUrl = "./zh/dashboard/") {
       return;
     }
     setMessage("请使用独立登录页完成 Telegram Widget 授权。", "success");
-    window.location.href = "./zh/login/";
+    window.location.href = `./zh/login/?next=${encodeURIComponent(returnTarget)}`;
     return;
   }
   if (!supabase) {
     setMessage("Supabase 尚未配置。添加 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY 后即可启用真实社交登录。");
     return;
   }
-  const redirectTo = getAuthRedirectUrl(nextUrl);
+  const redirectTo = getAuthRedirectUrl(returnTarget);
   const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } });
   if (error) setMessage(error.message);
 }
@@ -2332,6 +2338,7 @@ document.addEventListener("mousedown", stopAdminControlEvent);
 document.addEventListener("click", stopAdminControlEvent);
 
 function openUnlockModal(nextUrl = "./zh/app/generate/") {
+  const returnTarget = persistAuthReturnTarget(nextUrl);
   document.querySelector(".unlock-overlay")?.remove();
   const overlay = document.createElement("section");
   overlay.className = "unlock-overlay";
@@ -2344,10 +2351,10 @@ function openUnlockModal(nextUrl = "./zh/app/generate/") {
       <h2>登录后解锁此工具</h2>
       <p>保存生成结果、复用资产、管理积分，并继续打开这个创作工具。</p>
       <div class="unlock-auth-list">
-        <button type="button" data-unlock-auth="google" data-modal-auth-provider="google" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot google-dot">G</span>使用 Google 登录 <b>→</b></button>
-        <button type="button" data-unlock-auth="x" data-modal-auth-provider="x" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot x-dot">X</span>使用 X 登录 <b>→</b></button>
-        <button type="button" data-unlock-auth="telegram" data-modal-auth-provider="telegram" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot tg-dot">TG</span>使用 Telegram 登录 <b>→</b></button>
-        <button type="button" data-unlock-auth="discord" data-modal-auth-provider="discord" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot dc-dot">DC</span>使用 Discord 登录 <b>→</b></button>
+        <button type="button" data-unlock-auth="google" data-modal-auth-provider="google" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot google-dot">G</span>使用 Google 登录 <b>→</b></button>
+        <button type="button" data-unlock-auth="x" data-modal-auth-provider="x" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot x-dot">X</span>使用 X 登录 <b>→</b></button>
+        <button type="button" data-unlock-auth="telegram" data-modal-auth-provider="telegram" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot tg-dot">TG</span>使用 Telegram 登录 <b>→</b></button>
+        <button type="button" data-unlock-auth="discord" data-modal-auth-provider="discord" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot dc-dot">DC</span>使用 Discord 登录 <b>→</b></button>
       </div>
       <p class="auth-message" data-auth-message>选择一个账号继续。真实登录需要先配置 Supabase OAuth。</p>
       <a class="btn primary full" href="./zh/pricing/">查看积分套餐</a>
@@ -2456,7 +2463,7 @@ document.querySelectorAll("[data-email-auth]").forEach((button) => {
       saveState(state);
     }
     showAuthMessage(mode === "signup" ? "账户已创建。如开启邮箱验证，请检查邮件。" : "登录成功。", "success");
-    window.location.href = "./zh/dashboard/";
+    window.location.href = getAuthRedirectUrl(getRequestedAuthReturnTarget("dashboard.html"));
   });
 });
 
@@ -3398,7 +3405,7 @@ async function runRemoteGeneration(input) {
   if (!supabase) return null;
   const { data: sessionData } = await supabase.auth.getSession();
   if (!sessionData.session?.user) {
-    openUnlockModal("./zh/app/generate/");
+    openUnlockModal(getCurrentAuthReturnTarget());
     throw new Error("请先登录后使用真实生成。");
   }
   const mediaType = input.mode === "video" ? "video" : "image";
@@ -3663,30 +3670,54 @@ function getAppBaseUrl() {
   return new URL(basePath, window.location.origin).href;
 }
 
+function getCurrentAuthReturnTarget() {
+  const basePath = new URL(getAppBaseUrl()).pathname;
+  let path = window.location.pathname;
+  if (basePath !== "/" && path.startsWith(basePath)) {
+    path = path.slice(basePath.length);
+  }
+  path = path.replace(/^\/+/, "") || "index.html";
+  return normalizeAuthReturnTarget(`${path}${window.location.search}${window.location.hash}`);
+}
+
+function getRequestedAuthReturnTarget(fallback = "dashboard.html") {
+  const params = new URLSearchParams(window.location.search);
+  const requested = params.get("next") || localStorage.getItem(AUTH_RETURN_KEY) || fallback;
+  return normalizeAuthReturnTarget(requested);
+}
+
+function persistAuthReturnTarget(nextUrl = "dashboard.html") {
+  const normalized = normalizeAuthReturnTarget(nextUrl);
+  localStorage.setItem(AUTH_RETURN_KEY, normalized);
+  return normalized;
+}
+
 function normalizeAuthReturnTarget(nextUrl = "dashboard.html") {
   const raw = String(nextUrl || "dashboard.html").trim();
-  if (/^https?:\/\//i.test(raw)) {
-    try {
-      const target = new URL(raw);
-      if (target.origin === window.location.origin) {
-        return normalizeAuthReturnTarget(`${target.pathname}${target.search}${target.hash}`);
-      }
-    } catch {
-      return "dashboard.html";
-    }
+  let target;
+  try {
+    target = new URL(raw, getAppBaseUrl());
+  } catch {
+    return "dashboard.html";
   }
+  if (target.origin !== window.location.origin) return "dashboard.html";
 
-  const withoutOrigin = raw.replace(/^\.?\//, "");
-  const fileMatch = withoutOrigin.match(/([a-z0-9-]+\.html)([?#].*)?$/i);
-  if (fileMatch) return `${fileMatch[1]}${fileMatch[2] || ""}`;
+  const basePath = new URL(getAppBaseUrl()).pathname;
+  let path = target.pathname;
+  if (basePath !== "/" && path.startsWith(basePath)) {
+    path = path.slice(basePath.length);
+  }
+  const suffix = `${target.search}${target.hash}`;
+  const withoutOrigin = path.replace(/^\/+/, "");
+  const fileMatch = withoutOrigin.match(/([a-z0-9-]+\.html)$/i);
+  if (fileMatch) return `${fileMatch[1]}${suffix}`;
 
   const cleaned = withoutOrigin
     .replace(/^open-video-studio\//, "")
     .replace(/^zh\//, "")
     .replace(/^app\//, "")
-    .replace(/[?#].*$/, "")
     .replace(/^\/+|\/+$/g, "");
-  return AUTH_ROUTE_ALIASES.get(cleaned) || "dashboard.html";
+  return `${AUTH_ROUTE_ALIASES.get(cleaned) || "dashboard.html"}${suffix}`;
 }
 
 function getAuthRedirectUrl(nextUrl = "dashboard.html") {

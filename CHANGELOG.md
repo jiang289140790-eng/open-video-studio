@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.96.0 |
+| Version | 0.97.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,9 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Added auth-return continuity for the creation loop. Social login, email login, unlock modals, and protected tool gates now persist a normalized return target so users can log in and return to the exact tool route instead of always landing on Dashboard.
+- Auth redirects now preserve same-origin query strings and hashes such as `image-to-video.html?preset=social-reel` or source asset parameters, and stale stored return targets are cleared after a session is restored.
+- Telegram login entry now carries the same `next` target into the dedicated login page, while standard header login still defaults to Dashboard instead of accidentally returning to the login page.
 - Added aspect-ratio-aware Image-to-Video preview behavior. Selecting 16:9, 9:16, or 1:1 now changes the preview frame shape, and completed output cards preserve the selected ratio so vertical social videos look like vertical outputs instead of generic dashboard cards.
 - Remote and local generation mapping now carries ratio and duration metadata into assets/history where available, so Gallery/History/generated-preview surfaces can keep output intent after sync.
 - Added mobile guardrails for 9:16 and 1:1 preview sizing so vertical outputs remain inspectable without forcing horizontal overflow on narrow screens.
@@ -71,6 +74,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for auth return persistence, normalized return targets, preserved `next` parameters, and login modal return hooks.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for aspect-ratio preview attributes, generated-output ratio frames, and mobile preview guardrails.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for live task-card job-created callbacks, progress actions, refresh/cancel hooks, share, and regenerate actions.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for the Image-to-Video reference upload panel and upload-state controls.
