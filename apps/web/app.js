@@ -2892,6 +2892,8 @@ const videoWorkflowPresets = {
 };
 
 let selectedVideoReference = null;
+let videoAssetPickerSearch = "";
+let videoAssetPickerFilter = "all";
 
 modeButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -2932,27 +2934,49 @@ function applyInitialVideoPreset() {
   document.querySelector("[data-asset-picker]")?.addEventListener("click", (event) => {
     if (event.target?.matches("[data-asset-picker]")) closeVideoAssetPicker();
   });
+  document.querySelector("[data-video-asset-search]")?.addEventListener("input", (event) => {
+    videoAssetPickerSearch = event.currentTarget.value.trim().toLowerCase();
+    renderVideoAssetPickerOptions();
+  });
+  document.querySelectorAll("[data-video-asset-filter]").forEach((button) => {
+    button.addEventListener("click", () => {
+      videoAssetPickerFilter = button.dataset.videoAssetFilter || "all";
+      renderVideoAssetPickerOptions();
+    });
+  });
+  document.querySelector("[data-trigger-reference-upload]")?.addEventListener("click", () => {
+    closeVideoAssetPicker();
+    document.querySelector("[data-video-upload]")?.click();
+  });
+  document.querySelector("[data-picker-demo-reference]")?.addEventListener("click", () => {
+    selectDemoVideoReference();
+    closeVideoAssetPicker();
+  });
   applyVideoSourceFromUrl();
   restoreVideoGenerationDraft();
-  document.querySelector("[data-demo-reference]")?.addEventListener("click", () => {
-    const demoUrl = new URL("./home-assets/ovs-home-06.png", window.location.href).href;
-    selectVideoReference({
-      id: "demo-reference-image",
-      title: "示例参考图",
-      type: "image",
-      prompt: "图片转视频示例参考图",
-      character: "Mira",
-      credits: 0,
-      status: "ready",
-      visibility: "private",
-      favorite: false,
-      previewUrl: demoUrl,
-      sourceImageUrl: demoUrl,
-      sourceType: "reference_image"
-    }, { addToAssets: false });
-    showSiteToast("已选择示例参考图。提交后会作为图片转视频首帧。");
+  document.querySelectorAll("[data-demo-reference]").forEach((button) => {
+    button.addEventListener("click", selectDemoVideoReference);
   });
   updateVideoPreflight();
+}
+
+function selectDemoVideoReference() {
+  const demoUrl = new URL("./home-assets/ovs-home-06.png", window.location.href).href;
+  selectVideoReference({
+    id: "demo-reference-image",
+    title: "示例参考图",
+    type: "image",
+    prompt: "图片转视频示例参考图",
+    character: "Mira",
+    credits: 0,
+    status: "ready",
+    visibility: "private",
+    favorite: false,
+    previewUrl: demoUrl,
+    sourceImageUrl: demoUrl,
+    sourceType: "reference_image"
+  }, { addToAssets: false });
+  showSiteToast("已选择示例参考图。提交后会作为图片转视频首帧。");
 }
 
 function applyVideoSourceFromUrl() {
@@ -3405,19 +3429,46 @@ function formatFileSize(bytes) {
 
 function openVideoAssetPicker() {
   const overlay = document.querySelector("[data-asset-picker]");
+  if (!overlay) return;
+  renderVideoAssetPickerOptions();
+  overlay.hidden = false;
+  document.body.classList.add("modal-open");
+  document.querySelector("[data-video-asset-search]")?.focus();
+}
+
+function renderVideoAssetPickerOptions() {
   const list = document.querySelector("[data-video-asset-options]");
-  if (!overlay || !list) return;
-  const imageAssets = state.assets.filter((asset) => asset.type !== "video").slice(0, 12);
-  list.innerHTML = imageAssets.length ? imageAssets.map((asset, index) => `
+  if (!list) return;
+  document.querySelectorAll("[data-video-asset-filter]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.videoAssetFilter === videoAssetPickerFilter);
+  });
+  const imageAssets = getFilteredVideoAssetOptions();
+  const allImageAssets = state.assets.filter((asset) => asset.type !== "video");
+  list.innerHTML = imageAssets.length ? imageAssets.map((asset, index) => {
+    const meta = [
+      asset.favorite ? "收藏" : "",
+      asset.visibility === "public" ? "公开" : "私密",
+      asset.character ? `角色 ${asset.character}` : "",
+      asset.remote ? "Supabase" : "本地"
+    ].filter(Boolean).join(" · ");
+    return `
     <button type="button" class="asset-picker-option" data-select-video-asset="${escapeHtml(asset.id)}">
       <span class="thumb ${["art-3", "art-8", "art-10", "art-12"][index % 4]}"></span>
-      <strong>${escapeHtml(asset.title)}</strong>
-      <small>${escapeHtml(asset.prompt || "可作为图片转视频参考图")}</small>
+      <span>
+        <strong>${escapeHtml(asset.title)}</strong>
+        <em>${escapeHtml(meta || "可作为图片转视频参考图")}</em>
+        <small>${escapeHtml(asset.prompt || "可作为图片转视频参考图")}</small>
+      </span>
     </button>
-  `).join("") : `
-    <article class="empty-state compact">
-      <h3>还没有可选图片资产</h3>
-      <p class="muted">你可以先上传参考图，或使用示例图片开始。</p>
+  `; }).join("") : `
+    <article class="empty-state compact asset-picker-empty" data-asset-picker-empty>
+      <h3>${allImageAssets.length ? "没有匹配的图片资产" : "还没有可选图片资产"}</h3>
+      <p class="muted">${allImageAssets.length ? "换个关键词或筛选条件，也可以直接上传新参考图。" : "你可以先上传参考图，或使用示例图片开始。"}</p>
+      <div class="row-actions">
+        ${allImageAssets.length ? `<button type="button" data-clear-asset-picker-search>清除筛选</button>` : ""}
+        <button type="button" data-trigger-reference-upload>上传新参考图</button>
+        <button type="button" data-picker-demo-reference>使用示例图</button>
+      </div>
     </article>
   `;
   list.querySelectorAll("[data-select-video-asset]").forEach((button) => {
@@ -3433,8 +3484,35 @@ function openVideoAssetPicker() {
       showSiteToast("已选择资产作为图片转视频参考图。");
     });
   });
-  overlay.hidden = false;
-  document.body.classList.add("modal-open");
+  list.querySelector("[data-clear-asset-picker-search]")?.addEventListener("click", () => {
+    videoAssetPickerSearch = "";
+    videoAssetPickerFilter = "all";
+    const input = document.querySelector("[data-video-asset-search]");
+    if (input) input.value = "";
+    renderVideoAssetPickerOptions();
+  });
+  list.querySelector("[data-trigger-reference-upload]")?.addEventListener("click", () => {
+    closeVideoAssetPicker();
+    document.querySelector("[data-video-upload]")?.click();
+  });
+  list.querySelector("[data-picker-demo-reference]")?.addEventListener("click", () => {
+    selectDemoVideoReference();
+    closeVideoAssetPicker();
+  });
+}
+
+function getFilteredVideoAssetOptions() {
+  const assets = state.assets.filter((asset) => asset.type !== "video");
+  const filtered = assets.filter((asset) => {
+    const matchesFilter =
+      videoAssetPickerFilter === "all" ||
+      videoAssetPickerFilter === "recent" ||
+      (videoAssetPickerFilter === "favorite" && asset.favorite) ||
+      (videoAssetPickerFilter === "public" && asset.visibility === "public");
+    const haystack = `${asset.title} ${asset.prompt} ${asset.character} ${asset.status} ${asset.visibility} ${asset.type}`.toLowerCase();
+    return matchesFilter && (!videoAssetPickerSearch || haystack.includes(videoAssetPickerSearch));
+  });
+  return filtered.slice(0, videoAssetPickerFilter === "recent" ? 8 : 12);
 }
 
 function closeVideoAssetPicker() {

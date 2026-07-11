@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.18.0 |
+| Version | 1.19.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -329,6 +329,15 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Dependencies: MVP-S3-013, MVP-S3-017, MVP-S3-020, MVP-S3-021, PAGE-GENERATE-001, PAGE-HISTORY-001.
 - Acceptance Criteria: retrying a failed/cancelled job or generated asset preserves prompt, workflow type, preset, video ratio, duration, model, reference metadata, failure reason, and refund status; Generate/Image-to-Video restores that context with a visible recovery notice; History rows explain recoverable failed jobs; live task cards can expose a retry-job action after remote failure; recovery state expires and is cleared after use.
 - Related Documents: PAGE-GENERATE-001, PAGE-HISTORY-001, DB-GENERATION-JOBS-001, DB-CREDITS-001.
+
+### MVP-S3-023 Image-to-Video Asset Picker Usability
+
+- Priority: P0.
+- Status: Completed.
+- Estimated Time: 0.25 day.
+- Dependencies: MVP-S3-014, MVP-S3-016, MVP-S3-020, DB-MEDIA-ASSETS-001.
+- Acceptance Criteria: the Image-to-Video reference asset picker supports search, favorite/public/recent image filters, visible asset source/status metadata, empty-result recovery actions, direct upload, demo-reference fallback, and a valid link to the full Asset Library without leaving users stuck in a modal dead end.
+- Related Documents: PAGE-GENERATE-001, DB-MEDIA-ASSETS-001, BE-ARCH-STORAGE-001.
 
 ## Sprint 4: Admin And MVP Integration
 

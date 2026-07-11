@@ -168,8 +168,21 @@
         <p class="eyebrow">资产库</p>
         <h2>选择一张参考图</h2>
         <p class="muted">选择图片资产后会返回当前生成器，并把它作为图片转视频的首帧参考。</p>
+        <div class="asset-picker-toolbar">
+          <input type="search" data-video-asset-search placeholder="&#x641C;&#x7D22;&#x8D44;&#x4EA7;&#x3001;&#x63D0;&#x793A;&#x8BCD;&#x3001;&#x89D2;&#x8272;">
+          <div class="chip-row compact" role="group" aria-label="&#x8D44;&#x4EA7;&#x7B5B;&#x9009;">
+            <button class="chip active" type="button" data-video-asset-filter="all">&#x5168;&#x90E8;&#x56FE;&#x7247;</button>
+            <button class="chip" type="button" data-video-asset-filter="favorite">&#x6536;&#x85CF;</button>
+            <button class="chip" type="button" data-video-asset-filter="public">&#x516C;&#x5F00;</button>
+            <button class="chip" type="button" data-video-asset-filter="recent">&#x6700;&#x8FD1;</button>
+          </div>
+        </div>
         <div class="asset-picker-list" data-video-asset-options></div>
-        <a class="btn glass" href="./zh/assets/">打开完整资产库</a>
+        <div class="asset-picker-footer">
+          <button class="btn glass" type="button" data-trigger-reference-upload>&#x4E0A;&#x4F20;&#x65B0;&#x53C2;&#x8003;&#x56FE;</button>
+          <button class="btn glass" type="button" data-picker-demo-reference>&#x4F7F;&#x7528;&#x793A;&#x4F8B;&#x56FE;</button>
+          <a class="btn glass" href="./zh/assets/">&#x6253;&#x5F00;&#x5B8C;&#x6574;&#x8D44;&#x4EA7;&#x5E93;</a>
+        </div>
       </div>
     </div>
 
