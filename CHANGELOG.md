@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.87.0 |
+| Version | 0.88.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -20,6 +20,31 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Include documentation changes, architecture changes, validation performed, and known follow-ups.
 - Reference relevant document IDs, task IDs, and decision records.
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
+
+## 2026-07-11
+
+### Improved
+
+- Prewired Stripe and PayPal as the MVP payment providers without requiring live accounts yet. The pricing UI now shows Stripe/PayPal payment choices, and the browser only uses public `VITE_*` provider configuration.
+- Added server-side payment checkout creation to the Supabase `ai` Edge Function through `create-payment-checkout` and provider readiness through `payment-provider-status`. Provider secrets stay server-only in Supabase Edge Function secrets.
+- Rebuilt `apps/web/pricing.html` as a clean UTF-8 Chinese Luravyn pricing page with one-time credit packages, payment trust notes, Stripe/PayPal entry points, and demo fallback copy while accounts are unconfigured.
+- Improved mobile product surface behavior for top navigation, pricing cards, payment buttons, and checkout modal scrolling.
+- Added payment-provider regression tests covering server-side checkout routes, environment placeholders, browser secret isolation, localized pricing copy, and mobile checkout CSS.
+- Updated payment, billing, pricing, sprint backlog, task completion, README environment, and summary documentation to reflect the new payment status.
+
+### Validation
+
+- Ran `npm run build`; production build passed.
+- Ran `npm run test`; production build passed and 70 tests passed.
+- Ran `npm run verify:i18n`; Chinese, English, Japanese, and Korean product glossary coverage remained 100%.
+- Deployed Supabase `ai` Edge Function version `20`.
+- Ran `npm run verify:payments` after deployment; unauthenticated access failed closed, demo checkout created a fulfilled order, ledger entry, and correct credit balance.
+
+### Follow-ups
+
+- Real Stripe charging still requires a Stripe account, `STRIPE_SECRET_KEY`, `VITE_STRIPE_PUBLISHABLE_KEY`, webhook secret, idempotency, webhook fulfillment, refund/reconciliation, and tax/invoice policy.
+- Real PayPal charging still requires a PayPal app, `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, webhook ID, buyer approval return handling, capture after approval, refund/reconciliation, and tax/invoice policy.
+- Mobile UX has static coverage now; full device-browser visual QA should be repeated before public paid traffic.
 
 ## 2026-07-10
 

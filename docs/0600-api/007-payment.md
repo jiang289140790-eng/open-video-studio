@@ -4,7 +4,7 @@
 |---|---|
 | ID | API-PAYMENT-001 |
 | Unique ID | API-PAYMENT-001 |
-| Version | 1.3.0 |
+| Version | 1.4.0 |
 | Status | Active |
 | Owner | Billing Platform Lead / API Platform Lead |
 | Dependencies | API-AUTH-001, DB-ORDERS-001, DB-CREDITS-001, SEC-INDEX-001 |
@@ -77,7 +77,11 @@ MVP Sprint 1 exposes a local HTTP credit purchase route for MVP testing. It is n
 
 Production Supabase now exposes an MVP no-charge demo checkout path through the authenticated `ai` Edge Function action `demo-credit-purchase`. It creates a pending `orders` row first, writes the posted credit ledger grant second, and only marks the order `fulfilled` after the grant succeeds. If the ledger grant fails, the order is marked `failed` instead of silently granting credits without a reconcilable order. `npm run verify:payments` proves the action fails closed without authentication, then verifies order readback, credit ledger readback, and balance correctness for a temporary authenticated user.
 
-This does not replace real payment integration. A real payment gateway still requires provider checkout/session APIs, webhook signature verification, idempotency, refund/reconciliation handling, tax/invoice policy, and fraud controls before any real charge is accepted.
+Stripe and PayPal are now prewired through the authenticated `ai` Edge Function action `create-payment-checkout`. The frontend sends only purchase intent, selected provider, credit package, and return URLs. The Edge Function creates a pending `orders` row, calls Stripe Checkout Sessions or PayPal Orders from the server side, stores the provider reference, and returns a provider-hosted checkout URL. Browser code only uses public `VITE_*` provider configuration and never stores provider secret keys.
+
+The `payment-provider-status` action exposes whether Stripe and PayPal server-side secrets are configured so Admin/System views can distinguish a visible checkout button from a live provider connection.
+
+This does not yet complete real payment fulfillment. Real charges still require live Stripe/PayPal accounts, Supabase Edge Function secrets, webhook signature verification, PayPal capture after approval, idempotency keys, refund/reconciliation handling, tax/invoice policy, and fraud controls before credits can be granted automatically from paid provider events. Until those are configured, the demo checkout path remains the safe fallback.
 
 ## Future Plan
 

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.91.0 |
+| Version | 0.92.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,10 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- MVP payments are now prewired for Stripe and PayPal while preserving the no-charge demo checkout fallback. The browser exposes only public provider config (`VITE_STRIPE_PUBLISHABLE_KEY`, `VITE_PAYPAL_CLIENT_ID`), while the Supabase `ai` Edge Function owns `create-payment-checkout`, `payment-provider-status`, Stripe Checkout Session creation, and PayPal Orders creation. Real fulfillment still requires live provider accounts, Edge Function secrets, webhook verification, PayPal capture, idempotency, refund/reconciliation, and tax/invoice policy.
+- The primary pricing page has been restored to clean UTF-8 Chinese and aligned with the Luravyn product surface. It now presents one-time credit packages, Stripe/PayPal payment choices, safe unconfigured-provider copy, and mobile-safe checkout behavior.
+- Mobile product surface rules were tightened for navigation wrapping, headline sizing, pricing cards, and scrollable checkout modals. Static regression coverage now guards these rules.
+- Payment and language validation are green after the update: `npm run test` passes with 70 tests, `npm run verify:i18n` reports 100% glossary coverage for Chinese/English/Japanese/Korean, and `npm run verify:payments` passes against deployed Supabase `ai` function version 20.
 - The public product brand is now moving to Luravyn. The deployed web surface includes Luravyn logo assets, favicon, header/sidebar/admin logo usage, and a GitHub Pages `CNAME` for `luravyn.com`; DNS resolves correctly, while GitHub's Pages API is still waiting for certificate availability before HTTPS enforcement can be toggled for the custom domain.
 - MVP readiness now has a consolidated gate. `npm run verify:mvp` orchestrates basic email/password auth, OAuth readiness, demo credit purchase, user generation/assets/history/share, Admin operations, and AI fallback health; `npm run verify:mvp -- --real-ai` adds the cost-bearing real provider probe. Small user testing is gated by email/password auth plus credits, generation/share, and Admin operations. Social OAuth and external real AI providers remain launch blockers until their provider credentials and endpoints are green.
 - The real Qianwen image generation loop is now production-verified. `npm run verify:real-ai` creates an authenticated `wan2.6-image` job through the deployed Supabase `ai` Edge Function, waits for the real provider result, saves the generated PNG into Supabase Storage, creates a media asset, records provider/model metadata, and cleans up verification records.
@@ -125,8 +129,8 @@ Provide the navigation map for the Open Video Studio knowledge base.
 - Gallery cards now have working product-loop actions for generate similar, copy prompt, share, favorite, and open character; Asset Library chips now filter visible assets.
 - Character Management now behaves as an actionable character center with search, status/favorite filters, selectable profiles, character memory, copy-prompt, and use-character-to-generate handoff.
 - Free Coins and Dashboard are now state-driven: check-in progress, referral copy count, claimed rewards, recent generations, saved characters, and share links render from local product state.
-- Purchase Credits now uses a target-style checkout modal with order summary, payment method selection, promo code, login guidance, and demo credit delivery while real payment APIs remain disconnected.
-- Purchase Credits now presents PayPal, Cash App, Apple Pay, and Venmo options in the demo checkout surface, and Free Coins shows a visible seven-day credit calendar in addition to the daily check-in modal.
+- Purchase Credits now uses a target-style checkout modal with order summary, Stripe/PayPal method selection, promo code, login guidance, provider checkout prewire, and demo credit delivery while real fulfillment remains gated by live payment secrets and webhooks.
+- Free Coins shows a visible seven-day credit calendar in addition to the daily check-in modal.
 - The target-style app side rail now highlights the current page dynamically and separates My Creations from Generation History routes.
 - Top navigation and locked tools now use a target-style global social login modal with Google, X, Telegram, and Discord entry points, while the standalone sign-in page remains available.
 - The public share page now acts as a conversion surface with generate-similar, copy-prompt, save-to-assets, pricing, tool, and login entry points.

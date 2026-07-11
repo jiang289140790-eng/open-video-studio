@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | PAGE-PRICING-001 |
-| Version | 1.1.0 |
+| Version | 1.2.0 |
 | Status | Active |
 | Owner | Growth Lead / Billing Product Lead |
 | Dependencies | PB-006, DS-003, API-CREDITS-001, API-PAYMENT-001, API-SUBSCRIPTION-001 |
@@ -85,7 +85,11 @@ Pricing should be indexable and include clear metadata for AI video pricing, pla
 
 `ADR-003` implements the first MVP pricing preview at `apps/web/pricing.html`. The current surface communicates plan structure, credit transparency, billing trust principles, and conversion actions.
 
-Displayed prices are preview copy for the MVP frontend and are not final billing logic. Final packaging, credit rates, checkout, payment, and subscription behavior must be approved through `PB-006`, `API-PAYMENT-001`, and `API-SUBSCRIPTION-001`.
+The pricing page is now localized in clean Chinese for the primary MVP audience and uses the Luravyn black/pink product surface. It presents one-time credit packages, trust notes, Stripe and PayPal payment options, and a clear fallback note when real provider secrets are not configured.
+
+Displayed prices remain MVP packaging copy and should not be treated as final billing policy. Final packaging, credit rates, checkout fulfillment, payment, and subscription behavior must remain governed by `PB-006`, `API-PAYMENT-001`, and `API-SUBSCRIPTION-001`.
+
+Mobile rules now prioritize stacked price cards, no horizontal overflow, and a scrollable checkout modal.
 
 ## Future Plan
 

@@ -11,21 +11,33 @@
   <body>
     <header class="topbar">
       <a class="brand" href="./zh/app/"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
-      <nav class="topnav" aria-label="Primary navigation"><a href="./zh/app/generate/">图像工具</a><a href="./zh/app/image-to-video/">视频工具</a><a href="./zh/pricing/" aria-current="page">购买积分</a><a href="./zh/free-coins/">免费硬币</a><a href="./zh/my-creations/">我的创作</a></nav>
-      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./zh/free-coins/">每日签到</a><a href="./zh/login/">登录</a></nav>
+      <nav class="topnav" aria-label="主导航">
+        <a href="./zh/app/generate/">图像工具</a>
+        <a href="./zh/app/image-to-video/">视频工具</a>
+        <a href="./zh/pricing/" aria-current="page">购买积分</a>
+        <a href="./zh/free-coins/">免费硬币</a>
+        <a href="./zh/my-creations/">我的创作</a>
+      </nav>
+      <nav class="accountnav" aria-label="账号导航">
+        <a class="daily-check" href="./zh/free-coins/">每日签到</a>
+        <a href="./zh/login/">登录</a>
+      </nav>
     </header>
+
     <main class="app-surface pricing-page">
       <section class="credit-shop-shell">
         <div class="credit-shop-art">
           <span class="credit-shop-badge">限时加赠</span>
           <div class="credit-character art-2"></div>
           <h2>为下一次生成准备足够积分</h2>
-          <p>图片、角色、视频和资产复用都使用同一套积分余额。生成前显示消耗，购买后立即可用。</p>
+          <p>图片、角色、视频和资产复用都使用同一套积分余额。生成前显示预计消耗，购买后立即可用于创作。</p>
         </div>
+
         <section class="credit-shop-panel" aria-labelledby="pricing-title">
           <p class="eyebrow">购买积分</p>
           <h1 id="pricing-title">选择你的创作套餐</h1>
           <p class="shop-subtitle">一次性购买 · 不自动续费 · 资产默认私密</p>
+
           <div class="credit-plan-list">
             <button class="credit-plan-card" type="button" data-buy-credits="200" data-plan-name="入门包">
               <span>200 积分</span>
@@ -55,20 +67,21 @@
               <small>立即购买</small>
             </button>
           </div>
+
           <ul class="payment-notes">
             <li>不会在银行账单中显示生成内容</li>
             <li>一次性购买，不会自动扣款</li>
-            <li>积分到账后可用于图片、视频、角色和资产生成</li>
+            <li>积分可用于图片、视频、角色和资产生成</li>
           </ul>
+
           <div class="payment-box">
-            <span class="payment-ribbon">推荐</span>
+            <span class="payment-ribbon">支付预接入</span>
+            <button class="active" type="button" data-payment-method="stripe">Stripe 卡支付</button>
             <button type="button" data-payment-method="paypal">PayPal</button>
-            <button type="button" data-payment-method="cashapp">Cash App</button>
-            <button type="button" data-payment-method="applepay">Apple Pay</button>
-            <button type="button" data-payment-method="venmo">Venmo</button>
           </div>
-          <p class="global-payment-note">Global payment methods · 演示结账不会真实扣款</p>
+          <p class="global-payment-note">Stripe / PayPal 已接入结账入口；配置正式账号密钥后启用真实扣款。未配置前只会进入演示结账。</p>
         </section>
+
         <aside class="credit-social-proof">
           <h2>创作者正在使用 Luravyn</h2>
           <p>适合持续制作角色、短视频、广告素材和可复用内容资产。</p>
@@ -82,8 +95,12 @@
           </div>
         </aside>
       </section>
+
       <section class="tool-section">
-        <div class="tool-section-head"><h2>购买后可以创建什么</h2><a href="./zh/app/generate/">开始生成</a></div>
+        <div class="tool-section-head">
+          <h2>购买后可以创建什么？</h2>
+          <a href="./zh/app/generate/">开始生成</a>
+        </div>
         <div class="card-carousel compact">
           <a class="tool-poster art-3" href="./zh/app/generate/"><strong>产品主视觉</strong><span>8 积分</span></a>
           <a class="tool-poster art-7" href="./zh/app/image-to-video/"><strong>图片转视频</strong><span>24 积分</span></a>
@@ -91,9 +108,17 @@
           <a class="tool-poster art-9" href="./zh/assets/"><strong>可复用资产</strong><span>保存到素材库</span></a>
         </div>
       </section>
-      <section class="pricing-preview"><div><p class="eyebrow">免费硬币</p><h2>还想先试用？</h2><p class="muted">通过每日签到和推荐好友获得额外积分，再决定购买哪个套餐。</p></div><a class="btn primary" href="./zh/free-coins/">打开免费硬币</a></section>
+
+      <section class="pricing-preview">
+        <div>
+          <p class="eyebrow">免费硬币</p>
+          <h2>还想先试用？</h2>
+          <p class="muted">通过每日签到和推荐好友获得额外积分，再决定购买哪一个套餐。</p>
+        </div>
+        <a class="btn primary" href="./zh/free-coins/">打开免费硬币</a>
+      </section>
     </main>
+
     <script type="module" src="./app.js"></script>
   </body>
 </html>
-

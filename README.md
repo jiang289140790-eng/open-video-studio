@@ -140,6 +140,18 @@ Optional server-only key:
 
 - `SUPABASE_SERVICE_ROLE_KEY`
 
+Optional until real payment accounts are opened:
+
+- `VITE_STRIPE_PUBLISHABLE_KEY`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_MODE`
+- `VITE_PAYPAL_CLIENT_ID`
+- `PAYPAL_CLIENT_ID`
+- `PAYPAL_CLIENT_SECRET`
+- `PAYPAL_WEBHOOK_ID`
+- `PAYPAL_ENVIRONMENT`
+
 Future AI provider keys are intentionally empty until provider integrations are enabled.
 
 ## GitHub Readiness

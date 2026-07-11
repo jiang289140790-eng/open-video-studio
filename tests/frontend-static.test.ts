@@ -843,7 +843,7 @@ describe("MVP static frontend", () => {
     }
   });
 
-  it("contains target-site-style checkout flow without payment API", () => {
+  it("contains Stripe and PayPal checkout entry points with safe demo fallback", () => {
     const pricing = readPage("pricing.html");
     const appScript = readPage("app.js");
     const styles = readPage("styles.css");
@@ -855,13 +855,17 @@ describe("MVP static frontend", () => {
       "checkout-methods",
       "data-checkout-method",
       "data-confirm-checkout",
-      "Cash App",
-      "Venmo",
-      "领取我的 2x 积分",
-      "真实支付 API 接入前不会产生扣款"
+      "PAYMENT_PROVIDERS",
+      "Stripe",
+      "PayPal",
+      "create-payment-checkout",
+      "runRemotePaymentCheckout",
+      "demo-credit-purchase"
     ]) {
       assert.ok(`${pricing}\n${appScript}\n${styles}`.includes(expected), `checkout flow should include ${expected}`);
     }
+    assert.equal(appScript.includes("STRIPE_SECRET_KEY"), false);
+    assert.equal(appScript.includes("PAYPAL_CLIENT_SECRET"), false);
   });
 
   it("contains target-site-style free coin reward calendar", () => {

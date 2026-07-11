@@ -8,6 +8,14 @@ export interface AppEnvironment {
   supabaseAnonKey?: string;
   supabaseStorageBucket: string;
   supabaseServiceRoleKey?: string;
+  stripePublishableKey?: string;
+  stripeSecretKey?: string;
+  stripeWebhookSecret?: string;
+  stripeMode?: string;
+  paypalClientId?: string;
+  paypalClientSecret?: string;
+  paypalWebhookId?: string;
+  paypalEnvironment?: string;
   qwenVisionEndpoint?: string;
   qwenVisionSiteApiKey?: string;
   qwenVisionModel?: string;
@@ -45,6 +53,14 @@ export function loadEnvironment(filePath?: string): AppEnvironment {
     supabaseAnonKey: emptyToUndefined(value("SUPABASE_ANON_KEY")),
     supabaseStorageBucket: value("SUPABASE_STORAGE_BUCKET", "open-video-studio-assets"),
     supabaseServiceRoleKey: emptyToUndefined(value("SUPABASE_SERVICE_ROLE_KEY")),
+    stripePublishableKey: emptyToUndefined(value("VITE_STRIPE_PUBLISHABLE_KEY") || value("STRIPE_PUBLISHABLE_KEY")),
+    stripeSecretKey: emptyToUndefined(value("STRIPE_SECRET_KEY")),
+    stripeWebhookSecret: emptyToUndefined(value("STRIPE_WEBHOOK_SECRET")),
+    stripeMode: value("STRIPE_MODE", "test"),
+    paypalClientId: emptyToUndefined(value("PAYPAL_CLIENT_ID") || value("VITE_PAYPAL_CLIENT_ID")),
+    paypalClientSecret: emptyToUndefined(value("PAYPAL_CLIENT_SECRET")),
+    paypalWebhookId: emptyToUndefined(value("PAYPAL_WEBHOOK_ID")),
+    paypalEnvironment: value("PAYPAL_ENVIRONMENT", "sandbox"),
     qwenVisionEndpoint: value("QWEN_VISION_ENDPOINT", "https://47-251-244-196.sslip.io/api/ai/vision/analyze"),
     qwenVisionSiteApiKey: emptyToUndefined(value("QWEN_VISION_SITE_API_KEY")),
     qwenVisionModel: value("QWEN_VISION_MODEL", "Qwen/Qwen2.5-VL-7B-Instruct"),

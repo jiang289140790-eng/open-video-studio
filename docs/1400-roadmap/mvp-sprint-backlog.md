@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.6.0 |
+| Version | 1.7.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -181,9 +181,10 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 ### MVP-S3-006 Credits Balance And Purchase Entry
 
 - Priority: P0.
+- Status: Completed.
 - Estimated Time: 0.75 day.
 - Dependencies: MVP-S3-001, API-CREDITS-001, API-PAYMENT-001.
-- Acceptance Criteria: user sees credit balance, low-credit warning, local MVP purchase action, and updated balance after purchase.
+- Acceptance Criteria: user sees credit balance, low-credit warning, local MVP purchase action, Stripe/PayPal checkout entry points, safe demo fallback while provider accounts are unconfigured, and updated balance after demo purchase.
 - Related Documents: API-CREDITS-001, API-PAYMENT-001, DB-CREDITS-001, DB-ORDERS-001.
 
 ### MVP-S3-007 Dashboard And Generation History
@@ -197,9 +198,10 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 ### MVP-S3-008 Mobile UX Repair
 
 - Priority: P1.
+- Status: Completed.
 - Estimated Time: 0.5 day.
 - Dependencies: MVP-S3-002, MVP-S3-004.
-- Acceptance Criteria: Generate page has no horizontal overflow at 390px width, core CTA remains reachable, and forms/cards fit without overlap.
+- Acceptance Criteria: Generate/pricing/account surfaces avoid horizontal overflow on mobile, core CTAs remain reachable, checkout modal scrolls within the viewport, and navigation labels wrap safely.
 - Related Documents: DS-011, PAGE-GENERATE-001.
 
 ### MVP-S3-009 Product Analytics Events
@@ -245,7 +247,7 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Production backend smoke verification now passes for provider status, DeepSeek prompt enhancement, demo credit purchase, generation job creation, Fake Worker processing, Supabase Storage upload, and asset creation through the deployed `ai` Edge Function.
 - Production refund smoke verification now passes for queued-job cancellation and confirms the consumed 8 credits are refunded.
 - Qwen Vision is now included in production AI verification, but it currently fails with provider `Unauthenticated` until a valid Qwen Vision site API key is configured.
-- Real payment gateway execution remains deferred; current checkout can create a non-charging demo order and grant credits for MVP operations testing.
+- Stripe and PayPal checkout creation are prewired through the server-side `ai` Edge Function, with browser-safe public configuration only. Real payment gateway fulfillment remains deferred until live provider accounts, Edge Function secrets, webhooks, PayPal capture, idempotency, refunds, tax, and reconciliation are configured. Current checkout can still create a non-charging demo order and grant credits for MVP operations testing.
 - Admin Workflow Center can control eligible AI provider rollout without changing frontend generation code.
 - Admin Workflow Center now shows live AI provider readiness and blocker reasons from the `ai` Edge Function, so operators can see Qwen Vision authorization failures before publishing or promoting workflows.
 - OAuth remains a launch blocker until Supabase Auth Providers are enabled for Google, X/Twitter, and Discord and Telegram public login configuration is supplied.

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | BE-ARCH-BILLING-001 |
-| Version | 1.1.0 |
+| Version | 1.2.0 |
 | Status | Active |
 | Owner | Billing Platform Lead / Backend Lead |
 | Dependencies | PB-006, API-PAYMENT-001, API-SUBSCRIPTION-001, API-CREDITS-001, DB-ORDERS-001, DB-SUBSCRIPTIONS-001, DB-CREDITS-001 |
@@ -24,7 +24,9 @@ Define backend architecture for payments, subscriptions, credits, entitlements, 
 
 Billing should integrate with a payment provider through controlled APIs and verified webhooks. Internal records should preserve order state, subscription state, credit ledger entries, and entitlement state without storing raw payment credentials.
 
-Phase 1 implements only the credits ledger foundation. Payment provider integration, orders, subscriptions, entitlements, invoices, and reconciliation are not implemented yet.
+Phase 1 implements the credits ledger foundation, demo credit purchases, and server-side checkout prewiring for Stripe and PayPal. The `ai` Supabase Edge Function can create provider checkout/order sessions without exposing provider secrets to the browser. Orders are recorded before provider handoff so failed checkout creation remains auditable.
+
+Provider fulfillment is still intentionally incomplete until live Stripe/PayPal accounts, webhook secrets, capture handling, refund policy, tax policy, and reconciliation jobs are configured.
 
 ## Responsibilities
 
@@ -55,7 +57,7 @@ Billing traffic is usually lower volume than media processing but higher risk. A
 
 ## Future Plan
 
-Define billing provider, entitlement model, invoice handling, enterprise contracts, tax, refunds, and dispute workflows.
+Complete Stripe webhook verification, PayPal capture after buyer approval, idempotency keys for checkout creation, refund/reconciliation jobs, tax/invoice handling, and dispute workflows.
 
 ## AI Context
 

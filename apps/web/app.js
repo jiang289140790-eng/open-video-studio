@@ -62,6 +62,22 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 const telegramBotUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "";
 const telegramAuthUrl = import.meta.env.VITE_TELEGRAM_AUTH_URL || "";
 const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+const PAYMENT_PROVIDERS = [
+  {
+    id: "stripe",
+    label: "Stripe 卡支付",
+    shortLabel: "Stripe",
+    configured: Boolean(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY),
+    note: "支持银行卡和本地钱包；配置 Stripe Key 后启用真实结账。"
+  },
+  {
+    id: "paypal",
+    label: "PayPal",
+    shortLabel: "PayPal",
+    configured: Boolean(import.meta.env.VITE_PAYPAL_CLIENT_ID),
+    note: "支持 PayPal 钱包；配置 PayPal Client ID / Secret 后启用真实结账。"
+  }
+];
 const I18N_LOCALES = {
   "zh-CN": { label: "简体中文", short: "文A", status: "complete" },
   en: { label: "English", short: "EN", status: "mvp" },
@@ -2491,14 +2507,16 @@ function openCheckoutModal({ credits, planName, price, promo = "" }) {
         <input value="${escapeHtml(promo)}" placeholder="WELCOME_SALE" data-checkout-promo>
       </label>
       <div class="checkout-methods" aria-label="Payment methods">
-        <button class="active" type="button" data-checkout-method="paypal">PayPal</button>
-        <button type="button" data-checkout-method="cashapp">Cash App</button>
-        <button type="button" data-checkout-method="applepay">Apple Pay</button>
-        <button type="button" data-checkout-method="venmo">Venmo</button>
+        ${PAYMENT_PROVIDERS.map((provider, index) => `
+          <button class="${index === 0 ? "active" : ""}" type="button" data-checkout-method="${provider.id}">
+            <span>${escapeHtml(provider.label)}</span>
+            <small>${provider.configured ? "已配置" : "待配置"}</small>
+          </button>
+        `).join("")}
       </div>
-      <p class="checkout-note">${signedIn ? "这是演示结账：不会调用真实支付接口，确认后积分会进入本地余额。" : "登录后可同步账户积分。当前演示模式会先创建本地创作者账户。"}</p>
+      <p class="checkout-note">${signedIn ? "Stripe / PayPal 已预接入。账号密钥未配置时会进入演示结账，不会产生真实扣款。" : "登录后可同步账户积分。未登录时仅能查看演示结账状态。"}</p>
       <div class="checkout-actions">
-        <button class="btn primary full" type="button" data-confirm-checkout>确认并发放演示积分</button>
+        <button class="btn primary full" type="button" data-confirm-checkout>创建结账</button>
         <a class="btn glass full" href="./zh/login/">登录账户</a>
       </div>
     </div>
@@ -2513,14 +2531,34 @@ function openCheckoutModal({ credits, planName, price, promo = "" }) {
     button.addEventListener("click", () => {
       overlay.querySelectorAll("[data-checkout-method]").forEach((item) => item.classList.remove("active"));
       button.classList.add("active");
+      const provider = PAYMENT_PROVIDERS.find((item) => item.id === button.dataset.checkoutMethod);
+      overlay.querySelector(".checkout-note").textContent = provider?.configured
+        ? `${provider.label} 已有前端配置，将尝试创建真实结账会话。`
+        : `${provider?.label || "支付方式"} 入口已准备好，但账号密钥还未配置；当前只会走演示模式。`;
     });
   });
   overlay.querySelector("[data-confirm-checkout]")?.addEventListener("click", async () => {
     const confirmButton = overlay.querySelector("[data-confirm-checkout]");
     const method = overlay.querySelector("[data-checkout-method].active")?.dataset.checkoutMethod || "paypal";
     confirmButton.disabled = true;
-    confirmButton.textContent = "正在发放积分";
+    confirmButton.textContent = "正在创建结账";
     try {
+      const checkout = await runRemotePaymentCheckout({
+        provider: method,
+        credits,
+        planName,
+        amountCents: parsePriceToCents(price)
+      });
+      if (checkout?.checkoutUrl) {
+        overlay.querySelector(".checkout-note").textContent = "真实结账会话已创建，正在跳转到支付页面。";
+        window.location.href = checkout.checkoutUrl;
+        return;
+      }
+    } catch (error) {
+      overlay.querySelector(".checkout-note").textContent = `${error.message || "真实支付暂不可用"}。当前账号未完成支付配置，下面会切换到演示结账。`;
+    }
+    try {
+      confirmButton.textContent = "正在发放演示积分";
       const remoteOrder = await runRemoteDemoCreditPurchase({
         credits,
         method,
@@ -2565,6 +2603,22 @@ function openCheckoutModal({ credits, planName, price, promo = "" }) {
       window.location.href = "./zh/dashboard/";
     }, 650);
   });
+}
+
+async function runRemotePaymentCheckout(input) {
+  if (!supabase) return null;
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData.session?.user) return null;
+  const result = await invokeAi("create-payment-checkout", {
+    provider: input.provider,
+    credits: input.credits,
+    planName: input.planName,
+    amountCents: input.amountCents,
+    currency: "USD",
+    returnUrl: new URL("./zh/dashboard/", window.location.href).href,
+    cancelUrl: new URL("./zh/pricing/", window.location.href).href
+  });
+  return result || null;
 }
 
 async function runRemoteDemoCreditPurchase(input) {

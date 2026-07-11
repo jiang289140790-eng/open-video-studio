@@ -96,6 +96,15 @@ Deno.serve(async (req) => {
       return json({ order });
     }
 
+    if (action === "payment-provider-status") {
+      return json({ providers: paymentProviderStatus(env), demoCheckoutAvailable: true });
+    }
+
+    if (action === "create-payment-checkout") {
+      const checkout = await createPaymentCheckout(adminClient, env, user.id, body);
+      return json(checkout);
+    }
+
     return json({ error: { code: "AI_ACTION_UNKNOWN", message: `Unknown AI action: ${action}` } }, 400);
   } catch (error) {
     const code = error instanceof AiFunctionError ? error.code : "AI_FUNCTION_FAILED";
@@ -1033,6 +1042,169 @@ async function createDemoCreditPurchase(adminClient: any, userId: string, body: 
   return fulfilled.data;
 }
 
+async function createPaymentCheckout(adminClient: any, env: AiEnv, userId: string, body: Record<string, unknown>) {
+  const provider = String(body.provider || "").trim().toLowerCase();
+  if (!["stripe", "paypal"].includes(provider)) {
+    throw new AiFunctionError("PAYMENT_PROVIDER_UNSUPPORTED", "Only Stripe and PayPal checkout are supported.", 400);
+  }
+  const credits = clampNumber(body.credits, 0, 1, 200000);
+  const amountCents = clampNumber(body.amountCents, 0, 50, 100000000);
+  const currency = String(body.currency || "USD").trim().toUpperCase().slice(0, 8) || "USD";
+  const planName = String(body.planName || `${credits} Luravyn credits`).trim().slice(0, 120);
+  const returnUrl = safeReturnUrl(body.returnUrl, `${env.appUrl}/zh/dashboard/`);
+  const cancelUrl = safeReturnUrl(body.cancelUrl, `${env.appUrl}/zh/pricing/`);
+  const timestamp = new Date().toISOString();
+  const orderId = createId("order");
+
+  const orderInsert = await adminClient.from("orders").insert({
+    id: orderId,
+    account_id: userId,
+    user_id: userId,
+    provider_reference: `${provider}:pending`,
+    order_type: "credit_purchase",
+    status: "pending",
+    currency,
+    amount_cents: amountCents,
+    credits_granted: credits,
+    credit_transaction_id: null,
+    created_at: timestamp,
+    updated_at: timestamp,
+  }).select("*").single();
+  if (orderInsert.error) throw new AiFunctionError("PAYMENT_ORDER_CREATE_FAILED", orderInsert.error.message, 502);
+
+  try {
+    const providerResult = provider === "stripe"
+      ? await createStripeCheckoutSession(env, { orderId, userId, credits, amountCents, currency, planName, returnUrl, cancelUrl })
+      : await createPaypalOrder(env, { orderId, userId, credits, amountCents, currency, planName, returnUrl, cancelUrl });
+
+    const updated = await adminClient.from("orders").update({
+      provider_reference: `${provider}:${providerResult.providerReference}`,
+      updated_at: new Date().toISOString(),
+    }).eq("id", orderId).eq("user_id", userId).select("*").single();
+    if (updated.error) throw new AiFunctionError("PAYMENT_ORDER_UPDATE_FAILED", updated.error.message, 502);
+
+    return {
+      provider,
+      checkoutUrl: providerResult.checkoutUrl,
+      providerReference: providerResult.providerReference,
+      order: updated.data,
+      mode: "provider_checkout",
+    };
+  } catch (error) {
+    await adminClient.from("orders").update({
+      status: "failed",
+      updated_at: new Date().toISOString(),
+    }).eq("id", orderId).eq("user_id", userId);
+    throw error;
+  }
+}
+
+async function createStripeCheckoutSession(env: AiEnv, input: PaymentCheckoutInput) {
+  if (!env.stripeSecretKey) {
+    throw new AiFunctionError("PAYMENT_PROVIDER_NOT_CONFIGURED", "Stripe is not configured yet.", 409);
+  }
+  const successUrl = appendCheckoutParams(input.returnUrl, { provider: "stripe", order_id: input.orderId, checkout: "success" });
+  const cancelUrl = appendCheckoutParams(input.cancelUrl, { provider: "stripe", order_id: input.orderId, checkout: "cancelled" });
+  const params = new URLSearchParams();
+  params.set("mode", "payment");
+  params.set("success_url", `${successUrl}&session_id={CHECKOUT_SESSION_ID}`);
+  params.set("cancel_url", cancelUrl);
+  params.set("client_reference_id", input.orderId);
+  params.set("line_items[0][price_data][currency]", input.currency.toLowerCase());
+  params.set("line_items[0][price_data][product_data][name]", input.planName);
+  params.set("line_items[0][price_data][unit_amount]", String(input.amountCents));
+  params.set("line_items[0][quantity]", "1");
+  params.set("metadata[order_id]", input.orderId);
+  params.set("metadata[user_id]", input.userId);
+  params.set("metadata[credits]", String(input.credits));
+
+  const response = await fetchWithTimeout("https://api.stripe.com/v1/checkout/sessions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.stripeSecretKey}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: params,
+  }, env.providerTimeoutMs);
+  const data = await parseProviderResponse(response, "STRIPE_CHECKOUT_FAILED");
+  if (!data?.id || !data?.url) throw new AiFunctionError("STRIPE_CHECKOUT_INVALID_RESPONSE", "Stripe did not return a checkout URL.", 502);
+  return { providerReference: String(data.id), checkoutUrl: String(data.url) };
+}
+
+async function createPaypalOrder(env: AiEnv, input: PaymentCheckoutInput) {
+  if (!env.paypalClientId || !env.paypalClientSecret) {
+    throw new AiFunctionError("PAYMENT_PROVIDER_NOT_CONFIGURED", "PayPal is not configured yet.", 409);
+  }
+  const baseUrl = env.paypalEnvironment === "live" ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com";
+  const tokenResponse = await fetchWithTimeout(`${baseUrl}/v1/oauth2/token`, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${btoa(`${env.paypalClientId}:${env.paypalClientSecret}`)}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: "grant_type=client_credentials",
+  }, env.providerTimeoutMs);
+  const tokenData = await parseProviderResponse(tokenResponse, "PAYPAL_TOKEN_FAILED");
+  const accessToken = String(tokenData?.access_token || "");
+  if (!accessToken) throw new AiFunctionError("PAYPAL_TOKEN_INVALID_RESPONSE", "PayPal did not return an access token.", 502);
+
+  const orderResponse = await fetchWithTimeout(`${baseUrl}/v2/checkout/orders`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      intent: "CAPTURE",
+      purchase_units: [{
+        reference_id: input.orderId,
+        custom_id: input.orderId,
+        description: input.planName,
+        amount: {
+          currency_code: input.currency,
+          value: (input.amountCents / 100).toFixed(2),
+        },
+      }],
+      payment_source: {
+        paypal: {
+          experience_context: {
+            brand_name: "Luravyn",
+            user_action: "PAY_NOW",
+            shipping_preference: "NO_SHIPPING",
+            return_url: appendCheckoutParams(input.returnUrl, { provider: "paypal", order_id: input.orderId, checkout: "success" }),
+            cancel_url: appendCheckoutParams(input.cancelUrl, { provider: "paypal", order_id: input.orderId, checkout: "cancelled" }),
+          },
+        },
+      },
+    }),
+  }, env.providerTimeoutMs);
+  const data = await parseProviderResponse(orderResponse, "PAYPAL_ORDER_FAILED");
+  const checkoutUrl = Array.isArray(data?.links)
+    ? data.links.find((link: Record<string, unknown>) => ["approve", "payer-action"].includes(String(link.rel)))?.href
+    : "";
+  if (!data?.id || !checkoutUrl) throw new AiFunctionError("PAYPAL_ORDER_INVALID_RESPONSE", "PayPal did not return an approval URL.", 502);
+  return { providerReference: String(data.id), checkoutUrl: String(checkoutUrl) };
+}
+
+function paymentProviderStatus(env: AiEnv) {
+  return [
+    {
+      provider: "stripe",
+      configured: Boolean(env.stripeSecretKey),
+      mode: env.stripeMode,
+      publicKeyConfigured: Boolean(env.stripePublishableKey),
+      webhookConfigured: Boolean(env.stripeWebhookSecret),
+    },
+    {
+      provider: "paypal",
+      configured: Boolean(env.paypalClientId && env.paypalClientSecret),
+      mode: env.paypalEnvironment,
+      publicClientConfigured: Boolean(env.paypalClientId),
+      webhookConfigured: Boolean(env.paypalWebhookId),
+    },
+  ];
+}
+
 async function createShareLink(adminClient: any, userId: string, body: Record<string, unknown>) {
   const assetId = requireText(body.assetId, "ASSET_ID_REQUIRED");
   const { data: asset, error: assetError } = await adminClient
@@ -1269,6 +1441,15 @@ function loadAiEnv(): AiEnv {
     liblibPollIntervalMs: clampNumber(Deno.env.get("LIBLIB_POLL_INTERVAL_MS"), 5000, 1000, 30000),
     aiProviderDefault: safeProvider(Deno.env.get("AI_PROVIDER_DEFAULT")) || "fake_worker",
     providerTimeoutMs: clampNumber(Deno.env.get("AI_PROVIDER_TIMEOUT_MS"), 60000, 5000, 180000),
+    appUrl: Deno.env.get("APP_URL") || "https://jiang289140790-eng.github.io/open-video-studio",
+    stripeSecretKey: Deno.env.get("STRIPE_SECRET_KEY") ?? "",
+    stripePublishableKey: Deno.env.get("STRIPE_PUBLISHABLE_KEY") ?? "",
+    stripeWebhookSecret: Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "",
+    stripeMode: Deno.env.get("STRIPE_MODE") === "live" ? "live" : "test",
+    paypalClientId: Deno.env.get("PAYPAL_CLIENT_ID") ?? "",
+    paypalClientSecret: Deno.env.get("PAYPAL_CLIENT_SECRET") ?? "",
+    paypalWebhookId: Deno.env.get("PAYPAL_WEBHOOK_ID") ?? "",
+    paypalEnvironment: Deno.env.get("PAYPAL_ENVIRONMENT") === "live" ? "live" : "sandbox",
   };
 }
 
@@ -1320,6 +1501,24 @@ function createShareToken(): string {
   return `s_${crypto.randomUUID().replaceAll("-", "").slice(0, 24)}`;
 }
 
+function safeReturnUrl(value: unknown, fallback: string): string {
+  const raw = String(value || "").trim();
+  const candidate = raw || fallback;
+  try {
+    const url = new URL(candidate);
+    if (!["http:", "https:"].includes(url.protocol)) return fallback;
+    return url.toString();
+  } catch {
+    return fallback;
+  }
+}
+
+function appendCheckoutParams(baseUrl: string, params: Record<string, string>) {
+  const url = new URL(baseUrl);
+  for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
+  return url.toString();
+}
+
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -1363,4 +1562,24 @@ interface AiEnv {
   liblibPollIntervalMs: number;
   aiProviderDefault: string;
   providerTimeoutMs: number;
+  appUrl: string;
+  stripeSecretKey: string;
+  stripePublishableKey: string;
+  stripeWebhookSecret: string;
+  stripeMode: "test" | "live";
+  paypalClientId: string;
+  paypalClientSecret: string;
+  paypalWebhookId: string;
+  paypalEnvironment: "sandbox" | "live";
+}
+
+interface PaymentCheckoutInput {
+  orderId: string;
+  userId: string;
+  credits: number;
+  amountCents: number;
+  currency: string;
+  planName: string;
+  returnUrl: string;
+  cancelUrl: string;
 }
