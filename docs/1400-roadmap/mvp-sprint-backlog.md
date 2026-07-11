@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.13.0 |
+| Version | 1.14.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -266,6 +266,15 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Dependencies: MVP-S3-012, MVP-S3-013, DB-MEDIA-ASSETS-001, DB-SHARE-LINKS-001.
 - Acceptance Criteria: completed generation results render as a player-style output card with saved-location copy, title, prompt, specification, provider/model, credits, status, download, share, regenerate, and continue-use actions; image outputs can be reused as the next image-to-video reference; video outputs can restart a similar video flow with the saved prompt.
 - Related Documents: PAGE-GENERATE-001, PAGE-GALLERY-001, DB-MEDIA-ASSETS-001, DB-SHARE-LINKS-001.
+
+### MVP-S3-016 Image-to-Video Reference Upload Controls
+
+- Priority: P0.
+- Status: Completed.
+- Estimated Time: 0.25 day.
+- Dependencies: MVP-S3-012, MVP-S3-014, BE-ARCH-STORAGE-001, DB-MEDIA-ASSETS-001.
+- Acceptance Criteria: users can choose a reference image from gallery, capture from camera on mobile, replace the current reference, delete it, see file size/source metadata, and see local/uploading/ready/error upload states; failed Supabase uploads preserve local fallback generation instead of blocking the MVP loop.
+- Related Documents: PAGE-GENERATE-001, BE-ARCH-STORAGE-001, DB-MEDIA-ASSETS-001.
 
 ## Sprint 4: Admin And MVP Integration
 

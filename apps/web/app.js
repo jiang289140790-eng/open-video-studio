@@ -2799,6 +2799,11 @@ function applyInitialVideoPreset() {
   });
   document.querySelector("[data-mobile-generate]")?.addEventListener("click", () => generateButton?.click());
   document.querySelector("[data-video-upload]")?.addEventListener("change", handleVideoReferenceUpload);
+  document.querySelector("[data-video-camera-upload]")?.addEventListener("change", handleVideoReferenceUpload);
+  document.querySelector("[data-replace-video-reference]")?.addEventListener("click", () => {
+    document.querySelector("[data-video-upload]")?.click();
+  });
+  document.querySelector("[data-clear-video-reference]")?.addEventListener("click", clearVideoReference);
   document.querySelector("[data-open-asset-picker]")?.addEventListener("click", openVideoAssetPicker);
   document.querySelector("[data-close-asset-picker]")?.addEventListener("click", closeVideoAssetPicker);
   document.querySelector("[data-asset-picker]")?.addEventListener("click", (event) => {
@@ -2843,6 +2848,7 @@ async function handleVideoReferenceUpload(event) {
   if (!file) return;
   if (!file.type.startsWith("image/")) {
     showSiteToast("请上传图片文件作为视频参考图。");
+    setVideoUploadStatus("请选择图片文件", "error");
     return;
   }
   const localPreviewUrl = URL.createObjectURL(file);
@@ -2859,17 +2865,28 @@ async function handleVideoReferenceUpload(event) {
     previewUrl: localPreviewUrl,
     sourceType: "reference_image",
     fileName: file.name,
-    fileSize: file.size
+    fileSize: file.size,
+    fileType: file.type,
+    uploadStatus: supabase ? "本地已选择，正在上传到 Supabase。" : "本地演示可用，登录并配置 Supabase 后可远端保存。"
   };
-  selectVideoReference(reference);
+  selectVideoReference(reference, { status: reference.uploadStatus });
   showSiteToast("参考图已选择，正在准备生成输入。");
 
-  if (!supabase) return;
+  if (!supabase) {
+    setVideoUploadStatus("本地可用", "ready");
+    return;
+  }
+  setVideoUploadStatus("上传中", "uploading");
   try {
     const remoteReference = await uploadVideoReferenceToSupabase(file, reference);
-    selectVideoReference(remoteReference);
+    selectVideoReference(remoteReference, { status: "已上传到 Supabase Storage，可用于真实图片转视频。" });
+    setVideoUploadStatus("已上传", "ready");
     showSiteToast("参考图已上传到 Supabase Storage，可用于真实图片转视频。");
   } catch (error) {
+    reference.uploadStatus = `${error.message || "参考图上传失败"}，仍可使用本地演示生成。`;
+    selectedVideoReference = reference;
+    updateVideoReferenceCard(reference, reference.uploadStatus, "error");
+    setVideoUploadStatus("上传失败，本地可用", "error");
     showSiteToast(`${error.message || "参考图上传失败"}，仍可使用本地演示生成。`);
   }
 }
@@ -2919,7 +2936,8 @@ async function uploadVideoReferenceToSupabase(file, reference) {
     storageKey,
     sourceAssetId: String(inserted.data.id),
     sourceImageUrl: signed.data?.signedUrl || "",
-    title: String(inserted.data.display_name || reference.title)
+    title: String(inserted.data.display_name || reference.title),
+    uploadStatus: "已上传到 Supabase Storage，可用于真实图片转视频。"
   };
 }
 
@@ -2929,6 +2947,8 @@ function selectVideoReference(reference, options = {}) {
   if (label) {
     label.textContent = `${reference.title || "参考图"} · ${reference.remote ? "已上传" : "本地可用"}`;
   }
+  updateVideoReferenceCard(reference, options.status || reference.uploadStatus || (reference.remote ? "已上传到 Supabase Storage。" : "本地可用。"), reference.remote ? "ready" : "local");
+  setVideoUploadStatus(reference.remote ? "已上传" : "已选择", reference.remote ? "ready" : "local");
   const preview = document.querySelector("[data-video-preview]");
   if (preview) {
     preview.classList.add("has-reference-preview");
@@ -2947,6 +2967,62 @@ function selectVideoReference(reference, options = {}) {
     renderState(state);
   }
   updateVideoPreflight();
+}
+
+function updateVideoReferenceCard(reference, statusText = "", status = "local") {
+  const card = document.querySelector("[data-video-reference-card]");
+  if (!card) return;
+  card.hidden = false;
+  card.dataset.referenceStatus = status;
+  const label = card.querySelector("[data-video-reference-label]");
+  const meta = card.querySelector("[data-video-reference-meta]");
+  if (label) label.textContent = `${reference.title || reference.fileName || "参考图"} · ${reference.remote ? "远端已保存" : "本地参考"}`;
+  const detailParts = [
+    reference.fileName || reference.title || "参考图",
+    reference.fileSize ? formatFileSize(reference.fileSize) : "",
+    statusText || reference.uploadStatus || ""
+  ].filter(Boolean);
+  if (meta) meta.textContent = detailParts.join(" · ");
+  document.querySelector("[data-replace-video-reference]")?.removeAttribute("hidden");
+  document.querySelector("[data-clear-video-reference]")?.removeAttribute("hidden");
+}
+
+function setVideoUploadStatus(message, status = "idle") {
+  const target = document.querySelector("[data-video-upload-status]");
+  if (!target) return;
+  target.textContent = message;
+  target.dataset.uploadStatus = status;
+}
+
+function clearVideoReference() {
+  if (selectedVideoReference?.previewUrl?.startsWith("blob:")) {
+    URL.revokeObjectURL(selectedVideoReference.previewUrl);
+  }
+  selectedVideoReference = null;
+  document.querySelectorAll("[data-video-upload], [data-video-camera-upload]").forEach((input) => {
+    input.value = "";
+  });
+  const label = document.querySelector("[data-video-reference-label]");
+  if (label) label.textContent = "尚未选择参考图";
+  const card = document.querySelector("[data-video-reference-card]");
+  if (card) card.hidden = true;
+  document.querySelector("[data-replace-video-reference]")?.setAttribute("hidden", "");
+  document.querySelector("[data-clear-video-reference]")?.setAttribute("hidden", "");
+  setVideoUploadStatus("等待选择", "idle");
+  const preview = document.querySelector("[data-video-preview]");
+  if (preview) {
+    preview.classList.remove("has-reference-preview");
+    preview.style.removeProperty("--reference-image");
+  }
+  updateVideoPreflight();
+  showSiteToast("已删除当前参考图。");
+}
+
+function formatFileSize(bytes) {
+  const value = Number(bytes || 0);
+  if (!value) return "";
+  if (value < 1024 * 1024) return `${Math.max(1, Math.round(value / 1024))} KB`;
+  return `${(value / 1024 / 1024).toFixed(1)} MB`;
 }
 
 function openVideoAssetPicker() {

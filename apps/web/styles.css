@@ -974,6 +974,75 @@ body.tool-layout .tool-card {
   padding: 20px;
   color: var(--muted);
 }
+.video-reference-zone {
+  gap: 14px;
+}
+.upload-zone-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+.upload-zone-head strong {
+  color: #fff;
+}
+.upload-zone-head span {
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.09);
+  color: #dbeafe;
+  font-size: .76rem;
+  font-weight: 900;
+}
+.upload-zone-head span[data-upload-status="uploading"] {
+  background: rgba(56,189,248,0.16);
+  color: #a5f3fc;
+}
+.upload-zone-head span[data-upload-status="ready"] {
+  background: rgba(52,211,153,0.16);
+  color: #bbf7d0;
+}
+.upload-zone-head span[data-upload-status="error"] {
+  background: rgba(248,113,113,0.16);
+  color: #fecaca;
+}
+.video-reference-zone p {
+  margin: 0;
+}
+.reference-input-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.reference-input-actions .btn {
+  cursor: pointer;
+}
+.btn.danger {
+  border-color: rgba(248,113,113,0.38);
+  color: #fecaca;
+}
+.reference-card {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 18px;
+  padding: 10px;
+  background: rgba(0,0,0,0.2);
+}
+.reference-card[hidden] {
+  display: none;
+}
+.reference-card small {
+  display: block;
+  margin-top: 4px;
+  color: #cdd3e5;
+  line-height: 1.4;
+}
+.reference-card[data-reference-status="error"] {
+  border-color: rgba(248,113,113,0.4);
+}
 .preview-head, .sticky-generate, .result-row, .history-row, .library-card {
   display: flex;
   justify-content: space-between;
@@ -3902,6 +3971,16 @@ body.tool-layout .site-footer {
     min-width: 0;
   }
   .studio-panel { width: 100%; padding: 18px; }
+  .upload-zone-head,
+  .reference-input-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .reference-input-actions .btn,
+  .reference-input-actions button {
+    width: 100%;
+    justify-content: center;
+  }
   .generated-output-card,
   .generated-output-meta dl {
     grid-template-columns: 1fr;

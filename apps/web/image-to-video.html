@@ -82,11 +82,26 @@
           </label>
         </div>
 
-        <label class="upload-zone">上传参考图片
-          <input type="file" aria-label="Upload reference image" accept="image/*" data-video-upload>
-          <span>手机端可从相册选择或拍照；桌面端可上传角色图、商品图、海报图或场景图。</span>
-          <strong data-video-reference-label>尚未选择参考图</strong>
-        </label>
+        <section class="upload-zone video-reference-zone" data-video-upload-zone>
+          <div class="upload-zone-head">
+            <strong>上传参考图片</strong>
+            <span data-video-upload-status>等待选择</span>
+          </div>
+          <p>手机端可从相册选择或拍照；桌面端可上传角色图、商品图、海报图或场景图。</p>
+          <div class="reference-input-actions">
+            <label class="btn glass">从相册选择<input type="file" aria-label="Upload reference image" accept="image/*" data-video-upload hidden></label>
+            <label class="btn glass">拍照上传<input type="file" aria-label="Capture reference image" accept="image/*" capture="environment" data-video-camera-upload hidden></label>
+            <button class="btn glass" type="button" data-replace-video-reference hidden>更换参考图</button>
+            <button class="btn glass danger" type="button" data-clear-video-reference hidden>删除参考图</button>
+          </div>
+          <article class="reference-card" data-video-reference-card hidden>
+            <span class="thumb art-3" data-video-reference-thumb></span>
+            <div>
+              <strong data-video-reference-label>尚未选择参考图</strong>
+              <small data-video-reference-meta>请选择图片后继续。</small>
+            </div>
+          </article>
+        </section>
         <div class="asset-picker-actions">
           <button class="btn glass" type="button" data-open-asset-picker>从资产库选择</button>
           <button class="btn glass" type="button" data-demo-reference>使用示例图片</button>

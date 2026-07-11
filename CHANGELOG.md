@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.93.0 |
+| Version | 0.94.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,9 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Improved the Image-to-Video reference upload panel. Users can now choose from gallery, capture from camera on mobile, replace the current reference, delete it, see file size/source details, and see upload states for idle, local, uploading, ready, and failed uploads.
+- Upload failures now keep the local reference available for Fake Worker/demo generation while clearly marking the remote upload failure in the UI.
+- Added regression coverage for reference upload status, camera upload input, replace/delete controls, reference metadata, and upload-state helpers.
 - Upgraded the generated result preview into a post-generation output card. Completed generations now show a player-style output area with title, prompt, specification, provider/model, credit cost, status, saved-location copy, download, share, regenerate, and continue-use actions.
 - Added result reuse behavior: image outputs can be set as the next Image-to-Video reference, while video outputs can restart a similar video flow with the saved prompt.
 - Added responsive styles and static regression coverage for the generated output card, generated download action, and output reuse control.
@@ -62,6 +65,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for the Image-to-Video reference upload panel and upload-state controls.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for the generated result output card and post-generation actions.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for the Image-to-Video preflight panel and no-reference submit guard.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for generation task refresh/cancel, remote Storage download URLs, share-page metadata/download actions, and authenticated remote data render.

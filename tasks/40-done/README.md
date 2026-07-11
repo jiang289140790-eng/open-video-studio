@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | TASK-DONE-001 |
-| Version | 0.7.0 |
+| Version | 0.8.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | TASK-001 |
@@ -24,6 +24,7 @@ Archive completed tasks with verification evidence and follow-up notes.
 
 ## Completed Tasks
 
+- 2026-07-11: Image-to-Video reference upload controls. Added gallery selection, mobile camera capture, replace, delete, file metadata, local/uploading/ready/error upload state display, and remote-upload-failed/local-fallback behavior for reference images. Verification: `npm run test` passed with 74 tests.
 - 2026-07-11: Generated result output card. Replaced the thin generated-preview link list with a player-style output card showing saved destination, title, prompt, specification, provider/model, credits, status, download, share, regenerate, and continue-use actions. Image outputs can become the next reference image; video outputs restart a similar video flow with the saved prompt. Verification: `npm run test` passed with 74 tests.
 - 2026-07-11: Image-to-Video preflight and reference guard. Added submit-time confirmation for reference image, output ratio, duration, provider/model, estimated time, output format, credit cost, and save destination; blocked image-to-video submission until upload, asset selection, URL source, or demo reference provides a reference image. Verification: `npm run test` passed with 74 tests.
 - 2026-07-11: Generation task and share download loop. Added History search/filter controls, remote all-job and single-job refresh, cancellable remote jobs, visible failure/refund/progress states, remote Storage signed/public download URL attachment, and public Share page type/model/status/download metadata with unavailable-link fallback. Verification: `npm run test` passed with 74 tests.
