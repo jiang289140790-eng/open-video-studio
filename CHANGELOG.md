@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.91.0 |
+| Version | 0.92.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,9 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Added an Image-to-Video preflight panel before generation submit. Users now see the selected reference image, ratio, duration, provider/model, estimated time, output format, credit cost, and save destination before spending credits.
+- Image-to-Video now blocks submission until a reference image is selected through upload, Asset Library, URL source, or demo reference, tightening the core upload -> generate -> save loop.
+- Added responsive preflight styling and regression coverage for the preflight fields and no-reference guard.
 - Strengthened the generation task and share loop. History now supports search, status/type filters, remote status refresh, single-job refresh, cancellable remote jobs, visible failure reasons, refund messaging, progress bars, output links, and download actions.
 - Public share pages now hydrate remote Supabase assets by share token, show unavailable-link fallback states, display asset type/model/status metadata, and expose signed Storage/public output downloads when available.
 - Remote product sync now attaches Supabase Storage public/signed URLs to `media_assets`, and authenticated session hydration renders immediately after remote data sync so Gallery/History/Share surfaces reflect the latest backend state.
@@ -56,6 +59,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for the Image-to-Video preflight panel and no-reference submit guard.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for generation task refresh/cancel, remote Storage download URLs, share-page metadata/download actions, and authenticated remote data render.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for reference uploads, in-page asset picker hooks, source asset URL parameters, progress rows, output downloads, generated preview actions, and provider-aligned generation payloads.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for the new video workflow presets, task-based Video Tools page, mobile CTA, and terminology.

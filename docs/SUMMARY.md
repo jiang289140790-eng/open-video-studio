@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.96.0 |
+| Version | 0.97.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Image-to-Video now includes a generation preflight step. Before submitting, users can see the selected reference image, output ratio, duration, provider/model, estimated time, output format, and credit cost; submitting without a reference image is blocked so the primary video flow stays image-to-video instead of becoming an ambiguous empty prompt flow.
 - Generation History is now closer to a production task center. It can search prompt/model/provider/title text, filter by running/completed/failed/image/video, refresh all remote tasks, refresh or cancel a single remote task, display progress, surface failure reasons and refund amounts, and link completed outputs to Assets, Share, and downloads.
 - Public Share pages now resolve active Supabase `share_links` by token, hydrate the related `media_assets` row, attach Storage signed/public output URLs when available, show unavailable-link fallback copy for revoked/missing assets, and expose model/type/status/download metadata without requiring frontend provider changes.
 - Image-to-Video now has a first actionable input-to-output loop. The generator can accept an uploaded reference image, an in-page asset-library selection, or a demo reference image; logged-in Supabase users can upload the reference to Storage, create a reference `media_assets` row, and pass `sourceAssetId` / `sourceImageUrl` to the existing `ai` Edge Function without changing backend architecture.

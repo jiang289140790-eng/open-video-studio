@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.11.0 |
+| Version | 1.12.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -248,6 +248,15 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Dependencies: MVP-S3-012, MVP-S3-005, MVP-S3-007, API-GEN-VIDEO-001, DB-GENERATION-JOBS-001, DB-MEDIA-ASSETS-001, DB-SHARE-LINKS-001.
 - Acceptance Criteria: History supports search, status/type filters, all-job refresh, single-job refresh, cancellable remote jobs, visible failure reasons, refund messaging, progress bars, output links, share actions, and downloadable completed outputs; public Share pages resolve Supabase share tokens, show unavailable-link fallback states, display type/model/status metadata, and expose Storage-backed downloads when available.
 - Related Documents: PAGE-GENERATE-001, PAGE-GALLERY-001, DB-GENERATION-JOBS-001, DB-MEDIA-ASSETS-001, DB-SHARE-LINKS-001, BE-ARCH-STORAGE-001.
+
+### MVP-S3-014 Image-to-Video Preflight And Reference Guard
+
+- Priority: P0.
+- Status: Completed.
+- Estimated Time: 0.25 day.
+- Dependencies: MVP-S3-012, API-GEN-VIDEO-001, DB-MEDIA-ASSETS-001, BE-ARCH-STORAGE-001.
+- Acceptance Criteria: before submitting an image-to-video job, the user can see the selected reference image, ratio, duration, provider/model, estimated time, output format, credit cost, and save destination; submitting without a reference image is blocked with a clear prompt to upload, choose from assets, or use a demo reference.
+- Related Documents: PAGE-GENERATE-001, API-GEN-VIDEO-001, DB-MEDIA-ASSETS-001.
 
 ## Sprint 4: Admin And MVP Integration
 

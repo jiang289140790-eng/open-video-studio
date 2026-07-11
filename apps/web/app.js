@@ -1615,6 +1615,7 @@ function renderState(current) {
   document.querySelectorAll("[data-user-name]").forEach((node) => {
     node.textContent = current.user ? current.user.name : "访客创作者";
   });
+  updateVideoPreflight();
   renderCharacters(current);
   renderAssets(current);
   renderHistory(current);
@@ -2822,6 +2823,7 @@ function applyInitialVideoPreset() {
     }, { addToAssets: false });
     showSiteToast("已选择示例参考图。提交后会作为图片转视频首帧。");
   });
+  updateVideoPreflight();
 }
 
 function applyVideoSourceFromUrl() {
@@ -2944,6 +2946,7 @@ function selectVideoReference(reference, options = {}) {
     saveState(state);
     renderState(state);
   }
+  updateVideoPreflight();
 }
 
 function openVideoAssetPicker() {
@@ -3021,6 +3024,7 @@ function applyVideoPreset(presetId, options = {}) {
     url.searchParams.set("preset", presetId);
     window.history.replaceState(null, "", url);
   }
+  updateVideoPreflight();
 }
 
 function updateVideoEstimateFromControls() {
@@ -3034,6 +3038,7 @@ function updateVideoEstimateFromControls() {
   if (previewMeta) previewMeta.textContent = `${ratio} · ${duration}秒 · ${model}`;
   const costNote = document.querySelector("[data-video-cost-note]");
   if (costNote) costNote.textContent = `预计消耗 ${cost} 积分。结果会保存到生成任务、资产库和我的作品。`;
+  updateVideoPreflight();
 }
 
 function getActiveVideoPreset() {
@@ -3047,6 +3052,52 @@ function getActiveVideoPreset() {
     id,
     cost: Math.max(preset.cost, duration >= 10 ? preset.cost + 8 : preset.cost)
   };
+}
+
+function getVideoPreflightEstimate() {
+  const preset = getActiveVideoPreset() || videoWorkflowPresets["image-video"];
+  const ratio = document.querySelector("[data-video-ratio]")?.value || preset.ratio;
+  const duration = Number(document.querySelector("[data-video-duration]")?.value || preset.duration);
+  const modelInput = document.querySelector("[data-video-model]");
+  const model = modelInput?.value || preset.model;
+  const modelLabel = modelInput?.selectedOptions?.[0]?.textContent || model;
+  const cost = Math.max(preset.cost, duration >= 10 ? preset.cost + 8 : preset.cost);
+  const realProvider = model !== "fake_worker";
+  return {
+    preset,
+    ratio,
+    duration,
+    model,
+    modelLabel,
+    cost,
+    expectedTime: realProvider ? (duration >= 10 ? "约 2-5 分钟" : "约 1-3 分钟") : "约 10-30 秒",
+    output: realProvider ? "MP4 视频资产" : "演示元数据 / 视频资产",
+    ready: Boolean(selectedVideoReference)
+  };
+}
+
+function updateVideoPreflight() {
+  if (!document.querySelector("[data-video-preflight]")) return;
+  const estimate = getVideoPreflightEstimate();
+  const referenceLabel = selectedVideoReference
+    ? `${selectedVideoReference.title || "参考图"} · ${selectedVideoReference.remote ? "已上传" : "本地/演示"}`
+    : "未选择";
+  setText("[data-video-preflight-reference]", referenceLabel);
+  setText("[data-video-preflight-spec]", `${estimate.ratio} · ${estimate.duration}秒`);
+  setText("[data-video-preflight-model]", estimate.modelLabel);
+  setText("[data-video-preflight-time]", estimate.expectedTime);
+  setText("[data-video-preflight-output]", estimate.output);
+  setText("[data-video-preflight-cost]", `${estimate.cost} 积分`);
+  const readyState = document.querySelector("[data-video-ready-state]");
+  if (readyState) {
+    const lowCredits = state.credits < estimate.cost;
+    readyState.textContent = !estimate.ready
+      ? "请先上传图片或从资产库选择参考图，再提交图片转视频任务。"
+      : lowCredits
+        ? `当前积分 ${state.credits}，还差 ${estimate.cost - state.credits} 积分。请先购买积分或领取每日奖励。`
+        : "已准备好提交。成功后会保存到生成任务、资产库和我的作品，并支持下载和分享。";
+    readyState.dataset.ready = estimate.ready && !lowCredits ? "true" : "false";
+  }
 }
 
 if (enhanceButton && promptBox) {
@@ -3088,6 +3139,12 @@ if (generateButton && queueTarget) {
     const durationSeconds = Number(document.querySelector("[data-video-duration]")?.value || 0) || undefined;
     const model = document.querySelector("[data-video-model]")?.value || "";
     const reference = selectedVideoReference;
+    if (document.querySelector("[data-video-generator]") && !reference) {
+      updateVideoPreflight();
+      showSiteToast("请先上传图片、从资产库选择图片，或使用示例参考图。");
+      document.querySelector("[data-video-upload]")?.focus();
+      return;
+    }
     const progressRow = createGenerationProgressRow({
       title,
       cost,

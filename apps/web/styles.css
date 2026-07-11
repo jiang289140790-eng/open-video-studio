@@ -1604,6 +1604,49 @@ body.tool-layout .tool-card {
   margin: 0;
   color: #cdd3e5;
 }
+.generation-preflight {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 16px 0;
+  padding: 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
+  background: rgba(255,255,255,0.06);
+}
+.generation-preflight div {
+  min-width: 0;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(0,0,0,0.16);
+}
+.generation-preflight span {
+  display: block;
+  margin-bottom: 4px;
+  color: #aeb7cf;
+  font-size: .76rem;
+  font-weight: 850;
+}
+.generation-preflight strong {
+  display: block;
+  color: #fff;
+  font-size: .9rem;
+  line-height: 1.35;
+}
+.generation-preflight p {
+  grid-column: 1 / -1;
+  margin: 0;
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(56,189,248,0.1);
+  color: #dbeafe;
+  font-weight: 850;
+}
+.generation-preflight p[data-ready="false"] {
+  background: rgba(255,98,187,0.12);
+  color: #ffd7ee;
+}
 .video-options-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -3797,7 +3840,7 @@ body.tool-layout .site-footer {
   .showcase-card, .showcase-card.wide { grid-column: auto; }
   .showcase-card.tall { grid-row: auto; }
   .section-head, .pricing-preview, .final-cta, .preview-head, .sticky-generate, .result-row, .history-row, .library-card { align-items: stretch; flex-direction: column; }
-  .pricing-grid, .character-strip, .quote-grid, .usecase-grid, .step-grid, .metric-grid, .character-grid, .selector-grid, .mode-grid, .creation-grid, .creation-grid-dynamic, .creation-hero, .creation-split, .tool-grid { grid-template-columns: 1fr; }
+  .pricing-grid, .character-strip, .quote-grid, .usecase-grid, .step-grid, .metric-grid, .character-grid, .selector-grid, .mode-grid, .generation-preflight, .creation-grid, .creation-grid-dynamic, .creation-hero, .creation-split, .tool-grid { grid-template-columns: 1fr; }
   .dashboard-grid .wide { grid-column: auto; }
   .dashboard-row {
     grid-template-columns: 52px minmax(0, 1fr);
