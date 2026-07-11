@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 1.2.0 |
+| Version | 1.3.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Image-to-Video now preserves draft creation context across login. Before opening login, social OAuth, Telegram handoff, unlock modals, or real-generation auth gates, the frontend saves the current preset, prompt, ratio, duration, model, and safe reference metadata; after the user returns, the generator restores those choices and asks for a re-upload only when the previous reference was a local blob/file that should not be persisted.
 - Authentication return flow now preserves creation context. When an unauthenticated user opens a locked tool, starts a protected demo generation, or submits a real generation job, the frontend stores a same-origin normalized return target and uses it for social OAuth, Telegram login handoff, and email sign-in/sign-up. Query parameters such as Image-to-Video presets or source assets are preserved, and stale return targets are cleared once the session is restored.
 - Image-to-Video preview now reflects the actual output aspect ratio. 16:9 stays cinematic, 9:16 becomes a vertical social-video frame, and 1:1 becomes a square frame; completed output cards preserve ratio/duration metadata from local and remote generation records where available. This improves mobile review and helps users confirm the output is suitable before downloading or sharing.
 - Image-to-Video live task cards now bridge the gap between submit and task management. Remote generation exposes the created job ID back to the page, running cards can refresh or cancel the remote job, every card links to Generation Tasks, and completed cards expose Assets, download, share, and regenerate actions. This keeps the P0 loop visible without changing the backend/provider architecture.

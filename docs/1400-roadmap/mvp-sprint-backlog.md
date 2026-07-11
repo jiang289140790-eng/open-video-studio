@@ -303,6 +303,15 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Acceptance Criteria: users who hit a login gate from a tool, generation submit, protected demo generation, or social/email login flow return to the intended same-origin product route after authentication; Image-to-Video preset/source query parameters are preserved; stale return targets are cleared after session restore; default header login still routes to Dashboard.
 - Related Documents: PAGE-AUTH-001, PAGE-GENERATE-001, API-AUTH-001.
 
+### MVP-S3-020 Image-to-Video Login Draft Restore
+
+- Priority: P0.
+- Status: Completed.
+- Estimated Time: 0.25 day.
+- Dependencies: MVP-S3-019, MVP-S3-014, MVP-S3-018, PAGE-AUTH-001.
+- Acceptance Criteria: when an unauthenticated user has configured an Image-to-Video draft and then opens login, social OAuth, Telegram login, an unlock modal, or a real-generation auth gate, the current preset, prompt, ratio, duration, model, and safe reference metadata are stored locally; after returning from authentication the generator restores those choices; local blob/file references are never persisted and instead require re-upload; completed generations clear the temporary draft.
+- Related Documents: PAGE-AUTH-001, PAGE-GENERATE-001, API-AUTH-001, DB-MEDIA-ASSETS-001.
+
 ## Sprint 4: Admin And MVP Integration
 
 ### MVP-S4-001 Admin Read APIs

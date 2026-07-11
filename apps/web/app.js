@@ -3,6 +3,7 @@
 const STORE_KEY = "ovs_mvp_state_v1";
 const COOKIE_PREF_KEY = "ovs_cookie_preferences_v1";
 const AUTH_RETURN_KEY = "ovs_auth_return_target_v1";
+const VIDEO_DRAFT_KEY = "ovs_video_generation_draft_v1";
 const APP_SHELL_PAGES = new Set([
   "app.html",
   "gallery.html",
@@ -1709,6 +1710,7 @@ function renderOAuthReadiness() {
 document.querySelectorAll("[data-auth-provider]").forEach((button) => {
   button.addEventListener("click", async (event) => {
     event.preventDefault();
+    captureVideoGenerationDraft("social-auth");
     const provider = button.dataset.authProvider || "google";
     if (!supabase) {
       showAuthMessage("Supabase 尚未配置。添加 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY 后即可启用真实社交登录。", "error");
@@ -1723,6 +1725,7 @@ document.querySelectorAll("[data-auth-provider]").forEach((button) => {
 document.querySelectorAll("[data-telegram-auth]").forEach((button) => {
   button.addEventListener("click", (event) => {
     event.preventDefault();
+    captureVideoGenerationDraft("telegram-auth");
     persistAuthReturnTarget(getRequestedAuthReturnTarget("dashboard.html"));
     if (!telegramBotUsername || !telegramAuthUrl) {
       showAuthMessage("Telegram 登录需要先配置 VITE_TELEGRAM_BOT_USERNAME 和 VITE_TELEGRAM_AUTH_URL，并在后端校验 Telegram 返回签名。", "error");
@@ -1954,6 +1957,7 @@ document.addEventListener("click", async (event) => {
   const toolGenerateButton = event.target.closest("[data-tool-demo-generate]");
   if (toolGenerateButton) {
     if (!state.user) {
+      captureVideoGenerationDraft("tool-gate");
       openUnlockModal(getCurrentAuthReturnTarget());
       return;
     }
@@ -2238,6 +2242,7 @@ function openSupportWidget() {
 }
 
 function openAuthModal(nextUrl = "./zh/dashboard/") {
+  captureVideoGenerationDraft("auth-modal");
   const returnTarget = persistAuthReturnTarget(nextUrl);
   document.querySelector(".auth-overlay")?.remove();
   const overlay = document.createElement("section");
@@ -2268,6 +2273,7 @@ function openAuthModal(nextUrl = "./zh/dashboard/") {
 }
 
 async function startSocialAuth(provider, nextUrl = "./zh/dashboard/") {
+  captureVideoGenerationDraft("modal-social-auth");
   const returnTarget = persistAuthReturnTarget(nextUrl);
   const message = document.querySelector(".auth-overlay [data-auth-message]") || document.querySelector("[data-auth-message]");
   const setMessage = (text, tone = "error") => {
@@ -2338,6 +2344,7 @@ document.addEventListener("mousedown", stopAdminControlEvent);
 document.addEventListener("click", stopAdminControlEvent);
 
 function openUnlockModal(nextUrl = "./zh/app/generate/") {
+  captureVideoGenerationDraft("unlock-modal");
   const returnTarget = persistAuthReturnTarget(nextUrl);
   document.querySelector(".unlock-overlay")?.remove();
   const overlay = document.createElement("section");
@@ -2841,6 +2848,7 @@ function applyInitialVideoPreset() {
     if (event.target?.matches("[data-asset-picker]")) closeVideoAssetPicker();
   });
   applyVideoSourceFromUrl();
+  restoreVideoGenerationDraft();
   document.querySelector("[data-demo-reference]")?.addEventListener("click", () => {
     const demoUrl = new URL("./home-assets/ovs-home-06.png", window.location.href).href;
     selectVideoReference({
@@ -2872,6 +2880,86 @@ function applyVideoSourceFromUrl() {
     sourceAssetId: asset.remote ? asset.id : undefined,
     sourceImageUrl: asset.sourceImageUrl || asset.previewUrl || ""
   }, { addToAssets: false });
+}
+
+function captureVideoGenerationDraft(reason = "auth") {
+  const generator = document.querySelector("[data-video-generator]");
+  if (!generator) return null;
+  const preset = getActiveVideoPreset() || videoWorkflowPresets["image-video"];
+  const reference = selectedVideoReference;
+  const previewUrl = String(reference?.previewUrl || reference?.sourceImageUrl || "");
+  const canRestoreReference = Boolean(reference) && !previewUrl.startsWith("blob:");
+  const draft = {
+    kind: "image-to-video",
+    reason,
+    savedAt: Date.now(),
+    returnTarget: getCurrentAuthReturnTarget(),
+    preset: preset?.id || "image-video",
+    prompt: promptBox?.value || "",
+    ratio: document.querySelector("[data-video-ratio]")?.value || preset?.ratio || "16:9",
+    duration: document.querySelector("[data-video-duration]")?.value || String(preset?.duration || 5),
+    model: document.querySelector("[data-video-model]")?.value || preset?.model || "fake_worker",
+    reference: reference ? {
+      id: reference.id || "",
+      title: reference.title || reference.fileName || "参考图",
+      type: reference.type || "image",
+      prompt: reference.prompt || "",
+      character: reference.character || "Mira",
+      credits: Number(reference.credits || 0),
+      status: reference.status || "ready",
+      visibility: reference.visibility || "private",
+      favorite: Boolean(reference.favorite),
+      remote: Boolean(reference.remote),
+      sourceAssetId: reference.sourceAssetId || (reference.remote ? reference.id : ""),
+      sourceImageUrl: canRestoreReference ? reference.sourceImageUrl || previewUrl : "",
+      previewUrl: canRestoreReference ? previewUrl : "",
+      sourceType: reference.sourceType || "reference_image",
+      needsReupload: !canRestoreReference
+    } : null
+  };
+  localStorage.setItem(VIDEO_DRAFT_KEY, JSON.stringify(draft));
+  generator.setAttribute("data-video-draft-saved", "true");
+  return draft;
+}
+
+function restoreVideoGenerationDraft() {
+  const generator = document.querySelector("[data-video-generator]");
+  if (!generator) return false;
+  const draft = parseMaybeJson(localStorage.getItem(VIDEO_DRAFT_KEY));
+  if (draft.kind !== "image-to-video") return false;
+  if (Date.now() - Number(draft.savedAt || 0) > 24 * 60 * 60 * 1000) {
+    clearVideoGenerationDraft();
+    return false;
+  }
+  if (draft.preset && !new URLSearchParams(window.location.search).has("preset")) {
+    applyVideoPreset(videoWorkflowPresets[draft.preset] ? draft.preset : "image-video", { updateUrl: false });
+  }
+  if (promptBox && typeof draft.prompt === "string") promptBox.value = draft.prompt;
+  const ratioInput = document.querySelector("[data-video-ratio]");
+  const durationInput = document.querySelector("[data-video-duration]");
+  const modelInput = document.querySelector("[data-video-model]");
+  if (ratioInput && draft.ratio) ratioInput.value = normalizeVideoAspectRatio(draft.ratio);
+  if (durationInput && draft.duration) durationInput.value = String(draft.duration);
+  if (modelInput && draft.model) modelInput.value = String(draft.model);
+  const hasSourceParam = new URLSearchParams(window.location.search).has("source");
+  if (!selectedVideoReference && !hasSourceParam && draft.reference) {
+    if (draft.reference.needsReupload) {
+      setVideoUploadStatus("已恢复草稿，请重新选择本地参考图。", "idle");
+    } else {
+      selectVideoReference(draft.reference, { addToAssets: false, status: "已恢复登录前选择的参考图。" });
+    }
+  }
+  generator.setAttribute("data-video-draft-restored", "true");
+  clearVideoGenerationDraft();
+  updateVideoEstimateFromControls();
+  updateVideoPreflight();
+  showSiteToast("已恢复登录前的生成草稿。");
+  return true;
+}
+
+function clearVideoGenerationDraft() {
+  localStorage.removeItem(VIDEO_DRAFT_KEY);
+  document.querySelector("[data-video-generator]")?.removeAttribute("data-video-draft-saved");
 }
 
 async function handleVideoReferenceUpload(event) {
@@ -3310,6 +3398,7 @@ if (generateButton && queueTarget) {
         const remoteAssetId = String(remoteResult.asset?.id || remoteResult.job?.result_asset_id || "");
         const remoteAsset = state.assets.find((asset) => asset.id === remoteAssetId);
         if (remoteAsset) renderGeneratedPreview(remoteAsset, state.history.find((job) => job.assetId === remoteAsset.id) || remoteResult.job || {});
+        clearVideoGenerationDraft();
         updateGenerationProgress(progressRow, "completed", "真实任务已保存到 Supabase 资产库、生成任务和我的作品。", 100, {
           assetHref: "./zh/assets/",
           historyHref: "./zh/history/",
@@ -3383,6 +3472,7 @@ if (generateButton && queueTarget) {
     saveState(state);
     renderState(state);
     renderGeneratedPreview(asset, job);
+    clearVideoGenerationDraft();
     updateGenerationProgress(progressRow, "completed", "已保存到资产库、生成任务和我的作品，可下载或继续分享。", 100, {
       assetHref: "./zh/assets/",
       historyHref: "./zh/history/",
@@ -3405,6 +3495,7 @@ async function runRemoteGeneration(input) {
   if (!supabase) return null;
   const { data: sessionData } = await supabase.auth.getSession();
   if (!sessionData.session?.user) {
+    captureVideoGenerationDraft("generation-auth-required");
     openUnlockModal(getCurrentAuthReturnTarget());
     throw new Error("请先登录后使用真实生成。");
   }

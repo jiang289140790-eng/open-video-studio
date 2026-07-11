@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.97.0 |
+| Version | 0.98.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,9 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Added Image-to-Video draft restoration across authentication gates. When a user opens login, social OAuth, Telegram login, an unlock modal, or a real-generation auth prompt from the video generator, the page now saves the current preset, prompt, ratio, duration, model, and safely restorable reference metadata in local browser storage.
+- Returning users now get the previous Image-to-Video draft restored after authentication, including prompt and output settings. Local blob/file references are not stored; those drafts ask the user to reselect the local reference image instead of persisting private file contents.
+- Completed real or Fake Worker video generations now clear the temporary draft so stale login context does not overwrite future generation choices.
 - Added auth-return continuity for the creation loop. Social login, email login, unlock modals, and protected tool gates now persist a normalized return target so users can log in and return to the exact tool route instead of always landing on Dashboard.
 - Auth redirects now preserve same-origin query strings and hashes such as `image-to-video.html?preset=social-reel` or source asset parameters, and stale stored return targets are cleared after a session is restored.
 - Telegram login entry now carries the same `next` target into the dedicated login page, while standard header login still defaults to Dashboard instead of accidentally returning to the login page.
@@ -74,6 +77,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for Image-to-Video draft persistence hooks, restore markers, and local-file reupload guardrails.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for auth return persistence, normalized return targets, preserved `next` parameters, and login modal return hooks.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for aspect-ratio preview attributes, generated-output ratio frames, and mobile preview guardrails.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for live task-card job-created callbacks, progress actions, refresh/cancel hooks, share, and regenerate actions.
