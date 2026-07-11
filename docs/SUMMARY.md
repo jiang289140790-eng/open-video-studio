@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 0.99.0 |
+| Version | 1.0.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Image-to-Video live task cards now bridge the gap between submit and task management. Remote generation exposes the created job ID back to the page, running cards can refresh or cancel the remote job, every card links to Generation Tasks, and completed cards expose Assets, download, share, and regenerate actions. This keeps the P0 loop visible without changing the backend/provider architecture.
 - Image-to-Video reference selection now behaves more like a product upload control. Users can pick from gallery, capture from camera on mobile, replace or clear the selected reference, see file size/source metadata, and see whether the reference is local-only, uploading, uploaded to Supabase Storage, or failed remotely while still usable for local fallback generation.
 - Completed Image-to-Video generations now render as a reusable result card rather than a thin link list. The output card shows a player-style preview, saved-location copy, title, prompt, specification, provider/model, credits, status, download, share, regenerate, and continue-use actions; image outputs can become the next reference image, while video outputs can restart a similar video flow with the saved prompt.
 - Image-to-Video now includes a generation preflight step. Before submitting, users can see the selected reference image, output ratio, duration, provider/model, estimated time, output format, and credit cost; submitting without a reference image is blocked so the primary video flow stays image-to-video instead of becoming an ambiguous empty prompt flow.

@@ -3231,7 +3231,9 @@ if (generateButton && queueTarget) {
     generateButton.disabled = true;
     generateButton.textContent = "生成中";
     try {
-      updateGenerationProgress(progressRow, "queued", "任务已进入队列，正在准备参考图和积分扣费。", 18);
+      updateGenerationProgress(progressRow, "queued", "任务已进入队列，正在准备参考图和积分扣费。", 18, {
+        historyHref: "./zh/history/"
+      });
       const remoteResult = await runRemoteGeneration({
         mode: activeMode,
         prompt,
@@ -3242,7 +3244,18 @@ if (generateButton && queueTarget) {
         durationSeconds,
         model,
         preset: activePreset?.id || "",
-        reference
+        reference,
+        onJobCreated: (job) => {
+          const remoteJobId = String(job?.id || "");
+          if (remoteJobId) progressRow.dataset.remoteJobId = remoteJobId;
+          updateGenerationProgress(progressRow, "running", remoteJobId
+            ? `远端任务 ${remoteJobId} 已创建，正在扣费、调用模型并保存输出。`
+            : "远端任务已创建，正在扣费、调用模型并保存输出。", 42, {
+            historyHref: "./zh/history/",
+            refreshJobId: remoteJobId,
+            cancelJobId: remoteJobId
+          });
+        }
       });
       if (remoteResult) {
         const remoteAssetId = String(remoteResult.asset?.id || remoteResult.job?.result_asset_id || "");
@@ -3250,14 +3263,21 @@ if (generateButton && queueTarget) {
         if (remoteAsset) renderGeneratedPreview(remoteAsset, state.history.find((job) => job.assetId === remoteAsset.id) || remoteResult.job || {});
         updateGenerationProgress(progressRow, "completed", "真实任务已保存到 Supabase 资产库、生成任务和我的作品。", 100, {
           assetHref: "./zh/assets/",
+          historyHref: "./zh/history/",
           downloadHref: remoteAsset?.downloadUrl || "",
-          downloadName: remoteAsset ? downloadFileName(remoteAsset) : "luravyn-generation"
+          downloadName: remoteAsset ? downloadFileName(remoteAsset) : "luravyn-generation",
+          shareAssetId: remoteAssetId,
+          retryAssetId: remoteAssetId
         });
         return;
       }
     } catch (error) {
       const refundText = error.refund?.amount ? `远端已退回 ${error.refund.amount} 积分。` : "未重复扣除远端积分。";
-      updateGenerationProgress(progressRow, "retrying", `${error.message || "真实生成暂不可用"}，${refundText} 正在切换到本地演示生成。`, 38);
+      const failedJobId = String(error.job?.id || progressRow.dataset.remoteJobId || "");
+      updateGenerationProgress(progressRow, "retrying", `${error.message || "真实生成暂不可用"}，${refundText} 正在切换到本地演示生成。`, 38, {
+        historyHref: "./zh/history/",
+        refreshJobId: failedJobId
+      });
     } finally {
       generateButton.disabled = false;
       generateButton.textContent = activeMode === "video" ? "生成视频" : "生成";
@@ -3267,7 +3287,8 @@ if (generateButton && queueTarget) {
     if (state.credits < cost) {
       updateGenerationProgress(progressRow, "failed", "积分不足，请先购买积分再生成这个作品。", 0, {
         assetHref: "./zh/pricing/",
-        assetLabel: "购买积分"
+        assetLabel: "购买积分",
+        historyHref: "./zh/history/"
       });
       return;
     }
@@ -3315,8 +3336,11 @@ if (generateButton && queueTarget) {
     renderGeneratedPreview(asset, job);
     updateGenerationProgress(progressRow, "completed", "已保存到资产库、生成任务和我的作品，可下载或继续分享。", 100, {
       assetHref: "./zh/assets/",
+      historyHref: "./zh/history/",
       downloadHref: asset.downloadUrl,
-      downloadName: `${asset.title}.json`
+      downloadName: `${asset.title}.json`,
+      shareAssetId: asset.id,
+      retryAssetId: asset.id
     });
   });
 }
@@ -3350,6 +3374,7 @@ async function runRemoteGeneration(input) {
     preset: input.preset || undefined
   });
   const job = createResult.job;
+  input.onJobCreated?.(job);
   const processed = await invokeAi("process-generation-job", { jobId: job.id });
   if (processed.error) {
     const error = new Error(processed.error.message || "AI 生成失败，积分已自动退回。");
@@ -3472,10 +3497,15 @@ function updateGenerationProgress(row, status, message, progress, actions = {}) 
   if (!actionTarget) return;
   const openLabel = actions.assetLabel || "打开作品";
   const openAction = actions.assetHref ? `<a href="${actions.assetHref}">${escapeHtml(openLabel)}</a>` : "";
+  const historyAction = actions.historyHref ? `<a href="${actions.historyHref}">查看生成任务</a>` : "";
+  const refreshAction = actions.refreshJobId ? `<button type="button" data-refresh-job="${escapeHtml(actions.refreshJobId)}">刷新</button>` : "";
+  const cancelAction = actions.cancelJobId ? `<button type="button" data-cancel-job="${escapeHtml(actions.cancelJobId)}">取消</button>` : "";
+  const shareAction = actions.shareAssetId ? `<button type="button" data-share-asset="${escapeHtml(actions.shareAssetId)}">分享</button>` : "";
+  const retryAction = actions.retryAssetId ? `<button type="button" data-retry-asset="${escapeHtml(actions.retryAssetId)}">重新生成</button>` : "";
   const downloadAction = actions.downloadHref && actions.downloadHref !== "#"
     ? `<a href="${actions.downloadHref}" download="${escapeHtml(actions.downloadName || "luravyn-generation.json")}">下载</a>`
     : "";
-  actionTarget.innerHTML = `${openAction}${downloadAction}`;
+  actionTarget.innerHTML = `${historyAction}${refreshAction}${cancelAction}${openAction}${downloadAction}${shareAction}${retryAction}`;
 }
 
 function statusLabel(status) {

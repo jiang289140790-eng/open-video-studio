@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 0.94.0 |
+| Version | 0.95.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,9 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Improved the live Image-to-Video generation task card. After submit, the card now exposes the remote job ID lifecycle through job-created callbacks, links to Generation Tasks, supports single-job refresh and cancellation while running, and keeps failed/retrying tasks connected to History instead of leaving users with an ambiguous in-page status.
+- Completed Image-to-Video jobs now surface open-assets, view-history, download, share, and regenerate actions directly from the live task card for both Supabase-backed results and Fake Worker fallback outputs.
+- Unified row-action link styling so task-card links and buttons share the same touch-friendly pill treatment.
 - Improved the Image-to-Video reference upload panel. Users can now choose from gallery, capture from camera on mobile, replace the current reference, delete it, see file size/source details, and see upload states for idle, local, uploading, ready, and failed uploads.
 - Upload failures now keep the local reference available for Fake Worker/demo generation while clearly marking the remote upload failure in the UI.
 - Added regression coverage for reference upload status, camera upload input, replace/delete controls, reference metadata, and upload-state helpers.
@@ -65,6 +68,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for live task-card job-created callbacks, progress actions, refresh/cancel hooks, share, and regenerate actions.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for the Image-to-Video reference upload panel and upload-state controls.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for the generated result output card and post-generation actions.
 - Ran `npm run test`; production build passed and 74 tests passed, including regression coverage for the Image-to-Video preflight panel and no-reference submit guard.

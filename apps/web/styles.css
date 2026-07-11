@@ -599,7 +599,7 @@ body.tool-layout .accountnav {
   background: rgba(255,255,255,0.08);
 }
 
-.btn, .chip, .tab, .card-actions button, .row-actions button, .library-card button {
+.btn, .chip, .tab, .card-actions button, .row-actions button, .row-actions a, .library-card button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
