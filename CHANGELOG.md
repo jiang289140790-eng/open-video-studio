@@ -27,6 +27,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 - Hardened social-login redirect handling so browser OAuth calls use a canonical app return URL (`signin.html` / `dashboard.html`) instead of relative localized aliases that can break under GitHub Pages subpaths.
 - Updated OAuth verification output and production auth documentation to separate Supabase in-app Redirect URLs from external provider callback URLs. Discord/X/Google developer consoles must use `https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback`.
+- Switched the X social login integration from the legacy Supabase `twitter` provider id to the current OAuth 2.0 `x` provider id, matching the enabled dashboard provider.
+- Added a `telegram-auth` Supabase Edge Function for Telegram Login Widget callbacks. It verifies Telegram's signed hash server-side and creates a Supabase magic-link session without exposing the Bot token to the browser.
 - Added a repeatable technical SEO generation flow through `npm run seo:apply`, producing canonical metadata, hreflang alternates, `robots.txt`, `sitemap.xml`, Open Graph/Twitter metadata, and localized `/zh`, `/en`, `/ja`, `/ko` public route aliases.
 - Added mobile visual QA coverage for Homepage, Gallery, Generate, Image to Video, Characters, Assets, History, Dashboard, Pricing, Free Coins, Sign In, Admin, and Share across 375px, 390px, 412px, and 768px viewport widths.
 - Fixed narrow-screen overflow on Generate/Image to Video Studio panels and Dashboard rows so mobile users no longer get horizontal page scrolling on the core product loop.
@@ -40,7 +42,11 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
-- Ran `npm run verify:oauth`; Discord authorization URL is reachable through Supabase and reports `providerCallbackUrl=https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback`. Google/X still report `Unsupported provider: provider is not enabled`, and Telegram remains unconfigured.
+- Ran `npm run verify:oauth`; Google, X / Twitter OAuth 2.0, and Discord authorization URLs are reachable through Supabase and report `providerCallbackUrl=https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback`. Telegram remains unconfigured until Bot username, Bot token secret, and the `telegram-auth` function deployment are completed.
+- Deployed Supabase `telegram-auth` Edge Function version `1` with JWT verification disabled for the external Telegram callback and HMAC verification enabled inside the function.
+- Deployed Supabase `admin` Edge Function version `8` so the Admin Console OAuth readiness probe uses the current `x` provider id.
+- Probed `https://wyvswkxogkmywduhrhkw.supabase.co/functions/v1/telegram-auth`; it fails closed with `TELEGRAM_BOT_TOKEN is not configured` until the server-only Bot token secret is added.
+- Updated GitHub repository variable `VITE_TELEGRAM_AUTH_URL` to point at the deployed Supabase `telegram-auth` function.
 - Ran `npm run seo:apply`; generated SEO artifacts successfully.
 - Ran mobile visual QA against 13 core pages at 375px, 390px, 412px, and 768px widths; no remaining horizontal overflow or missing primary CTA failures were detected after the layout fix.
 - Ran `npm run build`; production build passed.
@@ -51,6 +57,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Follow-ups
 
+- Telegram real login still requires `VITE_TELEGRAM_BOT_USERNAME` in GitHub variables and `TELEGRAM_BOT_TOKEN` in Supabase Edge Function secrets.
 - Real Stripe charging still requires a Stripe account, `STRIPE_SECRET_KEY`, `VITE_STRIPE_PUBLISHABLE_KEY`, webhook secret, idempotency, webhook fulfillment, refund/reconciliation, and tax/invoice policy.
 - Real PayPal charging still requires a PayPal app, `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, webhook ID, buyer approval return handling, capture after approval, refund/reconciliation, and tax/invoice policy.
 - Mobile UX has static coverage now; full device-browser visual QA should be repeated before public paid traffic.

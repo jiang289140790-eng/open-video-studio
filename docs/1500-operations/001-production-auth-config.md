@@ -64,9 +64,9 @@ npm run verify:mvp
 
 `verify:mvp` treats email/password auth, credits, generation/sharing, and Admin operations as required for small user testing. Social OAuth remains a formal launch-readiness blocker, but it does not block the first controlled test cohort while the email/password path is available. The report also surfaces AI fallback health and optional real external AI provider readiness.
 
-The OAuth verifier creates Supabase authorization URLs for Google, X/Twitter, and Discord, then probes the Supabase authorization endpoint without following the browser redirect. It also checks whether the Telegram Login Widget public values are present. It does not print provider secrets.
+The OAuth verifier creates Supabase authorization URLs for Google, X / Twitter OAuth 2.0, and Discord, then probes the Supabase authorization endpoint without following the browser redirect. It also checks whether the Telegram Login Widget public values are present. It does not print provider secrets.
 
-The Admin Console now performs the same Google, X/Twitter, and Discord provider enablement check through the `admin` Edge Function, so operators can see the difference between "button exists" and "Supabase provider is actually enabled" without using the command line.
+The Admin Console now performs the same Google, X / Twitter OAuth 2.0, and Discord provider enablement check through the `admin` Edge Function, so operators can see the difference between "button exists" and "Supabase provider is actually enabled" without using the command line.
 
 ## Required GitHub Pages Configuration
 
@@ -86,7 +86,7 @@ Recommended CLI commands after values are known:
 gh variable set VITE_SUPABASE_URL --repo jiang289140790-eng/open-video-studio --body "https://PROJECT_REF.supabase.co"
 gh secret set VITE_SUPABASE_ANON_KEY --repo jiang289140790-eng/open-video-studio
 gh variable set VITE_TELEGRAM_BOT_USERNAME --repo jiang289140790-eng/open-video-studio --body "YOUR_BOT_USERNAME"
-gh variable set VITE_TELEGRAM_AUTH_URL --repo jiang289140790-eng/open-video-studio --body "https://YOUR_BACKEND_DOMAIN/auth/telegram/callback"
+gh variable set VITE_TELEGRAM_AUTH_URL --repo jiang289140790-eng/open-video-studio --body "https://wyvswkxogkmywduhrhkw.supabase.co/functions/v1/telegram-auth"
 ```
 
 ## Supabase Auth Redirect URLs
@@ -131,8 +131,9 @@ This is different from the in-app `redirectTo` URL. The third-party provider red
 
 - Create an X developer app with OAuth enabled.
 - Add `https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback` to the X OAuth callback / redirect URI settings.
-- Paste API Key and API Secret into Supabase.
-- Enable the Twitter provider in Supabase.
+- Paste OAuth 2.0 Client ID and Client Secret into Supabase.
+- Enable the `X / Twitter (OAuth 2.0)` provider in Supabase.
+- The web app and verification script use Supabase provider id `x`. Do not use the legacy `twitter` provider for this project.
 
 ### Discord
 
@@ -145,29 +146,32 @@ This is different from the in-app `redirectTo` URL. The third-party provider red
 
 - Create a Telegram bot with BotFather.
 - Set `VITE_TELEGRAM_BOT_USERNAME`.
-- Provide a trusted backend endpoint for `VITE_TELEGRAM_AUTH_URL`.
-- The backend must verify Telegram signed hash before creating or linking a user.
+- Set `VITE_TELEGRAM_AUTH_URL` to `https://wyvswkxogkmywduhrhkw.supabase.co/functions/v1/telegram-auth`.
+- Set Supabase Edge Function secret `TELEGRAM_BOT_TOKEN` to the BotFather token.
+- Set Supabase Edge Function secret `AUTH_ALLOWED_REDIRECT_ORIGINS` to the allowed browser origins, comma-separated.
+- Deploy the `telegram-auth` Edge Function.
+- Telegram is not listed in Supabase's built-in provider page because this project uses Telegram Login Widget with backend HMAC verification.
 
 ## Acceptance Criteria
 
 - `npm run verify:supabase` returns `ok: true`.
 - `npm run verify:production-config` returns `ok: true`.
 - `npm run verify:auth-basic` returns `ok: true`.
-- `npm run verify:oauth` returns reachable authorization redirects for Google, X/Twitter, and Discord.
+- `npm run verify:oauth` returns reachable authorization redirects for Google, X / Twitter OAuth 2.0, and Discord.
 - GitHub Pages build has `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
 - Sign-in page OAuth readiness shows Google, X, and Discord as ready.
 - Telegram shows ready only after Bot username and backend auth URL are configured.
 
 ## Current Verification Status
 
-As of 2026-07-10:
+As of 2026-07-11:
 
 - `npm run verify:mvp` confirms the credits loop, user generation/assets/history/share loop, and Admin operations loop are working in production.
 - `npm run verify:auth-basic` confirms password signin, session restore, signout, and cleanup. Public signup is currently hitting Supabase email rate limits, so the verifier uses a temporary admin-created test user fallback to prove the login/session loop.
-- Google, X/Twitter, and Discord can create Supabase OAuth authorization URLs from local configuration, but Supabase currently returns `Unsupported provider: provider is not enabled` when the verifier probes the provider authorization endpoints.
-- Telegram is not complete until `VITE_TELEGRAM_BOT_USERNAME` and `VITE_TELEGRAM_AUTH_URL` are configured with a trusted backend hash-verification endpoint.
+- Google, X / Twitter OAuth 2.0, and Discord can create Supabase OAuth authorization URLs from local configuration and redirect to the provider authorization hosts.
+- Telegram has a trusted `telegram-auth` Edge Function implementation, but it is not complete until `VITE_TELEGRAM_BOT_USERNAME`, `VITE_TELEGRAM_AUTH_URL`, and the server-only `TELEGRAM_BOT_TOKEN` secret are configured and the function is deployed.
 - The frontend social-login buttons are present; remaining OAuth work is Supabase Auth Provider enablement and provider-dashboard credentials.
-- Admin Console system readiness shows the same provider-disabled state for Google, X/Twitter, and Discord.
+- Admin Console system readiness shows the same provider readiness state for Google, X / Twitter OAuth 2.0, and Discord.
 
 ## Future Plan
 

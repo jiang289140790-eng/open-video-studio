@@ -32,7 +32,7 @@ if (missing.length === 0) {
     },
   });
 
-  for (const provider of ["google", "twitter", "discord"]) {
+  for (const provider of ["google", "x", "discord"]) {
     const result = await client.auth.signInWithOAuth({
       provider,
       options: {

@@ -19,7 +19,7 @@ const source = readFileSync(entrypoint);
 const metadata = {
   name: slug,
   entrypoint_path: "index.ts",
-  verify_jwt: true,
+  verify_jwt: slug !== "telegram-auth",
 };
 const form = new FormData();
 form.append("metadata", JSON.stringify(metadata));

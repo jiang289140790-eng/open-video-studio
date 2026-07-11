@@ -326,10 +326,10 @@ async function select(client: ReturnType<typeof createClient>, table: string, or
 }
 
 async function oauthProviderStatus(userClient: ReturnType<typeof createClient>, redirectTo: string) {
-  const providers = ["google", "twitter", "discord"];
+  const providers = ["google", "x", "discord"];
   const results = await Promise.all(providers.map(async (provider) => {
     const result = await userClient.auth.signInWithOAuth({
-      provider: provider as "google" | "twitter" | "discord",
+      provider: provider as "google" | "x" | "discord",
       options: { redirectTo, skipBrowserRedirect: true },
     });
     if (result.error || !result.data?.url) {

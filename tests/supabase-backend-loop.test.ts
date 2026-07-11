@@ -25,7 +25,7 @@ test("Supabase MVP backend loop signs up, grants credits, generates, stores, lis
   assert.equal(login.user.id, user.id);
   assert.equal(login.accessToken, "test-access-token");
 
-  for (const provider of ["google", "twitter", "discord", "telegram"] as const) {
+  for (const provider of ["google", "x", "discord", "telegram"] as const) {
     const oauth = await backend.createOAuthSignInUrl({
       provider,
       redirectTo: "https://example.com/auth/callback",

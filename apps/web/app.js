@@ -1613,8 +1613,8 @@ function showAuthMessage(message, tone = "info") {
 function getOAuthReadiness() {
   return [
     { name: "Google", ready: Boolean(supabase), action: "Supabase Authentication > Providers > Google，填写 Client ID / Secret，并加入站点回调 URL。" },
-    { name: "X", ready: Boolean(supabase), action: "Supabase Authentication > Providers > Twitter/X，填写 API Key / Secret。" },
-    { name: "Telegram", ready: Boolean(telegramBotUsername && telegramAuthUrl), action: "配置 Telegram Bot Username、VITE_TELEGRAM_AUTH_URL，并在后端校验 Telegram 签名。" },
+    { name: "X", ready: Boolean(supabase), action: "Supabase Authentication > Providers > X / Twitter OAuth 2.0，填写 Client ID / Secret，并使用 provider=x。" },
+    { name: "Telegram", ready: Boolean(telegramBotUsername && telegramAuthUrl), action: "Telegram 不是 Supabase 内置 OAuth；需配置 Telegram Login Widget 的 Bot Username 和后端签名校验 URL。" },
     { name: "Discord", ready: Boolean(supabase), action: "Supabase Authentication > Providers > Discord，填写 Client ID / Secret。" }
   ];
 }
@@ -2175,7 +2175,7 @@ function openAuthModal(nextUrl = "./zh/dashboard/") {
       <p class="muted">使用社交账号继续创作。登录后可以保存作品、领取免费积分、购买积分并管理分享链接。</p>
       <div class="modal-auth-list">
         <button class="modal-auth-btn" type="button" data-modal-auth-provider="google" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot google-dot">G</span>使用 Google 登录 <b>→</b></button>
-        <button class="modal-auth-btn" type="button" data-modal-auth-provider="twitter" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot x-dot">X</span>使用 X 登录 <b>→</b></button>
+        <button class="modal-auth-btn" type="button" data-modal-auth-provider="x" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot x-dot">X</span>使用 X 登录 <b>→</b></button>
         <button class="modal-auth-btn" type="button" data-modal-auth-provider="telegram" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot tg-dot">TG</span>使用 Telegram 登录 <b>→</b></button>
         <button class="modal-auth-btn" type="button" data-modal-auth-provider="discord" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot dc-dot">DC</span>使用 Discord 登录 <b>→</b></button>
       </div>
@@ -2273,7 +2273,7 @@ function openUnlockModal(nextUrl = "./zh/app/generate/") {
       <p>保存生成结果、复用资产、管理积分，并继续打开这个创作工具。</p>
       <div class="unlock-auth-list">
         <button type="button" data-unlock-auth="google" data-modal-auth-provider="google" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot google-dot">G</span>使用 Google 登录 <b>→</b></button>
-        <button type="button" data-unlock-auth="twitter" data-modal-auth-provider="twitter" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot x-dot">X</span>使用 X 登录 <b>→</b></button>
+        <button type="button" data-unlock-auth="x" data-modal-auth-provider="x" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot x-dot">X</span>使用 X 登录 <b>→</b></button>
         <button type="button" data-unlock-auth="telegram" data-modal-auth-provider="telegram" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot tg-dot">TG</span>使用 Telegram 登录 <b>→</b></button>
         <button type="button" data-unlock-auth="discord" data-modal-auth-provider="discord" data-next-url="${escapeHtml(nextUrl)}"><span class="provider-dot dc-dot">DC</span>使用 Discord 登录 <b>→</b></button>
       </div>
@@ -3682,7 +3682,7 @@ function renderAdminSystemReadiness(aiProviders = [], providerError = "", oauthP
       <em>${item.ready ? "入口可见" : "待配置"}</em>
     </article>
     `).join("")}
-    ${["google", "twitter", "discord"].map((provider) => {
+    ${["google", "x", "discord"].map((provider) => {
       const status = oauthStatusByProvider[provider];
       const ok = Boolean(status?.ok);
       const detail = status

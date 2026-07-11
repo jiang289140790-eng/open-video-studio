@@ -193,6 +193,7 @@ test("production verification scripts cover OAuth and AI function health", () =>
   const mvpReadinessScript = readFileSync(join(root, "scripts", "verify-mvp-readiness.mjs"), "utf8");
   const adminScript = readFileSync(join(root, "scripts", "verify-admin-console.mjs"), "utf8");
   const deployFunctionScript = readFileSync(join(root, "scripts", "deploy-supabase-function.mjs"), "utf8");
+  const telegramFunction = readFileSync(join(root, "supabase", "functions", "telegram-auth", "index.ts"), "utf8");
 
   assert.ok(packageJson.includes("verify:oauth"));
   assert.ok(packageJson.includes("verify:auth-basic"));
@@ -204,13 +205,21 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(packageJson.includes("verify:mvp"));
   assert.ok(packageJson.includes("verify:admin"));
   assert.ok(packageJson.includes("deploy:function"));
-  for (const provider of ["google", "twitter", "discord", "telegram"]) {
+  for (const provider of ["google", "x", "discord", "telegram"]) {
     assert.ok(oauthScript.includes(provider), `OAuth verifier should cover ${provider}`);
   }
   assert.ok(oauthScript.includes("skipBrowserRedirect"));
   assert.ok(oauthScript.includes('redirectTo: `${appUrl}/signin.html`'));
   assert.ok(oauthScript.includes("providerCallbackUrl"));
   assert.ok(oauthScript.includes("/auth/v1/callback"));
+  assert.ok(oauthScript.includes('"x"'));
+  assert.equal(oauthScript.includes('"twitter"'), false);
+  assert.ok(telegramFunction.includes("TELEGRAM_BOT_TOKEN"));
+  assert.ok(telegramFunction.includes("verifyTelegramAuth"));
+  assert.ok(telegramFunction.includes("crypto.subtle"));
+  assert.ok(telegramFunction.includes("generateLink"));
+  assert.equal(telegramFunction.includes("VITE_TELEGRAM"), false);
+  assert.ok(deployFunctionScript.includes('verify_jwt: slug !== "telegram-auth"'));
   assert.ok(aiScript.includes("/functions/v1/ai"));
   assert.ok(aiScript.includes("provider-status"));
   assert.ok(aiScript.includes("SUPABASE_TEST_ACCESS_TOKEN"));

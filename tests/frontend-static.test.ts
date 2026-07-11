@@ -122,7 +122,7 @@ describe("MVP static frontend", () => {
     const combined = [...requiredPages.map(readPage), readPage("app.js")].join("\n");
     for (const hook of [
       "data-auth-provider=\"google\"",
-      "data-auth-provider=\"twitter\"",
+      "data-auth-provider=\"x\"",
       "data-telegram-auth",
       "data-auth-provider=\"discord\"",
       "data-buy-credits",
@@ -583,7 +583,7 @@ describe("MVP static frontend", () => {
       "openAuthModal",
       "auth-overlay",
       "data-modal-auth-provider=\"google\"",
-      "data-modal-auth-provider=\"twitter\"",
+      "data-modal-auth-provider=\"x\"",
       "data-modal-auth-provider=\"telegram\"",
       "data-modal-auth-provider=\"discord\"",
       "startSocialAuth",
