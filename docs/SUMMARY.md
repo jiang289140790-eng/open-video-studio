@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Social-login redirect handling now uses canonical app return URLs for Supabase `redirectTo` and documents the external OAuth provider callback separately. Discord currently reaches its authorization endpoint through Supabase, while Google/X remain disabled in Supabase and Telegram is not configured. External provider consoles must register `https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback`.
 - Technical SEO now has a generated, repeatable baseline. `npm run seo:apply` refreshes canonical, hreflang, robots, Open Graph, Twitter metadata, localized `/zh`, `/en`, `/ja`, `/ko` alias pages, `robots.txt`, and `sitemap.xml`; public routes use clean `https://luravyn.com/{locale}/.../` canonicals while private app/admin surfaces remain `noindex,follow`.
 - Mobile visual QA now covers Homepage, Gallery, Generate, Image to Video, Characters, Assets, History, Dashboard, Pricing, Free Coins, Sign In, Admin, and Share across 375px, 390px, 412px, and 768px viewport widths. The latest pass found and fixed Studio panel and Dashboard row overflow on narrow screens.
 - Regression coverage now includes SEO artifact checks and mobile layout guardrails through `tests/seo-mobile.test.ts`, alongside the existing build and i18n gates.

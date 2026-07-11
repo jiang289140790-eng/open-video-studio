@@ -95,35 +95,49 @@ Add these URLs in Supabase Authentication URL configuration:
 
 - `https://jiang289140790-eng.github.io/open-video-studio/`
 - `https://jiang289140790-eng.github.io/open-video-studio/signin.html`
+- `https://jiang289140790-eng.github.io/open-video-studio/dashboard.html`
 - `https://jiang289140790-eng.github.io/open-video-studio/zh/login/`
 - `https://jiang289140790-eng.github.io/open-video-studio/zh/dashboard/`
+- `https://luravyn.com/`
+- `https://luravyn.com/signin.html`
+- `https://luravyn.com/dashboard.html`
 - `http://127.0.0.1:4173`
+- `http://127.0.0.1:4173/signin.html`
+- `http://127.0.0.1:4173/dashboard.html`
 - `http://127.0.0.1:4174`
 
 Set the production Site URL:
 
 - `https://jiang289140790-eng.github.io/open-video-studio/`
 
+## External OAuth Provider Callback URL
+
+In Google, X/Twitter, and Discord developer consoles, do not use the Luravyn page URL as the OAuth callback. Use the Supabase Auth provider callback URL:
+
+- `https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback`
+
+This is different from the in-app `redirectTo` URL. The third-party provider redirects back to Supabase first, then Supabase redirects the user back to `signin.html` or `dashboard.html`.
+
 ## Provider Setup
 
 ### Google
 
 - Create OAuth credentials in Google Cloud.
-- Add the Supabase callback URL shown in Supabase Google provider settings.
+- Add `https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback` to the Google OAuth authorized redirect URIs.
 - Paste Client ID and Client Secret into Supabase Authentication Provider settings.
 - Enable the Google provider in Supabase.
 
 ### X / Twitter
 
 - Create an X developer app with OAuth enabled.
-- Add the Supabase callback URL shown in Supabase Twitter provider settings.
+- Add `https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback` to the X OAuth callback / redirect URI settings.
 - Paste API Key and API Secret into Supabase.
 - Enable the Twitter provider in Supabase.
 
 ### Discord
 
 - Create a Discord application.
-- Add the Supabase callback URL shown in Supabase Discord provider settings.
+- Add `https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback` to Discord Developer Portal > OAuth2 > Redirects.
 - Paste Client ID and Client Secret into Supabase.
 - Enable the Discord provider in Supabase.
 

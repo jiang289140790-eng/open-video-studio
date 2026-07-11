@@ -25,6 +25,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Hardened social-login redirect handling so browser OAuth calls use a canonical app return URL (`signin.html` / `dashboard.html`) instead of relative localized aliases that can break under GitHub Pages subpaths.
+- Updated OAuth verification output and production auth documentation to separate Supabase in-app Redirect URLs from external provider callback URLs. Discord/X/Google developer consoles must use `https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback`.
 - Added a repeatable technical SEO generation flow through `npm run seo:apply`, producing canonical metadata, hreflang alternates, `robots.txt`, `sitemap.xml`, Open Graph/Twitter metadata, and localized `/zh`, `/en`, `/ja`, `/ko` public route aliases.
 - Added mobile visual QA coverage for Homepage, Gallery, Generate, Image to Video, Characters, Assets, History, Dashboard, Pricing, Free Coins, Sign In, Admin, and Share across 375px, 390px, 412px, and 768px viewport widths.
 - Fixed narrow-screen overflow on Generate/Image to Video Studio panels and Dashboard rows so mobile users no longer get horizontal page scrolling on the core product loop.
@@ -38,6 +40,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran `npm run verify:oauth`; Discord authorization URL is reachable through Supabase and reports `providerCallbackUrl=https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback`. Google/X still report `Unsupported provider: provider is not enabled`, and Telegram remains unconfigured.
 - Ran `npm run seo:apply`; generated SEO artifacts successfully.
 - Ran mobile visual QA against 13 core pages at 375px, 390px, 412px, and 768px widths; no remaining horizontal overflow or missing primary CTA failures were detected after the layout fix.
 - Ran `npm run build`; production build passed.

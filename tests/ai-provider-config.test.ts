@@ -208,6 +208,9 @@ test("production verification scripts cover OAuth and AI function health", () =>
     assert.ok(oauthScript.includes(provider), `OAuth verifier should cover ${provider}`);
   }
   assert.ok(oauthScript.includes("skipBrowserRedirect"));
+  assert.ok(oauthScript.includes('redirectTo: `${appUrl}/signin.html`'));
+  assert.ok(oauthScript.includes("providerCallbackUrl"));
+  assert.ok(oauthScript.includes("/auth/v1/callback"));
   assert.ok(aiScript.includes("/functions/v1/ai"));
   assert.ok(aiScript.includes("provider-status"));
   assert.ok(aiScript.includes("SUPABASE_TEST_ACCESS_TOKEN"));

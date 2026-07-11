@@ -62,6 +62,22 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 const telegramBotUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "";
 const telegramAuthUrl = import.meta.env.VITE_TELEGRAM_AUTH_URL || "";
 const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+const AUTH_ROUTE_ALIASES = new Map([
+  ["app", "app.html"],
+  ["gallery", "gallery.html"],
+  ["generate", "generate.html"],
+  ["image-to-video", "image-to-video.html"],
+  ["characters", "characters.html"],
+  ["assets", "assets.html"],
+  ["history", "history.html"],
+  ["dashboard", "dashboard.html"],
+  ["pricing", "pricing.html"],
+  ["free-coins", "free-coins.html"],
+  ["my-creations", "my-creations.html"],
+  ["login", "signin.html"],
+  ["signin", "signin.html"],
+  ["share", "share.html"]
+]);
 const PAYMENT_PROVIDERS = [
   {
     id: "stripe",
@@ -1625,7 +1641,7 @@ document.querySelectorAll("[data-auth-provider]").forEach((button) => {
     }
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: new URL("./zh/dashboard/", window.location.href).href }
+      options: { redirectTo: getAuthRedirectUrl("dashboard.html") }
     });
     if (error) showAuthMessage(error.message, "error");
   });
@@ -2194,7 +2210,7 @@ async function startSocialAuth(provider, nextUrl = "./zh/dashboard/") {
     setMessage("Supabase 尚未配置。添加 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY 后即可启用真实社交登录。");
     return;
   }
-  const redirectTo = new URL(nextUrl, window.location.href).href;
+  const redirectTo = getAuthRedirectUrl(nextUrl);
   const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } });
   if (error) setMessage(error.message);
 }
@@ -2856,6 +2872,42 @@ function statusRow(title, body, href, action) {
   row.className = "result-row";
   row.innerHTML = `<span class="thumb art-3"></span><div><strong>${title}</strong><p>${body}</p></div><a href="${href}">${action}</a>`;
   return row;
+}
+
+function getAppBaseUrl() {
+  const githubPagesBase = "/open-video-studio/";
+  const basePath = window.location.pathname.startsWith(githubPagesBase) ? githubPagesBase : "/";
+  return new URL(basePath, window.location.origin).href;
+}
+
+function normalizeAuthReturnTarget(nextUrl = "dashboard.html") {
+  const raw = String(nextUrl || "dashboard.html").trim();
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      const target = new URL(raw);
+      if (target.origin === window.location.origin) {
+        return normalizeAuthReturnTarget(`${target.pathname}${target.search}${target.hash}`);
+      }
+    } catch {
+      return "dashboard.html";
+    }
+  }
+
+  const withoutOrigin = raw.replace(/^\.?\//, "");
+  const fileMatch = withoutOrigin.match(/([a-z0-9-]+\.html)([?#].*)?$/i);
+  if (fileMatch) return `${fileMatch[1]}${fileMatch[2] || ""}`;
+
+  const cleaned = withoutOrigin
+    .replace(/^open-video-studio\//, "")
+    .replace(/^zh\//, "")
+    .replace(/^app\//, "")
+    .replace(/[?#].*$/, "")
+    .replace(/^\/+|\/+$/g, "");
+  return AUTH_ROUTE_ALIASES.get(cleaned) || "dashboard.html";
+}
+
+function getAuthRedirectUrl(nextUrl = "dashboard.html") {
+  return new URL(normalizeAuthReturnTarget(nextUrl), getAppBaseUrl()).href;
 }
 
 let characterFilter = "all";
@@ -3776,7 +3828,7 @@ async function loadAdminConsole() {
       invokeAdmin("list-cost-analytics").catch(() => ({ costAnalytics: [] })),
       invokeAdmin("list-audit-logs").catch((error) => ({ auditLogs: [], auditError: error.message })),
       invokeAi("provider-status", { probe: true }).catch((error) => ({ providers: [], providerError: error.message })),
-      invokeAdmin("oauth-provider-status", { redirectTo: new URL("./zh/login/", window.location.href).href }).catch((error) => ({ oauthProviders: [], oauthProviderError: error.message }))
+      invokeAdmin("oauth-provider-status", { redirectTo: getAuthRedirectUrl("signin.html") }).catch((error) => ({ oauthProviders: [], oauthProviderError: error.message }))
     ]);
     adminData = {
       actor: summary.actor || users.actor || orders.actor || assets.actor || jobs.actor,

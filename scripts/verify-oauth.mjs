@@ -19,7 +19,8 @@ const report = {
     botUsername: mask(env.VITE_TELEGRAM_BOT_USERNAME),
     authUrlConfigured: Boolean(env.VITE_TELEGRAM_AUTH_URL && !isPlaceholder(env.VITE_TELEGRAM_AUTH_URL)),
   },
-  redirectTo: `${appUrl}/zh/login/`,
+  redirectTo: `${appUrl}/signin.html`,
+  providerCallbackUrl: missing.includes("SUPABASE_URL") ? "" : `${trimSlash(env.SUPABASE_URL)}/auth/v1/callback`,
 };
 
 if (missing.length === 0) {
