@@ -25,7 +25,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
-- Connected the production MVP source to the GPT Sites project `Luravyn AI Studio` while preserving GitHub Pages as the current public deployment and Supabase as the authoritative Auth, PostgreSQL, Storage, and Edge Functions backend. Added `.openai/hosting.json` so future deployments reuse the same opaque Sites project instead of creating duplicates, and configured only browser-safe Supabase/OAuth environment values in Sites.
+- Connected the production MVP source to the GPT Sites project `Luravyn AI Studio` while preserving GitHub Pages as the current public deployment and Supabase as the authoritative Auth, PostgreSQL, Storage, and Edge Functions backend. Added `.openai/hosting.json` so future deployments reuse the same opaque Sites project instead of creating duplicates, configured only browser-safe Supabase/OAuth environment values in Sites, and normalized lockfile package URLs from the local npm mirror to the supported public npm registry for reproducible cloud builds.
 
 - Improved the signed-out generation gate. The unlock modal now offers email sign-in/sign-up alongside social login, preserves the intended return target, and allows one clearly labeled browser-only demo generation that does not consume credits, does not call Supabase, and does not create a real shareable account asset. Real saving, downloading, sharing, credit debit, and remote provider generation remain gated behind authenticated Supabase sessions.
 
@@ -54,6 +54,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran a clean `npm ci` against the public npm registry after normalizing dependency sources; the dependency audit reported zero vulnerabilities.
 - Ran `npm run build`; production build passed.
 - Ran `npm run test`; build and 75 tests passed.
 - Set Zealman Edge Function Secrets in Supabase through the Management API without printing secret values. Deployed `ai` Edge Function version 22 and `admin` Edge Function version 10.
