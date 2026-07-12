@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -p tsconfig.json && vite build",
-    "postbuild": "node scripts/prepare-sites-runtime.mjs",
     "build:server": "tsc -p tsconfig.json",
     "build:web": "vite build",
     "seo:apply": "node scripts/apply-seo.mjs",

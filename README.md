@@ -40,7 +40,6 @@ The platform will be documented as a set of coordinated domains:
 ## Current Production Stack
 
 - Frontend: React, Vite, and the current MVP static product surface under `apps/web/`.
-- Frontend hosting: GitHub Pages remains the current public deployment; GPT Sites is connected as a parallel owner-only validation target through `.openai/hosting.json`.
 - Backend foundation: TypeScript service layer with Supabase connection foundation.
 - Database target: Supabase PostgreSQL.
 - Storage target: Supabase Storage.
@@ -73,9 +72,6 @@ Run the full test suite:
 ```bash
 npm run test
 ```
-
-GPT Sites deployments reuse the project ID stored in `.openai/hosting.json`. Configure only browser-safe `VITE_*` values in Sites; keep Supabase service-role keys and AI/payment provider secrets in Supabase Edge Function Secrets.
-The `postbuild` step packages the existing `dist-web` output as `dist/client` and adds the Sites fetch entry at `dist/server/index.js`; no product routes or Supabase contracts are forked for Sites.
 
 Verify Supabase configuration:
 
