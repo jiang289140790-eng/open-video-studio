@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>登录 | Luravyn</title>
     <link rel="icon" type="image/png" href="./favicon.png">
-    <meta name="description" content="登录 Luravyn 以保存作品、管理积分和复用资产。">
+    <meta name="description" content="登录 Luravyn，保存作品、管理积分、复用角色和分享生成结果。">
     <link rel="canonical" href="https://luravyn.com/zh/login/">
     <link rel="alternate" hreflang="zh-CN" href="https://luravyn.com/zh/login/">
     <link rel="alternate" hreflang="en" href="https://luravyn.com/en/login/">
@@ -16,20 +16,29 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Luravyn">
     <meta property="og:title" content="登录 | Luravyn">
-    <meta property="og:description" content="登录 Luravyn 以保存作品、管理积分和复用资产。">
+    <meta property="og:description" content="登录 Luravyn，保存作品、管理积分、复用角色和分享生成结果。">
     <meta property="og:url" content="https://luravyn.com/zh/login/">
     <meta property="og:image" content="https://luravyn.com/brand/luravyn-logo-hero.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="登录 | Luravyn">
-    <meta name="twitter:description" content="登录 Luravyn 以保存作品、管理积分和复用资产。">
+    <meta name="twitter:description" content="登录 Luravyn，保存作品、管理积分、复用角色和分享生成结果。">
     <meta name="theme-color" content="#111111">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body class="login-modal-page">
     <header class="topbar">
       <a class="brand" href="./index.html"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
-      <nav class="topnav" aria-label="Primary navigation"><a href="./zh/app/generate/">图像工具</a><a href="./zh/app/image-to-video/">视频工具</a><a href="./zh/pricing/">购买积分</a><a href="./zh/free-coins/">免费硬币</a><a href="./zh/my-creations/">我的创作</a></nav>
-      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./zh/free-coins/">每日签到</a><a href="./zh/login/" aria-current="page">登录</a></nav>
+      <nav class="topnav" aria-label="Primary navigation">
+        <a href="./zh/app/generate/">图像工具</a>
+        <a href="./zh/app/image-to-video/">视频工具</a>
+        <a href="./zh/pricing/">购买积分</a>
+        <a href="./zh/free-coins/">免费积分</a>
+        <a href="./zh/my-creations/">我的作品</a>
+      </nav>
+      <nav class="accountnav" aria-label="Account navigation">
+        <a class="daily-check" href="./zh/free-coins/">每日奖励</a>
+        <a href="./zh/login/" aria-current="page">登录</a>
+      </nav>
     </header>
 
     <main class="login-modal-shell">
@@ -44,45 +53,65 @@
 
       <section class="login-modal-card" aria-label="登录到 Luravyn">
         <a class="modal-close" href="./zh/app/" aria-label="关闭登录弹窗">×</a>
+        <p class="eyebrow">登录 / 注册</p>
         <h1>登录到 Luravyn</h1>
-        <p class="muted">选择一个账号继续创作。登录后可以保存作品、购买积分、复用资产并管理分享链接。</p>
+        <p class="muted">使用真实账户保存作品、管理积分、复用角色和分享生成结果。社交登录只有在后台验证通过后才会启用。</p>
 
         <div class="modal-auth-list">
-          <a class="modal-auth-btn" href="./zh/dashboard/" data-auth-provider="google"><span class="provider-dot google-dot">G</span>使用 Google 登录 <b>→</b></a>
-          <a class="modal-auth-btn" href="./zh/dashboard/" data-auth-provider="x"><span class="provider-dot x-dot">X</span>使用 X 登录 <b>→</b></a>
-          <a class="modal-auth-btn" href="./zh/dashboard/" data-telegram-auth><span class="provider-dot tg-dot">TG</span>使用 Telegram 登录 <b>→</b></a>
-          <a class="modal-auth-btn" href="./zh/dashboard/" data-auth-provider="discord"><span class="provider-dot dc-dot">DC</span>使用 Discord 登录 <b>→</b></a>
+          <a class="modal-auth-btn" href="#oauth-google" data-auth-provider="google">
+            <span class="provider-dot google-dot">G</span>
+            使用 Google 登录
+            <em data-oauth-status>配置中</em>
+          </a>
+          <a class="modal-auth-btn" href="#oauth-x" data-auth-provider="x">
+            <span class="provider-dot x-dot">X</span>
+            使用 X 登录
+            <em data-oauth-status>配置中</em>
+          </a>
+          <a class="modal-auth-btn" href="#oauth-telegram" data-telegram-auth>
+            <span class="provider-dot tg-dot">TG</span>
+            使用 Telegram 登录
+            <em data-oauth-status>配置中</em>
+          </a>
+          <a class="modal-auth-btn" href="#oauth-discord" data-auth-provider="discord">
+            <span class="provider-dot dc-dot">DC</span>
+            使用 Discord 登录
+            <em data-oauth-status>配置中</em>
+          </a>
         </div>
 
         <form class="email-auth-form" data-email-auth-form>
-          <div class="divider-label"><span>&#x6216;&#x4F7F;&#x7528;&#x90AE;&#x7BB1;</span></div>
-          <label>&#x90AE;&#x7BB1;
+          <div class="divider-label"><span>或使用邮箱</span></div>
+          <label>昵称
+            <input type="text" name="displayName" data-auth-display-name autocomplete="nickname" placeholder="Studio creator">
+          </label>
+          <label>邮箱
             <input type="email" name="email" data-auth-email autocomplete="email" placeholder="creator@example.com" required>
           </label>
-          <label>&#x5BC6;&#x7801;
-            <input type="password" name="password" data-auth-password autocomplete="current-password" placeholder="&#x81F3;&#x5C11; 8 &#x4F4D;&#x5BC6;&#x7801;" required minlength="8">
+          <label>密码
+            <input type="password" name="password" data-auth-password autocomplete="current-password" placeholder="至少 8 位密码" required minlength="8">
           </label>
           <div class="email-auth-actions">
-            <button class="btn primary" type="submit" data-email-auth="signin">&#x767B;&#x5F55;</button>
-            <button class="btn glass" type="button" data-email-auth="signup">&#x521B;&#x5EFA;&#x8D26;&#x6237;</button>
+            <button class="btn primary" type="submit" data-email-auth="signin">登录</button>
+            <button class="btn glass" type="button" data-email-auth="signup">创建账户</button>
           </div>
           <div class="password-reset-row">
-            <button type="button" data-password-reset-request>&#x5FD8;&#x8BB0;&#x5BC6;&#x7801;&#xFF1F;&#x53D1;&#x9001;&#x91CD;&#x7F6E;&#x90AE;&#x4EF6;</button>
-            <a href="./zh/reset-password/" data-reset-password-link>&#x5DF2;&#x6709;&#x91CD;&#x7F6E;&#x94FE;&#x63A5;&#xFF1F;&#x8BBE;&#x7F6E;&#x65B0;&#x5BC6;&#x7801;</a>
+            <button type="button" data-password-reset-request>忘记密码？发送重置邮件</button>
+            <a href="./zh/reset-password/" data-reset-password-link>已有重置链接？设置新密码</a>
           </div>
-          <p class="muted small">&#x90AE;&#x7BB1;&#x767B;&#x5F55;&#x53EF;&#x7528;&#x4E8E;&#x771F;&#x5B9E;&#x6CE8;&#x518C;&#x3001;&#x767B;&#x5F55;&#x3001;&#x9000;&#x51FA;&#x3001;&#x4F1A;&#x8BDD;&#x6062;&#x590D;&#x548C;&#x5BC6;&#x7801;&#x91CD;&#x7F6E;&#x6D4B;&#x8BD5;&#x3002;</p>
+          <p class="muted small">邮箱登录用于真实注册、登录、退出、会话恢复和密码重置。社交按钮不会在未配置完成时跳转到 Dashboard。</p>
         </form>
-        <p class="auth-message" data-auth-message>配置 Supabase OAuth 后，Google / X / Discord 会进行真实登录；Telegram 需要配置 Telegram Bot 和回调校验。</p>
-        <p class="login-terms">继续即表示你同意我们的 <a href="./zh/app/">服务条款</a> 和 <a href="./zh/app/">隐私政策</a>。</p>
+        <p class="auth-message" data-auth-message>当前可先使用邮箱登录。Google / X / Discord / Telegram 需要后台完成 OAuth 配置并通过验证后才会启用。</p>
+        <p class="login-terms">继续即表示你同意我们的 <a href="./zh/terms/">服务条款</a> 和 <a href="./zh/privacy/">隐私政策</a>。</p>
       </section>
+
       <section class="oauth-readiness-panel">
         <p class="eyebrow">OAuth Readiness</p>
         <h2>社交登录上线检查</h2>
-        <p class="muted">Google、X 和 Discord 通过 Supabase OAuth 发起真实登录；Telegram 需要 Bot 登录组件和后端签名校验。配置完成后按钮会直接进入真实授权流程。</p>
+        <p class="muted">Google、X 和 Discord 通过 Supabase OAuth 发起真实登录；Telegram 需要 Bot 登录组件和后端签名校验。未完成验证的平台会显示配置中。</p>
         <div class="oauth-readiness-list" data-oauth-readiness></div>
       </section>
     </main>
     <script type="module" src="./app.js"></script>
   </body>
 </html>
-

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 1.7.0 |
+| Version | 1.8.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,11 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Hardened the authentication trust boundary. Social OAuth buttons now require provider-specific readiness flags before launching Google, X, Discord, or Telegram login, and unverified providers show a disabled `配置中` state instead of falling back to Dashboard.
+- Repaired `signin.html` as clean UTF-8 Chinese and removed the unsafe social-login Dashboard fallback links.
+- Added explicit Demo Mode labeling for unauthenticated product surfaces so local placeholder roles, assets, history, credits, and dashboard cards are not confused with real user-owned Supabase data.
+- Hid Admin navigation from visitors and normal users. Admin links now appear only for signed-in users whose profile role is `admin` or `operator`, while backend Admin functions remain the authoritative permission boundary.
+- Added public OAuth readiness placeholders to `.env.example` and `.env.local.example`, and documented that these gates must stay `false` until the matching provider is verified end-to-end.
 - Enhanced the OAuth readiness verifier to print the provider-facing `redirect_uri` used by Google, X / Twitter OAuth 2.0, and Discord. The verifier now confirms all three built-in providers receive `https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback`, making `redirect_uri_mismatch` errors traceable to external provider dashboard configuration rather than frontend button wiring.
 - Updated the production auth configuration guide with explicit Google `redirect_uri_mismatch` troubleshooting and clarified that provider dashboards need the Supabase callback URL while Supabase URL Configuration owns the in-app return URLs.
 - Completed `MVP-S3-003` Character Management UI. `characters.html` now uses clean Chinese copy and exposes create/edit/list/search/filter/profile-preview flows for reusable characters with cover asset, reference asset, tags, memory, favorite state, status, score, and consistency status.
@@ -33,8 +38,9 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Ran `npm run build`; production build passed.
 - Ran `npm run test`; build and 74 tests passed.
-- Ran `npm run verify:oauth`; Google, X, and Discord authorization redirects are reachable and report the same Supabase callback URL, while Telegram remains unconfigured.
+- OAuth provider verification was not rerun for this UI hardening pass; existing `npm run verify:oauth` diagnostics remain the operational gate before flipping any `VITE_*_OAUTH_READY` flag to `true`.
 
 ## 2026-07-11
 

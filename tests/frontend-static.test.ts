@@ -110,6 +110,11 @@ describe("MVP static frontend", () => {
     assert.ok(signin.includes("使用 X 登录"));
     assert.ok(signin.includes("使用 Telegram 登录"));
     assert.ok(signin.includes("使用 Discord 登录"));
+    assert.ok(signin.includes("data-oauth-status"));
+    assert.equal(signin.includes('href="./zh/dashboard/" data-auth-provider'), false);
+    assert.equal(signin.includes('href="./zh/dashboard/" data-telegram-auth'), false);
+    assert.ok(signin.includes('href="#oauth-google"'));
+    assert.ok(signin.includes('href="#oauth-discord"'));
     assert.equal(signin.includes("GitHub"), false);
     assert.equal(signin.includes("Apple"), false);
     assert.ok(signin.includes("登录"));
@@ -671,6 +676,10 @@ describe("MVP static frontend", () => {
       "data-modal-auth-provider=\"telegram\"",
       "data-modal-auth-provider=\"discord\"",
       "startSocialAuth",
+      "isOAuthProviderReady",
+      "applyOAuthProviderState",
+      "getOAuthBlockedMessage",
+      "data-oauth-status",
       "使用 Google 登录",
       "使用 Discord 登录"
     ]) {
@@ -691,6 +700,14 @@ describe("MVP static frontend", () => {
     for (const expected of [
       "data-oauth-readiness",
       "getOAuthReadiness",
+      "VITE_GOOGLE_OAUTH_READY",
+      "VITE_X_OAUTH_READY",
+      "VITE_DISCORD_OAUTH_READY",
+      "VITE_TELEGRAM_OAUTH_READY",
+      "data-admin-nav-link",
+      "renderDemoModeBanner",
+      "demo-mode-banner",
+      "isAdminActor",
       "I18N_MESSAGES",
       "I18N_LOCALES",
       "I18N_CORE_TERMS",

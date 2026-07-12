@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | TASK-DONE-001 |
-| Version | 1.10.0 |
+| Version | 1.11.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | TASK-001 |
@@ -24,6 +24,7 @@ Archive completed tasks with verification evidence and follow-up notes.
 
 ## Completed Tasks
 
+- 2026-07-12: Authentication trust boundary hardening. Removed unsafe social-login Dashboard fallback links from Sign In, added provider-specific OAuth readiness gates, restored the login page to clean Chinese, labeled unauthenticated product pages as Demo Mode, hid Admin navigation from non-admin/non-operator users, and documented the environment gates. Verification: `npm run build` passed; `npm run test` passed with 74 tests.
 - 2026-07-12: Character Management UI. Repaired the Characters page Chinese shell, added create/edit form mode, cover asset, reference asset, status, consistency status, score, favorite state, memory, search/filter/profile preview, copy-prompt, and use-character handoff behavior, and marked `MVP-S3-003` completed. Verification: `npm run test` passed with 74 tests.
 - 2026-07-11: Dashboard and Generation History work-resume loop. Repaired Dashboard and History static Chinese shells, added Dashboard next-action recommendations and recent reusable assets, preserved task refresh/cancel/failure/refund/share/download behavior, and marked `MVP-S3-007` completed. Verification: `npm run test` passed with 74 tests.
 - 2026-07-11: MVP product analytics events. Added a local privacy-aware event queue for signup/signin, password recovery, pricing CTA clicks, checkout, generation submit/block/fail/complete, and asset sharing. Events are stored locally under `ovs_product_events_v1` with non-sensitive properties and are enabled by analytics consent or local QA mode. Verification: `npm run test` passed with 74 tests.

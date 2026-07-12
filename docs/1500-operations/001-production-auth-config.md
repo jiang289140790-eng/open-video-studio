@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | OPS-AUTH-001 |
-| Version | 1.2.0 |
+| Version | 1.3.0 |
 | Status | Active |
 | Owner | CTO / Operations |
 | Dependencies | FE-AUTH-010, API-AUTH-001, BACKEND-AUTH-001 |
@@ -32,6 +32,12 @@ Create `.env.local` from `.env.local.example` and fill:
 - `VITE_SUPABASE_STORAGE_BUCKET`
 - `VITE_TELEGRAM_BOT_USERNAME`
 - `VITE_TELEGRAM_AUTH_URL`
+- `VITE_GOOGLE_OAUTH_READY`
+- `VITE_X_OAUTH_READY`
+- `VITE_DISCORD_OAUTH_READY`
+- `VITE_TELEGRAM_OAUTH_READY`
+
+Keep each `VITE_*_OAUTH_READY` value set to `false` until that provider has passed a real browser login test. These are public feature gates, not secrets. They prevent an enabled-looking button from sending users into a known-broken provider configuration.
 
 Validate local Supabase connectivity:
 
@@ -77,6 +83,10 @@ Set these GitHub repository Variables:
 - `VITE_SUPABASE_STORAGE_BUCKET`
 - `VITE_TELEGRAM_BOT_USERNAME`
 - `VITE_TELEGRAM_AUTH_URL`
+- `VITE_GOOGLE_OAUTH_READY`
+- `VITE_X_OAUTH_READY`
+- `VITE_DISCORD_OAUTH_READY`
+- `VITE_TELEGRAM_OAUTH_READY`
 
 Set this GitHub repository Secret:
 
@@ -90,6 +100,10 @@ gh variable set VITE_SUPABASE_STORAGE_BUCKET --repo jiang289140790-eng/open-vide
 gh secret set VITE_SUPABASE_ANON_KEY --repo jiang289140790-eng/open-video-studio
 gh variable set VITE_TELEGRAM_BOT_USERNAME --repo jiang289140790-eng/open-video-studio --body "YOUR_BOT_USERNAME"
 gh variable set VITE_TELEGRAM_AUTH_URL --repo jiang289140790-eng/open-video-studio --body "https://wyvswkxogkmywduhrhkw.supabase.co/functions/v1/telegram-auth"
+gh variable set VITE_GOOGLE_OAUTH_READY --repo jiang289140790-eng/open-video-studio --body "false"
+gh variable set VITE_X_OAUTH_READY --repo jiang289140790-eng/open-video-studio --body "false"
+gh variable set VITE_DISCORD_OAUTH_READY --repo jiang289140790-eng/open-video-studio --body "false"
+gh variable set VITE_TELEGRAM_OAUTH_READY --repo jiang289140790-eng/open-video-studio --body "false"
 ```
 
 ## Supabase Auth Redirect URLs

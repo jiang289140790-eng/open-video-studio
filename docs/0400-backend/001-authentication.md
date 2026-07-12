@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | BE-ARCH-AUTH-001 |
-| Version | 1.4.0 |
+| Version | 1.5.0 |
 | Status | Active |
 | Owner | Backend Lead / Security Lead |
 | Dependencies | API-AUTH-001, DB-USERS-001, DB-AUDIT-LOGS-001, SEC-INDEX-001 |
@@ -33,6 +33,8 @@ MVP Backend Loop adds `SupabaseMvpBackendLoop`, which uses Supabase Auth for sig
 Admin operators can now inspect OAuth provider readiness through the `admin` Edge Function. The check probes Supabase authorization endpoints for Google, X/Twitter, and Discord and reports provider-disabled errors without exposing provider secrets in the browser.
 
 Password recovery remains delegated to Supabase Auth. The frontend only requests the recovery email and updates the password after Supabase validates the recovery session; backend product services continue to consume normal authenticated actor context and never handle raw password reset tokens.
+
+The frontend now gates social OAuth buttons behind provider-specific readiness flags and hides Admin navigation from non-admin users, but these UI states are not security controls. Protected operations must still verify the Supabase session, read the authoritative `profiles.role`, and enforce admin/operator permissions in backend functions before returning data or applying mutations.
 
 ## Responsibilities
 

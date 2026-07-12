@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | PAGE-AUTH-001 |
-| Version | 1.4.0 |
+| Version | 1.5.0 |
 | Status | Active |
 | Owner | Frontend Lead / Security Lead |
 | Dependencies | API-AUTH-001, DB-USERS-001, SEC-INDEX-001, DS-012 |
@@ -53,6 +53,16 @@ Authentication should use a focused, low-distraction layout with brand context, 
 - User submits login, signup, or provider action.
 - System handles verification, error, rate limit, or success.
 - Successful auth routes to onboarding, dashboard, or intended destination.
+- Social provider buttons must remain disabled unless the provider is verified through Supabase/provider dashboards and the matching public readiness flag is enabled.
+- Protected product pages must rely on a real Supabase session; frontend navigation alone is not proof of authentication.
+
+## Current Implementation
+
+- Email/password login, signup, signout, session restore, and password reset use Supabase Auth.
+- Google, X, Discord, and Telegram buttons are visible for product intent but gated by `VITE_GOOGLE_OAUTH_READY`, `VITE_X_OAUTH_READY`, `VITE_DISCORD_OAUTH_READY`, and `VITE_TELEGRAM_OAUTH_READY`.
+- Unverified social providers display `配置中` and do not fall back to Dashboard.
+- Unauthenticated product pages show an explicit Demo Mode banner and Demo labels so local placeholder data is not confused with user-owned assets.
+- Admin navigation is hidden unless the signed-in profile role is `admin` or `operator`; backend admin functions still enforce the same permission boundary.
 
 ## Navigation
 

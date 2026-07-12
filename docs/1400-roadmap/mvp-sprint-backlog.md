@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.24.0 |
+| Version | 1.25.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -358,6 +358,15 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Dependencies: MVP-S3-016, MVP-S3-023, DB-MEDIA-ASSETS-001, BE-ARCH-STORAGE-001.
 - Acceptance Criteria: Image-to-Video can reuse existing image assets whether their media URL is stored as `sourceImageUrl`, `previewUrl`, `publicUrl`, `downloadUrl`, `outputUrl`, or storage file URL; generated-output reuse, source query parameters, asset picker cards, selected-reference cards, generated previews, and share previews all use the same media URL normalization; JSON metadata downloads are not treated as image inputs.
 - Related Documents: PAGE-GENERATE-001, DB-MEDIA-ASSETS-001, BE-ARCH-STORAGE-001.
+
+### MVP-S3-025 Authentication Trust Boundary Hardening
+
+- Priority: P0.
+- Status: Completed.
+- Estimated Time: 0.25 day.
+- Dependencies: PAGE-AUTH-001, OPS-AUTH-001, API-AUTH-001, BACKEND-AUTH-001.
+- Acceptance Criteria: unverified Google, X, Discord, and Telegram login options cannot route users to Dashboard or launch a broken OAuth flow; provider buttons display readiness state from public environment gates; unauthenticated product pages show explicit Demo Mode labels; Admin navigation is hidden unless the signed-in profile role is `admin` or `operator`; backend Admin functions remain the authority for sensitive operations.
+- Related Documents: PAGE-AUTH-001, OPS-AUTH-001, BACKEND-AUTH-001, API-ADMIN-001.
 
 ## Sprint 4: Admin And MVP Integration
 

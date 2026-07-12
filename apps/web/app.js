@@ -67,6 +67,12 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 const supabaseStorageBucket = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || "open-video-studio-assets";
 const telegramBotUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "";
 const telegramAuthUrl = import.meta.env.VITE_TELEGRAM_AUTH_URL || "";
+const oauthProviderFlags = {
+  google: import.meta.env.VITE_GOOGLE_OAUTH_READY === "true",
+  x: import.meta.env.VITE_X_OAUTH_READY === "true",
+  discord: import.meta.env.VITE_DISCORD_OAUTH_READY === "true",
+  telegram: import.meta.env.VITE_TELEGRAM_OAUTH_READY === "true"
+};
 const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
 const AUTH_ROUTE_ALIASES = new Map([
   ["app", "app.html"],
@@ -1197,7 +1203,7 @@ function renderAccountNavigation(current) {
         <a href="./zh/my-creations/">我的作品</a>
         <a href="./zh/history/">生成任务</a>
         <a href="./zh/assets/">资产库</a>
-        <a href="./zh/admin/">管理后台</a>
+        ${isAdminActor(current.user) ? `<a href="./zh/admin/" data-admin-nav-link>管理后台</a>` : ""}
         <a href="./zh/free-coins/">免费积分</a>
         <a href="./zh/pricing/">购买积分</a>
         <button type="button" data-logout>退出登录</button>
@@ -1245,7 +1251,7 @@ function injectAppShell() {
         <a href="./zh/app/image-to-video/" class="${active("image-to-video.html")}">图片转视频</a>
         <a href="./zh/my-creations/" class="${active("my-creations.html")}">我的作品</a>
         <a href="./zh/history/" class="${active("history.html")}">生成任务</a>
-        <a href="./zh/admin/" class="${active("admin.html")}">管理后台</a>
+        <a href="./zh/admin/" class="${active("admin.html")}" data-admin-nav-link hidden>管理后台</a>
       </nav>
       <div class="rail-actions">
         <a href="./zh/free-coins/">推荐好友</a>
@@ -1301,7 +1307,7 @@ function injectGlobalFooter() {
         <a href="./zh/terms/">Terms</a>
         <a href="./zh/privacy/">Privacy</a>
         <a href="./zh/cookie/">Cookie</a>
-        <a href="./zh/admin/">Admin</a>
+        <a href="./zh/admin/" data-admin-nav-link hidden>Admin</a>
       </div>
       <div>
         <p>支持：support@openvideostudio.app</p>
@@ -1464,6 +1470,19 @@ function injectCarouselControls() {
   });
 }
 
+function stateUserFromSupabaseUser(user) {
+  const appMetadata = user.app_metadata || {};
+  return {
+    id: user.id,
+    name: String(user.user_metadata?.display_name || user.email || "创作者"),
+    email: user.email || "",
+    provider: "supabase",
+    role: String(appMetadata.role || user.user_metadata?.role || "user").toLowerCase(),
+    appMetadata,
+    createdAt: user.created_at || new Date().toISOString()
+  };
+}
+
 async function hydrateAuthSession() {
   if (document.body.classList.contains("share-body")) {
     await hydrateRemoteShareByToken();
@@ -1474,13 +1493,7 @@ async function hydrateAuthSession() {
   }
   const { data } = await supabase.auth.getSession();
   if (data.session?.user) {
-    state.user = {
-      id: data.session.user.id,
-      name: String(data.session.user.user_metadata?.display_name || data.session.user.email || "创作者"),
-      email: data.session.user.email || "",
-      provider: "supabase",
-      createdAt: data.session.user.created_at || new Date().toISOString()
-    };
+    state.user = stateUserFromSupabaseUser(data.session.user);
     await syncRemoteProductData();
     localStorage.removeItem(AUTH_RETURN_KEY);
     saveState(state);
@@ -1501,13 +1514,7 @@ function bindSupabaseAuthState() {
       return;
     }
     if (session?.user) {
-      state.user = {
-        id: session.user.id,
-        name: String(session.user.user_metadata?.display_name || session.user.email || "创作者"),
-        email: session.user.email || "",
-        provider: "supabase",
-        createdAt: session.user.created_at || new Date().toISOString()
-      };
+      state.user = stateUserFromSupabaseUser(session.user);
       await syncRemoteProductData();
       localStorage.removeItem(AUTH_RETURN_KEY);
       saveState(state);
@@ -1518,13 +1525,26 @@ function bindSupabaseAuthState() {
 
 async function syncRemoteProductData() {
   if (!supabase || !state.user?.id) return;
-  const [assetsResult, jobsResult, creditsResult, creditBalanceResult, sharesResult] = await Promise.all([
+  const [profileResult, assetsResult, jobsResult, creditsResult, creditBalanceResult, sharesResult] = await Promise.all([
+    supabase.from("profiles").select("display_name,email,role,account_status,credit_balance").eq("id", state.user.id).maybeSingle(),
     supabase.from("media_assets").select("*").eq("owner_user_id", state.user.id).is("deleted_at", null).order("updated_at", { ascending: false }).limit(80),
     supabase.from("generation_jobs").select("*").eq("user_id", state.user.id).order("created_at", { ascending: false }).limit(80),
     supabase.from("credit_transactions").select("id,balance_impact,status,operation_category,source_type,source_id,reason,created_at").eq("user_id", state.user.id).order("created_at", { ascending: false }).limit(100),
     supabase.from("credit_transactions").select("balance_impact,status").eq("user_id", state.user.id),
     supabase.from("share_links").select("*").eq("owner_user_id", state.user.id).eq("visibility_status", "active").is("revoked_at", null).order("created_at", { ascending: false }).limit(80)
   ]);
+  if (!profileResult.error && profileResult.data) {
+    state.user = {
+      ...state.user,
+      name: String(profileResult.data.display_name || state.user.name || "创作者"),
+      email: String(profileResult.data.email || state.user.email || ""),
+      role: String(profileResult.data.role || state.user.role || "user").toLowerCase(),
+      accountStatus: String(profileResult.data.account_status || "active")
+    };
+    if (Number.isFinite(Number(profileResult.data.credit_balance))) {
+      state.credits = Number(profileResult.data.credit_balance);
+    }
+  }
   if (!assetsResult.error && Array.isArray(assetsResult.data)) {
     state.assets = assetsResult.data.map(mapRemoteAsset);
     await attachRemoteAssetDownloadUrls(state.assets);
@@ -1749,6 +1769,9 @@ function capitalize(value) {
 function renderState(current) {
   renderAccountNavigation(current);
   renderProtectedPageGate(current);
+  renderDemoModeBanner(current);
+  updateAdminNavigation(current);
+  applyOAuthProviderState();
   document.querySelectorAll("[data-credit-balance]").forEach((node) => {
     node.textContent = String(current.credits);
   });
@@ -1791,6 +1814,88 @@ function renderProtectedPageGate(current) {
   `);
 }
 
+function isAdminActor(user) {
+  const role = String(user?.role || user?.appMetadata?.role || user?.app_metadata?.role || "").toLowerCase();
+  return role === "admin" || role === "operator";
+}
+
+function updateAdminNavigation(current) {
+  const visible = isAdminActor(current.user);
+  document.querySelectorAll("[data-admin-nav-link]").forEach((link) => {
+    link.hidden = !visible;
+    link.setAttribute("aria-hidden", visible ? "false" : "true");
+  });
+}
+
+function renderDemoModeBanner(current) {
+  const page = window.location.pathname.split("/").pop() || "index.html";
+  const isAuthPage = ["signin.html", "reset-password.html", "share.html"].includes(page);
+  const hasDemoSurface = Boolean(document.querySelector("[data-asset-list], [data-history-list], [data-dashboard-credits], [data-character-list], [data-dashboard-assets-list], [data-creation-work-list]"));
+  const enabled = !current.user && !isAuthPage && hasDemoSurface;
+  document.body.classList.toggle("demo-mode", enabled);
+  document.querySelector("[data-demo-mode-banner]")?.remove();
+  if (!enabled) return;
+  const anchor = document.querySelector(".topbar") || document.querySelector(".side-rail");
+  const markup = `
+    <aside class="demo-mode-banner" data-demo-mode-banner role="status">
+      <strong>演示模式</strong>
+      <span>当前看到的是本地演示数据，不是你的账户数据。登录后将读取真实 Supabase 角色、积分、资产和生成任务。</span>
+      <a href="./zh/login/" data-auth-modal>登录 / 注册</a>
+    </aside>
+  `;
+  if (anchor) {
+    anchor.insertAdjacentHTML("afterend", markup);
+  } else {
+    document.body.insertAdjacentHTML("afterbegin", markup);
+  }
+}
+
+function normalizeAuthProvider(provider) {
+  const normalized = String(provider || "google").toLowerCase();
+  if (["google", "x", "discord", "telegram"].includes(normalized)) return normalized;
+  return "google";
+}
+
+function oauthProviderLabel(provider) {
+  return {
+    google: "Google",
+    x: "X",
+    discord: "Discord",
+    telegram: "Telegram"
+  }[normalizeAuthProvider(provider)];
+}
+
+function isOAuthProviderReady(provider) {
+  const normalized = normalizeAuthProvider(provider);
+  if (normalized === "telegram") {
+    return Boolean(oauthProviderFlags.telegram && telegramBotUsername && telegramAuthUrl);
+  }
+  return Boolean(oauthProviderFlags[normalized] && supabase);
+}
+
+function getOAuthBlockedMessage(provider) {
+  const normalized = normalizeAuthProvider(provider);
+  if (normalized === "telegram") {
+    return "Telegram 登录正在配置中。需要 Telegram Bot、回调校验 URL 和 VITE_TELEGRAM_OAUTH_READY=true 后才会启用。请先使用邮箱登录。";
+  }
+  if (!supabase) {
+    return "Supabase 尚未配置。添加 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY 后，再完成 OAuth Provider 验证。";
+  }
+  return `${oauthProviderLabel(normalized)} 登录正在配置中。第三方 OAuth 回调验证完成并设置 readiness 开关后才会启用，请先使用邮箱登录。`;
+}
+
+function applyOAuthProviderState(scope = document) {
+  scope.querySelectorAll("[data-auth-provider], [data-modal-auth-provider], [data-telegram-auth]").forEach((button) => {
+    const provider = button.dataset.authProvider || button.dataset.modalAuthProvider || "telegram";
+    const ready = isOAuthProviderReady(provider);
+    button.dataset.oauthDisabled = ready ? "false" : "true";
+    button.setAttribute("aria-disabled", ready ? "false" : "true");
+    button.setAttribute("title", ready ? `${oauthProviderLabel(provider)} 登录已启用` : getOAuthBlockedMessage(provider));
+    const status = button.querySelector("[data-oauth-status]");
+    if (status) status.textContent = ready ? "可用" : "配置中";
+  });
+}
+
 function showAuthMessage(message, tone = "info") {
   const target = document.querySelector("[data-auth-message]");
   if (!target) return;
@@ -1813,10 +1918,10 @@ function showAuthUrlMessage() {
 
 function getOAuthReadiness() {
   return [
-    { name: "Google", ready: Boolean(supabase), action: "Supabase Authentication > Providers > Google，填写 Client ID / Secret，并加入站点回调 URL。" },
-    { name: "X", ready: Boolean(supabase), action: "Supabase Authentication > Providers > X / Twitter OAuth 2.0，填写 Client ID / Secret，并使用 provider=x。" },
-    { name: "Telegram", ready: Boolean(telegramBotUsername && telegramAuthUrl), action: "Telegram 不是 Supabase 内置 OAuth；需配置 Telegram Login Widget 的 Bot Username 和后端签名校验 URL。" },
-    { name: "Discord", ready: Boolean(supabase), action: "Supabase Authentication > Providers > Discord，填写 Client ID / Secret。" }
+    { name: "Google", provider: "google", ready: isOAuthProviderReady("google"), action: "Supabase Authentication > Providers > Google，填写 Client ID / Secret，配置回调 URL，并将 VITE_GOOGLE_OAUTH_READY 设为 true。" },
+    { name: "X", provider: "x", ready: isOAuthProviderReady("x"), action: "Supabase Authentication > Providers > X / Twitter OAuth 2.0，填写 Client ID / Secret，确认 provider=x，并将 VITE_X_OAUTH_READY 设为 true。" },
+    { name: "Telegram", provider: "telegram", ready: isOAuthProviderReady("telegram"), action: "Telegram 不是 Supabase 内置 OAuth；需配置 Telegram Login Widget、后端签名校验 URL，并将 VITE_TELEGRAM_OAUTH_READY 设为 true。" },
+    { name: "Discord", provider: "discord", ready: isOAuthProviderReady("discord"), action: "Supabase Authentication > Providers > Discord，填写 Client ID / Secret，验证回调 URL，并将 VITE_DISCORD_OAUTH_READY 设为 true。" }
   ];
 }
 
@@ -1827,7 +1932,7 @@ function renderOAuthReadiness() {
     <article class="oauth-readiness-row">
       <span class="status-dot ${item.ready ? "ready" : "blocked"}"></span>
       <div><strong>${item.name}</strong><p>${escapeHtml(item.action)}</p></div>
-      <em>${item.ready ? "前端已就绪" : "待后台配置"}</em>
+      <em>${item.ready ? "已验证可用" : "配置中"}</em>
     </article>
   `).join("");
 }
@@ -1837,6 +1942,11 @@ document.querySelectorAll("[data-auth-provider]").forEach((button) => {
     event.preventDefault();
     captureVideoGenerationDraft("social-auth");
     const provider = button.dataset.authProvider || "google";
+    if (!isOAuthProviderReady(provider)) {
+      showAuthMessage(getOAuthBlockedMessage(provider), "error");
+      trackProductEvent("auth_provider_blocked", { method: provider, reason: "provider_not_verified" });
+      return;
+    }
     if (!supabase) {
       showAuthMessage("Supabase 尚未配置。添加 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY 后即可启用真实社交登录。", "error");
       return;
@@ -1856,6 +1966,11 @@ document.querySelectorAll("[data-telegram-auth]").forEach((button) => {
     event.preventDefault();
     captureVideoGenerationDraft("telegram-auth");
     persistAuthReturnTarget(getRequestedAuthReturnTarget("dashboard.html"));
+    if (!isOAuthProviderReady("telegram")) {
+      showAuthMessage(getOAuthBlockedMessage("telegram"), "error");
+      trackProductEvent("auth_provider_blocked", { method: "telegram", reason: "provider_not_verified" });
+      return;
+    }
     if (!telegramBotUsername || !telegramAuthUrl) {
       showAuthMessage("Telegram 登录需要先配置 VITE_TELEGRAM_BOT_USERNAME 和 VITE_TELEGRAM_AUTH_URL，并在后端校验 Telegram 返回签名。", "error");
       return;
@@ -2385,16 +2500,17 @@ function openAuthModal(nextUrl = "./zh/dashboard/") {
       <h1>登录到 Luravyn</h1>
       <p class="muted">使用社交账号继续创作。登录后可以保存作品、领取免费积分、购买积分并管理分享链接。</p>
       <div class="modal-auth-list">
-        <button class="modal-auth-btn" type="button" data-modal-auth-provider="google" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot google-dot">G</span>使用 Google 登录 <b>→</b></button>
-        <button class="modal-auth-btn" type="button" data-modal-auth-provider="x" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot x-dot">X</span>使用 X 登录 <b>→</b></button>
-        <button class="modal-auth-btn" type="button" data-modal-auth-provider="telegram" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot tg-dot">TG</span>使用 Telegram 登录 <b>→</b></button>
-        <button class="modal-auth-btn" type="button" data-modal-auth-provider="discord" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot dc-dot">DC</span>使用 Discord 登录 <b>→</b></button>
+        <button class="modal-auth-btn" type="button" data-modal-auth-provider="google" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot google-dot">G</span>使用 Google 登录 <em data-oauth-status>配置中</em></button>
+        <button class="modal-auth-btn" type="button" data-modal-auth-provider="x" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot x-dot">X</span>使用 X 登录 <em data-oauth-status>配置中</em></button>
+        <button class="modal-auth-btn" type="button" data-modal-auth-provider="telegram" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot tg-dot">TG</span>使用 Telegram 登录 <em data-oauth-status>配置中</em></button>
+        <button class="modal-auth-btn" type="button" data-modal-auth-provider="discord" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot dc-dot">DC</span>使用 Discord 登录 <em data-oauth-status>配置中</em></button>
       </div>
       <p class="auth-message" data-auth-message>配置 Supabase OAuth 后，Google / X / Discord 会进行真实登录；Telegram 需要配置 Bot 和回调校验。</p>
       <p class="login-terms">继续即表示你同意我们的 <a href="./zh/terms/">服务条款</a> 和 <a href="./zh/privacy/">隐私政策</a>。</p>
     </div>
   `;
   document.body.append(overlay);
+  applyOAuthProviderState(overlay);
   overlay.querySelector(".checkin-close")?.addEventListener("click", () => overlay.remove());
   overlay.addEventListener("click", (event) => {
     if (event.target === overlay) overlay.remove();
@@ -2404,13 +2520,19 @@ function openAuthModal(nextUrl = "./zh/dashboard/") {
 async function startSocialAuth(provider, nextUrl = "./zh/dashboard/") {
   captureVideoGenerationDraft("modal-social-auth");
   const returnTarget = persistAuthReturnTarget(nextUrl);
+  const normalizedProvider = normalizeAuthProvider(provider);
   const message = document.querySelector(".auth-overlay [data-auth-message]") || document.querySelector("[data-auth-message]");
   const setMessage = (text, tone = "error") => {
     if (!message) return;
     message.textContent = text;
     message.dataset.tone = tone;
   };
-  if (provider === "telegram") {
+  if (!isOAuthProviderReady(normalizedProvider)) {
+    setMessage(getOAuthBlockedMessage(normalizedProvider));
+    trackProductEvent("auth_provider_blocked", { method: normalizedProvider, reason: "provider_not_verified" });
+    return;
+  }
+  if (normalizedProvider === "telegram") {
     if (!telegramBotUsername || !telegramAuthUrl) {
       setMessage("Telegram 登录需要先配置 VITE_TELEGRAM_BOT_USERNAME 和 VITE_TELEGRAM_AUTH_URL。");
       return;
@@ -2424,7 +2546,7 @@ async function startSocialAuth(provider, nextUrl = "./zh/dashboard/") {
     return;
   }
   const redirectTo = getAuthRedirectUrl(returnTarget);
-  const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } });
+  const { error } = await supabase.auth.signInWithOAuth({ provider: normalizedProvider, options: { redirectTo } });
   if (error) setMessage(error.message);
 }
 
@@ -2603,13 +2725,7 @@ document.querySelectorAll("[data-email-auth]").forEach((button) => {
       return;
     }
     if (result.data.user) {
-      state.user = {
-        id: result.data.user.id,
-        name: String(result.data.user.user_metadata?.display_name || result.data.user.email || "创作者"),
-        email: result.data.user.email || email,
-        provider: "supabase",
-        createdAt: result.data.user.created_at || new Date().toISOString()
-      };
+      state.user = stateUserFromSupabaseUser(result.data.user);
       saveState(state);
     }
     trackProductEvent(mode === "signup" ? "signup_completed" : "signin_completed", {
@@ -2696,13 +2812,7 @@ document.querySelectorAll("[data-password-update]").forEach((button) => {
       return;
     }
     if (data.user) {
-      state.user = {
-        id: data.user.id,
-        name: String(data.user.user_metadata?.display_name || data.user.email || "创作者"),
-        email: data.user.email || "",
-        provider: "supabase",
-        createdAt: data.user.created_at || new Date().toISOString()
-      };
+      state.user = stateUserFromSupabaseUser(data.user);
       saveState(state);
     }
     trackProductEvent("password_updated", { method: "email" });
@@ -5494,6 +5604,11 @@ function renderAdmin(current) {
   }
   if (!current.user) {
     setAdminAccess("blocked", "需要登录", "请先登录管理员账号。账号的 profiles.role 必须是 admin 或 operator。", "./zh/login/");
+    fillAdminEmptyState();
+    return;
+  }
+  if (!isAdminActor(current.user)) {
+    setAdminAccess("blocked", "无权限", "当前账号不是 admin 或 operator。后台入口只对内部运营账号开放。");
     fillAdminEmptyState();
     return;
   }
