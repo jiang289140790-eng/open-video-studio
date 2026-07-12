@@ -386,9 +386,9 @@ const defaultState = {
   user: null,
   credits: 40,
   characters: [
-    { id: "char_mira", name: "Mira", role: "工作室主持人", tags: ["发布", "工作室", "冷静"], score: 92, status: "active", favorite: true, memory: "稳定的工作室主持人，适合产品讲解、发布短片和品牌介绍。" },
-    { id: "char_atlas", name: "Atlas", role: "产品讲解员", tags: ["产品", "干净"], score: 88, status: "active", favorite: false, memory: "商业产品讲解员，表达清晰，画面干净。" },
-    { id: "char_nova", name: "Nova", role: "创作者形象", tags: ["时尚", "霓虹"], score: 95, status: "draft", favorite: false, memory: "适合时尚、霓虹、竖屏内容的创作者形象。" }
+    { id: "char_mira", name: "Mira", role: "工作室主持人", tags: ["发布", "工作室", "冷静"], score: 92, status: "active", favorite: true, consistencyStatus: "stable", coverAsset: "asset_launch", referenceAsset: "asset_launch", memory: "稳定的工作室主持人，适合产品讲解、发布短片和品牌介绍。" },
+    { id: "char_atlas", name: "Atlas", role: "产品讲解员", tags: ["产品", "干净"], score: 88, status: "active", favorite: false, consistencyStatus: "stable", coverAsset: "", referenceAsset: "asset_launch", memory: "商业产品讲解员，表达清晰，画面干净。" },
+    { id: "char_nova", name: "Nova", role: "创作者形象", tags: ["时尚", "霓虹"], score: 95, status: "draft", favorite: false, consistencyStatus: "experimental", coverAsset: "", referenceAsset: "", memory: "适合时尚、霓虹、竖屏内容的创作者形象。" }
   ],
   assets: [
     { id: "asset_launch", type: "image", title: "发布主视觉", prompt: "紫色灯光下的电影感产品发布", character: "Mira", credits: 8, status: "completed", visibility: "private", favorite: true },
@@ -731,6 +731,10 @@ state.characters = state.characters.map((character) => ({
   status: "active",
   favorite: false,
   memory: `${character.role || "创意角色"}，保持视觉和提示词一致。`,
+  score: Number(character.score || 84),
+  consistencyStatus: character.consistencyStatus || (Number(character.score || 84) >= 90 ? "stable" : "needs_review"),
+  coverAsset: character.coverAsset || character.cover || "",
+  referenceAsset: character.referenceAsset || character.reference || "",
   ...character
 }));
 state.rewards = {
@@ -4245,23 +4249,83 @@ const characterForm = document.querySelector("[data-character-form]");
 if (characterForm) {
   characterForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    const form = new FormData(characterForm);
-    const name = String(form.get("name") || "").trim();
-    if (!name) return;
-    state.characters.unshift({
-      id: `char_${Date.now()}`,
-      name,
-      role: String(form.get("role") || "创意角色"),
-      tags: String(form.get("tags") || "自定义").split(",").map((tag) => tag.trim()).filter(Boolean),
-      score: 84,
-      status: "active",
-      favorite: false,
-      memory: String(form.get("memory") || "保持角色外观、语气、镜头和品牌视觉一致。")
-    });
-    selectedCharacterId = state.characters[0].id;
+    const payload = buildCharacterPayload(characterForm);
+    if (!payload.name) return;
+    const characterId = payload.id || `char_${Date.now()}`;
+    const nextCharacter = { ...payload, id: characterId };
+    const existingIndex = state.characters.findIndex((character) => character.id === characterId);
+    if (existingIndex >= 0) {
+      state.characters[existingIndex] = { ...state.characters[existingIndex], ...nextCharacter };
+    } else {
+      state.characters.unshift(nextCharacter);
+    }
+    selectedCharacterId = characterId;
     saveState(state);
-    characterForm.reset();
+    resetCharacterForm();
   });
+}
+
+function buildCharacterPayload(formElement) {
+  const form = new FormData(formElement);
+  const rawScore = Number(form.get("score") || 84);
+  const score = Math.max(0, Math.min(100, Number.isFinite(rawScore) ? rawScore : 84));
+  return {
+    id: String(form.get("id") || "").trim(),
+    name: String(form.get("name") || "").trim(),
+    role: String(form.get("role") || "创意角色").trim() || "创意角色",
+    tags: String(form.get("tags") || "自定义").split(",").map((tag) => tag.trim()).filter(Boolean),
+    score,
+    status: String(form.get("status") || "active"),
+    consistencyStatus: String(form.get("consistencyStatus") || (score >= 90 ? "stable" : "needs_review")),
+    coverAsset: String(form.get("coverAsset") || "").trim(),
+    referenceAsset: String(form.get("referenceAsset") || "").trim(),
+    favorite: form.has("favorite"),
+    memory: String(form.get("memory") || "保持角色外观、语气、镜头和品牌视觉一致。").trim()
+  };
+}
+
+function populateCharacterForm(character) {
+  if (!characterForm || !character) return;
+  characterForm.dataset.characterFormMode = "edit";
+  setCharacterFormValue("id", character.id);
+  setCharacterFormValue("name", character.name);
+  setCharacterFormValue("role", character.role);
+  setCharacterFormValue("tags", Array.isArray(character.tags) ? character.tags.join(", ") : character.tags || "");
+  setCharacterFormValue("status", character.status || "active");
+  setCharacterFormValue("consistencyStatus", character.consistencyStatus || "stable");
+  setCharacterFormValue("score", character.score || 84);
+  setCharacterFormValue("coverAsset", character.coverAsset || "");
+  setCharacterFormValue("referenceAsset", character.referenceAsset || "");
+  setCharacterFormValue("memory", character.memory || "");
+  const favorite = characterForm.querySelector("[name='favorite']");
+  if (favorite) favorite.checked = Boolean(character.favorite);
+  const title = characterForm.querySelector("[data-character-form-title]");
+  if (title) title.textContent = "编辑角色";
+  const submit = characterForm.querySelector("[data-character-submit]");
+  if (submit) submit.textContent = "保存角色";
+  const cancel = characterForm.querySelector("[data-cancel-character-edit]");
+  if (cancel) cancel.hidden = false;
+}
+
+function resetCharacterForm() {
+  if (!characterForm) return;
+  characterForm.reset();
+  characterForm.dataset.characterFormMode = "create";
+  setCharacterFormValue("id", "");
+  setCharacterFormValue("score", 88);
+  setCharacterFormValue("status", "active");
+  setCharacterFormValue("consistencyStatus", "stable");
+  const title = characterForm.querySelector("[data-character-form-title]");
+  if (title) title.textContent = "创建角色";
+  const submit = characterForm.querySelector("[data-character-submit]");
+  if (submit) submit.textContent = "创建角色";
+  const cancel = characterForm.querySelector("[data-cancel-character-edit]");
+  if (cancel) cancel.hidden = true;
+}
+
+function setCharacterFormValue(name, value) {
+  const field = characterForm?.querySelector(`[name='${name}']`);
+  if (field) field.value = value ?? "";
 }
 
 function statusRow(title, body, href, action) {
@@ -4496,11 +4560,12 @@ function renderCharacters(current) {
     });
     target.innerHTML = characters.map((character, index) => `
     <article class="character-card large ${["art-2", "art-11", "art-12"][index % 3]} ${character.id === selectedCharacterId ? "selected" : ""}" data-character-card="${character.id}">
-      <span>${character.status === "active" ? "可生成" : "草稿"} ${character.favorite ? "· 收藏" : ""}</span>
+      <span>${characterStatusLabel(character.status)} ${character.favorite ? "· 收藏" : ""}</span>
       <strong>${escapeHtml(character.name)}</strong>
-      <span>${escapeHtml(character.role)} - 一致性 ${character.score}%</span>
+      <span>${escapeHtml(character.role)} - 一致性 ${Number(character.score || 0)}% · ${characterConsistencyLabel(character.consistencyStatus)}</span>
       <p>标签：${character.tags.map(escapeHtml).join(", ")}</p>
-      <div class="row-actions"><button type="button" data-use-character="${character.id}">使用角色</button><button type="button" data-copy-character="${character.id}">复制设定</button></div>
+      <small data-character-cover-summary>封面：${escapeHtml(character.coverAsset || "默认")} · 参考：${escapeHtml(character.referenceAsset || "默认")}</small>
+      <div class="row-actions"><button type="button" data-use-character="${character.id}">使用角色</button><button type="button" data-edit-character="${character.id}">编辑</button><button type="button" data-copy-character="${character.id}">复制设定</button></div>
     </article>
   `).join("");
   }
@@ -4517,11 +4582,31 @@ function renderCharacterProfile(current) {
   profile.querySelector(".avatar").className = `avatar ${character.favorite ? "art-12" : "art-2"}`;
   profile.querySelector("h2").textContent = `${character.name} ${character.role}`;
   profile.querySelector(".muted").textContent = character.memory || "保持角色外观、语气、镜头和品牌视觉一致。";
-  profile.querySelector(".score").innerHTML = `一致性评分 <strong>${character.score}%</strong>`;
-  profile.querySelector(".character-action-row").innerHTML = `<button class="btn primary" type="button" data-use-character="${character.id}">使用角色生成</button><button class="btn glass" type="button" data-copy-character="${character.id}">复制角色提示词</button>`;
+  profile.querySelector(".score").innerHTML = `一致性评分 <strong>${Number(character.score || 0)}%</strong>`;
+  const meta = profile.querySelector("[data-character-profile-meta]");
+  if (meta) meta.textContent = `状态：${characterStatusLabel(character.status)} · 一致性：${characterConsistencyLabel(character.consistencyStatus)} · 封面：${character.coverAsset || "默认"} · 参考资产：${character.referenceAsset || "默认"}`;
+  profile.querySelector(".character-action-row").innerHTML = `<button class="btn primary" type="button" data-use-character="${character.id}">使用角色生成</button><button class="btn glass" type="button" data-edit-character="${character.id}">编辑角色</button><button class="btn glass" type="button" data-copy-character="${character.id}">复制角色提示词</button>`;
   profile.querySelector(".mini-assets").innerHTML = relatedAssets.length
     ? relatedAssets.map((asset, index) => `<span class="thumb ${asset.type === "video" ? "art-7" : ["art-3", "art-8", "art-10"][index % 3]}"></span>`).join("")
     : `<span class="thumb art-3"></span><span class="thumb art-7"></span><span class="thumb art-8"></span>`;
+}
+
+function characterStatusLabel(status) {
+  const labels = {
+    active: "可生成",
+    draft: "草稿",
+    archived: "已归档"
+  };
+  return labels[status] || "可生成";
+}
+
+function characterConsistencyLabel(status) {
+  const labels = {
+    stable: "稳定",
+    needs_review: "需要校准",
+    experimental: "实验中"
+  };
+  return labels[status] || "稳定";
 }
 
 function escapeHtml(value) {
@@ -7139,11 +7224,28 @@ document.addEventListener("click", async (event) => {
     return;
   }
 
+  const editCharacterButton = event.target.closest("[data-edit-character]");
+  if (editCharacterButton) {
+    const character = state.characters.find((item) => item.id === editCharacterButton.dataset.editCharacter);
+    if (!character) return;
+    selectedCharacterId = character.id;
+    renderCharacters(state);
+    populateCharacterForm(character);
+    characterForm?.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
+  const cancelCharacterEditButton = event.target.closest("[data-cancel-character-edit]");
+  if (cancelCharacterEditButton) {
+    resetCharacterForm();
+    return;
+  }
+
   const copyCharacterButton = event.target.closest("[data-copy-character]");
   if (copyCharacterButton) {
     const character = state.characters.find((item) => item.id === copyCharacterButton.dataset.copyCharacter);
     if (!character) return;
-    const characterPrompt = `${character.name}｜${character.role}｜标签：${character.tags.join(", ")}｜记忆：${character.memory || ""}`;
+    const characterPrompt = `${character.name}｜${character.role}｜标签：${character.tags.join(", ")}｜一致性：${characterConsistencyLabel(character.consistencyStatus)} ${character.score}%｜封面：${character.coverAsset || "默认"}｜参考资产：${character.referenceAsset || "默认"}｜记忆：${character.memory || ""}`;
     try {
       await navigator.clipboard?.writeText(characterPrompt);
       copyCharacterButton.textContent = "已复制";

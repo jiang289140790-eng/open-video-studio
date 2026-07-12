@@ -237,6 +237,15 @@ describe("MVP static frontend", () => {
       "data-character-card",
       "data-use-character",
       "data-copy-character",
+      "data-edit-character",
+      "data-cancel-character-edit",
+      "data-character-id",
+      "data-character-cover",
+      "data-character-reference",
+      "data-character-status",
+      "data-character-consistency",
+      "data-character-memory",
+      "角色记忆",
       "ovs_selected_character",
       "data-referral-state",
       "data-referral-progress",
@@ -979,9 +988,21 @@ describe("MVP static frontend", () => {
       "data-character-card",
       "data-use-character",
       "data-copy-character",
+      "data-edit-character",
+      "data-cancel-character-edit",
+      "data-character-id",
+      "data-character-cover",
+      "data-character-reference",
+      "data-character-status",
+      "data-character-consistency",
+      "data-character-memory",
       "角色记忆",
       "character-action-row",
-      "selectedCharacterId"
+      "selectedCharacterId",
+      "buildCharacterPayload",
+      "populateCharacterForm",
+      "resetCharacterForm",
+      "characterConsistencyLabel"
     ]) {
       assert.ok(`${characters}\n${appScript}\n${styles}`.includes(expected), `character center should include ${expected}`);
     }

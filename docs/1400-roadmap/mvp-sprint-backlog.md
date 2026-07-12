@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.23.0 |
+| Version | 1.24.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -166,9 +166,10 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 ### MVP-S3-003 Character Management UI
 
 - Priority: P0.
+- Status: Completed.
 - Estimated Time: 1 day.
 - Dependencies: MVP-S3-001, API-CHARACTER-001.
-- Acceptance Criteria: user can create, edit, list, and select a character with cover/reference asset, tags, memory, and consistency status.
+- Acceptance Criteria: user can create, edit, list, search, filter, preview, copy, and select a character with cover/reference asset, tags, memory, status, score, favorite state, and consistency status.
 - Related Documents: API-CHARACTER-001, DB-CHARACTERS-001, PAGE-GENERATE-001.
 
 ### MVP-S3-004 Connected Asset Library

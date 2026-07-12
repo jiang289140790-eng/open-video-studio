@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 1.10.0 |
+| Version | 1.11.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- Character Management now supports the MVP character loop from one page: users can create, edit, list, search, filter, preview, copy, and select reusable characters with cover asset, reference asset, tags, memory, favorite state, status, score, and consistency state. `MVP-S3-003` is now completed while the existing API/database contracts remain the source of truth for server wiring.
 - Dashboard and Generation History now have a clearer post-login work-resume loop. Dashboard includes next-action recommendations, recent tasks, recent reusable assets, credit ledger, saved characters, share links, and content operations summaries; History remains the detailed task center for search/filter, refresh/cancel, failure reasons, refund state, output links, share, download, and retry.
 - Product analytics now has a local, privacy-aware MVP event queue. The frontend records signup/signin, password recovery, pricing CTA, checkout, generation submit/block/fail/complete, and asset-share events to `ovs_product_events_v1` when analytics consent is granted or the site is running locally for QA.
 - Email authentication now has a password recovery loop. `signin.html` can request a Supabase reset email, `/zh/reset-password/` preserves the recovery callback, and `reset-password.html` updates the password through the authenticated Supabase recovery session before returning users to Dashboard.

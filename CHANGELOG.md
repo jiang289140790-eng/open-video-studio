@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 1.5.0 |
+| Version | 1.6.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -20,6 +20,18 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Include documentation changes, architecture changes, validation performed, and known follow-ups.
 - Reference relevant document IDs, task IDs, and decision records.
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
+
+## 2026-07-12
+
+### Improved
+
+- Completed `MVP-S3-003` Character Management UI. `characters.html` now uses clean Chinese copy and exposes create/edit/list/search/filter/profile-preview flows for reusable characters with cover asset, reference asset, tags, memory, favorite state, status, score, and consistency status.
+- Upgraded local character state handling in `app.js` so existing demo characters are normalized with `coverAsset`, `referenceAsset`, and `consistencyStatus`, and the character form can switch safely between create and edit modes.
+- Added static regression coverage for character editing, cover/reference asset fields, consistency fields, and character form helpers without changing backend/provider architecture.
+
+### Validation
+
+- Ran `npm run test`; build and 74 tests passed.
 
 ## 2026-07-11
 
