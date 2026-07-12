@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 1.8.0 |
+| Version | 1.8.1 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -24,6 +24,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 ## 2026-07-12
 
 ### Improved
+
+- Connected the production MVP source to the GPT Sites project `Luravyn AI Studio` while preserving GitHub Pages as the current public deployment and Supabase as the authoritative Auth, PostgreSQL, Storage, and Edge Functions backend. Added `.openai/hosting.json` so future deployments reuse the same opaque Sites project instead of creating duplicates, and configured only browser-safe Supabase/OAuth environment values in Sites.
 
 - Improved the signed-out generation gate. The unlock modal now offers email sign-in/sign-up alongside social login, preserves the intended return target, and allows one clearly labeled browser-only demo generation that does not consume credits, does not call Supabase, and does not create a real shareable account asset. Real saving, downloading, sharing, credit debit, and remote provider generation remain gated behind authenticated Supabase sessions.
 
