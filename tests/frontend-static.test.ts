@@ -53,7 +53,24 @@ function readPage(file: string): string {
   return readFileSync(join(webRoot, file), "utf8");
 }
 
+function readRoot(file: string): string {
+  return readFileSync(join(process.cwd(), file), "utf8");
+}
+
 describe("MVP static frontend", () => {
+  it("prepares a GPT Sites runtime without changing the Vite product surface", () => {
+    const packageJson = readRoot("package.json");
+    const runtimeBuilder = readRoot("scripts/prepare-sites-runtime.mjs");
+    const hosting = readRoot(".openai/hosting.json");
+
+    assert.match(packageJson, /"postbuild":\s*"node scripts\/prepare-sites-runtime\.mjs"/);
+    assert.match(runtimeBuilder, /dist-web/);
+    assert.match(runtimeBuilder, /resolve\(runtimeRoot,\s*"client"\)/);
+    assert.match(runtimeBuilder, /env\?\.ASSETS\?\.fetch/);
+    assert.match(runtimeBuilder, /resolve\(runtimeRoot,\s*"server",\s*"index\.js"\)/);
+    assert.match(hosting, /"project_id":\s*"appgprj_/);
+  });
+
   it("contains every required product surface", () => {
     for (const page of requiredPages) {
       const pagePath = join(webRoot, page);

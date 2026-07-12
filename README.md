@@ -75,6 +75,7 @@ npm run test
 ```
 
 GPT Sites deployments reuse the project ID stored in `.openai/hosting.json`. Configure only browser-safe `VITE_*` values in Sites; keep Supabase service-role keys and AI/payment provider secrets in Supabase Edge Function Secrets.
+The `postbuild` step packages the existing `dist-web` output as `dist/client` and adds the Sites fetch entry at `dist/server/index.js`; no product routes or Supabase contracts are forked for Sites.
 
 Verify Supabase configuration:
 
