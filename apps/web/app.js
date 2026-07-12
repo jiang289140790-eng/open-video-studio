@@ -1190,16 +1190,16 @@ function renderAccountNavigation(current) {
       <button class="account-trigger" type="button" aria-expanded="false"><span>${initial}</span><b data-user-name>${current.user.name}</b></button>
       <div class="account-dropdown">
         <a href="./zh/dashboard/">控制台</a>
-        <a href="./zh/campaigns/">Campaigns</a>
-        <a href="./zh/ai-studio/">AI Studio</a>
-        <a href="./zh/pipeline/">Content Pipeline</a>
-        <a href="./zh/queue/">Content Queue</a>
-        <a href="./zh/accounts/">Publishing Accounts</a>
-        <a href="./zh/publishing/">Publishing</a>
-        <a href="./zh/calendar/">Content Calendar</a>
-        <a href="./zh/analytics/">Analytics</a>
-        <a href="./zh/automation/">Automation</a>
-        <a href="./zh/settings/">Settings</a>
+        <a href="./zh/campaigns/">营销活动 <em class="nav-beta">Beta</em></a>
+        <a href="./zh/ai-studio/">AI 工作室 <em class="nav-beta">Beta</em></a>
+        <a href="./zh/pipeline/">内容流水线 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/queue/">内容队列 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/accounts/">发布账号 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/publishing/">内容发布 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/calendar/">内容日历 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/analytics/">数据分析 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/automation/">自动化 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/settings/">设置</a>
         <a href="./zh/my-creations/">我的作品</a>
         <a href="./zh/history/">生成任务</a>
         <a href="./zh/assets/">资产库</a>
@@ -1235,17 +1235,17 @@ function injectAppShell() {
         <a href="./zh/app/generate/" class="${active("generate.html")}">图片生成器</a>
         <a href="./zh/app/characters/" class="${active("characters.html")}">角色生成器</a>
         <a href="./zh/assets/" class="${active("assets.html")}">资产库</a>
-        <span>内容运营</span>
-        <a href="./zh/campaigns/" class="${active("campaigns.html")}">Campaigns</a>
-        <a href="./zh/ai-studio/" class="${active("ai-studio.html")}">AI Studio</a>
-        <a href="./zh/pipeline/" class="${active("pipeline.html")}">Content Pipeline</a>
-        <a href="./zh/queue/" class="${active("queue.html")}">Content Queue</a>
-        <a href="./zh/accounts/" class="${active("accounts.html")}">Publishing Accounts</a>
-        <a href="./zh/publishing/" class="${active("publishing.html")}">Publishing</a>
-        <a href="./zh/calendar/" class="${active("calendar.html")}">Content Calendar</a>
-        <a href="./zh/analytics/" class="${active("analytics.html")}">Analytics</a>
-        <a href="./zh/automation/" class="${active("automation.html")}">Automation</a>
-        <a href="./zh/settings/" class="${active("settings.html")}">Settings</a>
+        <span>内容运营 Beta</span>
+        <a href="./zh/campaigns/" class="${active("campaigns.html")}">营销活动 <em class="nav-beta">Beta</em></a>
+        <a href="./zh/ai-studio/" class="${active("ai-studio.html")}">AI 工作室 <em class="nav-beta">Beta</em></a>
+        <a href="./zh/pipeline/" class="${active("pipeline.html")}">内容流水线 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/queue/" class="${active("queue.html")}">内容队列 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/accounts/" class="${active("accounts.html")}">发布账号 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/publishing/" class="${active("publishing.html")}">内容发布 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/calendar/" class="${active("calendar.html")}">内容日历 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/analytics/" class="${active("analytics.html")}">数据分析 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/automation/" class="${active("automation.html")}">自动化 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/settings/" class="${active("settings.html")}">设置</a>
         <span>AI 视频</span>
         <a href="./zh/video-tools/" class="${active("video-tools.html")}">全部视频工具</a>
         <a href="./zh/app/image-to-video/" class="${active("image-to-video.html")}">图片转视频</a>
@@ -1288,16 +1288,16 @@ function injectGlobalFooter() {
         <a href="./zh/app/image-to-video/">图片转视频</a>
         <a href="./zh/history/">生成任务</a>
         <a href="./zh/my-creations/">我的作品</a>
-        <a href="./zh/campaigns/">Campaigns</a>
-        <a href="./zh/ai-studio/">AI Studio</a>
-        <a href="./zh/pipeline/">Content Pipeline</a>
-        <a href="./zh/queue/">Content Queue</a>
-        <a href="./zh/accounts/">Publishing Accounts</a>
-        <a href="./zh/publishing/">Publishing</a>
-        <a href="./zh/calendar/">Content Calendar</a>
-        <a href="./zh/analytics/">Analytics</a>
-        <a href="./zh/automation/">Automation</a>
-        <a href="./zh/settings/">Settings</a>
+        <a href="./zh/campaigns/">营销活动 <em class="nav-beta">Beta</em></a>
+        <a href="./zh/ai-studio/">AI 工作室 <em class="nav-beta">Beta</em></a>
+        <a href="./zh/pipeline/">内容流水线 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/queue/">内容队列 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/accounts/">发布账号 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/publishing/">内容发布 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/calendar/">内容日历 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/analytics/">数据分析 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/automation/">自动化 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/settings/">设置</a>
       </div>
       <div>
         <h3>About Us</h3>
@@ -1525,13 +1525,14 @@ function bindSupabaseAuthState() {
 
 async function syncRemoteProductData() {
   if (!supabase || !state.user?.id) return;
-  const [profileResult, assetsResult, jobsResult, creditsResult, creditBalanceResult, sharesResult] = await Promise.all([
+  const [profileResult, assetsResult, jobsResult, creditsResult, creditBalanceResult, sharesResult, charactersResult] = await Promise.all([
     supabase.from("profiles").select("display_name,email,role,account_status,credit_balance").eq("id", state.user.id).maybeSingle(),
     supabase.from("media_assets").select("*").eq("owner_user_id", state.user.id).is("deleted_at", null).order("updated_at", { ascending: false }).limit(80),
     supabase.from("generation_jobs").select("*").eq("user_id", state.user.id).order("created_at", { ascending: false }).limit(80),
     supabase.from("credit_transactions").select("id,balance_impact,status,operation_category,source_type,source_id,reason,created_at").eq("user_id", state.user.id).order("created_at", { ascending: false }).limit(100),
     supabase.from("credit_transactions").select("balance_impact,status").eq("user_id", state.user.id),
-    supabase.from("share_links").select("*").eq("owner_user_id", state.user.id).eq("visibility_status", "active").is("revoked_at", null).order("created_at", { ascending: false }).limit(80)
+    supabase.from("share_links").select("*").eq("owner_user_id", state.user.id).eq("visibility_status", "active").is("revoked_at", null).order("created_at", { ascending: false }).limit(80),
+    supabase.from("characters").select("*").eq("owner_user_id", state.user.id).is("archived_at", null).order("updated_at", { ascending: false }).limit(80)
   ]);
   if (!profileResult.error && profileResult.data) {
     state.user = {
@@ -1574,6 +1575,12 @@ async function syncRemoteProductData() {
       title: state.assets.find((asset) => asset.id === share.media_asset_id)?.title || "分享作品",
       remote: true
     }));
+  }
+  if (!charactersResult.error && Array.isArray(charactersResult.data)) {
+    state.characters = charactersResult.data.map(mapRemoteCharacter);
+    if (!state.characters.some((character) => character.id === selectedCharacterId)) {
+      selectedCharacterId = state.characters[0]?.id || selectedCharacterId;
+    }
   }
 }
 
@@ -1675,6 +1682,27 @@ function mapRemoteCreditTransaction(row) {
   };
 }
 
+function mapRemoteCharacter(character) {
+  const tags = parseMaybeJson(character.tags_json);
+  const memory = parseMaybeJson(character.memory_json);
+  const safeTags = Array.isArray(tags) ? tags.map(String) : [];
+  const score = Number(memory.consistencyScore || memory.score || 0);
+  return {
+    id: String(character.id),
+    name: String(character.name || "未命名角色"),
+    role: String(character.description || character.character_type || "角色"),
+    tags: safeTags,
+    score: Number.isFinite(score) && score > 0 ? score : 70,
+    status: character.visibility_status === "archived" ? "archived" : character.consistency_status === "draft" ? "draft" : "active",
+    favorite: Boolean(memory.favorite),
+    consistencyStatus: String(character.consistency_status || "needs_review"),
+    coverAsset: String(character.cover_asset_id || ""),
+    referenceAsset: String(character.reference_asset_id || ""),
+    memory: String(memory.summary || memory.notes || character.prompt_seed || character.description || "登录后保存的角色记忆。"),
+    remote: true
+  };
+}
+
 function recordCreditLedger(input) {
   state.creditLedger = Array.isArray(state.creditLedger) ? state.creditLedger : [];
   state.creditLedger.unshift({
@@ -1762,6 +1790,22 @@ function ensureUser(provider = "email") {
   saveState(state);
 }
 
+function isRealAuthenticatedUser(user = state.user) {
+  if (!user?.id) return false;
+  if (String(user.id) === "user_demo") return false;
+  if (String(user.provider || "").toLowerCase().includes("demo")) return false;
+  return true;
+}
+
+function requireRealLoginForAction(reason = "protected-action", nextUrl = getCurrentAuthReturnTarget()) {
+  if (isRealAuthenticatedUser(state.user)) return true;
+  captureVideoGenerationDraft(reason);
+  showSiteToast("请先登录 / 注册。生成、保存、下载和分享都需要真实账户。");
+  openUnlockModal(nextUrl);
+  trackProductEvent("auth_required", { reason });
+  return false;
+}
+
 function capitalize(value) {
   return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
 }
@@ -1778,6 +1822,7 @@ function renderState(current) {
   document.querySelectorAll("[data-user-name]").forEach((node) => {
     node.textContent = current.user ? current.user.name : "访客创作者";
   });
+  applyGenerationModelVisibility(current);
   updateVideoPreflight();
   renderCharacters(current);
   renderAssets(current);
@@ -1795,8 +1840,8 @@ function renderProtectedPageGate(current) {
   const page = window.location.pathname.split("/").pop() || "index.html";
   if (!PROTECTED_PRODUCT_PAGES.has(page)) return;
   document.querySelector(".protected-gate")?.remove();
-  document.body.classList.toggle("protected-signed-out", !current.user);
-  if (current.user) return;
+  document.body.classList.toggle("protected-signed-out", !isRealAuthenticatedUser(current.user));
+  if (isRealAuthenticatedUser(current.user)) return;
   const main = document.querySelector("main");
   if (!main) return;
   main.insertAdjacentHTML("afterbegin", `
@@ -1804,7 +1849,7 @@ function renderProtectedPageGate(current) {
       <div>
         <p class="eyebrow">需要登录</p>
         <h2>登录后管理你的创作、资产和积分</h2>
-        <p>这些页面会保存你的生成结果、历史记录、分享链接和资产库。当前展示的是本地演示数据，登录后可进入真实账户流程。</p>
+        <p>这些页面只在真实登录后显示你的账户数据。未登录时只展示功能预览，不会伪装成你的作品或积分。</p>
       </div>
       <div class="protected-gate-actions">
         <a class="btn primary" href="./zh/login/" data-auth-modal>登录 / 注册</a>
@@ -1831,7 +1876,7 @@ function renderDemoModeBanner(current) {
   const page = window.location.pathname.split("/").pop() || "index.html";
   const isAuthPage = ["signin.html", "reset-password.html", "share.html"].includes(page);
   const hasDemoSurface = Boolean(document.querySelector("[data-asset-list], [data-history-list], [data-dashboard-credits], [data-character-list], [data-dashboard-assets-list], [data-creation-work-list]"));
-  const enabled = !current.user && !isAuthPage && hasDemoSurface;
+  const enabled = !isRealAuthenticatedUser(current.user) && !isAuthPage && hasDemoSurface;
   document.body.classList.toggle("demo-mode", enabled);
   document.querySelector("[data-demo-mode-banner]")?.remove();
   if (!enabled) return;
@@ -1839,7 +1884,7 @@ function renderDemoModeBanner(current) {
   const markup = `
     <aside class="demo-mode-banner" data-demo-mode-banner role="status">
       <strong>演示模式</strong>
-      <span>当前看到的是本地演示数据，不是你的账户数据。登录后将读取真实 Supabase 角色、积分、资产和生成任务。</span>
+      <span>当前是功能预览，不是账户数据。登录后将读取真实 Supabase 昵称、积分、角色、资产、作品和生成任务。</span>
       <a href="./zh/login/" data-auth-modal>登录 / 注册</a>
     </aside>
   `;
@@ -2551,6 +2596,7 @@ async function startSocialAuth(provider, nextUrl = "./zh/dashboard/") {
 }
 
 function runToolDemoGeneration() {
+  if (!requireRealLoginForAction("tool-demo-generation", getCurrentAuthReturnTarget())) return;
   const status = document.querySelector("[data-tool-demo-status]");
   const preview = document.querySelector("[data-tool-demo-preview]");
   const prompt = document.querySelector("[data-tool-prompt]")?.value.trim() || "AI 工具演示生成";
@@ -3162,9 +3208,9 @@ const videoWorkflowPresets = {
     prompt: "将这张图转换成 5 秒电影感短视频，镜头缓慢推进，主体保持清晰，灯光高级，适合发布到社媒。",
     ratio: "16:9",
     duration: "5",
-    model: "fake_worker",
+    model: "qianwen_generation",
     cost: 24,
-    preview: "16:9 · 5秒 · Fake Worker 演示",
+    preview: "16:9 · 5秒 · 可用测试生成",
     art: "art-7"
   },
   "product-teaser": {
@@ -3195,6 +3241,24 @@ const videoWorkflowPresets = {
   }
 };
 
+function applyGenerationModelVisibility(current = state) {
+  document.querySelectorAll("[data-video-model]").forEach((select) => {
+    const isAdmin = isAdminActor(current.user);
+    const fakeOption = Array.from(select.options).find((option) => option.value === "fake_worker");
+    if (!isAdmin && fakeOption) fakeOption.remove();
+    if (isAdmin && !fakeOption) {
+      const option = document.createElement("option");
+      option.value = "fake_worker";
+      option.textContent = "Fake Worker 内部测试";
+      select.prepend(option);
+    }
+    const hasSelected = Array.from(select.options).some((option) => option.value === select.value);
+    if (!hasSelected || (!isAdmin && ["fake_worker", "local_api"].includes(select.value))) {
+      select.value = Array.from(select.options).find((option) => option.value === "qianwen_generation")?.value || select.options[0]?.value || "";
+    }
+  });
+}
+
 let selectedVideoReference = null;
 let videoAssetPickerSearch = "";
 let videoAssetPickerFilter = "all";
@@ -3221,6 +3285,7 @@ applyInitialVideoPreset();
 
 function applyInitialVideoPreset() {
   if (!document.querySelector("[data-video-generator]")) return;
+  applyGenerationModelVisibility(state);
   const preset = new URLSearchParams(window.location.search).get("preset") || "image-video";
   applyVideoPreset(videoWorkflowPresets[preset] ? preset : "image-video", { updateUrl: false });
   document.querySelectorAll("[data-video-ratio], [data-video-duration], [data-video-model]").forEach((input) => {
@@ -4032,6 +4097,13 @@ if (enhanceButton && promptBox) {
 
 if (generateButton && queueTarget) {
   generateButton.addEventListener("click", async () => {
+    if (!requireRealLoginForAction("generation-submit", window.location.pathname.split("/").pop() || "./zh/app/image-to-video/")) {
+      return;
+    }
+    if (!supabase) {
+      showSiteToast("Supabase 未配置，无法提交真实账户生成任务。");
+      return;
+    }
     const activeMode = document.querySelector("[data-mode].active")?.dataset.mode || "image";
     const activePreset = getActiveVideoPreset();
     const cost = activePreset?.cost || Number(document.querySelector("[data-mode].active")?.dataset.videoCost || modeCosts[activeMode] || 8);
@@ -4040,7 +4112,8 @@ if (generateButton && queueTarget) {
     const character = document.querySelector(".selector-grid select")?.value?.split(" - ")[0] || "Mira";
     const ratio = document.querySelector("[data-video-ratio]")?.value || "";
     const durationSeconds = Number(document.querySelector("[data-video-duration]")?.value || 0) || undefined;
-    const model = document.querySelector("[data-video-model]")?.value || "";
+    const requestedModel = document.querySelector("[data-video-model]")?.value || "";
+    const model = isAdminActor(state.user) ? requestedModel : normalizePublicGenerationProvider(requestedModel);
     const reference = selectedVideoReference;
     if (document.querySelector("[data-video-generator]") && !reference) {
       updateVideoPreflight();
@@ -4157,7 +4230,17 @@ if (generateButton && queueTarget) {
         refunded: Boolean(error.refund?.amount)
       });
       persistGenerationRecovery(buildGenerationRecoveryFromJob(failedJob));
-      updateGenerationProgress(progressRow, "retrying", `${error.message || "真实生成暂不可用"}，${refundText} 正在切换到本地演示生成。`, 38, {
+      if (!isAdminActor(state.user)) {
+        updateGenerationProgress(progressRow, "failed", `${error.message || "生成暂不可用"}，${refundText} 请稍后重试或联系支持。`, 0, {
+          historyHref: "./zh/history/",
+          refreshJobId: failedJobId,
+          retryJobId: failedJobId
+        });
+        generateButton.disabled = false;
+        generateButton.textContent = activeMode === "video" ? "生成视频" : "生成";
+        return;
+      }
+      updateGenerationProgress(progressRow, "retrying", `${error.message || "真实生成暂不可用"}，${refundText} 管理员测试模式正在切换到 Fake Worker。`, 38, {
         historyHref: "./zh/history/",
         refreshJobId: failedJobId,
         retryJobId: failedJobId
@@ -4167,7 +4250,6 @@ if (generateButton && queueTarget) {
       generateButton.textContent = activeMode === "video" ? "生成视频" : "生成";
     }
 
-    ensureUser("email");
     if (state.credits < cost) {
       trackProductEvent("generation_failed", {
         mediaType: activeMode === "video" ? "video" : "image",
@@ -4251,6 +4333,12 @@ if (generateButton && queueTarget) {
       retryAssetId: asset.id
     });
   });
+}
+
+function normalizePublicGenerationProvider(provider) {
+  const value = String(provider || "").toLowerCase();
+  if (!value || value === "fake_worker" || value === "local_api" || value.startsWith("local")) return "qianwen_generation";
+  return value;
 }
 
 if (generateVideoButton && generateButton) {
@@ -4550,7 +4638,7 @@ function renderGeneratedPreview(asset, job) {
         <p>${escapeHtml(asset.prompt || "已生成可复用作品。")}</p>
         <dl>
           <div><dt>规格</dt><dd>${escapeHtml(outputRatio)} · ${escapeHtml(job.duration || asset.duration || "实时")}</dd></div>
-          <div><dt>模型</dt><dd>${escapeHtml(asset.model || job.model || asset.provider || job.provider || "fake_worker")}</dd></div>
+          <div><dt>模型</dt><dd>${escapeHtml(publicModelLabel(asset.model || job.model, asset.provider || job.provider, state))}</dd></div>
           <div><dt>积分</dt><dd>${Number(asset.credits || job.credits || 0)} 积分</dd></div>
           <div><dt>状态</dt><dd>${statusLabel(normalizeJobStatus(job.status || asset.status || "completed"))}</dd></div>
         </dl>
@@ -4660,6 +4748,11 @@ function renderCharacters(current) {
     button.classList.toggle("active", button.dataset.characterFilter === characterFilter);
   });
   if (target) {
+    if (!isRealAuthenticatedUser(current.user)) {
+      target.innerHTML = signedOutPreviewMarkup("characters");
+      renderCharacterProfile(current);
+      return;
+    }
     const characters = current.characters.filter((character) => {
       const matchesFilter =
         characterFilter === "all" ||
@@ -4685,6 +4778,18 @@ function renderCharacters(current) {
 function renderCharacterProfile(current) {
   const profile = document.querySelector("[data-character-profile]");
   if (!profile) return;
+  if (!isRealAuthenticatedUser(current.user)) {
+    profile.querySelector(".eyebrow").textContent = "角色预览";
+    profile.querySelector(".avatar").className = "avatar art-2 demo-badge";
+    profile.querySelector("h2").textContent = "登录后创建一致角色";
+    profile.querySelector(".muted").textContent = "角色会保存封面、参考图、标签、记忆和一致性状态，供图片与视频生成复用。";
+    profile.querySelector(".score").innerHTML = `一致性评分 <strong>登录后计算</strong>`;
+    const meta = profile.querySelector("[data-character-profile-meta]");
+    if (meta) meta.textContent = "当前为功能预览，不是你的账户角色。";
+    profile.querySelector(".character-action-row").innerHTML = `<a class="btn primary" href="./zh/login/" data-auth-modal>登录后创建角色</a><a class="btn glass" href="./zh/gallery/">浏览公开作品</a>`;
+    profile.querySelector(".mini-assets").innerHTML = `<span class="thumb art-3 demo-badge"></span><span class="thumb art-7 demo-badge"></span><span class="thumb art-8 demo-badge"></span>`;
+    return;
+  }
   const character = current.characters.find((item) => item.id === selectedCharacterId) || current.characters[0];
   if (!character) return;
   const relatedAssets = current.assets.filter((asset) => asset.character === character.name).slice(0, 3);
@@ -4729,9 +4834,83 @@ function escapeHtml(value) {
   })[character]);
 }
 
+function publicProviderLabel(provider, current = state) {
+  const value = String(provider || "").toLowerCase();
+  if (isAdminActor(current.user)) return provider || "workflow";
+  if (["fake_worker", "local_api"].includes(value) || value.startsWith("local")) return "Luravyn 测试生成";
+  if (value === "qianwen_generation") return "千问生成";
+  if (value === "deepseek_text") return "DeepSeek 提示词";
+  if (value === "qwen_vision") return "Qwen 视觉分析";
+  return provider || "自动工作流";
+}
+
+function publicModelLabel(model, provider = "", current = state) {
+  const value = String(model || provider || "").toLowerCase();
+  if (isAdminActor(current.user)) return model || provider || "workflow";
+  if (["fake_worker", "local_api"].includes(value) || value.startsWith("local")) return "MVP 可用模型";
+  return model || publicProviderLabel(provider, current);
+}
+
+function signedOutPreviewMarkup(kind) {
+  const copy = {
+    characters: {
+      eyebrow: "角色功能预览",
+      title: "登录后创建并复用一致角色",
+      body: "角色卡会保存封面、标签、记忆、一致性状态和关联资产。这里不展示假角色，避免和真实账户混淆。",
+      primary: "创建角色",
+      href: "./zh/app/characters/"
+    },
+    assets: {
+      eyebrow: "资产库预览",
+      title: "登录后查看你的图片、视频、提示词和参考图",
+      body: "每次生成成功后都会自动保存为可复用资产，并支持转视频、下载、收藏和分享。",
+      primary: "登录后查看资产",
+      href: "./zh/login/"
+    },
+    history: {
+      eyebrow: "生成任务预览",
+      title: "登录后查看排队、生成中、失败和完成记录",
+      body: "任务会记录提示词、模型、服务商、积分、耗时、失败原因和退款状态。",
+      primary: "上传图片生成视频",
+      href: "./zh/app/image-to-video/"
+    },
+    creations: {
+      eyebrow: "我的作品预览",
+      title: "登录后管理生成成功的图片和视频",
+      body: "作品区只展示真实账户里的已生成内容，支持复制提示词、重新生成、下载和公开分享。",
+      primary: "登录后查看作品",
+      href: "./zh/login/"
+    },
+    dashboard: {
+      eyebrow: "账户数据预览",
+      title: "登录后读取真实积分、任务、资产和分享链接",
+      body: "控制台不会用演示数据冒充你的账户。完成注册后，新用户积分和生成记录会从 Supabase 同步。",
+      primary: "登录 / 注册",
+      href: "./zh/login/"
+    }
+  }[kind] || {};
+  return `
+    <article class="empty-state functional-preview" data-functional-preview="${escapeHtml(kind)}">
+      <div>
+        <p class="eyebrow">${escapeHtml(copy.eyebrow || "功能预览")}</p>
+        <h2>${escapeHtml(copy.title || "登录后使用真实账户数据")}</h2>
+        <p class="muted">${escapeHtml(copy.body || "未登录时只展示功能说明，不展示假账户数据。")}</p>
+      </div>
+      <div class="preview-actions">
+        <a class="btn primary" href="${escapeHtml(copy.href || "./zh/login/")}" ${kind === "history" ? "" : "data-auth-modal"}>${escapeHtml(copy.primary || "登录 / 注册")}</a>
+        <a class="btn glass" href="./zh/gallery/">浏览公开作品</a>
+      </div>
+    </article>
+  `;
+}
+
 function renderAssets(current) {
   const targets = document.querySelectorAll("[data-asset-list]");
   targets.forEach((target) => {
+    if (!isRealAuthenticatedUser(current.user)) {
+      target.innerHTML = signedOutPreviewMarkup("assets");
+      return;
+    }
     target.innerHTML = current.assets.map((asset, index) => `
       <article class="library-card" data-asset data-asset-kind="${asset.type === "video" ? "视频" : "图片"}" data-asset-favorite="${asset.favorite ? "收藏" : ""}">
         <span class="thumb ${asset.type === "video" ? "art-7" : ["art-3", "art-8", "art-10"][index % 3]}"></span>
@@ -4749,6 +4928,10 @@ function renderAssets(current) {
 function renderHistory(current) {
   const target = document.querySelector("[data-history-list]");
   if (!target) return;
+  if (!isRealAuthenticatedUser(current.user)) {
+    target.innerHTML = signedOutPreviewMarkup("history");
+    return;
+  }
   document.querySelectorAll("[data-history-filter]").forEach((button) => {
     button.classList.toggle("active", button.dataset.historyFilter === historyFilter);
   });
@@ -4759,7 +4942,7 @@ function renderHistory(current) {
       job.type === historyFilter ||
       normalizedStatus === historyFilter ||
       (historyFilter === "running" && ["queued", "running", "retrying", "pending"].includes(normalizedStatus));
-    const haystack = `${job.title} ${job.prompt} ${job.provider} ${job.model} ${job.status} ${job.type}`.toLowerCase();
+    const haystack = `${job.title} ${job.prompt} ${publicProviderLabel(job.provider, current)} ${publicModelLabel(job.model, job.provider, current)} ${job.status} ${job.type}`.toLowerCase();
     return matchesFilter && (!historySearch || haystack.includes(historySearch));
   });
   target.innerHTML = filtered.length ? filtered.map((job) => {
@@ -4772,7 +4955,7 @@ function renderHistory(current) {
       <div class="history-row-body">
         <h3>${escapeHtml(job.title)}</h3>
         <p>提示词：${escapeHtml(job.prompt)}</p>
-        <small>服务商 ${escapeHtml(job.provider)} - 模型 ${escapeHtml(job.model)} - ${statusLabel(normalizeJobStatus(job.status))} - ${job.credits} 积分 - ${escapeHtml(job.duration)}</small>
+        <small>服务商 ${escapeHtml(publicProviderLabel(job.provider, current))} - 模型 ${escapeHtml(publicModelLabel(job.model, job.provider, current))} - ${statusLabel(normalizeJobStatus(job.status))} - ${job.credits} 积分 - ${escapeHtml(job.duration)}</small>
         ${renderJobCreditFlow(job, current)}
         ${job.errorMessage ? `<em class="history-error">失败原因：${escapeHtml(job.errorMessage)}${job.refundAmount ? ` · 已退回 ${job.refundAmount} 积分` : ""}</em>` : ""}
         ${renderJobRecoveryHint(job)}
@@ -4940,16 +5123,20 @@ function renderCreations(current) {
     favorites: document.querySelector("[data-creation-favorites]"),
     jobs: document.querySelector("[data-creation-jobs]")
   };
-  if (stats.count) stats.count.textContent = String(current.assets.length);
-  if (stats.shares) stats.shares.textContent = String(current.shares.length);
-  if (stats.favorites) stats.favorites.textContent = String(current.assets.filter((asset) => asset.favorite).length);
-  if (stats.jobs) stats.jobs.textContent = String(current.history.length);
+  const signedIn = isRealAuthenticatedUser(current.user);
+  if (stats.count) stats.count.textContent = signedIn ? String(current.assets.length) : "登录后";
+  if (stats.shares) stats.shares.textContent = signedIn ? String(current.shares.length) : "登录后";
+  if (stats.favorites) stats.favorites.textContent = signedIn ? String(current.assets.filter((asset) => asset.favorite).length) : "登录后";
+  if (stats.jobs) stats.jobs.textContent = signedIn ? String(current.history.length) : "登录后";
 
   document.querySelectorAll("[data-creation-filter]").forEach((button) => {
     button.classList.toggle("active", button.dataset.creationFilter === creationFilter);
   });
 
   if (list) {
+    if (!signedIn) {
+      list.innerHTML = signedOutPreviewMarkup("creations");
+    } else {
     const filteredAssets = current.assets.filter((asset) => {
       const matchesFilter =
         creationFilter === "all" ||
@@ -4980,26 +5167,32 @@ function renderCreations(current) {
         <a class="btn primary" href="./zh/app/generate/">开始生成</a>
       </article>
     `;
+    }
   }
 
   if (historyList) {
+    if (!signedIn) {
+      historyList.innerHTML = signedOutPreviewMarkup("history");
+    } else {
     historyList.innerHTML = current.history.slice(0, 5).map((job) => `
       <article class="creation-job-row">
         <span class="thumb ${job.type === "video" ? "art-7" : "art-3"}"></span>
         <div>
           <strong>${escapeHtml(job.title)}</strong>
           <p>${escapeHtml(job.prompt)}</p>
-          <small>${escapeHtml(job.provider)} · ${escapeHtml(job.model)} · ${job.credits} 积分 · ${escapeHtml(job.duration)}</small>
+          <small>${escapeHtml(publicProviderLabel(job.provider, current))} · ${escapeHtml(publicModelLabel(job.model, job.provider, current))} · ${job.credits} 积分 · ${escapeHtml(job.duration)}</small>
         </div>
         <button data-retry-job="${job.id}">重试</button>
       </article>
     `).join("");
+    }
   }
 }
 
 async function createShare(assetId) {
   const asset = state.assets.find((item) => item.id === assetId);
   if (!asset) return;
+  if (!requireRealLoginForAction("asset-share", "./zh/login/")) return;
   if (supabase && asset.remote) {
     try {
       const result = await invokeAi("create-share-link", { assetId });
@@ -5043,6 +5236,7 @@ function renderDashboard(current) {
   renderDashboardCreditLedger(current);
   renderDashboardNextActions(current);
   renderDashboardAssetsList(current);
+  const signedIn = isRealAuthenticatedUser(current.user);
   const stats = {
     credits: document.querySelector("[data-dashboard-credits]"),
     jobs: document.querySelector("[data-dashboard-jobs]"),
@@ -5055,20 +5249,20 @@ function renderDashboard(current) {
     volume: document.querySelector("[data-dashboard-volume]"),
     traffic: document.querySelector("[data-dashboard-traffic]")
   };
-  if (stats.credits) stats.credits.textContent = String(current.credits);
-  if (stats.jobs) stats.jobs.textContent = String(current.history.length);
-  if (stats.assets) stats.assets.textContent = String(current.assets.length);
-  if (stats.shares) stats.shares.textContent = String(current.shares.length);
-  if (stats.campaigns) stats.campaigns.textContent = String(current.campaigns.filter((campaign) => campaign.status === "active").length);
-  if (stats.pipeline) stats.pipeline.textContent = String(current.contentItems.filter((item) => !["published", "analyzed"].includes(item.stage)).length);
-  if (stats.scheduled) stats.scheduled.textContent = String(current.contentQueue.filter((item) => item.status === "scheduled").length);
-  if (stats.failed) stats.failed.textContent = String(current.contentQueue.filter((item) => item.status === "failed").length);
-  if (stats.volume) stats.volume.textContent = String(current.contentItems.length);
-  if (stats.traffic) stats.traffic.textContent = String(current.contentAnalytics.reduce((total, row) => total + Number(row.clicks || 0), 0));
+  if (stats.credits) stats.credits.textContent = signedIn ? String(current.credits) : "登录后";
+  if (stats.jobs) stats.jobs.textContent = signedIn ? String(current.history.length) : "登录后";
+  if (stats.assets) stats.assets.textContent = signedIn ? String(current.assets.length) : "登录后";
+  if (stats.shares) stats.shares.textContent = signedIn ? String(current.shares.length) : "登录后";
+  if (stats.campaigns) stats.campaigns.textContent = signedIn ? String(current.campaigns.filter((campaign) => campaign.status === "active").length) : "Beta";
+  if (stats.pipeline) stats.pipeline.textContent = signedIn ? String(current.contentItems.filter((item) => !["published", "analyzed"].includes(item.stage)).length) : "Beta";
+  if (stats.scheduled) stats.scheduled.textContent = signedIn ? String(current.contentQueue.filter((item) => item.status === "scheduled").length) : "Beta";
+  if (stats.failed) stats.failed.textContent = signedIn ? String(current.contentQueue.filter((item) => item.status === "failed").length) : "Beta";
+  if (stats.volume) stats.volume.textContent = signedIn ? String(current.contentItems.length) : "Beta";
+  if (stats.traffic) stats.traffic.textContent = signedIn ? String(current.contentAnalytics.reduce((total, row) => total + Number(row.clicks || 0), 0)) : "Beta";
 
   const recent = document.querySelector("[data-dashboard-recent]");
   if (recent) {
-    recent.innerHTML = current.history.length ? current.history.slice(0, 4).map((job) => `
+    recent.innerHTML = !signedIn ? signedOutPreviewMarkup("dashboard") : current.history.length ? current.history.slice(0, 4).map((job) => `
       <article class="dashboard-row">
         <span class="thumb ${job.type === "video" ? "art-7" : "art-3"}"></span>
         <div><strong>${escapeHtml(job.title)}</strong><p>${job.status === "completed" ? "已完成" : escapeHtml(job.status)} · ${job.credits} 积分</p></div>
@@ -5088,7 +5282,7 @@ function renderDashboard(current) {
 
   const characters = document.querySelector("[data-dashboard-characters]");
   if (characters) {
-    characters.innerHTML = current.characters.slice(0, 4).map((character, index) => `
+    characters.innerHTML = !signedIn ? signedOutPreviewMarkup("characters") : current.characters.slice(0, 4).map((character, index) => `
       <article class="dashboard-row">
         <span class="thumb ${["art-2", "art-11", "art-12"][index % 3]}"></span>
         <div><strong>${escapeHtml(character.name)}</strong><p>${escapeHtml(character.role)} · ${character.score}%</p></div>
@@ -5099,7 +5293,7 @@ function renderDashboard(current) {
 
   const shareList = document.querySelector("[data-dashboard-shares-list]");
   if (shareList) {
-    shareList.innerHTML = current.shares.slice(0, 4).map((share) => `
+    shareList.innerHTML = !signedIn ? signedOutPreviewMarkup("creations") : current.shares.slice(0, 4).map((share) => `
       <article class="dashboard-row">
         <span class="thumb art-9"></span>
         <div><strong>${escapeHtml(share.title || "分享作品")}</strong><p>公开链接</p></div>
@@ -5148,6 +5342,10 @@ function renderDashboard(current) {
 function renderDashboardNextActions(current) {
   const target = document.querySelector("[data-dashboard-next-actions]");
   if (!target) return;
+  if (!isRealAuthenticatedUser(current.user)) {
+    target.innerHTML = signedOutPreviewMarkup("dashboard");
+    return;
+  }
   const runningJobs = current.history.filter((job) => ["queued", "pending", "running", "retrying"].includes(normalizeJobStatus(job.status)));
   const failedJobs = current.history.filter((job) => ["failed", "cancelled", "canceled"].includes(normalizeJobStatus(job.status)));
   const firstImage = current.assets.find((asset) => asset.type === "image");
@@ -5177,6 +5375,10 @@ function renderDashboardNextActions(current) {
 function renderDashboardAssetsList(current) {
   const target = document.querySelector("[data-dashboard-assets-list]");
   if (!target) return;
+  if (!isRealAuthenticatedUser(current.user)) {
+    target.innerHTML = signedOutPreviewMarkup("assets");
+    return;
+  }
   target.innerHTML = current.assets.length ? current.assets.slice(0, 4).map((asset, index) => `
     <article class="dashboard-row">
       <span class="thumb ${asset.type === "video" ? "art-7" : ["art-3", "art-8", "art-10"][index % 3]}"></span>
@@ -5199,6 +5401,10 @@ function renderDashboardAssetsList(current) {
 function renderDashboardCreditLedger(current) {
   const target = ensureDashboardCreditLedgerPanel();
   if (!target) return;
+  if (!isRealAuthenticatedUser(current.user)) {
+    target.innerHTML = signedOutPreviewMarkup("dashboard");
+    return;
+  }
   const ledger = Array.isArray(current.creditLedger) ? current.creditLedger : [];
   target.innerHTML = ledger.length ? ledger.slice(0, 5).map((entry) => `
     <article class="credit-ledger-row" data-credit-ledger-row>
@@ -7180,7 +7386,7 @@ document.addEventListener("click", async (event) => {
   if (shareSaveButton) {
     const asset = getCurrentShareAsset();
     if (!asset) return;
-    ensureUser("share");
+    if (!requireRealLoginForAction("share-save", "./zh/login/")) return;
     asset.favorite = true;
     asset.visibility = asset.visibility || "private";
     saveState(state);

@@ -85,6 +85,10 @@ describe("mobile visual safety", () => {
       '.creative-preview[data-preview-ratio="9:16"]',
       '.generated-output-player[data-generated-ratio="9:16"]',
       "min-height: min(62vh, 560px)",
+      "375px",
+      "390px",
+      "412px",
+      "768px",
     ]) {
       assert.ok(styles.includes(expected), `styles should include mobile guard: ${expected}`);
     }

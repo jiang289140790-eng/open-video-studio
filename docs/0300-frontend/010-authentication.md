@@ -62,6 +62,9 @@ Authentication should use a focused, low-distraction layout with brand context, 
 - Google, X, Discord, and Telegram buttons are visible for product intent but gated by `VITE_GOOGLE_OAUTH_READY`, `VITE_X_OAUTH_READY`, `VITE_DISCORD_OAUTH_READY`, and `VITE_TELEGRAM_OAUTH_READY`.
 - Unverified social providers display `配置中` and do not fall back to Dashboard.
 - Unauthenticated product pages show an explicit Demo Mode banner and Demo labels so local placeholder data is not confused with user-owned assets.
+- Product pages must treat only a real Supabase-authenticated user as signed in. Signed-out Assets, History, My Works, Characters, and Dashboard surfaces show functional previews, not local user-looking records.
+- Generation, tool-demo generation, asset share, and share-save actions require real login before creating jobs, consuming credits, or writing share state.
+- Fake Worker may remain available to admin/operator users for internal QA, but normal users should not see Fake Worker as a selectable model or receive silent local fallback output after a remote generation failure.
 - Admin navigation is hidden unless the signed-in profile role is `admin` or `operator`; backend admin functions still enforce the same permission boundary.
 
 ## Navigation
@@ -101,6 +104,8 @@ Authentication pages may be crawlable only if useful for brand navigation, but s
 Email authentication now includes a password recovery path. The sign-in page can request a Supabase password reset email, and `apps/web/reset-password.html` lets a user with a valid recovery session update their password before returning to Dashboard. The localized `/zh/reset-password/` alias preserves query strings and hash fragments from Supabase recovery emails.
 
 Product pages now use a target-style app shell with a persistent left tool rail and compact top navigation so authenticated creation flows feel like a mature AI tool product rather than a marketing-only website.
+
+Authenticated product sync now reads `profiles`, `characters`, `media_assets`, `generation_jobs`, `credit_transactions`, and `share_links` from Supabase so visible account state is sourced from real user-owned data.
 
 ## Future Plan
 

@@ -368,6 +368,15 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Acceptance Criteria: unverified Google, X, Discord, and Telegram login options cannot route users to Dashboard or launch a broken OAuth flow; provider buttons display readiness state from public environment gates; unauthenticated product pages show explicit Demo Mode labels; Admin navigation is hidden unless the signed-in profile role is `admin` or `operator`; backend Admin functions remain the authority for sensitive operations.
 - Related Documents: PAGE-AUTH-001, OPS-AUTH-001, BACKEND-AUTH-001, API-ADMIN-001.
 
+### MVP-S3-026 MVP Product Loop Trust Completion
+
+- Priority: P0.
+- Status: Completed.
+- Estimated Time: 0.5 day.
+- Dependencies: MVP-S3-001, MVP-S3-006, MVP-S3-007, MVP-S3-025, API-AUTH-001, API-GEN-IMAGE-001, API-GEN-VIDEO-001, DB-CHARACTERS-001, DB-MEDIA-ASSETS-001, DB-GENERATION-JOBS-001.
+- Acceptance Criteria: signed-out Assets, History, My Works, Characters, and Dashboard surfaces show functional previews instead of local account-looking demo data; generation, tool-demo generation, share-save, and asset-share actions require real Supabase login; authenticated sync loads profile, credit balance, characters, assets, jobs, credit ledger, and share links from Supabase; public users do not see Fake Worker in model selection; unfinished content-operations links are clearly marked Beta/development; Image-to-Video is clean UTF-8 Chinese; 375px, 390px, 412px, and 768px mobile guardrails are covered by regression tests; required Supabase/Auth/User Loop/AI/MVP verification scripts are run and failures are documented.
+- Related Documents: PAGE-AUTH-001, PAGE-GENERATE-001, PAGE-DASHBOARD-001, DB-USERS-001, DB-CHARACTERS-001, DB-MEDIA-ASSETS-001, DB-GENERATION-JOBS-001, OPS-AUTH-001.
+
 ## Sprint 4: Admin And MVP Integration
 
 ### MVP-S4-001 Admin Read APIs

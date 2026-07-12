@@ -947,7 +947,7 @@ describe("MVP static frontend", () => {
       "cancelJobId",
       "shareAssetId",
       "retryAssetId",
-      "请先上传图片、从资产库选择图片，或使用示例参考图。",
+      "请先上传图片或从资产库选择参考图，再提交图片转视频任务。",
       "sourceImageUrl",
       "sourceAssetId",
       "generation-progress-track",
@@ -956,6 +956,30 @@ describe("MVP static frontend", () => {
     ]) {
       assert.ok(`${appScript}\n${styles}\n${imageToVideo}`.includes(expected), `tool workbench should include ${expected}`);
     }
+  });
+
+  it("keeps demo data separate from real account actions", () => {
+    const appScript = readPage("app.js");
+    const styles = readPage("styles.css");
+    const imageToVideo = readPage("image-to-video.html");
+    const combined = `${appScript}\n${styles}\n${imageToVideo}`;
+    for (const expected of [
+      "isRealAuthenticatedUser",
+      "requireRealLoginForAction",
+      "signedOutPreviewMarkup",
+      "data-functional-preview",
+      "功能预览",
+      "登录后将读取真实 Supabase 昵称、积分、角色、资产、作品和生成任务",
+      "normalizePublicGenerationProvider",
+      "applyGenerationModelVisibility",
+      "Fake Worker 内部测试",
+      "nav-beta",
+      "开发中",
+      "千问视频生成"
+    ]) {
+      assert.ok(combined.includes(expected), `MVP closed loop guard should include ${expected}`);
+    }
+    assert.ok(!imageToVideo.includes('value="fake_worker"'), "public image-to-video selector should not expose Fake Worker");
   });
 
   it("contains target-site-style floating quick actions", () => {

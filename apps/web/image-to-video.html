@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>图片转视频 | Luravyn</title>
     <link rel="icon" type="image/png" href="./favicon.png">
-    <meta name="description" content="把参考图片转成 AI 视频，并保留提示词、角色、生成任务和我的作品。">
+    <meta name="description" content="把参考图片转换成 AI 视频，并保留提示词、角色、生成任务和我的作品。">
     <link rel="canonical" href="https://luravyn.com/zh/app/image-to-video/">
     <link rel="alternate" hreflang="zh-CN" href="https://luravyn.com/zh/app/image-to-video/">
     <link rel="alternate" hreflang="en" href="https://luravyn.com/en/app/image-to-video/">
@@ -51,7 +51,7 @@
         <div class="preset-summary" data-video-preset-summary>
           <span>当前预设</span>
           <strong>图生视频 · 24 积分起</strong>
-          <p>支持 16:9、9:16、1:1；5秒 / 10秒；结果自动进入生成任务和我的作品。</p>
+          <p>支持 16:9、9:16、1:1；5 秒 / 10 秒；结果自动进入生成任务和我的作品。</p>
         </div>
 
         <div class="mode-grid video-mode-grid" aria-label="Mode cards">
@@ -76,7 +76,6 @@
           </label>
           <label class="studio-field">生成模型
             <select data-video-model>
-              <option value="fake_worker">Fake Worker 演示</option>
               <option value="qianwen_generation">千问视频生成</option>
             </select>
           </label>
@@ -124,14 +123,14 @@
         <div class="creative-preview art-7" data-video-preview>
           <span class="play-dot"></span>
           <strong data-mode-label>视频生成</strong>
-          <small data-video-preview-meta>16:9 · 5秒 · Fake Worker 演示</small>
+          <small data-video-preview-meta>16:9 · 5秒 · 千问视频生成</small>
         </div>
         <div class="generation-preflight" data-video-preflight>
           <div><span>参考图</span><strong data-video-preflight-reference>未选择</strong></div>
           <div><span>规格</span><strong data-video-preflight-spec>16:9 · 5秒</strong></div>
-          <div><span>模型</span><strong data-video-preflight-model>Fake Worker 演示</strong></div>
-          <div><span>预计耗时</span><strong data-video-preflight-time>约 10-30 秒</strong></div>
-          <div><span>输出</span><strong data-video-preflight-output>演示元数据 / 视频资产</strong></div>
+          <div><span>模型</span><strong data-video-preflight-model>千问视频生成</strong></div>
+          <div><span>预计耗时</span><strong data-video-preflight-time>约 1-3 分钟</strong></div>
+          <div><span>输出</span><strong data-video-preflight-output>MP4 视频资产</strong></div>
           <div><span>扣费</span><strong data-video-preflight-cost>24 积分</strong></div>
           <p data-video-ready-state>请先上传图片或从资产库选择参考图，再提交图片转视频任务。</p>
         </div>
@@ -169,19 +168,19 @@
         <h2>选择一张参考图</h2>
         <p class="muted">选择图片资产后会返回当前生成器，并把它作为图片转视频的首帧参考。</p>
         <div class="asset-picker-toolbar">
-          <input type="search" data-video-asset-search placeholder="&#x641C;&#x7D22;&#x8D44;&#x4EA7;&#x3001;&#x63D0;&#x793A;&#x8BCD;&#x3001;&#x89D2;&#x8272;">
-          <div class="chip-row compact" role="group" aria-label="&#x8D44;&#x4EA7;&#x7B5B;&#x9009;">
-            <button class="chip active" type="button" data-video-asset-filter="all">&#x5168;&#x90E8;&#x56FE;&#x7247;</button>
-            <button class="chip" type="button" data-video-asset-filter="favorite">&#x6536;&#x85CF;</button>
-            <button class="chip" type="button" data-video-asset-filter="public">&#x516C;&#x5F00;</button>
-            <button class="chip" type="button" data-video-asset-filter="recent">&#x6700;&#x8FD1;</button>
+          <input type="search" data-video-asset-search placeholder="搜索资产、提示词、角色">
+          <div class="chip-row compact" role="group" aria-label="资产筛选">
+            <button class="chip active" type="button" data-video-asset-filter="all">全部图片</button>
+            <button class="chip" type="button" data-video-asset-filter="favorite">收藏</button>
+            <button class="chip" type="button" data-video-asset-filter="public">公开</button>
+            <button class="chip" type="button" data-video-asset-filter="recent">最近</button>
           </div>
         </div>
         <div class="asset-picker-list" data-video-asset-options></div>
         <div class="asset-picker-footer">
-          <button class="btn glass" type="button" data-trigger-reference-upload>&#x4E0A;&#x4F20;&#x65B0;&#x53C2;&#x8003;&#x56FE;</button>
-          <button class="btn glass" type="button" data-picker-demo-reference>&#x4F7F;&#x7528;&#x793A;&#x4F8B;&#x56FE;</button>
-          <a class="btn glass" href="./zh/assets/">&#x6253;&#x5F00;&#x5B8C;&#x6574;&#x8D44;&#x4EA7;&#x5E93;</a>
+          <button class="btn glass" type="button" data-trigger-reference-upload>上传新参考图</button>
+          <button class="btn glass" type="button" data-picker-demo-reference>使用示例图</button>
+          <a class="btn glass" href="./zh/assets/">打开完整资产库</a>
         </div>
       </div>
     </div>

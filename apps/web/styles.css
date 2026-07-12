@@ -599,6 +599,22 @@ body.tool-layout .accountnav {
   background: rgba(255,255,255,0.08);
 }
 
+.nav-beta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 18px;
+  padding: 2px 7px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: rgba(244, 91, 184, 0.16);
+  color: #ff72c7;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 .btn, .chip, .tab, .card-actions button, .row-actions button, .row-actions a, .library-card button {
   display: inline-flex;
   align-items: center;
@@ -3468,6 +3484,34 @@ body.tool-layout .site-footer {
   margin-top: 20px;
   padding: 24px;
 }
+
+.functional-preview {
+  border-style: dashed;
+  background:
+    linear-gradient(135deg, rgba(244, 91, 184, 0.12), rgba(105, 91, 255, 0.08)),
+    rgba(255, 255, 255, 0.04);
+}
+
+.functional-preview::before {
+  content: "Demo";
+  display: inline-flex;
+  width: fit-content;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 .creations-page .studio-toolbar {
   margin-top: 24px;
 }
@@ -5194,5 +5238,38 @@ body.admin-shell-body .admin-config-card.admin-tool-config-card {
 
   .calendar-board {
     grid-template-columns: repeat(6, 230px);
+  }
+}
+
+@media (max-width: 768px) {
+  .topbar,
+  body.tool-layout .topbar {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 412px) {
+  .mode-grid,
+  .video-options-grid,
+  .asset-picker-toolbar {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 390px) {
+  .studio-panel,
+  .protected-gate,
+  .functional-preview {
+    padding-inline: 16px;
+  }
+}
+
+@media (max-width: 375px) {
+  .btn,
+  .chip,
+  .row-actions a,
+  .row-actions button {
+    min-height: 44px;
+    padding-inline: 12px;
   }
 }

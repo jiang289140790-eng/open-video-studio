@@ -25,6 +25,12 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Tightened the MVP product loop trust boundary. Protected product surfaces now treat only a real authenticated Supabase user as signed in; unauthenticated Assets, History, My Works, Characters, and Dashboard surfaces show functional previews instead of local account-looking demo records.
+- Connected browser state to real Supabase `characters` rows during authenticated product sync, so logged-in users can load real profile, credits, characters, assets, generation jobs, credit ledger rows, and share links from Supabase instead of default placeholder state.
+- Required real login before generation, tool demo generation, share-save, or asset-share actions. Normal users no longer silently fall back to local Fake Worker generation after a remote failure; Fake Worker fallback remains visible only to admin/operator users for internal testing.
+- Hid Fake Worker from the public Image-to-Video model selector, repaired the Image-to-Video page as clean UTF-8 Chinese, and labeled unfinished content-operations navigation entries as `Beta` / `开发中`.
+- Added explicit mobile guardrails for 375px, 390px, 412px, and 768px widths and regression coverage for demo-data separation, login-gated generation, public model filtering, Beta navigation labels, and the repaired Image-to-Video surface.
+
 - Hardened the authentication trust boundary. Social OAuth buttons now require provider-specific readiness flags before launching Google, X, Discord, or Telegram login, and unverified providers show a disabled `配置中` state instead of falling back to Dashboard.
 - Repaired `signin.html` as clean UTF-8 Chinese and removed the unsafe social-login Dashboard fallback links.
 - Added explicit Demo Mode labeling for unauthenticated product surfaces so local placeholder roles, assets, history, credits, and dashboard cards are not confused with real user-owned Supabase data.
@@ -39,8 +45,13 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 ### Validation
 
 - Ran `npm run build`; production build passed.
-- Ran `npm run test`; build and 74 tests passed.
-- OAuth provider verification was not rerun for this UI hardening pass; existing `npm run verify:oauth` diagnostics remain the operational gate before flipping any `VITE_*_OAUTH_READY` flag to `true`.
+- Ran `npm run test`; build and 75 tests passed.
+- Ran `npm run verify:supabase`; passed for Auth and Storage, with the expected optional `_ovs_connection_check` table miss reported as non-blocking by the script.
+- Ran `npm run verify:auth-basic`; passed using Supabase Auth, with public signup falling back to an admin-created temporary verifier user because Supabase returned an email rate-limit response during the verification run.
+- Ran `npm run verify:oauth`; Google, X, and Discord all created provider authorization URLs and reached their provider hosts with the correct Supabase callback URL. Telegram remains unconfigured until the Bot username/auth URL and signed callback are supplied.
+- Ran `npm run verify:user-loop`; passed for signup/signin, starter credits, generation job creation, credit debit, asset creation, Gallery/History readback, public share link creation, and cleanup.
+- Ran `npm run verify:ai`; failed only on Qwen Vision (`401 Unauthenticated`). DeepSeek prompt enhancement, Qianwen configuration check, Fake Worker fallback, generation persistence, and refund loop passed.
+- Ran `npm run verify:mvp`; reported `readyForSmallUserTesting: true` while remaining non-blocking launch blockers are Telegram configuration and Qwen Vision authentication.
 
 ## 2026-07-11
 
