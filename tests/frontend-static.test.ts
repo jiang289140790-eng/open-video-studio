@@ -838,6 +838,10 @@ describe("MVP static frontend", () => {
     assert.ok(combined.includes("tool-poster art-2 locked"));
     assert.ok(combined.includes("unlock-overlay"));
     assert.ok(combined.includes("登录后解锁此工具"));
+    assert.ok(combined.includes("data-demo-generate"));
+    assert.ok(combined.includes("enableOneDemoGeneration"));
+    assert.ok(combined.includes("consumeDemoGenerationIntent"));
+    assert.ok(combined.includes("邮箱登录 / 注册"));
     assert.ok(combined.includes("data-unlock-auth=\"google\""));
     assert.ok(combined.includes("data-unlock-auth=\"discord\""));
   });
@@ -966,6 +970,9 @@ describe("MVP static frontend", () => {
     for (const expected of [
       "isRealAuthenticatedUser",
       "requireRealLoginForAction",
+      "demo_preview",
+      "browser-demo-preview",
+      "不扣积分，不保存到真实账户",
       "signedOutPreviewMarkup",
       "data-functional-preview",
       "功能预览",

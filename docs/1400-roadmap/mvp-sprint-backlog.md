@@ -377,6 +377,15 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Acceptance Criteria: signed-out Assets, History, My Works, Characters, and Dashboard surfaces show functional previews instead of local account-looking demo data; generation, tool-demo generation, share-save, and asset-share actions require real Supabase login; authenticated sync loads profile, credit balance, characters, assets, jobs, credit ledger, and share links from Supabase; public users do not see Fake Worker in model selection; unfinished content-operations links are clearly marked Beta/development; Image-to-Video is clean UTF-8 Chinese; 375px, 390px, 412px, and 768px mobile guardrails are covered by regression tests; required Supabase/Auth/User Loop/AI/MVP verification scripts are run and failures are documented.
 - Related Documents: PAGE-AUTH-001, PAGE-GENERATE-001, PAGE-DASHBOARD-001, DB-USERS-001, DB-CHARACTERS-001, DB-MEDIA-ASSETS-001, DB-GENERATION-JOBS-001, OPS-AUTH-001.
 
+### MVP-S3-027 Signed-Out Generation Trial
+
+- Priority: P0.
+- Status: Completed.
+- Estimated Time: 0.25 day.
+- Dependencies: MVP-S3-025, MVP-S3-026, PAGE-AUTH-001, PAGE-GENERATE-001.
+- Acceptance Criteria: unauthenticated users who hit a generation gate can choose email sign-in/sign-up, social login, or one browser-only demo generation; demo generation is clearly labeled, does not consume credits, does not call Supabase, does not create share links, and does not pretend to be real account data; authenticated real generation, storage, downloads, share links, credit debit, and remote providers remain protected by Supabase session checks.
+- Related Documents: PAGE-AUTH-001, PAGE-GENERATE-001, OPS-AUTH-001, API-AUTH-001.
+
 ## Sprint 4: Admin And MVP Integration
 
 ### MVP-S4-001 Admin Read APIs

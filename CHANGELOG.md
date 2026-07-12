@@ -25,6 +25,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Improved the signed-out generation gate. The unlock modal now offers email sign-in/sign-up alongside social login, preserves the intended return target, and allows one clearly labeled browser-only demo generation that does not consume credits, does not call Supabase, and does not create a real shareable account asset. Real saving, downloading, sharing, credit debit, and remote provider generation remain gated behind authenticated Supabase sessions.
+
 - Added Zealman / ComfyUI as a production AI generation provider behind the existing Supabase `ai` Edge Function. The backend can now route image jobs to an A01 workflow and video jobs to G01, G03, or J11 workflow IDs without exposing AutoDL, Zealman, ComfyUI, or third-party tokens to the browser.
 - Added Zealman provider status, health probing, reference-image upload to ComfyUI, prompt injection, history polling, output download, Supabase Storage persistence, and credit-refund failure behavior while keeping Fake Worker as the rollback path.
 - Updated the Image-to-Video product surface and Admin Workflow Center so Zealman can be selected and grey-rolled out alongside Fake Worker, Qianwen, Liblib, Qwen Vision, and DeepSeek.

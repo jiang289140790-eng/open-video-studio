@@ -1804,10 +1804,40 @@ function isRealAuthenticatedUser(user = state.user) {
 function requireRealLoginForAction(reason = "protected-action", nextUrl = getCurrentAuthReturnTarget()) {
   if (isRealAuthenticatedUser(state.user)) return true;
   captureVideoGenerationDraft(reason);
-  showSiteToast("请先登录 / 注册。生成、保存、下载和分享都需要真实账户。");
+  showSiteToast("真实保存、下载和分享需要登录；你也可以先试一次本地演示生成。");
   openUnlockModal(nextUrl);
   trackProductEvent("auth_required", { reason });
   return false;
+}
+
+const demoGenerationIntentKey = "ovs_demo_generation_intent_v1";
+
+function enableOneDemoGeneration(nextUrl = getCurrentAuthReturnTarget()) {
+  try {
+    sessionStorage.setItem(demoGenerationIntentKey, String(Date.now()));
+  } catch (_error) {
+    return;
+  }
+  document.querySelector(".unlock-overlay")?.remove();
+  showSiteToast("已开启一次演示生成：不扣积分，不保存到真实账户。");
+  const generatorButton = document.querySelector("[data-generate]");
+  if (generatorButton) {
+    generatorButton.click();
+    return;
+  }
+  window.location.href = nextUrl || "./zh/app/generate/";
+}
+
+function consumeDemoGenerationIntent() {
+  let value = "";
+  try {
+    value = sessionStorage.getItem(demoGenerationIntentKey) || "";
+    sessionStorage.removeItem(demoGenerationIntentKey);
+  } catch (_error) {
+    return false;
+  }
+  const createdAt = Number(value);
+  return Number.isFinite(createdAt) && Date.now() - createdAt < 5 * 60 * 1000;
 }
 
 function capitalize(value) {
@@ -2206,7 +2236,8 @@ document.addEventListener("click", async (event) => {
   if (authModalLink) {
     event.preventDefault();
     const authHref = authModalLink.getAttribute("href") || "";
-    const defaultNext = /(?:login|signin)/.test(authHref) ? "./zh/dashboard/" : authHref || getCurrentAuthReturnTarget();
+    const explicitNext = authModalLink.dataset.nextUrl || "";
+    const defaultNext = explicitNext || (/(?:login|signin)/.test(authHref) ? "./zh/dashboard/" : authHref || getCurrentAuthReturnTarget());
     openAuthModal(defaultNext);
     return;
   }
@@ -2600,27 +2631,30 @@ async function startSocialAuth(provider, nextUrl = "./zh/dashboard/") {
 }
 
 function runToolDemoGeneration() {
-  if (!requireRealLoginForAction("tool-demo-generation", getCurrentAuthReturnTarget())) return;
+  const demoGeneration = !isRealAuthenticatedUser(state.user) && consumeDemoGenerationIntent();
+  if (!demoGeneration && !requireRealLoginForAction("tool-demo-generation", getCurrentAuthReturnTarget())) return;
   const status = document.querySelector("[data-tool-demo-status]");
   const preview = document.querySelector("[data-tool-demo-preview]");
   const prompt = document.querySelector("[data-tool-prompt]")?.value.trim() || "AI 工具演示生成";
   const cost = 8;
-  if (state.credits < cost) {
+  if (!demoGeneration && state.credits < cost) {
     if (status) status.innerHTML = `<strong>积分不足</strong><span>请先购买积分后继续生成。</span>`;
     return;
   }
-  state.credits -= cost;
+  if (!demoGeneration) state.credits -= cost;
   const id = `asset_${Date.now()}`;
   const toolName = document.querySelector(".tool-detail-copy h1")?.textContent?.trim() || "AI 工具";
-  const asset = { id, type: "image", title: `${toolName} 演示结果`, prompt, character: "Mira", credits: cost, status: "completed", visibility: "private", favorite: false };
-  const job = { id: `job_${Date.now()}`, type: "image", title: asset.title, prompt, provider: "local_api", model: "local-tool-demo-v0", status: "completed", credits: cost, duration: "9s", assetId: id };
-  recordCreditLedger({
-    amount: -cost,
-    category: "generation",
-    reason: `${toolName} 演示生成扣费`,
-    sourceType: "generation_job",
-    sourceId: job.id
-  });
+  const asset = { id, type: "image", title: `${toolName} 演示结果`, prompt, character: "Mira", credits: demoGeneration ? 0 : cost, status: "completed", visibility: "private", favorite: false, demo: demoGeneration };
+  const job = { id: `job_${Date.now()}`, type: "image", title: asset.title, prompt, provider: demoGeneration ? "demo_preview" : "local_api", model: demoGeneration ? "browser-tool-preview" : "local-tool-demo-v0", status: "completed", credits: demoGeneration ? 0 : cost, duration: "9s", assetId: id, demo: demoGeneration };
+  if (!demoGeneration) {
+    recordCreditLedger({
+      amount: -cost,
+      category: "generation",
+      reason: `${toolName} 演示生成扣费`,
+      sourceType: "generation_job",
+      sourceId: job.id
+    });
+  }
   state.assets.unshift(asset);
   state.history.unshift(job);
   saveState(state);
@@ -2629,7 +2663,9 @@ function runToolDemoGeneration() {
     preview.classList.add("art-3");
   }
   if (status) {
-    status.innerHTML = `<strong>已生成演示结果</strong><span>消耗 ${cost} 积分，已保存到资产库和生成任务。</span><a href="./zh/assets/">查看资产</a>`;
+    status.innerHTML = demoGeneration
+      ? `<strong>已生成演示结果</strong><span>未扣积分，结果只保存在当前浏览器。登录后可真实保存和分享。</span><a href="./zh/login/">登录 / 注册</a>`
+      : `<strong>已生成演示结果</strong><span>消耗 ${cost} 积分，已保存到资产库和生成任务。</span><a href="./zh/assets/">查看资产</a>`;
   }
 }
 
@@ -2664,19 +2700,23 @@ function openUnlockModal(nextUrl = "./zh/app/generate/") {
     <div class="unlock-modal">
       <button class="checkin-close" type="button" aria-label="关闭">×</button>
       <h2>登录后解锁此工具</h2>
-      <p>保存生成结果、复用资产、管理积分，并继续打开这个创作工具。</p>
+      <p>真实生成会保存结果、复用资产、管理积分，并继续打开这个创作工具。你也可以先跑一次本地演示。</p>
       <div class="unlock-auth-list">
+        <a href="./zh/login/?next=${encodeURIComponent(returnTarget)}" data-auth-modal data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot email-dot">@</span>邮箱登录 / 注册 <b>→</b></a>
         <button type="button" data-unlock-auth="google" data-modal-auth-provider="google" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot google-dot">G</span>使用 Google 登录 <b>→</b></button>
         <button type="button" data-unlock-auth="x" data-modal-auth-provider="x" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot x-dot">X</span>使用 X 登录 <b>→</b></button>
         <button type="button" data-unlock-auth="telegram" data-modal-auth-provider="telegram" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot tg-dot">TG</span>使用 Telegram 登录 <b>→</b></button>
         <button type="button" data-unlock-auth="discord" data-modal-auth-provider="discord" data-next-url="${escapeHtml(returnTarget)}"><span class="provider-dot dc-dot">DC</span>使用 Discord 登录 <b>→</b></button>
       </div>
-      <p class="auth-message" data-auth-message>选择一个账号继续。真实登录需要先配置 Supabase OAuth。</p>
+      <p class="auth-message" data-auth-message>社交登录需要 Supabase OAuth 配置；邮箱登录可作为稳定入口。</p>
+      <button class="unlock-demo-button" type="button" data-demo-generate>先试一次演示生成</button>
+      <p class="unlock-demo-note">演示结果只保存在当前浏览器，不扣积分，不进入真实资产库，登录后才能真实保存、下载和分享。</p>
       <a class="btn primary full" href="./zh/pricing/">查看积分套餐</a>
     </div>
   `;
   document.body.append(overlay);
   overlay.querySelector(".checkin-close")?.addEventListener("click", () => overlay.remove());
+  overlay.querySelector("[data-demo-generate]")?.addEventListener("click", () => enableOneDemoGeneration(returnTarget));
   overlay.addEventListener("click", (event) => {
     if (event.target === overlay) overlay.remove();
   });
@@ -4101,10 +4141,11 @@ if (enhanceButton && promptBox) {
 
 if (generateButton && queueTarget) {
   generateButton.addEventListener("click", async () => {
-    if (!requireRealLoginForAction("generation-submit", window.location.pathname.split("/").pop() || "./zh/app/image-to-video/")) {
+    const demoGeneration = !isRealAuthenticatedUser(state.user) && consumeDemoGenerationIntent();
+    if (!demoGeneration && !requireRealLoginForAction("generation-submit", window.location.pathname.split("/").pop() || "./zh/app/image-to-video/")) {
       return;
     }
-    if (!supabase) {
+    if (!demoGeneration && !supabase) {
       showSiteToast("Supabase 未配置，无法提交真实账户生成任务。");
       return;
     }
@@ -4150,55 +4191,61 @@ if (generateButton && queueTarget) {
     generateButton.disabled = true;
     generateButton.textContent = "生成中";
     try {
-      updateGenerationProgress(progressRow, "queued", "任务已进入队列，正在准备参考图和积分扣费。", 18, {
-        historyHref: "./zh/history/"
-      });
-      const remoteResult = await runRemoteGeneration({
-        mode: activeMode,
-        prompt,
-        title,
-        character,
-        cost,
-        ratio,
-        durationSeconds,
-        model,
-        preset: activePreset?.id || "",
-        reference,
-        onJobCreated: (job) => {
-          const remoteJobId = String(job?.id || "");
-          if (remoteJobId) progressRow.dataset.remoteJobId = remoteJobId;
-          updateGenerationProgress(progressRow, "running", remoteJobId
-            ? `远端任务 ${remoteJobId} 已创建，正在扣费、调用模型并保存输出。`
-            : "远端任务已创建，正在扣费、调用模型并保存输出。", 42, {
-            historyHref: "./zh/history/",
-            refreshJobId: remoteJobId,
-            cancelJobId: remoteJobId
-          });
-        }
-      });
-      if (remoteResult) {
-        const remoteAssetId = String(remoteResult.asset?.id || remoteResult.job?.result_asset_id || "");
-        const remoteAsset = state.assets.find((asset) => asset.id === remoteAssetId);
-        if (remoteAsset) renderGeneratedPreview(remoteAsset, state.history.find((job) => job.assetId === remoteAsset.id) || remoteResult.job || {});
-        trackProductEvent("generation_completed", {
-          mediaType: activeMode === "video" ? "video" : "image",
-          preset: activePreset?.id || "",
+      if (demoGeneration) {
+        updateGenerationProgress(progressRow, "running", "正在生成本地演示预览，不扣积分，也不会保存到真实账户。", 38, {
+          historyHref: "./zh/history/"
+        });
+      } else {
+        updateGenerationProgress(progressRow, "queued", "任务已进入队列，正在准备参考图和积分扣费。", 18, {
+          historyHref: "./zh/history/"
+        });
+        const remoteResult = await runRemoteGeneration({
+          mode: activeMode,
+          prompt,
+          title,
+          character,
           cost,
-          provider: model || "workflow",
-          remote: true,
-          hasAsset: Boolean(remoteAssetId)
+          ratio,
+          durationSeconds,
+          model,
+          preset: activePreset?.id || "",
+          reference,
+          onJobCreated: (job) => {
+            const remoteJobId = String(job?.id || "");
+            if (remoteJobId) progressRow.dataset.remoteJobId = remoteJobId;
+            updateGenerationProgress(progressRow, "running", remoteJobId
+              ? `远端任务 ${remoteJobId} 已创建，正在扣费、调用模型并保存输出。`
+              : "远端任务已创建，正在扣费、调用模型并保存输出。", 42, {
+              historyHref: "./zh/history/",
+              refreshJobId: remoteJobId,
+              cancelJobId: remoteJobId
+            });
+          }
         });
-        clearVideoGenerationDraft();
-        clearGenerationRecovery();
-        updateGenerationProgress(progressRow, "completed", "真实任务已保存到 Supabase 资产库、生成任务和我的作品。", 100, {
-          assetHref: "./zh/assets/",
-          historyHref: "./zh/history/",
-          downloadHref: remoteAsset?.downloadUrl || "",
-          downloadName: remoteAsset ? downloadFileName(remoteAsset) : "luravyn-generation",
-          shareAssetId: remoteAssetId,
-          retryAssetId: remoteAssetId
-        });
-        return;
+        if (remoteResult) {
+          const remoteAssetId = String(remoteResult.asset?.id || remoteResult.job?.result_asset_id || "");
+          const remoteAsset = state.assets.find((asset) => asset.id === remoteAssetId);
+          if (remoteAsset) renderGeneratedPreview(remoteAsset, state.history.find((job) => job.assetId === remoteAsset.id) || remoteResult.job || {});
+          trackProductEvent("generation_completed", {
+            mediaType: activeMode === "video" ? "video" : "image",
+            preset: activePreset?.id || "",
+            cost,
+            provider: model || "workflow",
+            remote: true,
+            hasAsset: Boolean(remoteAssetId)
+          });
+          clearVideoGenerationDraft();
+          clearGenerationRecovery();
+          updateGenerationProgress(progressRow, "completed", "真实任务已保存到 Supabase 资产库、生成任务和我的作品。", 100, {
+            assetHref: "./zh/assets/",
+            historyHref: "./zh/history/",
+            downloadHref: remoteAsset?.downloadUrl || "",
+            downloadName: remoteAsset ? downloadFileName(remoteAsset) : "luravyn-generation",
+            shareAssetId: remoteAssetId,
+            retryAssetId: remoteAssetId
+          });
+          return;
+        }
       }
     } catch (error) {
       const refundText = error.refund?.amount ? `远端已退回 ${error.refund.amount} 积分。` : "未重复扣除远端积分。";
@@ -4254,7 +4301,7 @@ if (generateButton && queueTarget) {
       generateButton.textContent = activeMode === "video" ? "生成视频" : "生成";
     }
 
-    if (state.credits < cost) {
+    if (!demoGeneration && state.credits < cost) {
       trackProductEvent("generation_failed", {
         mediaType: activeMode === "video" ? "video" : "image",
         preset: activePreset?.id || "",
@@ -4269,7 +4316,7 @@ if (generateButton && queueTarget) {
       });
       return;
     }
-    state.credits -= cost;
+    if (!demoGeneration) state.credits -= cost;
     const id = `asset_${Date.now()}`;
     const jobId = `job_${Date.now()}`;
     const asset = {
@@ -4278,7 +4325,7 @@ if (generateButton && queueTarget) {
       title,
       prompt,
       character,
-      credits: cost,
+      credits: demoGeneration ? 0 : cost,
       status: "completed",
       visibility: "private",
       favorite: false,
@@ -4286,32 +4333,36 @@ if (generateButton && queueTarget) {
       duration: durationSeconds,
       preset: activePreset?.id || "",
       referenceId: reference?.id || "",
-      downloadUrl: createGeneratedDownloadUrl({ title, prompt, cost, ratio, durationSeconds, model, reference, type: activeMode === "video" ? "video" : "image" })
+      demo: demoGeneration,
+      downloadUrl: createGeneratedDownloadUrl({ title, prompt, cost: demoGeneration ? 0 : cost, ratio, durationSeconds, model, reference, type: activeMode === "video" ? "video" : "image" })
     };
     const job = {
       id: jobId,
       type: asset.type,
       title,
       prompt,
-      provider: model || "local_api",
-      model: activeMode === "video" ? model || "local-video-v0" : "local-image-v0",
+      provider: demoGeneration ? "demo_preview" : model || "local_api",
+      model: demoGeneration ? "browser-demo-preview" : activeMode === "video" ? model || "local-video-v0" : "local-image-v0",
       status: "completed",
-      credits: cost,
+      credits: demoGeneration ? 0 : cost,
       duration: activeMode === "video" ? `${durationSeconds || 8}s` : "12s",
       assetId: id,
       ratio,
       preset: activePreset?.id || "",
       progress: 100,
-      remote: false
+      remote: false,
+      demo: demoGeneration
     };
-    recordCreditLedger({
-      amount: -cost,
-      category: "generation",
-      reason: `${title} 本地演示生成扣费`,
-      sourceType: "generation_job",
-      sourceId: jobId
-    });
-    updateGenerationProgress(progressRow, "running", "Fake Worker 正在生成预览和输出元数据。", 64);
+    if (!demoGeneration) {
+      recordCreditLedger({
+        amount: -cost,
+        category: "generation",
+        reason: `${title} 本地演示生成扣费`,
+        sourceType: "generation_job",
+        sourceId: jobId
+      });
+    }
+    updateGenerationProgress(progressRow, "running", demoGeneration ? "正在完成浏览器演示预览。真实保存和分享需要登录。" : "Fake Worker 正在生成预览和输出元数据。", 64);
     await wait(180);
     state.assets.unshift(asset);
     state.history.unshift(job);
@@ -4321,19 +4372,19 @@ if (generateButton && queueTarget) {
     trackProductEvent("generation_completed", {
       mediaType: asset.type,
       preset: activePreset?.id || "",
-      cost,
+      cost: demoGeneration ? 0 : cost,
       provider: job.provider,
       remote: false,
       hasAsset: true
     });
     clearVideoGenerationDraft();
     clearGenerationRecovery();
-    updateGenerationProgress(progressRow, "completed", "已保存到资产库、生成任务和我的作品，可下载或继续分享。", 100, {
+    updateGenerationProgress(progressRow, "completed", demoGeneration ? "演示生成完成：未扣积分，结果只保存在当前浏览器。登录后可真实保存、下载和分享。" : "已保存到资产库、生成任务和我的作品，可下载或继续分享。", 100, {
       assetHref: "./zh/assets/",
       historyHref: "./zh/history/",
       downloadHref: asset.downloadUrl,
       downloadName: `${asset.title}.json`,
-      shareAssetId: asset.id,
+      shareAssetId: demoGeneration ? "" : asset.id,
       retryAssetId: asset.id
     });
   });
