@@ -40,6 +40,19 @@ Supported future providers:
 - Replicate.
 - RunPod.
 - Local API.
+- Zealman / ComfyUI workflow API.
+
+## Current Provider Notes
+
+- `zealman_workflow` is a server-side provider adapter behind the Supabase `ai` Edge Function.
+- Browser code must not call Zealman, ComfyUI, AutoDL, or SeetaCloud endpoints directly.
+- Workflow selection is mapped by backend workflow ID:
+  - `workflow-zealman-image-a01-v1` for A01 image generation.
+  - `workflow-zealman-video-g01-v1` for standard image-to-video.
+  - `workflow-zealman-video-g03-v1` for smoother social-video generation.
+  - `workflow-zealman-digital-human-j11-v1` for digital-human/product-video generation.
+- Outputs must be copied into Supabase Storage and represented as `media_assets`; provider URLs are not the permanent asset source.
+- Real endpoint URLs, tokens, and exact workflow filenames belong in Supabase Edge Function Secrets or ignored local environment files only.
 
 ## Acceptance Criteria
 

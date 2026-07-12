@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- The AI generation layer now includes a server-side Zealman / ComfyUI provider behind the existing Supabase `ai` Edge Function. Browser code still submits only prompt, reference asset, mode, ratio, duration, and provider/workflow intent; server secrets select A01 image generation, G01 image-to-video, G03 smooth video, or J11 digital-human/product-video workflows and persist outputs back into Supabase Storage.
 - MVP product surfaces now separate functional previews from real account data. Only a real Supabase-authenticated user is treated as signed in; Assets, History, My Works, Characters, and Dashboard show preview cards while signed out, and generation/share actions require login before creating records or consuming credits.
 - Authenticated frontend sync now reads Supabase `profiles`, `characters`, `media_assets`, `generation_jobs`, `credit_transactions`, and `share_links`, so logged-in users can resume from real nickname, credit balance, reusable characters, assets, generation history, and public shares.
 - Public model selection no longer exposes Fake Worker. Fake Worker remains an admin/operator internal fallback, while normal users see the production-shaped generation workflow and failed remote jobs fail visibly instead of silently creating local demo output.

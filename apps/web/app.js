@@ -831,7 +831,11 @@ const defaultToolCatalogConfig = {
 const defaultWorkflowCenterConfig = {
   workflows: [
     { workflowId: "workflow-image-edit-v1", name: "图片编辑工作流", type: "api_chain", provider: "fake_worker", jsonConfig: { mode: "image_edit" }, requiredModels: ["local-image-edit-v0"], requiredInputs: ["prompt", "reference_image"], outputType: "image", creditPrice: 8, version: "v1", status: "published", description: "MVP 图片编辑占位工作流，可替换为 ComfyUI / Fal / RunPod。" },
-    { workflowId: "workflow-video-v1", name: "图片转视频工作流", type: "api_chain", provider: "fake_worker", jsonConfig: { mode: "image_to_video" }, requiredModels: ["local-video-v0"], requiredInputs: ["prompt", "source_asset"], outputType: "video", creditPrice: 24, version: "v1", status: "testing", description: "MVP 视频生成占位工作流，后续绑定真实视频 provider。" }
+    { workflowId: "workflow-video-v1", name: "图片转视频工作流", type: "api_chain", provider: "fake_worker", jsonConfig: { mode: "image_to_video" }, requiredModels: ["local-video-v0"], requiredInputs: ["prompt", "source_asset"], outputType: "video", creditPrice: 24, version: "v1", status: "testing", description: "MVP 视频生成占位工作流，后续绑定真实视频 provider。" },
+    { workflowId: "workflow-zealman-image-a01-v1", name: "Zealman A01 文生图工作流", type: "comfyui", provider: "zealman_workflow", jsonConfig: { action: "process-generation-job", mediaType: "image", workflowEnv: "ZEALMAN_IMAGE_WORKFLOW" }, requiredModels: ["zealman-image-workflow"], requiredInputs: ["prompt"], outputType: "image", creditPrice: 8, version: "v1", status: "testing", description: "通过 Zealman / ComfyUI A01 工作流生成图片，输出重新保存到 Supabase Storage。" },
+    { workflowId: "workflow-zealman-video-g01-v1", name: "Zealman G01 图生视频工作流", type: "comfyui", provider: "zealman_workflow", jsonConfig: { action: "process-generation-job", mediaType: "video", workflowEnv: "ZEALMAN_VIDEO_WORKFLOW" }, requiredModels: ["zealman-video-workflow"], requiredInputs: ["prompt", "source_asset"], outputType: "video", creditPrice: 24, version: "v1", status: "testing", description: "通过 Zealman / ComfyUI G01 工作流把参考图生成短视频。" },
+    { workflowId: "workflow-zealman-video-g03-v1", name: "Zealman G03 流畅图生视频工作流", type: "comfyui", provider: "zealman_workflow", jsonConfig: { action: "process-generation-job", mediaType: "video", workflowEnv: "ZEALMAN_SMOOTH_VIDEO_WORKFLOW" }, requiredModels: ["zealman-smooth-video-workflow"], requiredInputs: ["prompt", "source_asset"], outputType: "video", creditPrice: 28, version: "v1", status: "testing", description: "通过 Zealman / ComfyUI G03 SmoothMix 工作流生成更流畅的社媒短视频。" },
+    { workflowId: "workflow-zealman-digital-human-j11-v1", name: "Zealman J11 数字人视频工作流", type: "comfyui", provider: "zealman_workflow", jsonConfig: { action: "process-generation-job", mediaType: "video", workflowEnv: "ZEALMAN_DIGITAL_HUMAN_WORKFLOW" }, requiredModels: ["zealman-digital-human-workflow"], requiredInputs: ["prompt", "source_asset"], outputType: "video", creditPrice: 32, version: "v1", status: "testing", description: "通过 Zealman / ComfyUI J11 工作流生成产品、数字人或电商展示视频。" }
   ]
 };
 const defaultPromptLibraryConfig = {
@@ -3208,7 +3212,7 @@ const videoWorkflowPresets = {
     prompt: "将这张图转换成 5 秒电影感短视频，镜头缓慢推进，主体保持清晰，灯光高级，适合发布到社媒。",
     ratio: "16:9",
     duration: "5",
-    model: "qianwen_generation",
+    model: "zealman_workflow",
     cost: 24,
     preview: "16:9 · 5秒 · 可用测试生成",
     art: "art-7"
@@ -3221,7 +3225,7 @@ const videoWorkflowPresets = {
     prompt: "把这张商品图生成 10 秒产品广告短片，镜头从产品细节缓慢推进到完整主体，加入高级棚拍灯光、干净背景、品牌发布感和可放置字幕的留白区域。",
     ratio: "16:9",
     duration: "10",
-    model: "qianwen_generation",
+    model: "zealman_workflow",
     cost: 32,
     preview: "16:9 · 10秒 · 产品广告预设",
     art: "art-1"
@@ -3234,7 +3238,7 @@ const videoWorkflowPresets = {
     prompt: "把这张图片生成 5 秒 9:16 竖屏短视频，前 2 秒有强视觉开场，镜头轻微推进，主体保持稳定，节奏适合 TikTok、Reels 和 Shorts。",
     ratio: "9:16",
     duration: "5",
-    model: "qianwen_generation",
+    model: "zealman_workflow",
     cost: 28,
     preview: "9:16 · 5秒 · 社媒竖屏预设",
     art: "art-13"
@@ -4337,7 +4341,7 @@ if (generateButton && queueTarget) {
 
 function normalizePublicGenerationProvider(provider) {
   const value = String(provider || "").toLowerCase();
-  if (!value || value === "fake_worker" || value === "local_api" || value.startsWith("local")) return "qianwen_generation";
+  if (!value || value === "fake_worker" || value === "local_api" || value.startsWith("local")) return "zealman_workflow";
   return value;
 }
 
@@ -4357,7 +4361,7 @@ async function runRemoteGeneration(input) {
     throw new Error("请先登录后使用真实生成。");
   }
   const mediaType = input.mode === "video" ? "video" : "image";
-  const workflowId = mediaType === "video" ? "workflow-qianwen-video-v1" : "workflow-qianwen-image-v1";
+  const workflowId = workflowIdForGeneration(mediaType, input.model, input.preset);
   const createResult = await invokeAi("create-generation-job", {
     mediaType,
     prompt: input.prompt,
@@ -4382,6 +4386,17 @@ async function runRemoteGeneration(input) {
   mergeRemoteGenerationResult(processed.job, processed.asset, input);
   await syncRemoteProductData();
   return processed;
+}
+
+function workflowIdForGeneration(mediaType, provider, preset) {
+  if (provider === "zealman_workflow") {
+    if (mediaType === "image") return "workflow-zealman-image-a01-v1";
+    if (preset === "social-reel") return "workflow-zealman-video-g03-v1";
+    if (preset === "product-teaser") return "workflow-zealman-digital-human-j11-v1";
+    return "workflow-zealman-video-g01-v1";
+  }
+  if (provider === "liblib_generation" && mediaType === "image") return "workflow-liblib-image-v1";
+  return mediaType === "video" ? "workflow-qianwen-video-v1" : "workflow-qianwen-image-v1";
 }
 
 async function invokeAi(action, body = {}) {
@@ -4839,6 +4854,7 @@ function publicProviderLabel(provider, current = state) {
   if (isAdminActor(current.user)) return provider || "workflow";
   if (["fake_worker", "local_api"].includes(value) || value.startsWith("local")) return "Luravyn 测试生成";
   if (value === "qianwen_generation") return "千问生成";
+  if (value === "zealman_workflow") return "Zealman 工作流";
   if (value === "deepseek_text") return "DeepSeek 提示词";
   if (value === "qwen_vision") return "Qwen 视觉分析";
   return provider || "自动工作流";
@@ -5977,6 +5993,9 @@ function providerReadinessDetail(provider) {
   if (providerName === "liblib_generation") {
     return `Secret 已配置 · ${probe.message || "等待真实生成探针"} · 需要同时配置 LIBLIB_TEXT2IMG_TEMPLATE_UUID 后才能提交文生图任务。`;
   }
+  if (providerName === "zealman_workflow") {
+    return `工作流实例已配置 · ${probe.message || "等待 Zealman 面板健康检查"} · A01/G01/G03/J11 工作流名称必须在 Supabase Secrets 中配置。`;
+  }
   if (providerName === "fake_worker") return "内部兜底可用，不产生真实 AI 成本。";
   return probe.message ? `Secret 已配置 · 状态：${probe.message}` : "Secret 已配置，尚未运行实时验证。";
 }
@@ -5988,7 +6007,14 @@ function renderProviderFixList(aiProviders = [], providerError = "") {
   const qianwen = providers.find((provider) => provider.provider === "qianwen_generation") || {};
   const qwen = providers.find((provider) => provider.provider === "qwen_vision") || {};
   const liblib = providers.find((provider) => provider.provider === "liblib_generation") || {};
+  const zealman = providers.find((provider) => provider.provider === "zealman_workflow") || {};
   const fixes = [
+    {
+      title: "Zealman / ComfyUI 工作流",
+      ready: Boolean(zealman.configured),
+      detail: `面板 ${zealman.endpoint || "缺少 ZEALMAN_PANEL_BASE_URL"} · 图片工作流 ${zealman.imageWorkflow || "缺少 ZEALMAN_IMAGE_WORKFLOW"} · 视频工作流 ${zealman.videoWorkflow || "缺少 ZEALMAN_VIDEO_WORKFLOW"}`,
+      action: "在 Supabase Edge Function Secrets 中配置 Zealman 地址和 A01/G01/G03/J11 工作流名称；API Token 只作为 Secret 保存。",
+    },
     {
       title: "千问图片生成",
       ready: Boolean(qianwen.configured && (qianwen.imageEndpoint || qianwen.endpoint) && qianwen.imageModel),
@@ -6476,6 +6502,7 @@ function workflowModelsForProvider(provider, outputType, fallback = []) {
   if (provider === "fake_worker") return [outputType === "video" ? "local-video-v0" : outputType === "text" ? "local-text-v0" : "local-image-v0"];
   if (provider === "qianwen_generation") return [outputType === "video" ? "qianwen-video-v1" : "qianwen-image-v1"];
   if (provider === "liblib_generation") return ["liblib-text2img-v1"];
+  if (provider === "zealman_workflow") return [outputType === "video" ? "zealman-video-workflow" : "zealman-image-workflow"];
   if (provider === "deepseek_text") return ["deepseek-chat"];
   if (provider === "qwen_vision") return ["Qwen/Qwen2.5-VL-7B-Instruct"];
   return Array.isArray(fallback) && fallback.length ? fallback : [provider];
@@ -6489,6 +6516,9 @@ function workflowDescriptionForProvider(provider, outputType, fallback = "") {
   if (provider === "liblib_generation") return outputType === "image"
     ? "灰度到 Liblib 文生图：任务失败或超时时标记 failed，并通过积分账本退款。"
     : "Liblib 当前仅接入图片生成，视频工作流请继续使用其他 provider。";
+  if (provider === "zealman_workflow") return outputType === "video"
+    ? "灰度到 Zealman / ComfyUI 视频工作流：后端选择 G01/G03/J11，失败时标记 failed 并退款。"
+    : "灰度到 Zealman / ComfyUI 图片工作流：后端选择 A01，输出保存到 Supabase Storage。";
   if (provider === "deepseek_text") return "使用 DeepSeek 做提示词增强、中文文案和运营文案，不直接生成资产。";
   if (provider === "qwen_vision") return "使用 Qwen Vision 做上传图片识别、标签、风险和可复用 prompt 建议。";
   return fallback || "预留真实 provider 工作流，启用前需要先完成 Edge Function 适配和密钥配置。";
@@ -6599,7 +6629,7 @@ function renderToolCatalogVisualEditor(config) {
       <label><span>工具名称</span><input data-tool-name value="${escapeHtml(tool.name)}"></label>
       <label><span>分类</span><select data-tool-category>${optionMarkup(["image", "video", "character", "asset", "prompt"], tool.category)}</select></label>
       <label><span>状态</span><select data-tool-status>${optionMarkup(["published", "draft", "hidden"], tool.status)}</select></label>
-      <label><span>服务商</span><select data-tool-provider>${optionMarkup(["fake_worker", "qwen_vision", "deepseek_text", "qianwen_generation", "liblib_generation", "openai", "gemini", "fal", "replicate", "comfyui", "runpod", "local_api"], tool.provider)}</select></label>
+      <label><span>服务商</span><select data-tool-provider>${optionMarkup(["fake_worker", "qwen_vision", "deepseek_text", "qianwen_generation", "liblib_generation", "zealman_workflow", "openai", "gemini", "fal", "replicate", "comfyui", "runpod", "local_api"], tool.provider)}</select></label>
       <label><span>模型 / 工作流</span><input data-tool-model value="${escapeHtml(tool.model)}"></label>
       <label><span>绑定 Workflow</span><input data-tool-workflow value="${escapeHtml(tool.workflowId)}"></label>
       <label><span>积分价格</span><input data-tool-cost type="number" min="0" max="999" value="${tool.creditCost}"></label>
@@ -6800,7 +6830,7 @@ function renderAdminWorkflowSwitchboard(config, aiProviders = []) {
   const actor = adminData?.actor || {};
   const canWrite = actor.role === "admin";
   const workflows = normalizeWorkflowCenterConfig(config).workflows;
-  const providerOptions = ["fake_worker", "qianwen_generation", "liblib_generation", "deepseek_text", "qwen_vision"];
+  const providerOptions = ["fake_worker", "zealman_workflow", "qianwen_generation", "liblib_generation", "deepseek_text", "qwen_vision"];
   target.innerHTML = workflows.length ? workflows.map((workflow) => {
     const providerStatus = Array.isArray(aiProviders) ? aiProviders.find((item) => item.provider === workflow.provider) : null;
     const blocked = providerStatus?.configured === false || providerStatus?.probe?.ok === false;
@@ -6834,6 +6864,7 @@ function renderAdminWorkflowSwitchboard(config, aiProviders = []) {
 function workflowProviderLabel(provider) {
   return {
     fake_worker: "回滚 Fake",
+    zealman_workflow: "切 Zealman",
     qianwen_generation: "切千问",
     liblib_generation: "切 Liblib",
     deepseek_text: "切 DeepSeek",

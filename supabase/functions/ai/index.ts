@@ -236,7 +236,9 @@ async function processGenerationJob(adminClient: any, env: AiEnv, userId: string
       ? await callQianwenGeneration(env, job)
       : provider === "liblib_generation"
         ? await callLiblibGeneration(env, job)
-        : await fakeWorkerResult(job);
+        : provider === "zealman_workflow"
+          ? await callZealmanWorkflow(env, job)
+          : await fakeWorkerResult(job);
     const durationMs = Date.now() - started;
     const asset = await saveGeneratedAsset(adminClient, env, userId, job, result, durationMs);
     const completed = await updateOwnedJob(adminClient, userId, jobId, {
@@ -525,6 +527,193 @@ function normalizeLiblibImageSize(resolution: unknown, aspectRatio: unknown): { 
   if (ratio === "1:1") return { width: 1024, height: 1024 };
   if (ratio === "9:16") return { width: 768, height: 1344 };
   return { width: 1344, height: 768 };
+}
+
+async function callZealmanWorkflow(env: AiEnv, job: Record<string, any>) {
+  if (!env.zealmanPanelBaseUrl || !env.zealmanComfyBaseUrl) {
+    throw new AiFunctionError("ZEALMAN_NOT_CONFIGURED", "Zealman panel and ComfyUI URLs are missing.", 500);
+  }
+  const workflowName = resolveZealmanWorkflowName(env, job);
+  if (!workflowName) {
+    throw new AiFunctionError("ZEALMAN_WORKFLOW_MISSING", "Zealman workflow name is missing.", 500);
+  }
+
+  const workflow = await fetchZealmanWorkflow(env, workflowName);
+  applyZealmanPrompt(workflow, String(job.prompt || ""), env.zealmanPromptNodeId);
+  const inputParams = safeObject(job.input_params);
+  const sourceImageUrl = String(inputParams.sourceImageUrl || inputParams.source_image_url || "").trim();
+  if (sourceImageUrl) {
+    const uploadedImage = await uploadZealmanSourceImage(env, sourceImageUrl, String(job.id || crypto.randomUUID()));
+    applyZealmanUploadedImage(workflow, uploadedImage);
+  }
+
+  const submit = await submitZealmanWorkflow(env, workflow);
+  const providerJobId = String(submit.prompt_id || submit.promptId || submit.data?.prompt_id || "").trim();
+  if (!providerJobId) {
+    throw new AiFunctionError("ZEALMAN_SUBMIT_FAILED", "Zealman did not return a prompt id.", 502);
+  }
+
+  const result = await pollZealmanHistory(env, providerJobId);
+  const outputs = extractZealmanOutputs(env, result, providerJobId);
+  if (!outputs.length) {
+    throw new AiFunctionError("ZEALMAN_OUTPUT_MISSING", "Zealman workflow completed without an output file.", 502);
+  }
+  return {
+    providerJobId,
+    outputUrl: outputs[0].url,
+    raw: { workflowName, submit, outputs, status: result?.status ?? null },
+  };
+}
+
+function resolveZealmanWorkflowName(env: AiEnv, job: Record<string, any>): string {
+  const mediaType = normalizeMediaType(job.media_type);
+  const inputParams = safeObject(job.input_params);
+  const requested = String(inputParams.workflowName || inputParams.workflow_name || "").trim();
+  if (requested) return requested;
+  const model = String(job.model || "").trim();
+  if (model && !["zealman_workflow", "zealman-image-v1", "zealman-video-v1"].includes(model)) return model;
+  const workflowId = String(job.workflow_id || "").toLowerCase();
+  if (workflowId.includes("g03")) return env.zealmanSmoothVideoWorkflow || env.zealmanVideoWorkflow;
+  if (workflowId.includes("j11")) return env.zealmanDigitalHumanWorkflow || env.zealmanVideoWorkflow;
+  return mediaType === "video" ? env.zealmanVideoWorkflow : env.zealmanImageWorkflow;
+}
+
+async function fetchZealmanWorkflow(env: AiEnv, workflowName: string): Promise<Record<string, any>> {
+  const endpoint = `${env.zealmanPanelBaseUrl.replace(/\/$/, "")}/api/workflows/download/${encodeURIComponent(workflowName)}`;
+  const response = await fetchWithTimeout(endpoint, {
+    method: "GET",
+    headers: zealmanHeaders(env),
+  }, env.providerTimeoutMs);
+  return await parseProviderResponse(response, "ZEALMAN_WORKFLOW_DOWNLOAD_FAILED");
+}
+
+function applyZealmanPrompt(workflow: Record<string, any>, prompt: string, promptNodeId: string) {
+  if (!prompt) return;
+  const direct = promptNodeId ? workflow[promptNodeId] : null;
+  if (direct?.inputs && typeof direct.inputs.text === "string") {
+    direct.inputs.text = prompt;
+    return;
+  }
+  let fallbackNode: any = null;
+  for (const node of Object.values(workflow)) {
+    if (!node || typeof node !== "object" || !node.inputs || typeof node.inputs.text !== "string") continue;
+    const nodeName = `${node.class_type || ""} ${node._meta?.title || ""}`.toLowerCase();
+    if (nodeName.includes("negative")) continue;
+    fallbackNode = fallbackNode || node;
+    if (nodeName.includes("positive") || nodeName.includes("prompt") || nodeName.includes("text")) {
+      node.inputs.text = prompt;
+      return;
+    }
+  }
+  if (fallbackNode) fallbackNode.inputs.text = prompt;
+}
+
+async function uploadZealmanSourceImage(env: AiEnv, sourceImageUrl: string, jobId: string): Promise<string> {
+  const source = await fetchWithTimeout(sourceImageUrl, { method: "GET", headers: { Accept: "image/*,*/*" } }, env.providerTimeoutMs);
+  if (!source.ok) {
+    throw new AiFunctionError("ZEALMAN_SOURCE_IMAGE_DOWNLOAD_FAILED", `Could not download source image: ${source.status}`, 502);
+  }
+  const contentType = normalizeGeneratedContentType(source.headers.get("content-type"), "image");
+  const extension = extensionForContentType(contentType, "image");
+  const form = new FormData();
+  form.append("image", new Blob([await source.arrayBuffer()], { type: contentType }), `${jobId}.${extension}`);
+  form.append("overwrite", "true");
+  const response = await fetchWithTimeout(`${env.zealmanComfyBaseUrl.replace(/\/$/, "")}/upload/image`, {
+    method: "POST",
+    headers: zealmanHeaders(env, false),
+    body: form,
+  }, env.providerTimeoutMs);
+  const data = await parseProviderResponse(response, "ZEALMAN_SOURCE_IMAGE_UPLOAD_FAILED");
+  const name = String(data?.name || data?.filename || data?.data?.name || "").trim();
+  if (!name) throw new AiFunctionError("ZEALMAN_SOURCE_IMAGE_UPLOAD_FAILED", "ComfyUI did not return an uploaded image name.", 502);
+  return name;
+}
+
+function applyZealmanUploadedImage(workflow: Record<string, any>, imageName: string) {
+  for (const node of Object.values(workflow)) {
+    if (!node || typeof node !== "object" || !node.inputs) continue;
+    const nodeName = String(node.class_type || "").toLowerCase();
+    if (nodeName.includes("loadimage") || Object.prototype.hasOwnProperty.call(node.inputs, "image")) {
+      node.inputs.image = imageName;
+      return;
+    }
+  }
+}
+
+async function submitZealmanWorkflow(env: AiEnv, workflow: Record<string, any>) {
+  const endpoint = `${env.zealmanPanelBaseUrl.replace(/\/$/, "")}/api/workflow/generate`;
+  const response = await fetchWithTimeout(endpoint, {
+    method: "POST",
+    headers: zealmanHeaders(env),
+    body: JSON.stringify({ workflow_template: workflow, client_id: crypto.randomUUID() }),
+  }, env.providerTimeoutMs);
+  return await parseProviderResponse(response, "ZEALMAN_SUBMIT_FAILED");
+}
+
+async function pollZealmanHistory(env: AiEnv, promptId: string) {
+  const maxPolls = clampNumber(env.zealmanMaxPolls, 180, 1, 720);
+  const pollIntervalMs = clampNumber(env.zealmanPollIntervalMs, 5000, 1000, 30000);
+  let latest: any = null;
+  for (let index = 0; index < maxPolls; index += 1) {
+    if (index > 0) await sleep(pollIntervalMs);
+    const response = await fetchWithTimeout(`${env.zealmanComfyBaseUrl.replace(/\/$/, "")}/history/${encodeURIComponent(promptId)}`, {
+      method: "GET",
+      headers: zealmanHeaders(env, false),
+    }, env.providerTimeoutMs);
+    const data = await parseProviderResponse(response, "ZEALMAN_HISTORY_FAILED");
+    latest = data?.[promptId] || data?.data?.[promptId] || data;
+    if (!latest || !Object.keys(latest).length) continue;
+    const status = String(latest?.status?.status_str || latest?.status || "").toLowerCase();
+    if (["error", "failed", "failure"].includes(status)) {
+      throw new AiFunctionError("ZEALMAN_GENERATION_FAILED", zealmanHistoryMessage(latest), 502);
+    }
+    const outputs = extractZealmanOutputs(env, latest, promptId);
+    if (outputs.length || status === "success" || latest.outputs) return latest;
+  }
+  throw new AiFunctionError("ZEALMAN_GENERATION_TIMEOUT", `Zealman workflow ${promptId} did not finish before the polling limit.`, 504);
+}
+
+function extractZealmanOutputs(env: AiEnv, history: any, promptId: string): Array<Record<string, string>> {
+  const outputs: Array<Record<string, string>> = [];
+  const nodes = history?.outputs || history?.data?.outputs || {};
+  for (const output of Object.values(nodes)) {
+    const files = [
+      ...arrayOfRecords((output as any)?.images),
+      ...arrayOfRecords((output as any)?.gifs),
+      ...arrayOfRecords((output as any)?.videos),
+    ];
+    for (const file of files) {
+      const filename = String(file.filename || file.name || "").trim();
+      if (!filename) continue;
+      const subfolder = String(file.subfolder || "");
+      const type = String(file.type || "output");
+      const query = new URLSearchParams({ filename, subfolder, type });
+      outputs.push({
+        filename,
+        subfolder,
+        type,
+        promptId,
+        url: `${env.zealmanComfyBaseUrl.replace(/\/$/, "")}/view?${query.toString()}`,
+      });
+    }
+  }
+  return outputs;
+}
+
+function arrayOfRecords(value: unknown): Array<Record<string, any>> {
+  if (Array.isArray(value)) return value.filter((item) => item && typeof item === "object") as Array<Record<string, any>>;
+  return [];
+}
+
+function zealmanHistoryMessage(history: any): string {
+  return String(history?.status?.messages?.[0]?.[1]?.exception_message || history?.error || history?.message || "Zealman workflow failed.");
+}
+
+function zealmanHeaders(env: AiEnv, jsonBody = true): HeadersInit {
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (jsonBody) headers["Content-Type"] = "application/json";
+  if (env.zealmanApiToken) headers.Authorization = env.zealmanApiToken;
+  return headers;
 }
 
 function qianwenGenerationEndpoint(env: AiEnv, mediaType: "image" | "video"): string {
@@ -1335,6 +1524,7 @@ function providerStatus(env: AiEnv) {
     { provider: "deepseek_text", configured: Boolean(env.deepseekApiKey), model: env.deepseekModel, endpoint: env.deepseekBaseUrl },
     { provider: "qianwen_generation", configured: Boolean(env.qianwenApiKey && env.qianwenBaseUrl), imageModel: env.qianwenImageModel, videoModel: env.qianwenVideoModel, endpoint: env.qianwenBaseUrl, imageEndpoint: env.qianwenImageEndpoint || "", videoEndpoint: env.qianwenVideoEndpoint || "" },
     { provider: "liblib_generation", configured: Boolean(env.liblibAccessKey && env.liblibSecretKey && env.liblibText2ImageTemplateUuid), imageModel: env.liblibImageModel, endpoint: env.liblibBaseUrl, templateUuid: env.liblibText2ImageTemplateUuid ? "configured" : "" },
+    { provider: "zealman_workflow", configured: Boolean(env.zealmanPanelBaseUrl && env.zealmanComfyBaseUrl && (env.zealmanImageWorkflow || env.zealmanVideoWorkflow)), imageWorkflow: env.zealmanImageWorkflow ? "configured" : "", videoWorkflow: env.zealmanVideoWorkflow ? "configured" : "", endpoint: env.zealmanPanelBaseUrl },
     { provider: "fake_worker", configured: true, model: "local-demo", endpoint: "internal" },
   ];
 }
@@ -1364,6 +1554,19 @@ async function providerStatusWithProbes(env: AiEnv, providers: Array<Record<stri
         return { ...provider, probe: { ok: !result.fallback, durationMs: Date.now() - started, message: result.fallback ? "fallback" : "verified" } };
       } catch (error) {
         return { ...provider, probe: normalizeProbeFailure(error, Date.now() - started, "DeepSeek probe failed") };
+      }
+    }
+    if (name === "zealman_workflow" && provider.configured) {
+      const started = Date.now();
+      try {
+        const response = await fetchWithTimeout(`${env.zealmanPanelBaseUrl.replace(/\/$/, "")}/api/health`, {
+          method: "GET",
+          headers: zealmanHeaders(env, false),
+        }, Math.min(env.providerTimeoutMs, 10000));
+        await parseProviderResponse(response, "ZEALMAN_HEALTH_FAILED");
+        return { ...provider, probe: { ok: true, durationMs: Date.now() - started, message: "panel online" } };
+      } catch (error) {
+        return { ...provider, probe: normalizeProbeFailure(error, Date.now() - started, "Zealman health probe failed") };
       }
     }
     if (name === "fake_worker") {
@@ -1439,6 +1642,16 @@ function loadAiEnv(): AiEnv {
     liblibImageModel: Deno.env.get("LIBLIB_IMAGE_MODEL") || "liblib-text2img-v1",
     liblibMaxPolls: clampNumber(Deno.env.get("LIBLIB_MAX_POLLS"), 12, 1, 60),
     liblibPollIntervalMs: clampNumber(Deno.env.get("LIBLIB_POLL_INTERVAL_MS"), 5000, 1000, 30000),
+    zealmanPanelBaseUrl: Deno.env.get("ZEALMAN_PANEL_BASE_URL") ?? "",
+    zealmanComfyBaseUrl: Deno.env.get("ZEALMAN_COMFY_BASE_URL") ?? "",
+    zealmanApiToken: Deno.env.get("ZEALMAN_API_TOKEN") ?? "",
+    zealmanImageWorkflow: Deno.env.get("ZEALMAN_IMAGE_WORKFLOW") ?? "",
+    zealmanVideoWorkflow: Deno.env.get("ZEALMAN_VIDEO_WORKFLOW") ?? "",
+    zealmanSmoothVideoWorkflow: Deno.env.get("ZEALMAN_SMOOTH_VIDEO_WORKFLOW") ?? "",
+    zealmanDigitalHumanWorkflow: Deno.env.get("ZEALMAN_DIGITAL_HUMAN_WORKFLOW") ?? "",
+    zealmanPromptNodeId: Deno.env.get("ZEALMAN_PROMPT_NODE_ID") ?? "",
+    zealmanMaxPolls: clampNumber(Deno.env.get("ZEALMAN_MAX_POLLS"), 180, 1, 720),
+    zealmanPollIntervalMs: clampNumber(Deno.env.get("ZEALMAN_POLL_INTERVAL_MS"), 5000, 1000, 30000),
     aiProviderDefault: safeProvider(Deno.env.get("AI_PROVIDER_DEFAULT")) || "fake_worker",
     providerTimeoutMs: clampNumber(Deno.env.get("AI_PROVIDER_TIMEOUT_MS"), 60000, 5000, 180000),
     appUrl: Deno.env.get("APP_URL") || "https://jiang289140790-eng.github.io/open-video-studio",
@@ -1459,12 +1672,13 @@ function normalizeMediaType(value: unknown): "image" | "video" {
 
 function safeProvider(value: unknown): string {
   const provider = String(value || "").trim();
-  return ["qwen_vision", "deepseek_text", "qianwen_generation", "liblib_generation", "fake_worker", "local_api"].includes(provider) ? provider : "";
+  return ["qwen_vision", "deepseek_text", "qianwen_generation", "liblib_generation", "zealman_workflow", "fake_worker", "local_api"].includes(provider) ? provider : "";
 }
 
 function defaultModel(env: AiEnv, mediaType: "image" | "video", provider: string) {
   if (provider === "qianwen_generation") return mediaType === "image" ? env.qianwenImageModel : env.qianwenVideoModel;
   if (provider === "liblib_generation") return env.liblibImageModel;
+  if (provider === "zealman_workflow") return mediaType === "image" ? (env.zealmanImageWorkflow || "zealman-image-v1") : (env.zealmanVideoWorkflow || "zealman-video-v1");
   return mediaType === "image" ? "local-image-v0" : "local-video-v0";
 }
 
@@ -1560,6 +1774,16 @@ interface AiEnv {
   liblibImageModel: string;
   liblibMaxPolls: number;
   liblibPollIntervalMs: number;
+  zealmanPanelBaseUrl: string;
+  zealmanComfyBaseUrl: string;
+  zealmanApiToken: string;
+  zealmanImageWorkflow: string;
+  zealmanVideoWorkflow: string;
+  zealmanSmoothVideoWorkflow: string;
+  zealmanDigitalHumanWorkflow: string;
+  zealmanPromptNodeId: string;
+  zealmanMaxPolls: number;
+  zealmanPollIntervalMs: number;
   aiProviderDefault: string;
   providerTimeoutMs: number;
   appUrl: string;

@@ -811,7 +811,7 @@ export class SupabaseAdminBackend {
 
   private normalizeWorkflowCenterConfig(config: Partial<WorkflowCenterConfig>): WorkflowCenterConfig {
     const fallback = this.defaultWorkflowCenterConfig();
-    const workflows = Array.isArray(config.workflows) ? config.workflows : fallback.workflows;
+    const workflows = this.withDefaultZealmanWorkflows(Array.isArray(config.workflows) ? config.workflows : fallback.workflows);
     return {
       workflows: workflows
         .filter((workflow) => workflow.workflowId && workflow.name)
@@ -831,6 +831,17 @@ export class SupabaseAdminBackend {
           description: String(workflow.description || "").trim().slice(0, 240),
         })),
     };
+  }
+
+  private withDefaultZealmanWorkflows(workflows: WorkflowCenterConfig["workflows"]): WorkflowCenterConfig["workflows"] {
+    const existing = new Set(workflows.map((workflow) => workflow.workflowId));
+    const zealmanWorkflows: WorkflowCenterConfig["workflows"] = [
+      { workflowId: "workflow-zealman-image-a01-v1", name: "Zealman A01 文生图工作流", type: "comfyui", provider: "zealman_workflow", jsonConfig: { action: "process-generation-job", mediaType: "image", workflowEnv: "ZEALMAN_IMAGE_WORKFLOW" }, requiredModels: ["zealman-image-workflow"], requiredInputs: ["prompt"], outputType: "image", creditPrice: 8, version: "v1", status: "testing", description: "通过 Zealman / ComfyUI A01 工作流生成图片，输出重新保存到 Supabase Storage。" },
+      { workflowId: "workflow-zealman-video-g01-v1", name: "Zealman G01 图生视频工作流", type: "comfyui", provider: "zealman_workflow", jsonConfig: { action: "process-generation-job", mediaType: "video", workflowEnv: "ZEALMAN_VIDEO_WORKFLOW" }, requiredModels: ["zealman-video-workflow"], requiredInputs: ["prompt", "source_asset"], outputType: "video", creditPrice: 24, version: "v1", status: "testing", description: "通过 Zealman / ComfyUI G01 工作流把参考图生成短视频。" },
+      { workflowId: "workflow-zealman-video-g03-v1", name: "Zealman G03 流畅图生视频工作流", type: "comfyui", provider: "zealman_workflow", jsonConfig: { action: "process-generation-job", mediaType: "video", workflowEnv: "ZEALMAN_SMOOTH_VIDEO_WORKFLOW" }, requiredModels: ["zealman-smooth-video-workflow"], requiredInputs: ["prompt", "source_asset"], outputType: "video", creditPrice: 28, version: "v1", status: "testing", description: "通过 Zealman / ComfyUI G03 SmoothMix 工作流生成更流畅的社媒短视频。" },
+      { workflowId: "workflow-zealman-digital-human-j11-v1", name: "Zealman J11 数字人视频工作流", type: "comfyui", provider: "zealman_workflow", jsonConfig: { action: "process-generation-job", mediaType: "video", workflowEnv: "ZEALMAN_DIGITAL_HUMAN_WORKFLOW" }, requiredModels: ["zealman-digital-human-workflow"], requiredInputs: ["prompt", "source_asset"], outputType: "video", creditPrice: 32, version: "v1", status: "testing", description: "通过 Zealman / ComfyUI J11 工作流生成产品、数字人或电商展示视频。" },
+    ];
+    return [...workflows, ...zealmanWorkflows.filter((workflow) => !existing.has(workflow.workflowId))];
   }
 
   private defaultWorkflowCenterConfig(): WorkflowCenterConfig {

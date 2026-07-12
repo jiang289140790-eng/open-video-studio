@@ -74,7 +74,7 @@ Sprint 2 adds the MVP HTTP route `POST /generate/image`. The route uses local st
 
 MVP Backend Loop adds a Supabase-compatible path that creates a generation job, consumes credits, keeps the Fake Worker, writes simulated output metadata to Supabase Storage, and records the output as a real asset. No external AI provider, OpenAPI contract, production model routing, or independent worker execution is connected yet.
 
-The current Supabase `ai` Edge Function now routes image generation through Workflow Center provider selection. `fake_worker` remains the safe fallback, `qianwen_generation` is reserved for Qianwen image generation, and `liblib_generation` is reserved for Liblib template-based image generation when `LIBLIB_ACCESS_KEY`, `LIBLIB_SECRET_KEY`, and `LIBLIB_TEXT2IMG_TEMPLATE_UUID` are configured in server secrets.
+The current Supabase `ai` Edge Function now routes image generation through Workflow Center provider selection. `fake_worker` remains the safe fallback, `qianwen_generation` is reserved for Qianwen image generation, `liblib_generation` is reserved for Liblib template-based image generation, and `zealman_workflow` routes image jobs to the configured A01 Zealman / ComfyUI workflow when server-side Zealman secrets are configured.
 
 Generation jobs are inserted before credit debit. If the credit debit fails, the job is marked failed with `credit_charged = 0`; if provider execution fails after debit, the refund path writes a duplicate-protected `generation_refund` ledger entry.
 

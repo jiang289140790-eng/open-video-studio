@@ -37,6 +37,16 @@ export interface AppEnvironment {
   liblibImageModel?: string;
   liblibMaxPolls?: number;
   liblibPollIntervalMs?: number;
+  zealmanPanelBaseUrl?: string;
+  zealmanComfyBaseUrl?: string;
+  zealmanApiToken?: string;
+  zealmanImageWorkflow?: string;
+  zealmanVideoWorkflow?: string;
+  zealmanSmoothVideoWorkflow?: string;
+  zealmanDigitalHumanWorkflow?: string;
+  zealmanPromptNodeId?: string;
+  zealmanMaxPolls?: number;
+  zealmanPollIntervalMs?: number;
   aiProviderDefault?: string;
   aiProviderRolloutMode?: string;
   aiProviderTimeoutMs?: number;
@@ -82,6 +92,16 @@ export function loadEnvironment(filePath?: string): AppEnvironment {
     liblibImageModel: value("LIBLIB_IMAGE_MODEL", "liblib-text2img-v1"),
     liblibMaxPolls: Number(value("LIBLIB_MAX_POLLS", "12")),
     liblibPollIntervalMs: Number(value("LIBLIB_POLL_INTERVAL_MS", "5000")),
+    zealmanPanelBaseUrl: emptyToUndefined(value("ZEALMAN_PANEL_BASE_URL")),
+    zealmanComfyBaseUrl: emptyToUndefined(value("ZEALMAN_COMFY_BASE_URL")),
+    zealmanApiToken: emptyToUndefined(value("ZEALMAN_API_TOKEN")),
+    zealmanImageWorkflow: emptyToUndefined(value("ZEALMAN_IMAGE_WORKFLOW")),
+    zealmanVideoWorkflow: emptyToUndefined(value("ZEALMAN_VIDEO_WORKFLOW")),
+    zealmanSmoothVideoWorkflow: emptyToUndefined(value("ZEALMAN_SMOOTH_VIDEO_WORKFLOW")),
+    zealmanDigitalHumanWorkflow: emptyToUndefined(value("ZEALMAN_DIGITAL_HUMAN_WORKFLOW")),
+    zealmanPromptNodeId: emptyToUndefined(value("ZEALMAN_PROMPT_NODE_ID")),
+    zealmanMaxPolls: Number(value("ZEALMAN_MAX_POLLS", "180")),
+    zealmanPollIntervalMs: Number(value("ZEALMAN_POLL_INTERVAL_MS", "5000")),
     aiProviderDefault: value("AI_PROVIDER_DEFAULT", "fake_worker"),
     aiProviderRolloutMode: value("AI_PROVIDER_ROLLOUT_MODE", "admin_config"),
     aiProviderTimeoutMs: Number(value("AI_PROVIDER_TIMEOUT_MS", "60000")),

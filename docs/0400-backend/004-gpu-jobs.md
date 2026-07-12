@@ -52,9 +52,11 @@ GPU capacity must scale separately from API servers and regular workers. Workloa
 
 ## Current Implementation
 
-`ADR-005` adds the AI Engine abstraction for provider-level jobs, workers, provider registry, and cost tracking. The current implementation uses a local deterministic stub provider and not-configured placeholders for future providers.
+`ADR-005` adds the AI Engine abstraction for provider-level jobs, workers, provider registry, and cost tracking. The current implementation keeps `fake_worker` as the deterministic rollback provider and adds `zealman_workflow` as the first server-side GPU workflow provider.
 
-No real GPU worker, live model provider, queue lease, capacity control, or provider fallback execution is implemented yet.
+Zealman / ComfyUI jobs are invoked only by the Supabase `ai` Edge Function. The browser sends generation intent, while the backend downloads the configured workflow, injects prompt/reference input, submits to Zealman, polls ComfyUI history, downloads the output, stores it in Supabase Storage, records `media_assets`, and refunds credits on provider failure.
+
+Live GPU lifecycle automation is still operator-controlled. AutoDL start/stop scripts exist outside the web app, but the runtime does not automatically power GPU instances on or off yet.
 
 ## Future Plan
 

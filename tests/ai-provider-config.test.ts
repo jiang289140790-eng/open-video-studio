@@ -33,6 +33,16 @@ test("AI provider environment exposes placeholders without committing secrets", 
     "LIBLIB_IMAGE_MODEL",
     "LIBLIB_MAX_POLLS",
     "LIBLIB_POLL_INTERVAL_MS",
+    "ZEALMAN_PANEL_BASE_URL",
+    "ZEALMAN_COMFY_BASE_URL",
+    "ZEALMAN_API_TOKEN",
+    "ZEALMAN_IMAGE_WORKFLOW",
+    "ZEALMAN_VIDEO_WORKFLOW",
+    "ZEALMAN_SMOOTH_VIDEO_WORKFLOW",
+    "ZEALMAN_DIGITAL_HUMAN_WORKFLOW",
+    "ZEALMAN_PROMPT_NODE_ID",
+    "ZEALMAN_MAX_POLLS",
+    "ZEALMAN_POLL_INTERVAL_MS",
     "AI_PROVIDER_DEFAULT",
     "AI_PROVIDER_ROLLOUT_MODE",
     "AI_PROVIDER_TIMEOUT_MS",
@@ -46,6 +56,7 @@ test("AI provider environment exposes placeholders without committing secrets", 
   assert.ok(combined.includes("your-video-model"));
   assert.ok(combined.includes("https://openapi.liblibai.cloud"));
   assert.ok(combined.includes("liblib-text2img-v1"));
+  assert.ok(combined.includes("your-a01-image-workflow.json"));
   assert.equal(combined.includes("c83f9e12-0943-4828-8fec-f00ab3b0d0bd"), false);
 
   const env = loadEnvironment();
@@ -53,6 +64,8 @@ test("AI provider environment exposes placeholders without committing secrets", 
   assert.equal(env.deepseekBaseUrl, "https://api.deepseek.com/v1");
   assert.equal(env.liblibBaseUrl, "https://openapi.liblibai.cloud");
   assert.equal(env.liblibImageModel, "liblib-text2img-v1");
+  assert.equal(env.zealmanMaxPolls, 180);
+  assert.equal(env.zealmanPollIntervalMs, 5000);
   assert.equal(env.aiProviderDefault, "fake_worker");
 });
 
@@ -70,7 +83,7 @@ test("AI Edge Function contains server-only provider actions and no browser-secr
   ]) {
     assert.ok(edgeFunction.includes(action), `AI Edge Function should include ${action}`);
   }
-  for (const provider of ["qwen_vision", "deepseek_text", "qianwen_generation", "liblib_generation", "fake_worker"]) {
+  for (const provider of ["qwen_vision", "deepseek_text", "qianwen_generation", "liblib_generation", "zealman_workflow", "fake_worker"]) {
     assert.ok(edgeFunction.includes(provider), `AI Edge Function should include ${provider}`);
   }
   assert.ok(edgeFunction.includes("SUPABASE_SERVICE_ROLE_KEY"));
@@ -109,6 +122,15 @@ test("AI Edge Function contains server-only provider actions and no browser-secr
   assert.ok(edgeFunction.includes("hmacSha1Base64Url"));
   assert.ok(edgeFunction.includes("/api/generate/webui/text2img"));
   assert.ok(edgeFunction.includes("/api/generate/webui/status"));
+  assert.ok(edgeFunction.includes("callZealmanWorkflow"));
+  assert.ok(edgeFunction.includes("fetchZealmanWorkflow"));
+  assert.ok(edgeFunction.includes("applyZealmanPrompt"));
+  assert.ok(edgeFunction.includes("uploadZealmanSourceImage"));
+  assert.ok(edgeFunction.includes("pollZealmanHistory"));
+  assert.ok(edgeFunction.includes("/api/workflow/generate"));
+  assert.ok(edgeFunction.includes("/upload/image"));
+  assert.ok(edgeFunction.includes("/history/"));
+  assert.ok(edgeFunction.includes("ZEALMAN_PANEL_BASE_URL"));
   assert.ok(edgeFunction.includes("storeGeneratedMediaObject"));
   assert.ok(edgeFunction.includes("downloadProviderOutputUrl"));
   assert.ok(edgeFunction.includes("decodeProviderBase64Output"));
@@ -145,7 +167,7 @@ test("AI Edge Function records jobs and orders before moving credits", () => {
   assert.ok(createDemoCreditPurchase.includes('status: "failed"'));
 });
 
-test("Admin defaults reserve Qwen, DeepSeek, and Qianwen workflows for grey rollout", () => {
+test("Admin defaults reserve Qwen, DeepSeek, Qianwen, Liblib, and Zealman workflows for grey rollout", () => {
   const adminBackend = readFileSync(join(root, "src", "supabase", "adminBackend.ts"), "utf8");
   const adminFunction = readFileSync(join(root, "supabase", "functions", "admin", "index.ts"), "utf8");
   const combined = `${adminBackend}\n${adminFunction}`;
@@ -156,10 +178,15 @@ test("Admin defaults reserve Qwen, DeepSeek, and Qianwen workflows for grey roll
     "workflow-qianwen-image-v1",
     "workflow-qianwen-video-v1",
     "workflow-liblib-image-v1",
+    "workflow-zealman-image-a01-v1",
+    "workflow-zealman-video-g01-v1",
+    "workflow-zealman-video-g03-v1",
+    "workflow-zealman-digital-human-j11-v1",
     "qwen_vision",
     "deepseek_text",
     "qianwen_generation",
     "liblib_generation",
+    "zealman_workflow",
     "fake_worker",
   ]) {
     assert.ok(combined.includes(expected), `Admin defaults should include ${expected}`);
@@ -181,6 +208,9 @@ test("frontend routes generation through AI Edge Function before local fallback"
   assert.ok(appScript.includes("hydrateRemoteShareByToken"));
   assert.ok(appScript.includes("qianwen_generation"));
   assert.ok(appScript.includes("liblib_generation"));
+  assert.ok(appScript.includes("zealman_workflow"));
+  assert.ok(appScript.includes("workflowIdForGeneration"));
+  assert.ok(appScript.includes("workflow-zealman-video-g01-v1"));
   assert.ok(appScript.includes("qwen_vision"));
   assert.ok(appScript.includes("deepseek_text"));
 });

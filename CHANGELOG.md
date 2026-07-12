@@ -25,6 +25,12 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Added Zealman / ComfyUI as a production AI generation provider behind the existing Supabase `ai` Edge Function. The backend can now route image jobs to an A01 workflow and video jobs to G01, G03, or J11 workflow IDs without exposing AutoDL, Zealman, ComfyUI, or third-party tokens to the browser.
+- Added Zealman provider status, health probing, reference-image upload to ComfyUI, prompt injection, history polling, output download, Supabase Storage persistence, and credit-refund failure behavior while keeping Fake Worker as the rollback path.
+- Updated the Image-to-Video product surface and Admin Workflow Center so Zealman can be selected and grey-rolled out alongside Fake Worker, Qianwen, Liblib, Qwen Vision, and DeepSeek.
+- Documented Zealman server-only environment variables in `.env.example` and `.env.local.example` using placeholders only. Real instance URLs, API tokens, and workflow names must be set as Supabase Edge Function Secrets or local ignored environment values.
+- Added regression coverage for Zealman provider configuration, Edge Function routing, workflow IDs, and frontend provider selection.
+
 - Tightened the MVP product loop trust boundary. Protected product surfaces now treat only a real authenticated Supabase user as signed in; unauthenticated Assets, History, My Works, Characters, and Dashboard surfaces show functional previews instead of local account-looking demo records.
 - Connected browser state to real Supabase `characters` rows during authenticated product sync, so logged-in users can load real profile, credits, characters, assets, generation jobs, credit ledger rows, and share links from Supabase instead of default placeholder state.
 - Required real login before generation, tool demo generation, share-save, or asset-share actions. Normal users no longer silently fall back to local Fake Worker generation after a remote failure; Fake Worker fallback remains visible only to admin/operator users for internal testing.
@@ -46,6 +52,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 - Ran `npm run build`; production build passed.
 - Ran `npm run test`; build and 75 tests passed.
+- Set Zealman Edge Function Secrets in Supabase through the Management API without printing secret values. Deployed `ai` Edge Function version 22 and `admin` Edge Function version 10.
+- Ran `npm run verify:ai`; Zealman reported configured with health probe `panel online`, DeepSeek passed, Fake Worker generation/refund/database persistence passed, and Liblib remained unconfigured. The run still fails overall because Qwen Vision times out after 60 seconds, which is a pre-existing provider issue unrelated to Zealman routing.
 - Ran `npm run verify:supabase`; passed for Auth and Storage, with the expected optional `_ovs_connection_check` table miss reported as non-blocking by the script.
 - Ran `npm run verify:auth-basic`; passed using Supabase Auth, with public signup falling back to an admin-created temporary verifier user because Supabase returned an email rate-limit response during the verification run.
 - Ran `npm run verify:oauth`; Google, X, and Discord all created provider authorization URLs and reached their provider hosts with the correct Supabase callback URL. Telegram remains unconfigured until the Bot username/auth URL and signed callback are supplied.

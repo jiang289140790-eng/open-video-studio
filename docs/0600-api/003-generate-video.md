@@ -75,6 +75,8 @@ Sprint 2 adds the MVP HTTP route `POST /generate/video`. The route uses local st
 
 MVP Backend Loop adds a Supabase-compatible path that creates a generation job, consumes credits, keeps the Fake Worker, writes simulated output metadata to Supabase Storage, and records the output as a real asset. No external video model, render pipeline, webhook, production model routing, or independent worker execution is connected yet.
 
+The current Supabase `ai` Edge Function now supports `zealman_workflow` as a server-side video provider. Workflow IDs select G01 standard image-to-video, G03 smoother social-video, or J11 digital-human/product-video generation. Provider outputs are downloaded by the backend and persisted as Supabase Storage-backed `media_assets`; browser code never calls Zealman, ComfyUI, AutoDL, or SeetaCloud directly.
+
 ## Future Plan
 
 Create dedicated video generation job lifecycle and render/export APIs before implementation.
