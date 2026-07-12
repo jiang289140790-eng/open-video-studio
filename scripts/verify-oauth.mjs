@@ -50,6 +50,9 @@ if (missing.length === 0) {
       authorizationEndpointReachable: authorizationProbe.ok,
       authorizationStatus: authorizationProbe.status,
       authorizationLocationHost: authorizationProbe.locationHost,
+      providerRedirectUri: authorizationProbe.providerRedirectUri,
+      providerRedirectUriMatchesCallback: authorizationProbe.providerRedirectUri === report.providerCallbackUrl,
+      requiredProviderCallbackUrl: report.providerCallbackUrl,
       error: result.error?.message ?? "",
       probeError: authorizationProbe.error,
     });
@@ -96,11 +99,13 @@ async function probeAuthorizationUrl(url) {
     const response = await fetch(url, { redirect: "manual" });
     const location = response.headers.get("location") || "";
     const locationHost = location ? new URL(location).host : "";
+    const providerRedirectUri = extractProviderRedirectUri(location);
     const text = response.status >= 300 && response.status < 400 ? "" : await response.text().catch(() => "");
     return {
       ok: response.status >= 300 && response.status < 400 && Boolean(locationHost),
       status: response.status,
       locationHost,
+      providerRedirectUri,
       error: summarizeError(text),
     };
   } catch (error) {
@@ -108,8 +113,19 @@ async function probeAuthorizationUrl(url) {
       ok: false,
       status: 0,
       locationHost: "",
+      providerRedirectUri: "",
       error: error instanceof Error ? error.message : "authorization_probe_failed",
     };
+  }
+}
+
+function extractProviderRedirectUri(location = "") {
+  if (!location) return "";
+  try {
+    const parsed = new URL(location);
+    return parsed.searchParams.get("redirect_uri") || parsed.searchParams.get("redirect_url") || "";
+  } catch {
+    return "";
   }
 }
 

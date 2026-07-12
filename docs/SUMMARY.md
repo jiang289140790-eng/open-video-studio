@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 1.11.0 |
+| Version | 1.12.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,7 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- OAuth diagnostics now identify the exact provider-facing callback URL. `npm run verify:oauth` reports that Google, X / Twitter OAuth 2.0, and Discord all receive `https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback` as `redirect_uri`; provider consoles must register this exact URL, while Supabase URL Configuration controls the separate in-app return URLs.
 - Character Management now supports the MVP character loop from one page: users can create, edit, list, search, filter, preview, copy, and select reusable characters with cover asset, reference asset, tags, memory, favorite state, status, score, and consistency state. `MVP-S3-003` is now completed while the existing API/database contracts remain the source of truth for server wiring.
 - Dashboard and Generation History now have a clearer post-login work-resume loop. Dashboard includes next-action recommendations, recent tasks, recent reusable assets, credit ledger, saved characters, share links, and content operations summaries; History remains the detailed task center for search/filter, refresh/cancel, failure reasons, refund state, output links, share, download, and retry.
 - Product analytics now has a local, privacy-aware MVP event queue. The frontend records signup/signin, password recovery, pricing CTA, checkout, generation submit/block/fail/complete, and asset-share events to `ovs_product_events_v1` when analytics consent is granted or the site is running locally for QA.

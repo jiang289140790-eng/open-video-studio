@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | OPS-AUTH-001 |
-| Version | 1.1.0 |
+| Version | 1.2.0 |
 | Status | Active |
 | Owner | CTO / Operations |
 | Dependencies | FE-AUTH-010, API-AUTH-001, BACKEND-AUTH-001 |
@@ -65,7 +65,7 @@ npm run verify:mvp
 
 `verify:mvp` treats email/password auth, credits, generation/sharing, and Admin operations as required for small user testing. Social OAuth remains a formal launch-readiness blocker, but it does not block the first controlled test cohort while the email/password path is available. The report also surfaces AI fallback health and optional real external AI provider readiness.
 
-The OAuth verifier creates Supabase authorization URLs for Google, X / Twitter OAuth 2.0, and Discord, then probes the Supabase authorization endpoint without following the browser redirect. It also checks whether the Telegram Login Widget public values are present. It does not print provider secrets.
+The OAuth verifier creates Supabase authorization URLs for Google, X / Twitter OAuth 2.0, and Discord, then probes the Supabase authorization endpoint without following the browser redirect. It also prints the provider-facing `redirect_uri` so operators can compare the exact callback URL used by Google, X, and Discord against each provider dashboard. It does not print provider secrets.
 
 The Admin Console now performs the same Google, X / Twitter OAuth 2.0, and Discord provider enablement check through the `admin` Edge Function, so operators can see the difference between "button exists" and "Supabase provider is actually enabled" without using the command line.
 
@@ -127,6 +127,7 @@ This is different from the in-app `redirectTo` URL. The third-party provider red
 
 - Create OAuth credentials in Google Cloud.
 - Add `https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback` to the Google OAuth authorized redirect URIs.
+- If Google shows `redirect_uri_mismatch`, confirm this exact URL is added to the same OAuth Web Client ID that is pasted into Supabase. Do not add only `https://luravyn.com`, `https://jiang289140790-eng.github.io/open-video-studio/`, or `/zh/login/` here.
 - Paste Client ID and Client Secret into Supabase Authentication Provider settings.
 - Enable the Google provider in Supabase.
 
@@ -175,6 +176,13 @@ As of 2026-07-11:
 - Telegram has a trusted `telegram-auth` Edge Function implementation, but it is not complete until `VITE_TELEGRAM_BOT_USERNAME`, `VITE_TELEGRAM_AUTH_URL`, and the server-only `TELEGRAM_BOT_TOKEN` secret are configured and the function is deployed.
 - The frontend social-login buttons are present; remaining OAuth work is Supabase Auth Provider enablement and provider-dashboard credentials.
 - Admin Console system readiness shows the same provider readiness state for Google, X / Twitter OAuth 2.0, and Discord.
+
+As of 2026-07-12:
+
+- `npm run verify:oauth` confirms Google, X / Twitter OAuth 2.0, and Discord authorization URLs are created and redirect to their provider authorization hosts.
+- The verifier now shows the provider-facing `redirect_uri` for all three built-in OAuth providers: `https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback`.
+- A Google `redirect_uri_mismatch` screen means the Google Cloud OAuth Web Client is missing that exact Supabase callback URL or the wrong Google Client ID was pasted into Supabase.
+- Telegram still remains incomplete until `VITE_TELEGRAM_BOT_USERNAME`, `VITE_TELEGRAM_AUTH_URL`, and the server-only `TELEGRAM_BOT_TOKEN` are configured.
 
 ## Future Plan
 

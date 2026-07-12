@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 1.6.0 |
+| Version | 1.7.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Enhanced the OAuth readiness verifier to print the provider-facing `redirect_uri` used by Google, X / Twitter OAuth 2.0, and Discord. The verifier now confirms all three built-in providers receive `https://wyvswkxogkmywduhrhkw.supabase.co/auth/v1/callback`, making `redirect_uri_mismatch` errors traceable to external provider dashboard configuration rather than frontend button wiring.
+- Updated the production auth configuration guide with explicit Google `redirect_uri_mismatch` troubleshooting and clarified that provider dashboards need the Supabase callback URL while Supabase URL Configuration owns the in-app return URLs.
 - Completed `MVP-S3-003` Character Management UI. `characters.html` now uses clean Chinese copy and exposes create/edit/list/search/filter/profile-preview flows for reusable characters with cover asset, reference asset, tags, memory, favorite state, status, score, and consistency status.
 - Upgraded local character state handling in `app.js` so existing demo characters are normalized with `coverAsset`, `referenceAsset`, and `consistencyStatus`, and the character form can switch safely between create and edit modes.
 - Added static regression coverage for character editing, cover/reference asset fields, consistency fields, and character form helpers without changing backend/provider architecture.
@@ -32,6 +34,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 ### Validation
 
 - Ran `npm run test`; build and 74 tests passed.
+- Ran `npm run verify:oauth`; Google, X, and Discord authorization redirects are reachable and report the same Supabase callback URL, while Telegram remains unconfigured.
 
 ## 2026-07-11
 

@@ -214,6 +214,9 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(oauthScript.includes("skipBrowserRedirect"));
   assert.ok(oauthScript.includes('redirectTo: `${appUrl}/signin.html`'));
   assert.ok(oauthScript.includes("providerCallbackUrl"));
+  assert.ok(oauthScript.includes("providerRedirectUri"));
+  assert.ok(oauthScript.includes("providerRedirectUriMatchesCallback"));
+  assert.ok(oauthScript.includes("requiredProviderCallbackUrl"));
   assert.ok(oauthScript.includes("/auth/v1/callback"));
   assert.ok(oauthScript.includes('"x"'));
   assert.equal(oauthScript.includes('"twitter"'), false);
