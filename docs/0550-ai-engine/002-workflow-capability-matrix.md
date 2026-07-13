@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | ID | AI-WORKFLOW-002 |
-| Version | 1.1.0 |
+| Version | 1.2.0 |
 | Status | Active |
 | Owner | AI Platform |
 | Dependencies | AI-PROVIDER-001, BACKEND-GPU-004, API-IMAGE-002, API-VIDEO-003 |
@@ -30,21 +30,21 @@ Define the permanent mapping between user-facing generation capabilities and exe
 | AI outfit change | O01 | Missing | No garment parsing or virtual try-on workflow found | Select human parsing and garment model, define body/hand preservation, run full qualification |
 | AI pose generation | P01 | Missing | D14 is a reference storyboard workflow, not pose control | Add DWPose/OpenPose control and identity conditioning, run full qualification |
 | General image generation | A01-compshare | Qualified | Real Qwen Image 2512 credits-to-Storage loop passed | Add optional parameters and production HTTPS before publishing |
-| Image composition | M01 | Missing | D14 has one reference latent but does not implement generic one/two-image fusion | Add two reference inputs and explicit influence controls, run full qualification |
-| Image-to-video | G01 | Inventory | Wan 2.2 API workflow export exists; G03 and J11 are alternatives | Install exact dependencies and pass video-specific qualification |
+| Image composition | M01 | Inventory | D18 provides six switched reference inputs and Flux/Klein reference latents; the SaaS contract exposes only nodes 1103/1104 and disables four bundled demo inputs | Verify one-image and two-image behavior, simplify its local LLM dependency where possible, run full qualification |
+| Image-to-video | G01 | Runtime qualified | Wan 2.2 dual-stage workflow produced a 25-frame MP4 from an uploaded image on AutoDL; prompt node 119 and image node 145 are now fixed server contracts | Run the authenticated credits, refund, Storage, history and on-demand shutdown qualification through Supabase |
 
 ## Acceptance Criteria
 
 - The seven requested capabilities appear exactly once in the machine-readable manifest.
 - Missing workflows cannot be copied into a deployment bundle or presented as executable.
 - Existing A01 qualification evidence remains unchanged.
-- G01 remains unavailable until video output and refund behavior are tested.
+- G01 remains unpublished until its successful direct GPU result is repeated through the complete Supabase billing and asset loop.
 - E01 remains unavailable until the Qwen edit model, manual-mask behavior and automatic-mask behavior pass runtime qualification.
 - Every future status change updates this document, `SUMMARY.md`, `CHANGELOG.md` and the MVP backlog.
 
 ## Future Evolution
 
-After E01 and G01 are qualified, implement M01, P01, O01 and F01 in that order. Provider portability remains behind the existing AI provider interface; product pages do not depend on ComfyUI node IDs. E01 follows the native Qwen Image Edit loading and conditioning pattern documented by ComfyUI; the repository owns its API graph and explicit masked composite stage.
+After E01 and G01 are qualified, finish M01, then implement P01, O01 and F01 in that order. P07/P17 are video action-transfer workflows and do not satisfy P01's required still-image output. Provider portability remains behind the existing AI provider interface; product pages do not depend on ComfyUI node IDs. E01 follows the native Qwen Image Edit loading and conditioning pattern documented by ComfyUI; the repository owns its API graph and explicit masked composite stage.
 
 ## AI Context
 

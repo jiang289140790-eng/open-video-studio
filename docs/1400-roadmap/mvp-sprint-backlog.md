@@ -416,6 +416,26 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Status: Doing
 - Current Evidence: repository-owned API workflow, native Qwen Image Edit conditioning, separate source/mask upload, fixed node injection, missing-mask rejection, Admin testing registration and private bundle generation pass. Remaining: install the edit UNet, add automatic masking, run cost-bearing output/credits/refund/Storage/shutdown qualification.
 
+### AI-WF-004 - Qualify G01 image-to-video
+
+- Priority: P0
+- Estimated Time: 1 day
+- Dependencies: AI-WF-002, production HTTPS gateway
+- Acceptance Criteria: source image and motion prompt map to fixed nodes; Wan2.2 produces MP4; successful jobs debit once and persist to Storage/history; failed jobs refund once; on-demand GPU shutdown passes.
+- Related Documents: AI-WORKFLOW-002, API-VIDEO-003, BACKEND-GPU-004
+- Status: Doing
+- Current Evidence: fixed node injection and direct AutoDL Wan2.2 generation passed with a 25-frame MP4; instance shutdown passed. Remaining: repeat through the authenticated Supabase credits/Storage/history path.
+
+### AI-WF-005 - Implement M01 one/two-image composition
+
+- Priority: P0
+- Estimated Time: 1-2 days
+- Dependencies: AI-WF-004
+- Acceptance Criteria: one or two references map to explicit nodes, unused vendor inputs are disabled, prompt is injected deterministically, output completes the full SaaS qualification gate.
+- Related Documents: AI-WORKFLOW-002, API-IMAGE-002, BACKEND-GPU-004
+- Status: Doing
+- Current Evidence: D18 was recovered from the AutoDL image; nodes 1103/1104 are exposed, nodes 1105/1106/1112/1117 are disabled server-side, and the private bundle includes D18. GPU and Supabase qualification remain.
+
 ## Sprint 4: Admin And MVP Integration
 
 ### MVP-S4-001 Admin Read APIs

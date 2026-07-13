@@ -48,12 +48,13 @@ test("headless runtime terminates TLS at the gateway boundary", () => {
 
 test("workflow manifest contains the qualified AutoDL workflow set without raw exports", () => {
   const manifest = JSON.parse(readFileSync(join(templateRoot, "workflow-manifest.json"), "utf8"));
-  assert.deepEqual(manifest.workflows.map((item: any) => item.id), ["A01", "A01-compshare", "E01", "C16", "D14", "G01", "G03", "J11"]);
-  assert.equal(new Set(manifest.workflows.map((item: any) => item.id)).size, 8);
+  assert.deepEqual(manifest.workflows.map((item: any) => item.id), ["A01", "A01-compshare", "E01", "C16", "D14", "D18", "G01", "G03", "J11"]);
+  assert.equal(new Set(manifest.workflows.map((item: any) => item.id)).size, 9);
   assert.equal(manifest.workflows.find((item: any) => item.id === "A01").promptNodeId, "187");
   assert.equal(manifest.workflows.find((item: any) => item.id === "A01-compshare").promptNodeId, "4");
   assert.equal(manifest.workflows.find((item: any) => item.id === "E01").maskImageNodeId, "79");
   assert.equal(manifest.workflows.find((item: any) => item.id === "G01").referenceImageNodeId, "145");
+  assert.deepEqual(manifest.workflows.find((item: any) => item.id === "D18").referenceImageNodeIds, ["1103", "1104"]);
   assert.ok(manifest.requiredCustomNodeModules.includes("ComfyUI-WanVideoWrapper"));
   assert.ok(manifest.requiredCustomNodeModules.includes("seedvr2_videoupscaler"));
 });
@@ -72,10 +73,11 @@ test("workflow manifest distinguishes product capability gaps from executable wo
   ]);
   assert.equal(coverage.find((item: any) => item.workflowId === "A01-compshare").status, "qualified");
   assert.equal(coverage.find((item: any) => item.workflowId === "E01").status, "inventory");
+  assert.equal(coverage.find((item: any) => item.workflowId === "M01").status, "inventory");
   assert.equal(coverage.find((item: any) => item.workflowId === "G01").status, "inventory");
   assert.deepEqual(
     coverage.filter((item: any) => item.status === "missing").map((item: any) => item.workflowId),
-    ["F01", "O01", "P01", "M01"],
+    ["F01", "O01", "P01"],
   );
   const executableIds = new Set(manifest.workflows.map((item: any) => item.id));
   for (const item of coverage.filter((entry: any) => entry.status === "missing")) {
@@ -123,5 +125,8 @@ test("AI Edge Function starts and schedules the optional CompShare runtime", () 
   assert.ok(edge.indexOf("ensureCompShareRuntime(env)") < edge.indexOf("fetchZealmanWorkflow(env, workflowName)"));
   assert.ok(edge.includes("ZEALMAN_IMAGE_EDIT_WORKFLOW"));
   assert.ok(edge.includes("ZEALMAN_MASK_REQUIRED"));
-  assert.ok(edge.includes('sourceImageNodeId: "78", maskImageNodeId: "79"'));
+  assert.ok(edge.includes('promptNodeId: "76", sourceImageNodeId: "78", sourceImageNodeIds: ["78"], maskImageNodeId: "79"'));
+  assert.ok(edge.includes('promptNodeId: "119", sourceImageNodeId: "145", sourceImageNodeIds: ["145"], maskImageNodeId: ""'));
+  assert.ok(edge.includes('promptNodeId: "1072", sourceImageNodeId: "1103", sourceImageNodeIds: ["1103", "1104"]'));
+  assert.ok(edge.includes("ZEALMAN_SOURCE_IMAGE_REQUIRED"));
 });

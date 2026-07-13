@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 1.10.0 |
+| Version | 1.11.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,13 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Qualified the G01 Wan2.2 runtime directly on the stopped-by-default AutoDL image. A 512px, 25-frame test completed both sampler stages and produced a 238,040-byte MP4; the instance was stopped immediately afterward.
+- Replaced heuristic G01 input injection with fixed prompt node 119 and source-image node 145, including required-source validation.
+- Discovered and inventoried the additional D18 multi-image editing workflow from the same AutoDL image. M01 now accepts one or two source URLs, maps them only to D18 nodes 1103/1104, and disables its four remaining demo-image switches before submission.
+- Added `ZEALMAN_IMAGE_COMPOSITION_WORKFLOW` and a testing-only M01 Admin workflow entry. P07/P17 were reviewed but intentionally not mapped to P01 because they output motion-transfer video rather than a new-pose still image.
+- Aligned the public product surface around a consistent tool-directory model: image generation/editing/character/reference categories, AI effect presets, and image-to-video/product/vertical/character video categories now use clear Chinese labels and localized routes.
+- Added distinct workflow intents for video discovery cards so product video, vertical video, character video, and general image-to-video open the same studio with different presets instead of behaving as duplicate links.
+- Expanded the permanent target-site feature map with canonical navigation, category taxonomy, and a card-to-workflow routing matrix while retaining original Luravyn branding, copy, and assets.
 - Added the E01 Qwen Image Edit API workflow with explicit source image, independent white-area edit mask, native Qwen edit conditioning, deterministic masked composition and saved output.
 - Extended the server-side Zealman provider to select `ZEALMAN_IMAGE_EDIT_WORKFLOW`, upload source and mask files into fixed E01 nodes, and reject E01 execution when the mask is absent. Browser code still receives no provider credentials or ComfyUI node IDs.
 - Generalized the private headless bundle builder to include validated template workflows; A01-compshare and E01 are now copied from repository-owned API graphs while raw AutoDL exports remain ignored.
@@ -35,6 +42,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Built a nine-workflow private deployment bundle, completed the production TypeScript and Vite builds, and passed 14 focused provider/headless tests after the G01 and M01 changes.
+- Verified AutoDL returned to `shutdown` after the G01 cost-bearing test.
 - Built the private headless bundle with eight workflows including E01 and ran 14 focused AI provider/headless tests successfully. The production build succeeds; the full test suite currently has two unrelated frontend expectation failures caused by concurrent tool-page edits and those files were not folded into this workflow change.
 - Validated the workflow manifest JSON and added regression coverage for all seven capability states and deployment exclusion rules.
 

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 1.15.0 |
+| Version | 1.16.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,9 +21,11 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- The public tool surface now follows one canonical discovery hierarchy: image tools, AI effect presets, and video workflows use consistent Chinese category names and localized routes. Product, vertical, character, and general image-to-video cards carry distinct presets instead of collapsing into one undifferentiated destination; the permanent routing matrix is maintained in [REVIEW-TARGET-FEATURE-MAP-001](reviews/target-site-feature-map.md).
 - The real-generation path now has a portable ComfyUI deployment baseline. Six workflows from the known-good AutoDL Zealman image are inventoried as A01, C16, D14, G01, G03, and J11; raw exports remain ignored, while `templates/comfyui-headless/` contains a token-protected Zealman-compatible gateway, an original Qwen Image 2512 A01 baseline, automatic application-image recovery, and an optional Caddy TLS boundary.
 - The seven requested generation capabilities now have a single machine-readable coverage matrix and permanent workflow IDs. A01 general image generation is qualified, G01 image-to-video is inventoried but still gated, and E01 image editing, F01 face swap, O01 outfit change, P01 pose generation, and M01 image composition are explicitly tracked as missing rather than being falsely represented by unrelated reference-image workflows. See [AI-WORKFLOW-002](0550-ai-engine/002-workflow-capability-matrix.md).
 - E01 has advanced from missing to inventory. An original API-format Qwen Image Edit workflow now has explicit source-image, mask-image, prompt and masked-composite nodes; the Supabase AI function uploads source and mask separately and rejects incomplete E01 jobs. It remains unpublished until the edit model, automatic masking and the full credits-to-Storage loop pass on a GPU runtime.
+- G01 has passed direct AutoDL runtime qualification: an uploaded image completed the Wan2.2 high/low-noise pipeline and produced a 25-frame MP4 before the instance was stopped. M01 now has a D18 multi-reference inventory candidate; the backend accepts at most two source images in fixed nodes and disables four vendor demo inputs. Both remain unpublished pending their complete Supabase qualification gates.
 - The Supabase `ai` Edge Function now has verified Compshare on-demand lifecycle control. A stopped instance can start, restore ComfyUI and the gateway, complete A01, debit test credits, persist the output to Supabase Storage and `media_assets`, expose it through history, schedule shutdown, and clean up the verifier account. Production enablement now requires only a stable trusted hostname such as `gpu.luravyn.com`; direct HTTP is not retained in Supabase Secrets.
 - Signed-out generation now has a controlled try-before-login path. The unlock modal still makes real saving, downloading, sharing, credit debit, and remote provider generation require a real Supabase session, but it also offers email sign-in/sign-up and one browser-only demo generation that is explicitly marked as non-account data.
 - The AI generation layer now includes a server-side Zealman / ComfyUI provider behind the existing Supabase `ai` Edge Function. Browser code still submits only prompt, reference asset, mode, ratio, duration, and provider/workflow intent; server secrets select A01 image generation, G01 image-to-video, G03 smooth video, or J11 digital-human/product-video workflows and persist outputs back into Supabase Storage.

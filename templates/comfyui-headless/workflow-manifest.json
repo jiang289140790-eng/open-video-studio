@@ -50,12 +50,12 @@
     {
       "capability": "image-composition",
       "workflowId": "M01",
-      "status": "missing",
-      "relatedInventory": ["D14"],
+      "status": "inventory",
+      "relatedInventory": ["D18", "D14"],
       "requiredInputs": ["reference_images", "prompt", "blend_strength"],
       "requiredProcessing": ["subject-fusion", "style-fusion", "scene-fusion"],
       "outputType": "image",
-      "acceptanceGate": "One or two references can be fused with controllable influence without silently using D14 storyboard defaults."
+      "acceptanceGate": "One or two references can be fused with controllable influence through D18 without loading its remaining demo references."
     },
     {
       "capability": "image-to-video",
@@ -133,6 +133,17 @@
       "minimumVramGb": 24,
       "priority": 6,
       "models": ["flux2-klein-9b", "qwen_3_8b", "Qwen3.5-GGUF"]
+    },
+    {
+      "id": "D18",
+      "capability": "multi-reference-image-editing",
+      "status": "inventory",
+      "promptNodeId": "1072",
+      "referenceImageNodeIds": ["1103", "1104"],
+      "disabledDemoImageNodeIds": ["1105", "1106", "1112", "1117"],
+      "minimumVramGb": 48,
+      "priority": 7,
+      "models": ["flux2-klein-9b-fp8", "qwen_3_8b", "Qwen3.6-35B-GGUF", "SeedVR2"]
     },
     {
       "id": "G01",

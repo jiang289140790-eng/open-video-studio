@@ -178,6 +178,7 @@ async function createGenerationJob(adminClient: any, env: AiEnv, userId: string,
       prompt,
       sourceAssetId: body.sourceAssetId ?? null,
       sourceImageUrl: body.sourceImageUrl ?? null,
+      sourceImageUrls: Array.isArray(body.sourceImageUrls) ? body.sourceImageUrls.slice(0, 2) : [],
       maskImageUrl: body.maskImageUrl ?? null,
       characterId: body.characterId ?? null,
       aspectRatio: body.aspectRatio ?? "16:9",
@@ -543,14 +544,23 @@ async function callZealmanWorkflow(env: AiEnv, job: Record<string, any>) {
 
   try {
     const workflow = await fetchZealmanWorkflow(env, workflowName);
-    applyZealmanPrompt(workflow, String(job.prompt || ""), env.zealmanPromptNodeId);
     const inputParams = safeObject(job.input_params);
     const contract = zealmanWorkflowInputContract(job);
+    applyZealmanPrompt(workflow, String(job.prompt || ""), contract.promptNodeId || env.zealmanPromptNodeId);
     const sourceImageUrl = String(inputParams.sourceImageUrl || inputParams.source_image_url || "").trim();
-    if (sourceImageUrl) {
-      const uploadedImage = await uploadZealmanSourceImage(env, sourceImageUrl, `${String(job.id || crypto.randomUUID())}-source`);
-      applyZealmanUploadedImage(workflow, uploadedImage, contract.sourceImageNodeId);
+    const sourceImageUrls = (Array.isArray(inputParams.sourceImageUrls) ? inputParams.sourceImageUrls : [])
+      .map((value: unknown) => String(value || "").trim())
+      .filter(Boolean)
+      .slice(0, contract.sourceImageNodeIds.length || 1);
+    if (!sourceImageUrls.length && sourceImageUrl) sourceImageUrls.push(sourceImageUrl);
+    if (contract.sourceImageRequired && !sourceImageUrls.length) {
+      throw new AiFunctionError("ZEALMAN_SOURCE_IMAGE_REQUIRED", "This workflow requires a source image.", 400);
     }
+    for (let index = 0; index < sourceImageUrls.length; index += 1) {
+      const uploadedImage = await uploadZealmanSourceImage(env, sourceImageUrls[index], `${String(job.id || crypto.randomUUID())}-source-${index + 1}`);
+      applyZealmanUploadedImage(workflow, uploadedImage, contract.sourceImageNodeIds[index] || contract.sourceImageNodeId);
+    }
+    disableZealmanImageNodes(workflow, contract.disabledImageNodeIds);
     const maskImageUrl = String(inputParams.maskImageUrl || inputParams.mask_image_url || "").trim();
     if (contract.maskImageNodeId && !maskImageUrl) {
       throw new AiFunctionError("ZEALMAN_MASK_REQUIRED", "This image editing workflow requires a mask image.", 400);
@@ -620,6 +630,7 @@ function resolveZealmanWorkflowName(env: AiEnv, job: Record<string, any>): strin
   if (model && !["zealman_workflow", "zealman-image-v1", "zealman-video-v1"].includes(model)) return model;
   const workflowId = String(job.workflow_id || "").toLowerCase();
   if (workflowId.includes("e01")) return env.zealmanImageEditWorkflow || env.zealmanImageWorkflow;
+  if (workflowId.includes("m01")) return env.zealmanImageCompositionWorkflow || env.zealmanImageWorkflow;
   if (workflowId.includes("g03")) return env.zealmanSmoothVideoWorkflow || env.zealmanVideoWorkflow;
   if (workflowId.includes("j11")) return env.zealmanDigitalHumanWorkflow || env.zealmanVideoWorkflow;
   return mediaType === "video" ? env.zealmanVideoWorkflow : env.zealmanImageWorkflow;
@@ -639,6 +650,14 @@ function applyZealmanPrompt(workflow: Record<string, any>, prompt: string, promp
   const direct = promptNodeId ? workflow[promptNodeId] : null;
   if (direct?.inputs && typeof direct.inputs.text === "string") {
     direct.inputs.text = prompt;
+    return;
+  }
+  if (direct?.inputs && typeof direct.inputs.prompt === "string") {
+    direct.inputs.prompt = prompt;
+    return;
+  }
+  if (direct?.inputs && typeof direct.inputs.positive === "string") {
+    direct.inputs.positive = prompt;
     return;
   }
   let fallbackNode: any = null;
@@ -697,8 +716,23 @@ function applyZealmanUploadedImage(workflow: Record<string, any>, imageName: str
 
 function zealmanWorkflowInputContract(job: Record<string, any>) {
   const workflowId = String(job.workflow_id || "").toLowerCase();
-  if (workflowId.includes("e01")) return { sourceImageNodeId: "78", maskImageNodeId: "79" };
-  return { sourceImageNodeId: "", maskImageNodeId: "" };
+  if (workflowId.includes("e01")) {
+    return { promptNodeId: "76", sourceImageNodeId: "78", sourceImageNodeIds: ["78"], maskImageNodeId: "79", disabledImageNodeIds: [], sourceImageRequired: true };
+  }
+  if (workflowId.includes("g01")) {
+    return { promptNodeId: "119", sourceImageNodeId: "145", sourceImageNodeIds: ["145"], maskImageNodeId: "", disabledImageNodeIds: [], sourceImageRequired: true };
+  }
+  if (workflowId.includes("m01")) {
+    return { promptNodeId: "1072", sourceImageNodeId: "1103", sourceImageNodeIds: ["1103", "1104"], maskImageNodeId: "", disabledImageNodeIds: ["1105", "1106", "1112", "1117"], sourceImageRequired: true };
+  }
+  return { promptNodeId: "", sourceImageNodeId: "", sourceImageNodeIds: [], maskImageNodeId: "", disabledImageNodeIds: [], sourceImageRequired: false };
+}
+
+function disableZealmanImageNodes(workflow: Record<string, any>, nodeIds: string[]) {
+  for (const nodeId of nodeIds) {
+    const node = workflow[nodeId];
+    if (node?.inputs && Object.prototype.hasOwnProperty.call(node.inputs, "enabled")) node.inputs.enabled = false;
+  }
 }
 
 async function submitZealmanWorkflow(env: AiEnv, workflow: Record<string, any>) {
@@ -1719,6 +1753,7 @@ function loadAiEnv(): AiEnv {
     zealmanApiToken: Deno.env.get("ZEALMAN_API_TOKEN") ?? "",
     zealmanImageWorkflow: Deno.env.get("ZEALMAN_IMAGE_WORKFLOW") ?? "",
     zealmanImageEditWorkflow: Deno.env.get("ZEALMAN_IMAGE_EDIT_WORKFLOW") ?? "",
+    zealmanImageCompositionWorkflow: Deno.env.get("ZEALMAN_IMAGE_COMPOSITION_WORKFLOW") ?? "",
     zealmanVideoWorkflow: Deno.env.get("ZEALMAN_VIDEO_WORKFLOW") ?? "",
     zealmanSmoothVideoWorkflow: Deno.env.get("ZEALMAN_SMOOTH_VIDEO_WORKFLOW") ?? "",
     zealmanDigitalHumanWorkflow: Deno.env.get("ZEALMAN_DIGITAL_HUMAN_WORKFLOW") ?? "",
@@ -1862,6 +1897,7 @@ interface AiEnv {
   zealmanApiToken: string;
   zealmanImageWorkflow: string;
   zealmanImageEditWorkflow: string;
+  zealmanImageCompositionWorkflow: string;
   zealmanVideoWorkflow: string;
   zealmanSmoothVideoWorkflow: string;
   zealmanDigitalHumanWorkflow: string;
