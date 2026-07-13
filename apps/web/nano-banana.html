@@ -1,13 +1,96 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Nano Banana | Luravyn</title>
-    <link rel="icon" type="image/png" href="./favicon.png"><meta name="description" content="轻量级快速创意实验工具，用于生成趣味图像、贴纸和社媒素材。"><link rel="stylesheet" href="./styles.css"></head>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nano Banana | Luravyn</title>
+    <link rel="icon" type="image/png" href="./favicon.png">
+    <meta name="description" content="轻量级快速创意工具，一句话生成趣味图像、贴纸和社媒素材。">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
   <body>
-    <header class="topbar"><a class="brand" href="./zh/app/"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a><nav class="topnav"><a href="./zh/app/image-editor/">图像工具</a><a href="./zh/app/image-to-video/">视频工具</a><a href="./zh/pricing/">购买积分</a><a href="./zh/free-coins/">免费硬币</a><a href="./zh/my-creations/">我的创作</a></nav><nav class="accountnav"><a class="daily-check" href="./zh/free-coins/">每日签到</a><a href="./zh/login/">登录</a></nav></header>
-    <main class="app-surface tool-detail-page">
-      <section class="tool-detail-hero"><div class="tool-detail-copy"><p class="eyebrow">AI 图像</p><h1>Nano Banana</h1><p class="lead">一个轻量、快速、适合实验的创意入口，用来生成贴纸、梗图、社媒封面和概念小样。</p><div class="tool-chip-row"><span>快速生成</span><span>趣味风格</span><span>贴纸</span><span>社媒封面</span></div><a class="btn primary" href="./zh/app/generate/">开始试验</a></div><div class="tool-detail-preview"><div class="tool-preview-canvas art-5"></div><div class="tool-control-row"><span>输入想法</span><span>选择风格</span><span>生成小样</span></div></div></section>
-      <section class="tool-flow-grid"><article><span>01</span><h3>一句话想法</h3><p>快速把灵感变成图像草稿。</p></article><article><span>02</span><h3>轻量试错</h3><p>适合低成本探索创意方向。</p></article><article><span>03</span><h3>继续放大</h3><p>满意后进入正式生成流程。</p></article></section>
-    </main><script type="module" src="./app.js"></script>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
+      <nav class="topnav" aria-label="Primary navigation">
+        <a href="./zh/image-tools/">图像工具</a>
+        <a href="./zh/video-tools/">视频工具</a>
+        <a href="./zh/pricing/">购买积分</a>
+        <a href="./zh/free-coins/">免费硬币</a>
+        <a href="./zh/my-creations/">我的创作</a>
+      </nav>
+      <nav class="accountnav" aria-label="Account navigation">
+        <a class="daily-check" href="./zh/free-coins/">每日签到</a>
+        <a href="./zh/login/">登录</a>
+      </nav>
+      <a class="btn primary nav-cta" href="./zh/pricing/"><span data-credit-balance>40</span> 积分</a>
+    </header>
+
+    <main class="studio-shell" data-nano-banana>
+      <section class="studio-panel control-panel">
+        <p class="eyebrow">AI 图像 · 快速创意</p>
+        <h1>Nano Banana</h1>
+        <p class="lead">轻量、快速、适合实验的创意入口。生成贴纸、梗图、社媒封面和概念小样，适合低成本探索创意方向。</p>
+
+        <div class="preset-summary">
+          <span>当前预设</span>
+          <strong>快速创意 · 4 积分起</strong>
+          <p>支持文字生成、风格迁移、趣味贴纸、社媒封面。</p>
+        </div>
+
+        <div class="mode-grid">
+          <button class="mode-card active" data-banana-mode="sticker"><span>贴纸生成</span><strong>趣味贴纸</strong><em>4 积分起</em></button>
+          <button class="mode-card" data-banana-mode="cover"><span>社媒封面</span><strong>快速出图</strong><em>6 积分起</em></button>
+          <button class="mode-card" data-banana-mode="meme"><span>梗图风格</span><strong>趣味创意</strong><em>4 积分起</em></button>
+          <button class="mode-card" data-banana-mode="concept"><span>概念小样</span><strong>快速验证</strong><em>8 积分起</em></button>
+        </div>
+
+        <label class="studio-field">创意描述
+          <textarea class="textarea hero-textarea" data-banana-prompt rows="4">一只可爱的卡通猫咪，戴着太空头盔，漂浮在星空中，扁平插画风格，明亮色彩，适合做贴纸</textarea>
+        </label>
+        <button class="btn glass" data-enhance type="button">优化描述</button>
+      </section>
+
+      <section class="studio-panel preview-panel">
+        <div class="preview-head">
+          <div>
+            <p class="eyebrow">实时预览</p>
+            <h2>创意预览</h2>
+          </div>
+          <span class="credit-pill" data-credit-cost>4 积分</span>
+        </div>
+        <div class="creative-preview art-8" data-banana-preview>
+          <span class="play-dot"></span>
+          <strong data-mode-label>快速创意</strong>
+          <small data-banana-preview-meta>输入创意描述后预览</small>
+        </div>
+        <div class="generation-preflight">
+          <div><span>模式</span><strong data-preflight-banana-mode>贴纸生成</strong></div>
+          <div><span>预计耗时</span><strong>约 15-30 秒</strong></div>
+          <div><span>输出</span><strong>PNG 创意图像</strong></div>
+          <div><span>扣费</span><strong>4 积分</strong></div>
+          <p data-banana-ready-state>请选择创意模式并输入描述，再提交生成任务。</p>
+        </div>
+        <div class="sticky-generate">
+          <div>
+            <strong>准备生成</strong>
+            <p data-banana-cost-note>预计消耗 4 积分。结果会保存到资产库。</p>
+          </div>
+          <button class="btn primary" data-generate type="button">开始生成</button>
+        </div>
+        <div class="recent-results" data-queue><h2>生成任务</h2></div>
+      </section>
+    </main>
+
+    <section class="app-surface tool-section">
+      <div class="tool-section-head"><h2>更多图像工具</h2><a href="./zh/image-tools/">返回图像工具</a></div>
+      <div class="card-carousel">
+        <a class="tool-poster art-2" href="./zh/app/face-swap/"><strong>AI 换脸</strong><span>一键替换面部</span></a>
+        <a class="tool-poster art-3" href="./zh/app/image-editor/"><strong>图片编辑器</strong><span>重绘与修复</span></a>
+        <a class="tool-poster art-11" href="./zh/app/outfit-studio/"><strong>造型工作室</strong><span>服装与风格</span></a>
+        <a class="tool-poster art-5" href="./zh/app/image-combiner/"><strong>图像组合器</strong><span>多图合成</span></a>
+      </div>
+    </section>
+
+    <script type="module" src="./app.js"></script>
   </body>
 </html>
-

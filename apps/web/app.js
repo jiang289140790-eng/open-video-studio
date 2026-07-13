@@ -823,19 +823,26 @@ const defaultPageBuilderConfig = {
 
 const defaultToolCatalogConfig = {
   tools: [
-    { slug: "image-editor", name: "图片编辑器", category: "image", status: "published", provider: "fake_worker", model: "local-image-edit-v0", workflowId: "workflow-image-edit-v1", creditCost: 8, route: "./zh/app/image-editor/", featured: true, versions: [{ version: "v1", changelog: "MVP image edit workflow", modelVersion: "local-image-edit-v0", workflowVersion: "workflow-image-edit-v1", promptVersion: "prompt-image-edit-v1", status: "published" }] },
-    { slug: "outfit-studio", name: "AI 换装", category: "image", status: "published", provider: "fake_worker", model: "local-outfit-v0", workflowId: "workflow-outfit-v1", creditCost: 12, route: "./zh/app/outfit-studio/", featured: true, versions: [{ version: "v1", changelog: "MVP outfit workflow", modelVersion: "local-outfit-v0", workflowVersion: "workflow-outfit-v1", promptVersion: "prompt-outfit-v1", status: "published" }] },
-    { slug: "image-to-video", name: "图片转视频", category: "video", status: "published", provider: "fake_worker", model: "local-video-v0", workflowId: "workflow-video-v1", creditCost: 24, route: "./zh/app/image-to-video/", featured: true, versions: [{ version: "v1", changelog: "MVP image to video workflow", modelVersion: "local-video-v0", workflowVersion: "workflow-video-v1", promptVersion: "prompt-video-v1", status: "published" }] }
+    { slug: "face-swap", name: "AI 换脸", category: "image", status: "published", provider: "comfyui_gateway", model: "comfyui-faceswap-v1", workflowId: "workflow-faceswap-v1", creditCost: 40, route: "./zh/app/face-swap/", featured: true, versions: [{ version: "v1", changelog: "AI 换脸工作流", modelVersion: "comfyui-faceswap-v1", workflowVersion: "workflow-faceswap-v1", promptVersion: "prompt-faceswap-v1", status: "published" }] },
+    { slug: "image-editor", name: "图片编辑器", category: "image", status: "published", provider: "comfyui_gateway", model: "comfyui-flux-klein-v1", workflowId: "workflow-flux-klein-v1", creditCost: 8, route: "./zh/app/image-editor/", featured: true, versions: [{ version: "v1", changelog: "Flux Klein 图片增强工作流", modelVersion: "comfyui-flux-klein-v1", workflowVersion: "workflow-flux-klein-v1", promptVersion: "prompt-flux-klein-v1", status: "published" }] },
+    { slug: "outfit-studio", name: "造型工作室", category: "image", status: "published", provider: "comfyui_gateway", model: "comfyui-outfit-v1", workflowId: "workflow-outfit-v1", creditCost: 12, route: "./zh/app/outfit-studio/", featured: true, versions: [{ version: "v1", changelog: "造型生成工作流", modelVersion: "comfyui-outfit-v1", workflowVersion: "workflow-outfit-v1", promptVersion: "prompt-outfit-v1", status: "published" }] },
+    { slug: "pose-generator", name: "姿势生成器", category: "image", status: "published", provider: "comfyui_gateway", model: "comfyui-pose-v1", workflowId: "workflow-pose-v1", creditCost: 8, route: "./zh/app/pose-generator/", featured: true, versions: [{ version: "v1", changelog: "姿势生成工作流", modelVersion: "comfyui-pose-v1", workflowVersion: "workflow-pose-v1", promptVersion: "prompt-pose-v1", status: "published" }] },
+    { slug: "nano-banana", name: "Nano Banana", category: "image", status: "published", provider: "comfyui_gateway", model: "comfyui-nano-banana-v1", workflowId: "workflow-nano-banana-v1", creditCost: 4, route: "./zh/app/nano-banana/", featured: true, versions: [{ version: "v1", changelog: "Nano Banana 快速创意工作流", modelVersion: "comfyui-nano-banana-v1", workflowVersion: "workflow-nano-banana-v1", promptVersion: "prompt-nano-banana-v1", status: "published" }] },
+    { slug: "image-combiner", name: "图像组合器", category: "image", status: "published", provider: "comfyui_gateway", model: "comfyui-combiner-v1", workflowId: "workflow-combiner-v1", creditCost: 16, route: "./zh/app/image-combiner/", featured: true, versions: [{ version: "v1", changelog: "图像组合工作流", modelVersion: "comfyui-combiner-v1", workflowVersion: "workflow-combiner-v1", promptVersion: "prompt-combiner-v1", status: "published" }] },
+    { slug: "image-to-video", name: "图片转视频", category: "video", status: "published", provider: "comfyui_gateway", model: "comfyui-wan22-i2v-v1", workflowId: "workflow-wan22-i2v-v1", creditCost: 24, route: "./zh/app/image-to-video/", featured: true, versions: [{ version: "v1", changelog: "WAN 2.2 图生视频工作流", modelVersion: "comfyui-wan22-i2v-v1", workflowVersion: "workflow-wan22-i2v-v1", promptVersion: "prompt-wan22-i2v-v1", status: "published" }] }
   ]
 };
 const defaultWorkflowCenterConfig = {
   workflows: [
-    { workflowId: "workflow-image-edit-v1", name: "图片编辑工作流", type: "api_chain", provider: "fake_worker", jsonConfig: { mode: "image_edit" }, requiredModels: ["local-image-edit-v0"], requiredInputs: ["prompt", "reference_image"], outputType: "image", creditPrice: 8, version: "v1", status: "published", description: "MVP 图片编辑占位工作流，可替换为 ComfyUI / Fal / RunPod。" },
-    { workflowId: "workflow-video-v1", name: "图片转视频工作流", type: "api_chain", provider: "fake_worker", jsonConfig: { mode: "image_to_video" }, requiredModels: ["local-video-v0"], requiredInputs: ["prompt", "source_asset"], outputType: "video", creditPrice: 24, version: "v1", status: "testing", description: "MVP 视频生成占位工作流，后续绑定真实视频 provider。" },
-    { workflowId: "workflow-zealman-image-a01-v1", name: "Zealman A01 文生图工作流", type: "comfyui", provider: "zealman_workflow", jsonConfig: { action: "process-generation-job", mediaType: "image", workflowEnv: "ZEALMAN_IMAGE_WORKFLOW" }, requiredModels: ["zealman-image-workflow"], requiredInputs: ["prompt"], outputType: "image", creditPrice: 8, version: "v1", status: "testing", description: "通过 Zealman / ComfyUI A01 工作流生成图片，输出重新保存到 Supabase Storage。" },
-    { workflowId: "workflow-zealman-video-g01-v1", name: "Zealman G01 图生视频工作流", type: "comfyui", provider: "zealman_workflow", jsonConfig: { action: "process-generation-job", mediaType: "video", workflowEnv: "ZEALMAN_VIDEO_WORKFLOW" }, requiredModels: ["zealman-video-workflow"], requiredInputs: ["prompt", "source_asset"], outputType: "video", creditPrice: 24, version: "v1", status: "testing", description: "通过 Zealman / ComfyUI G01 工作流把参考图生成短视频。" },
-    { workflowId: "workflow-zealman-video-g03-v1", name: "Zealman G03 流畅图生视频工作流", type: "comfyui", provider: "zealman_workflow", jsonConfig: { action: "process-generation-job", mediaType: "video", workflowEnv: "ZEALMAN_SMOOTH_VIDEO_WORKFLOW" }, requiredModels: ["zealman-smooth-video-workflow"], requiredInputs: ["prompt", "source_asset"], outputType: "video", creditPrice: 28, version: "v1", status: "testing", description: "通过 Zealman / ComfyUI G03 SmoothMix 工作流生成更流畅的社媒短视频。" },
-    { workflowId: "workflow-zealman-digital-human-j11-v1", name: "Zealman J11 数字人视频工作流", type: "comfyui", provider: "zealman_workflow", jsonConfig: { action: "process-generation-job", mediaType: "video", workflowEnv: "ZEALMAN_DIGITAL_HUMAN_WORKFLOW" }, requiredModels: ["zealman-digital-human-workflow"], requiredInputs: ["prompt", "source_asset"], outputType: "video", creditPrice: 32, version: "v1", status: "testing", description: "通过 Zealman / ComfyUI J11 工作流生成产品、数字人或电商展示视频。" }
+    { workflowId: "workflow-faceswap-v1", name: "AI 换脸工作流", type: "comfyui", provider: "comfyui_gateway", jsonConfig: { action: "process-generation-job", mediaType: "image", workflowEnv: "COMFYUI_FACESWAP" }, requiredModels: ["comfyui-faceswap-v1"], requiredInputs: ["source_image", "target_image"], outputType: "image", creditPrice: 40, version: "v1", status: "published", description: "通过 ComfyUI Gateway 执行 AI 换脸，结果保存到资产库。" },
+    { workflowId: "workflow-flux-klein-v1", name: "Flux Klein 图片增强工作流", type: "comfyui", provider: "comfyui_gateway", jsonConfig: { action: "process-generation-job", mediaType: "image", workflowEnv: "COMFYUI_FLUX_KLEIN" }, requiredModels: ["comfyui-flux-klein-v1"], requiredInputs: ["prompt", "reference_image"], outputType: "image", creditPrice: 8, version: "v1", status: "published", description: "通过 ComfyUI Gateway 执行 Flux Klein 图片增强，支持重绘、风格迁移。" },
+    { workflowId: "workflow-outfit-v1", name: "造型生成工作流", type: "comfyui", provider: "comfyui_gateway", jsonConfig: { action: "process-generation-job", mediaType: "image", workflowEnv: "COMFYUI_OUTFIT" }, requiredModels: ["comfyui-outfit-v1"], requiredInputs: ["prompt", "reference_image"], outputType: "image", creditPrice: 12, version: "v1", status: "published", description: "通过 ComfyUI Gateway 生成角色造型变化。" },
+    { workflowId: "workflow-pose-v1", name: "姿势生成工作流", type: "comfyui", provider: "comfyui_gateway", jsonConfig: { action: "process-generation-job", mediaType: "image", workflowEnv: "COMFYUI_POSE" }, requiredModels: ["comfyui-pose-v1"], requiredInputs: ["prompt"], outputType: "image", creditPrice: 8, version: "v1", status: "published", description: "通过 ComfyUI Gateway 生成角色姿势参考图。" },
+    { workflowId: "workflow-nano-banana-v1", name: "Nano Banana 快速创意工作流", type: "comfyui", provider: "comfyui_gateway", jsonConfig: { action: "process-generation-job", mediaType: "image", workflowEnv: "COMFYUI_NANO_BANANA" }, requiredModels: ["comfyui-nano-banana-v1"], requiredInputs: ["prompt"], outputType: "image", creditPrice: 4, version: "v1", status: "published", description: "通过 ComfyUI Gateway 生成趣味贴纸、社媒封面等快速创意图像。" },
+    { workflowId: "workflow-combiner-v1", name: "图像组合工作流", type: "comfyui", provider: "comfyui_gateway", jsonConfig: { action: "process-generation-job", mediaType: "image", workflowEnv: "COMFYUI_COMBINER" }, requiredModels: ["comfyui-combiner-v1"], requiredInputs: ["prompt", "source_asset", "reference_image"], outputType: "image", creditPrice: 16, version: "v1", status: "published", description: "通过 ComfyUI Gateway 组合多张参考图生成统一画面。" },
+    { workflowId: "workflow-wan22-i2v-v1", name: "WAN 2.2 图生视频工作流", type: "comfyui", provider: "comfyui_gateway", jsonConfig: { action: "process-generation-job", mediaType: "video", workflowEnv: "COMFYUI_WAN22_I2V" }, requiredModels: ["comfyui-wan22-i2v-v1"], requiredInputs: ["prompt", "source_asset"], outputType: "video", creditPrice: 24, version: "v1", status: "published", description: "通过 ComfyUI Gateway WAN 2.2 把参考图生成 5 秒短视频（1280x720, 16fps）。" },
+    { workflowId: "workflow-seedvr2-v1", name: "SEEDVR2 超分工作流", type: "comfyui", provider: "comfyui_gateway", jsonConfig: { action: "process-generation-job", mediaType: "image", workflowEnv: "COMFYUI_SEEDVR2" }, requiredModels: ["comfyui-seedvr2-v1"], requiredInputs: ["source_asset"], outputType: "image", creditPrice: 16, version: "v1", status: "published", description: "通过 ComfyUI Gateway SEEDVR2 将图片/视频超分到 2K/4K。" },
+    { workflowId: "workflow-gmfss-v1", name: "GMFSS 视频补帧工作流", type: "comfyui", provider: "comfyui_gateway", jsonConfig: { action: "process-generation-job", mediaType: "video", workflowEnv: "COMFYUI_GMFSS" }, requiredModels: ["comfyui-gmfss-v1"], requiredInputs: ["source_asset"], outputType: "video", creditPrice: 12, version: "v1", status: "published", description: "通过 ComfyUI Gateway GMFSS 提升视频帧率让画面更流畅。" }
   ]
 };
 const defaultPromptLibraryConfig = {
@@ -7707,5 +7714,86 @@ if (selectedCharacterName) {
   }
   localStorage.removeItem("ovs_selected_character");
 }
+
+/* ── ComfyUI Gateway Integration ── */
+const COMFYUI_GATEWAY_URL = "https://u863228-7804939cc4bd.westd.seetacloud.com:8443";
+const COMFYUI_GATEWAY_TEMPLATES = {
+  "wan22-i2v": { file: "wan22_i2v.json", nodeId: { image: "1", prompt: "5", seed: "7", steps: "7", cfg: "7", shift: "7" } },
+  "flux-klein": { file: "flux_klein_enhance.json", nodeId: { image: "1", prompt: "9", lora: "5", steps: "16", cfg: "18", seed: "15" } },
+  "seedvr2": { file: "seedvr2_upscale.json", nodeId: { image: "1", resolution: "5", seed: "5" } },
+  "gmfss": { file: "gmfss_vfi.json", nodeId: { video: "1", multiplier: "2", fps: "3" } }
+};
+
+async function submitComfyUIWorkflow(templateId, overrides = {}) {
+  const template = COMFYUI_GATEWAY_TEMPLATES[templateId];
+  if (!template) throw new Error(`Unknown template: ${templateId}`);
+
+  const workflowResp = await fetch(`${COMFYUI_GATEWAY_URL}/workflows/${template.file}`);
+  if (!workflowResp.ok) throw new Error(`Failed to load workflow template: ${template.file}`);
+  const workflowJson = await workflowResp.json();
+
+  // Apply overrides to the workflow JSON
+  for (const [param, value] of Object.entries(overrides)) {
+    const nodeId = template.nodeId[param];
+    if (nodeId && workflowJson[nodeId]) {
+      const inputName = param === "image" ? "image" : param === "video" ? "video" : param === "prompt" ? "text" : param;
+      if (workflowJson[nodeId].inputs) {
+        const input = workflowJson[nodeId].inputs[inputName];
+        if (input !== undefined) workflowJson[nodeId].inputs[inputName] = value;
+      }
+    }
+  }
+
+  const submitResp = await fetch(`${COMFYUI_GATEWAY_URL}/prompt`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt: workflowJson, client_id: "luravyn-web" })
+  });
+  if (!submitResp.ok) throw new Error("Failed to submit ComfyUI job");
+  const { prompt_id } = await submitResp.json();
+  return { promptId: prompt_id, templateId };
+}
+
+async function pollComfyUIJob(promptId, onProgress) {
+  const maxAttempts = 120;
+  for (let i = 0; i < maxAttempts; i++) {
+    const resp = await fetch(`${COMFYUI_GATEWAY_URL}/history/${promptId}`);
+    if (!resp.ok) { await sleep(2000); continue; }
+    const data = await resp.json();
+    if (data[promptId]) {
+      const result = data[promptId];
+      if (result.status?.completed) {
+        onProgress?.({ progress: 100, status: "completed" });
+        return result;
+      }
+      const progress = Math.min(Math.round((i / maxAttempts) * 100), 95);
+      onProgress?.({ progress, status: result.status?.status_str || "processing" });
+    }
+    await sleep(2000);
+  }
+  throw new Error("ComfyUI job timed out after 4 minutes");
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function runComfyUIGeneration(templateId, overrides, onProgress) {
+  onProgress?.({ progress: 0, status: "submitting" });
+  const { promptId } = await submitComfyUIWorkflow(templateId, overrides);
+  onProgress?.({ progress: 5, status: "queued" });
+  const result = await pollComfyUIJob(promptId, onProgress);
+  return { promptId, result };
+}
+
+let gatewayAvailable = false;
+async function checkComfyUIGateway() {
+  try {
+    const resp = await fetch(`${COMFYUI_GATEWAY_URL}/system_stats`, { signal: AbortSignal.timeout(5000) });
+    gatewayAvailable = resp.ok;
+    return gatewayAvailable;
+  } catch { gatewayAvailable = false; return false; }
+}
+checkComfyUIGateway();
+
+/* ── End ComfyUI Gateway Integration ── */
 
 renderState(state);
