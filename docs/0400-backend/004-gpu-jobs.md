@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | BE-ARCH-GPU-JOBS-001 |
-| Version | 1.1.0 |
+| Version | 1.3.0 |
 | Status | Active |
 | Owner | AI Infrastructure Lead / Backend Lead |
 | Dependencies | BE-ARCH-QUEUE-001, AI-INDEX-001, API-GEN-IMAGE-001, API-GEN-VIDEO-001, DB-CREDITS-001 |
@@ -56,7 +56,15 @@ GPU capacity must scale separately from API servers and regular workers. Workloa
 
 Zealman / ComfyUI jobs are invoked only by the Supabase `ai` Edge Function. The browser sends generation intent, while the backend downloads the configured workflow, injects prompt/reference input, submits to Zealman, polls ComfyUI history, downloads the output, stores it in Supabase Storage, records `media_assets`, and refunds credits on provider failure.
 
-Live GPU lifecycle automation is still operator-controlled. AutoDL start/stop scripts exist outside the web app, but the runtime does not automatically power GPU instances on or off yet.
+The repository now includes an optional Compshare lifecycle controller in the Supabase `ai` Edge Function. When `COMPSHARE_INSTANCE_ID` and server-only API credentials are configured, a Zealman job checks instance state, starts a stopped instance, waits for the headless gateway health endpoint, renews a long safety shutdown window during the job, and schedules a shorter idle shutdown after success or failure. Compshare enforces a five-minute minimum scheduled shutdown; GPU compute stops after shutdown, while image, disk, and storage charges may remain.
+
+`templates/comfyui-headless/` provides a portable, token-protected gateway that preserves the existing Zealman API contract. Models, workflow exports, custom nodes, inputs, and outputs remain private mounted assets rather than Git content. `scripts/prepare-comfyui-headless.mjs` creates an ignored deployment bundle from the six qualified AutoDL exports: A01, C16, D14, G01, G03, and J11.
+
+AutoDL remains the workflow discovery and qualification environment. The known-good AutoDL Art instance was stopped after inventory collection. Compshare is the intended first production runtime, and RunPod remains an optional fallback.
+
+The original `A01-compshare.json` Qwen Image 2512 baseline has passed both direct gateway generation and the full Supabase loop: authenticated temporary user, credit grant and debit, generation job, provider/model provenance, output download, Supabase Storage persistence, `media_assets` and history readback, and cleanup. Whole-instance stop/start recovery also passed without manual Jupyter startup. G01, G03, and J11 remain disabled until each passes the same evidence set.
+
+Production Edge Function Secrets must use a trusted HTTPS hostname. A rotated one-time token was used for the isolated HTTP qualification and removed immediately afterward. The instance contains a pinned Caddy runtime, but permanent activation waits for `gpu.luravyn.com` or another owned hostname to resolve to the fixed public IP; the temporary `sslip.io` host failed secondary ACME validation and is not accepted as production infrastructure.
 
 ## Future Plan
 

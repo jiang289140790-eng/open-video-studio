@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 1.8.0 |
+| Version | 1.10.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -21,9 +21,35 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 - Reference relevant document IDs, task IDs, and decision records.
 - Do not use the changelog as the source of truth for requirements; link to the owning document instead.
 
+## 2026-07-13
+
+### Improved
+
+- Qualified the first real Compshare image-generation runtime. The original `A01-compshare.json` Qwen Image 2512 baseline completed a 1024x1024 generation on the selected 4090 instance without changing frontend contracts.
+- Completed a full Supabase-backed real-provider verification through `zealman_workflow`: temporary user creation and sign-in, test credit grant, credit debit, generation job processing, ComfyUI output download, Supabase Storage persistence, `media_assets` and history records, and cleanup all passed.
+- Added application-image recovery for the protected gateway. ComfyUI now restores the gateway after an instance restart, verifies `/api/health` instead of trusting an occupied port, and can intentionally reclaim the bundled code-server port when configured.
+- Added a pinned Caddy 2.11.4 TLS boundary template and checksum-qualified runtime support. Direct HTTP was used only with a rotated one-time token for the isolated verification and was removed from Supabase Secrets immediately afterward.
+- Extended the real AI verifier to select `zealman_workflow` through `--provider=zealman_workflow` and fixed it to honor process environment variables when `.env.local` is absent.
+- Fixed Windows Edge Function deployment to use `supabase.exe`; the current multi-file `ai` function bundle was deployed successfully as active version 29 with the shared Compshare lifecycle module.
+- Verified whole-instance stop/start recovery and cost controls. Both Compshare instances and the AutoDL Art instance are stopped after validation; final gateway credentials remain only in ignored local/runtime secret storage.
+
+### Validation
+
+- Ran `npm run test`; production build and all 80 tests passed.
+- Ran a cost-bearing A01 real-provider probe; authentication, credits, provider execution, Storage, asset/history persistence, and cleanup passed.
+- Verified a stopped Compshare instance returns to `Running`, restores ComfyUI and the protected gateway without Jupyter intervention, and returns health status 200.
+- Checked Let’s Encrypt validation for the temporary `sslip.io` host. Primary validators reached Caddy, but secondary validation reset; production activation therefore remains gated on an A record such as `gpu.luravyn.com` pointing to the fixed instance IP before permanent Supabase Secrets are enabled.
+
 ## 2026-07-12
 
 ### Improved
+
+- Added a portable, token-protected ComfyUI headless runtime template that preserves the existing Zealman workflow API contract. The private bundle tool maps the six qualified AutoDL workflows A01, C16, D14, G01, G03, and J11 without committing raw workflow exports, model weights, or user media.
+- Added optional Compshare on-demand GPU lifecycle control to the Supabase `ai` Edge Function using the official UCloud signing algorithm. A configured stopped instance can start before generation, wait for gateway health, receive a long active-job safety shutdown timer, and receive a shorter post-job idle shutdown timer.
+- Kept frontend and product contracts unchanged: generated outputs are still downloaded server-side, copied to Supabase Storage, represented as `media_assets`, and refunded through the existing failure path. Protected gateway output downloads now carry the server-only token and never expose it to browser or asset metadata.
+- Replaced the single-file Supabase Management API deployment helper with official Supabase CLI server-side bundling so shared Edge Function modules deploy correctly.
+- Collected the AutoDL Art v8.88 workflow/model/custom-node inventory, prepared the ignored local deployment bundle, and shut down instance `pro-78388df16198` after collection to stop GPU compute charges.
+- Added tests for the headless API contract, workflow manifest, official UCloud signature parity, Compshare lifecycle wiring, environment placeholders, and multi-file Edge Function deployment. Deployed the bundled Supabase `ai` function as active version 23. Remaining rollout work is provider-side: Compshare instance/image qualification, private model/custom-node transfer, gateway exposure, lifecycle Secrets, and a cost-bearing A01 run.
 
 - Improved the signed-out generation gate. The unlock modal now offers email sign-in/sign-up alongside social login, preserves the intended return target, and allows one clearly labeled browser-only demo generation that does not consume credits, does not call Supabase, and does not create a real shareable account asset. Real saving, downloading, sharing, credit debit, and remote provider generation remain gated behind authenticated Supabase sessions.
 

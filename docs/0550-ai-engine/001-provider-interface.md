@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | AI-PROVIDER-001 |
-| Version | 1.0.0 |
+| Version | 1.2.0 |
 | Status | Active |
 | Owner | AI Engineering Lead |
 | Dependencies | AI-INDEX-001, ADR-005 |
@@ -53,6 +53,11 @@ Supported future providers:
   - `workflow-zealman-digital-human-j11-v1` for digital-human/product-video generation.
 - Outputs must be copied into Supabase Storage and represented as `media_assets`; provider URLs are not the permanent asset source.
 - Real endpoint URLs, tokens, and exact workflow filenames belong in Supabase Edge Function Secrets or ignored local environment files only.
+- The portable headless gateway preserves the Zealman contract, so moving a qualified workflow from AutoDL to Compshare does not change frontend or product code.
+- Compshare lifecycle credentials are server-only. When configured, the provider starts a stopped GPU instance on demand and schedules shutdown after the job; when absent, the existing static Zealman endpoint behavior is unchanged.
+- Workflow exports, model weights, custom nodes, and licensed assets are mounted privately and must not be committed to the public repository.
+- The `A01-compshare.json` Qwen Image 2512 baseline is the first qualified real implementation. It completed the authenticated credits-to-Storage asset loop through `zealman_workflow`; it is not equivalent to the larger AutoDL A01 LoRA and SeedVR2 pipeline.
+- Production provider endpoints require trusted HTTPS. One-time HTTP verification credentials must be rotated and removed after a probe and cannot be left as provider configuration.
 
 ## Acceptance Criteria
 

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | DOC-002 |
-| Version | 1.13.0 |
+| Version | 1.15.0 |
 | Status | Active |
 | Owner | CTO / Lead Software Architect |
 | Dependencies | OVSB-001, DOC-001, TASK-DONE-STD-001 |
@@ -21,6 +21,8 @@ Provide the navigation map for the Open Video Studio knowledge base.
 
 ## Current Implementation Notes
 
+- The real-generation path now has a portable ComfyUI deployment baseline. Six workflows from the known-good AutoDL Zealman image are inventoried as A01, C16, D14, G01, G03, and J11; raw exports remain ignored, while `templates/comfyui-headless/` contains a token-protected Zealman-compatible gateway, an original Qwen Image 2512 A01 baseline, automatic application-image recovery, and an optional Caddy TLS boundary.
+- The Supabase `ai` Edge Function now has verified Compshare on-demand lifecycle control. A stopped instance can start, restore ComfyUI and the gateway, complete A01, debit test credits, persist the output to Supabase Storage and `media_assets`, expose it through history, schedule shutdown, and clean up the verifier account. Production enablement now requires only a stable trusted hostname such as `gpu.luravyn.com`; direct HTTP is not retained in Supabase Secrets.
 - Signed-out generation now has a controlled try-before-login path. The unlock modal still makes real saving, downloading, sharing, credit debit, and remote provider generation require a real Supabase session, but it also offers email sign-in/sign-up and one browser-only demo generation that is explicitly marked as non-account data.
 - The AI generation layer now includes a server-side Zealman / ComfyUI provider behind the existing Supabase `ai` Edge Function. Browser code still submits only prompt, reference asset, mode, ratio, duration, and provider/workflow intent; server secrets select A01 image generation, G01 image-to-video, G03 smooth video, or J11 digital-human/product-video workflows and persist outputs back into Supabase Storage.
 - MVP product surfaces now separate functional previews from real account data. Only a real Supabase-authenticated user is treated as signed in; Assets, History, My Works, Characters, and Dashboard show preview cards while signed out, and generation/share actions require login before creating records or consuming credits.

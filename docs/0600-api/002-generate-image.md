@@ -4,7 +4,7 @@
 |---|---|
 | ID | API-GEN-IMAGE-001 |
 | Unique ID | API-GEN-IMAGE-001 |
-| Version | 1.4.0 |
+| Version | 1.6.0 |
 | Status | Active |
 | Owner | AI Platform Lead / API Platform Lead |
 | Dependencies | API-AUTH-001, DB-IMAGES-001, DB-PROMPTS-001, DB-CREDITS-001, AI-INDEX-001 |
@@ -75,6 +75,10 @@ Sprint 2 adds the MVP HTTP route `POST /generate/image`. The route uses local st
 MVP Backend Loop adds a Supabase-compatible path that creates a generation job, consumes credits, keeps the Fake Worker, writes simulated output metadata to Supabase Storage, and records the output as a real asset. No external AI provider, OpenAPI contract, production model routing, or independent worker execution is connected yet.
 
 The current Supabase `ai` Edge Function now routes image generation through Workflow Center provider selection. `fake_worker` remains the safe fallback, `qianwen_generation` is reserved for Qianwen image generation, `liblib_generation` is reserved for Liblib template-based image generation, and `zealman_workflow` routes image jobs to the configured A01 Zealman / ComfyUI workflow when server-side Zealman secrets are configured.
+
+When Compshare lifecycle secrets are configured, the same A01 request can start a stopped GPU instance, wait for the token-protected headless gateway, run the existing Zealman-compatible workflow contract, copy the output into Supabase Storage, and schedule GPU shutdown. Frontend request and response contracts do not change.
+
+The Qwen Image 2512 `A01-compshare.json` baseline has passed a cost-bearing end-to-end probe through the deployed Supabase function. The probe created and authenticated a temporary user, granted and consumed credits, completed the generation job, created a Storage-backed asset with provider/model provenance, exposed it in history, and removed all verifier records. Production rollout remains disabled until the gateway uses a stable trusted HTTPS hostname.
 
 Generation jobs are inserted before credit debit. If the credit debit fails, the job is marked failed with `credit_charged = 0`; if provider execution fails after debit, the refund path writes a duplicate-protected `generation_refund` ledger entry.
 

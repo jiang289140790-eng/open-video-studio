@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.25.0 |
+| Version | 1.27.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -385,6 +385,16 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Dependencies: MVP-S3-025, MVP-S3-026, PAGE-AUTH-001, PAGE-GENERATE-001.
 - Acceptance Criteria: unauthenticated users who hit a generation gate can choose email sign-in/sign-up, social login, or one browser-only demo generation; demo generation is clearly labeled, does not consume credits, does not call Supabase, does not create share links, and does not pretend to be real account data; authenticated real generation, storage, downloads, share links, credit debit, and remote providers remain protected by Supabase session checks.
 - Related Documents: PAGE-AUTH-001, PAGE-GENERATE-001, OPS-AUTH-001, API-AUTH-001.
+
+### MVP-S3-028 Portable ComfyUI Runtime And On-Demand GPU Control
+
+- Priority: P0.
+- Status: Completed.
+- Estimated Time: 2 days plus provider/model transfer time.
+- Dependencies: MVP-S3-BE-001, API-GEN-IMAGE-001, API-GEN-VIDEO-001, BE-ARCH-GPU-JOBS-001, AI-PROVIDER-001.
+- Acceptance Criteria: the six AutoDL workflows have a sanitized dependency manifest and private deploy bundle; a token-protected headless gateway preserves the existing Zealman API contract; optional Compshare lifecycle control starts a stopped instance and schedules shutdown without exposing keys to the browser; A01 completes prompt to Supabase Storage asset with correct credit debit/refund behavior; AutoDL is stopped when not in use; build and tests pass.
+- Related Documents: BE-ARCH-GPU-JOBS-001, AI-PROVIDER-001, API-GEN-IMAGE-001, API-GEN-VIDEO-001, DEVOPS-INDEX-001.
+- Current Evidence: the six-workflow inventory and private bundle, official UCloud signing, provider integration, Qwen Image 2512 A01 baseline, protected gateway, application-image automatic recovery, whole-instance stop/start, lifecycle shutdown, Supabase `ai` function version 29, real credit debit, ComfyUI output, Storage asset/history persistence, verifier cleanup, and 81 regression tests all pass. AutoDL and both Compshare instances are stopped. Permanent provider activation is a deployment configuration gate: create the owned HTTPS hostname and then set lifecycle/provider Secrets; G01/G03/J11 qualification remains separate video work.
 
 ## Sprint 4: Admin And MVP Integration
 
