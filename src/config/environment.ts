@@ -41,6 +41,7 @@ export interface AppEnvironment {
   zealmanComfyBaseUrl?: string;
   zealmanApiToken?: string;
   zealmanImageWorkflow?: string;
+  zealmanImageEditWorkflow?: string;
   zealmanVideoWorkflow?: string;
   zealmanSmoothVideoWorkflow?: string;
   zealmanDigitalHumanWorkflow?: string;
@@ -106,6 +107,7 @@ export function loadEnvironment(filePath?: string): AppEnvironment {
     zealmanComfyBaseUrl: emptyToUndefined(value("ZEALMAN_COMFY_BASE_URL")),
     zealmanApiToken: emptyToUndefined(value("ZEALMAN_API_TOKEN")),
     zealmanImageWorkflow: emptyToUndefined(value("ZEALMAN_IMAGE_WORKFLOW")),
+    zealmanImageEditWorkflow: emptyToUndefined(value("ZEALMAN_IMAGE_EDIT_WORKFLOW")),
     zealmanVideoWorkflow: emptyToUndefined(value("ZEALMAN_VIDEO_WORKFLOW")),
     zealmanSmoothVideoWorkflow: emptyToUndefined(value("ZEALMAN_SMOOTH_VIDEO_WORKFLOW")),
     zealmanDigitalHumanWorkflow: emptyToUndefined(value("ZEALMAN_DIGITAL_HUMAN_WORKFLOW")),

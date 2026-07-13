@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | ID | AI-WORKFLOW-002 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Active |
 | Owner | AI Platform |
 | Dependencies | AI-PROVIDER-001, BACKEND-GPU-004, API-IMAGE-002, API-VIDEO-003 |
@@ -25,7 +25,7 @@ Define the permanent mapping between user-facing generation capabilities and exe
 
 | Product capability | Workflow | Current status | Current evidence | Missing before release |
 |---|---:|---|---|---|
-| AI image editing | E01 | Missing | No mask/inpaint workflow found in the AutoDL exports | Select inpaint/edit model, source and mask nodes, automatic mask strategy, run full qualification |
+| AI image editing | E01 | Inventory | Original API-format Qwen Image Edit workflow now maps prompt node 76, source node 78, mask node 79 and masked composite output 96 | Install `qwen_image_edit_fp8_e4m3fn.safetensors`, verify native nodes, add automatic-mask stage, run full qualification |
 | AI face swap | F01 | Missing | No ReActor, InsightFace, PuLID or InstantID workflow found | Select identity stack, consent/safety checks, restoration stage, run full qualification |
 | AI outfit change | O01 | Missing | No garment parsing or virtual try-on workflow found | Select human parsing and garment model, define body/hand preservation, run full qualification |
 | AI pose generation | P01 | Missing | D14 is a reference storyboard workflow, not pose control | Add DWPose/OpenPose control and identity conditioning, run full qualification |
@@ -39,12 +39,19 @@ Define the permanent mapping between user-facing generation capabilities and exe
 - Missing workflows cannot be copied into a deployment bundle or presented as executable.
 - Existing A01 qualification evidence remains unchanged.
 - G01 remains unavailable until video output and refund behavior are tested.
+- E01 remains unavailable until the Qwen edit model, manual-mask behavior and automatic-mask behavior pass runtime qualification.
 - Every future status change updates this document, `SUMMARY.md`, `CHANGELOG.md` and the MVP backlog.
 
 ## Future Evolution
 
-After E01 and G01 are qualified, implement M01, P01, O01 and F01 in that order. Provider portability remains behind the existing AI provider interface; product pages do not depend on ComfyUI node IDs.
+After E01 and G01 are qualified, implement M01, P01, O01 and F01 in that order. Provider portability remains behind the existing AI provider interface; product pages do not depend on ComfyUI node IDs. E01 follows the native Qwen Image Edit loading and conditioning pattern documented by ComfyUI; the repository owns its API graph and explicit masked composite stage.
 
 ## AI Context
 
 Treat `workflow-manifest.json` as the structured authority. Never infer that D14 covers pose generation or image composition merely because it accepts a reference image. Never mark a workflow complete from a successful ComfyUI preview alone; the SaaS data and billing loop is part of acceptance.
+
+## Cross References
+
+- [ComfyUI Qwen Image Edit native workflow](https://docs.comfy.org/tutorials/image/qwen/qwen-image-edit)
+- [ComfyUI TextEncodeQwenImageEdit node](https://docs.comfy.org/built-in-nodes/TextEncodeQwenImageEdit)
+- [AI-PROVIDER-001](001-provider-interface.md)

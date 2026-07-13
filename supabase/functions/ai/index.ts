@@ -178,6 +178,7 @@ async function createGenerationJob(adminClient: any, env: AiEnv, userId: string,
       prompt,
       sourceAssetId: body.sourceAssetId ?? null,
       sourceImageUrl: body.sourceImageUrl ?? null,
+      maskImageUrl: body.maskImageUrl ?? null,
       characterId: body.characterId ?? null,
       aspectRatio: body.aspectRatio ?? "16:9",
       resolution: body.resolution ?? null,
@@ -544,10 +545,19 @@ async function callZealmanWorkflow(env: AiEnv, job: Record<string, any>) {
     const workflow = await fetchZealmanWorkflow(env, workflowName);
     applyZealmanPrompt(workflow, String(job.prompt || ""), env.zealmanPromptNodeId);
     const inputParams = safeObject(job.input_params);
+    const contract = zealmanWorkflowInputContract(job);
     const sourceImageUrl = String(inputParams.sourceImageUrl || inputParams.source_image_url || "").trim();
     if (sourceImageUrl) {
-      const uploadedImage = await uploadZealmanSourceImage(env, sourceImageUrl, String(job.id || crypto.randomUUID()));
-      applyZealmanUploadedImage(workflow, uploadedImage);
+      const uploadedImage = await uploadZealmanSourceImage(env, sourceImageUrl, `${String(job.id || crypto.randomUUID())}-source`);
+      applyZealmanUploadedImage(workflow, uploadedImage, contract.sourceImageNodeId);
+    }
+    const maskImageUrl = String(inputParams.maskImageUrl || inputParams.mask_image_url || "").trim();
+    if (contract.maskImageNodeId && !maskImageUrl) {
+      throw new AiFunctionError("ZEALMAN_MASK_REQUIRED", "This image editing workflow requires a mask image.", 400);
+    }
+    if (maskImageUrl) {
+      const uploadedMask = await uploadZealmanSourceImage(env, maskImageUrl, `${String(job.id || crypto.randomUUID())}-mask`);
+      applyZealmanUploadedImage(workflow, uploadedMask, contract.maskImageNodeId);
     }
 
     const submit = await submitZealmanWorkflow(env, workflow);
@@ -609,6 +619,7 @@ function resolveZealmanWorkflowName(env: AiEnv, job: Record<string, any>): strin
   const model = String(job.model || "").trim();
   if (model && !["zealman_workflow", "zealman-image-v1", "zealman-video-v1"].includes(model)) return model;
   const workflowId = String(job.workflow_id || "").toLowerCase();
+  if (workflowId.includes("e01")) return env.zealmanImageEditWorkflow || env.zealmanImageWorkflow;
   if (workflowId.includes("g03")) return env.zealmanSmoothVideoWorkflow || env.zealmanVideoWorkflow;
   if (workflowId.includes("j11")) return env.zealmanDigitalHumanWorkflow || env.zealmanVideoWorkflow;
   return mediaType === "video" ? env.zealmanVideoWorkflow : env.zealmanImageWorkflow;
@@ -665,7 +676,15 @@ async function uploadZealmanSourceImage(env: AiEnv, sourceImageUrl: string, jobI
   return name;
 }
 
-function applyZealmanUploadedImage(workflow: Record<string, any>, imageName: string) {
+function applyZealmanUploadedImage(workflow: Record<string, any>, imageName: string, nodeId = "") {
+  if (nodeId) {
+    const node = workflow[nodeId];
+    if (!node?.inputs || !Object.prototype.hasOwnProperty.call(node.inputs, "image")) {
+      throw new AiFunctionError("ZEALMAN_IMAGE_NODE_MISSING", `Workflow image node ${nodeId} is missing.`, 500);
+    }
+    node.inputs.image = imageName;
+    return;
+  }
   for (const node of Object.values(workflow)) {
     if (!node || typeof node !== "object" || !node.inputs) continue;
     const nodeName = String(node.class_type || "").toLowerCase();
@@ -674,6 +693,12 @@ function applyZealmanUploadedImage(workflow: Record<string, any>, imageName: str
       return;
     }
   }
+}
+
+function zealmanWorkflowInputContract(job: Record<string, any>) {
+  const workflowId = String(job.workflow_id || "").toLowerCase();
+  if (workflowId.includes("e01")) return { sourceImageNodeId: "78", maskImageNodeId: "79" };
+  return { sourceImageNodeId: "", maskImageNodeId: "" };
 }
 
 async function submitZealmanWorkflow(env: AiEnv, workflow: Record<string, any>) {
@@ -1693,6 +1718,7 @@ function loadAiEnv(): AiEnv {
     zealmanComfyBaseUrl: Deno.env.get("ZEALMAN_COMFY_BASE_URL") ?? "",
     zealmanApiToken: Deno.env.get("ZEALMAN_API_TOKEN") ?? "",
     zealmanImageWorkflow: Deno.env.get("ZEALMAN_IMAGE_WORKFLOW") ?? "",
+    zealmanImageEditWorkflow: Deno.env.get("ZEALMAN_IMAGE_EDIT_WORKFLOW") ?? "",
     zealmanVideoWorkflow: Deno.env.get("ZEALMAN_VIDEO_WORKFLOW") ?? "",
     zealmanSmoothVideoWorkflow: Deno.env.get("ZEALMAN_SMOOTH_VIDEO_WORKFLOW") ?? "",
     zealmanDigitalHumanWorkflow: Deno.env.get("ZEALMAN_DIGITAL_HUMAN_WORKFLOW") ?? "",
@@ -1835,6 +1861,7 @@ interface AiEnv {
   zealmanComfyBaseUrl: string;
   zealmanApiToken: string;
   zealmanImageWorkflow: string;
+  zealmanImageEditWorkflow: string;
   zealmanVideoWorkflow: string;
   zealmanSmoothVideoWorkflow: string;
   zealmanDigitalHumanWorkflow: string;

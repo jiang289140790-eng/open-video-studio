@@ -48,10 +48,11 @@ test("headless runtime terminates TLS at the gateway boundary", () => {
 
 test("workflow manifest contains the qualified AutoDL workflow set without raw exports", () => {
   const manifest = JSON.parse(readFileSync(join(templateRoot, "workflow-manifest.json"), "utf8"));
-  assert.deepEqual(manifest.workflows.map((item: any) => item.id), ["A01", "A01-compshare", "C16", "D14", "G01", "G03", "J11"]);
-  assert.equal(new Set(manifest.workflows.map((item: any) => item.id)).size, 7);
+  assert.deepEqual(manifest.workflows.map((item: any) => item.id), ["A01", "A01-compshare", "E01", "C16", "D14", "G01", "G03", "J11"]);
+  assert.equal(new Set(manifest.workflows.map((item: any) => item.id)).size, 8);
   assert.equal(manifest.workflows.find((item: any) => item.id === "A01").promptNodeId, "187");
   assert.equal(manifest.workflows.find((item: any) => item.id === "A01-compshare").promptNodeId, "4");
+  assert.equal(manifest.workflows.find((item: any) => item.id === "E01").maskImageNodeId, "79");
   assert.equal(manifest.workflows.find((item: any) => item.id === "G01").referenceImageNodeId, "145");
   assert.ok(manifest.requiredCustomNodeModules.includes("ComfyUI-WanVideoWrapper"));
   assert.ok(manifest.requiredCustomNodeModules.includes("seedvr2_videoupscaler"));
@@ -70,15 +71,27 @@ test("workflow manifest distinguishes product capability gaps from executable wo
     "image-to-video",
   ]);
   assert.equal(coverage.find((item: any) => item.workflowId === "A01-compshare").status, "qualified");
+  assert.equal(coverage.find((item: any) => item.workflowId === "E01").status, "inventory");
   assert.equal(coverage.find((item: any) => item.workflowId === "G01").status, "inventory");
   assert.deepEqual(
     coverage.filter((item: any) => item.status === "missing").map((item: any) => item.workflowId),
-    ["E01", "F01", "O01", "P01", "M01"],
+    ["F01", "O01", "P01", "M01"],
   );
   const executableIds = new Set(manifest.workflows.map((item: any) => item.id));
   for (const item of coverage.filter((entry: any) => entry.status === "missing")) {
     assert.equal(executableIds.has(item.workflowId), false, `${item.workflowId} must not be packaged before it is executable`);
   }
+});
+
+test("E01 is an API workflow with explicit source, mask, prompt and masked output nodes", () => {
+  const workflow = JSON.parse(readFileSync(join(templateRoot, "workflows", "E01-qwen-edit.json"), "utf8"));
+  assert.equal(workflow["37"].inputs.unet_name, "qwen_image_edit_fp8_e4m3fn.safetensors");
+  assert.equal(workflow["76"].class_type, "TextEncodeQwenImageEdit");
+  assert.equal(workflow["78"].class_type, "LoadImage");
+  assert.equal(workflow["79"].class_type, "LoadImage");
+  assert.equal(workflow["95"].class_type, "ImageToMask");
+  assert.equal(workflow["96"].class_type, "ImageCompositeMasked");
+  assert.deepEqual(workflow["60"].inputs.images, ["96", 0]);
 });
 
 test("CompShare UCloud signing matches the official SDK algorithm", async () => {
@@ -108,4 +121,7 @@ test("AI Edge Function starts and schedules the optional CompShare runtime", () 
   assert.ok(edge.includes("outputHeaders: zealmanHeaders(env, false)"));
   assert.ok(edge.includes("safeObject(result.outputHeaders)"));
   assert.ok(edge.indexOf("ensureCompShareRuntime(env)") < edge.indexOf("fetchZealmanWorkflow(env, workflowName)"));
+  assert.ok(edge.includes("ZEALMAN_IMAGE_EDIT_WORKFLOW"));
+  assert.ok(edge.includes("ZEALMAN_MASK_REQUIRED"));
+  assert.ok(edge.includes('sourceImageNodeId: "78", maskImageNodeId: "79"'));
 });

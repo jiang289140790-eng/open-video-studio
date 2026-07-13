@@ -25,12 +25,17 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Added the E01 Qwen Image Edit API workflow with explicit source image, independent white-area edit mask, native Qwen edit conditioning, deterministic masked composition and saved output.
+- Extended the server-side Zealman provider to select `ZEALMAN_IMAGE_EDIT_WORKFLOW`, upload source and mask files into fixed E01 nodes, and reject E01 execution when the mask is absent. Browser code still receives no provider credentials or ComfyUI node IDs.
+- Generalized the private headless bundle builder to include validated template workflows; A01-compshare and E01 are now copied from repository-owned API graphs while raw AutoDL exports remain ignored.
+- Registered E01 as a testing-only Admin workflow. It is not published or described as production-ready before model installation, automatic-mask integration and cost-bearing qualification.
 - Audited the AutoDL ComfyUI exports against seven requested product workflows. General image generation is qualified; image-to-video exists but remains unqualified; dedicated image editing, face swap, outfit change, pose generation and one/two-reference composition workflows are absent.
 - Added a machine-readable capability coverage registry with permanent E01, F01, O01, P01, A01, M01 and G01 IDs, explicit input/processing/output contracts, and release gates. Missing definitions are deliberately excluded from deployment bundles so unavailable tools cannot be mistaken for working workflows.
 - Added `AI-WORKFLOW-002` as the implementation order and qualification source of truth. Cloud GPU instances remain stopped while workflow contracts and dependencies are prepared.
 
 ### Validation
 
+- Built the private headless bundle with eight workflows including E01 and ran 14 focused AI provider/headless tests successfully. The production build succeeds; the full test suite currently has two unrelated frontend expectation failures caused by concurrent tool-page edits and those files were not folded into this workflow change.
 - Validated the workflow manifest JSON and added regression coverage for all seven capability states and deployment exclusion rules.
 
 - Qualified the first real Compshare image-generation runtime. The original `A01-compshare.json` Qwen Image 2512 baseline completed a 1024x1024 generation on the selected 4090 instance without changing frontend contracts.

@@ -413,7 +413,8 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Dependencies: AI-WF-002, production HTTPS gateway
 - Acceptance Criteria: source image, optional mask and prompt map to explicit ComfyUI nodes; edited output preserves unmasked regions; automatic mask fallback is tested; credits, refund, timeout, Storage, history and shutdown pass.
 - Related Documents: AI-WORKFLOW-002, API-IMAGE-002, BACKEND-GPU-004
-- Status: Backlog
+- Status: Doing
+- Current Evidence: repository-owned API workflow, native Qwen Image Edit conditioning, separate source/mask upload, fixed node injection, missing-mask rejection, Admin testing registration and private bundle generation pass. Remaining: install the edit UNet, add automatic masking, run cost-bearing output/credits/refund/Storage/shutdown qualification.
 
 ## Sprint 4: Admin And MVP Integration
 

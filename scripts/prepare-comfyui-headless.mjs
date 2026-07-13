@@ -25,12 +25,18 @@ if (missing.length) throw new Error(`Missing workflow exports: ${missing.join(",
 rmSync(output, { recursive: true, force: true });
 mkdirSync(join(output, "workflows"), { recursive: true });
 cpSync(join(root, "templates", "comfyui-headless"), join(output, "runtime"), { recursive: true });
-cpSync(
-  join(root, "templates", "comfyui-headless", "workflows", "A01-compshare.json"),
-  join(output, "workflows", "A01-compshare.json"),
-);
-
-const copied = [{ id: "A01-compshare", source: "template", target: "A01-compshare.json" }];
+const copied = [];
+for (const workflow of manifest.workflows.filter((entry) => entry.source === "template")) {
+  const filename = workflow.filename || `${workflow.id}.json`;
+  const sourcePath = join(root, "templates", "comfyui-headless", "workflows", filename);
+  if (!existsSync(sourcePath)) throw new Error(`Missing template workflow: ${filename}`);
+  const parsed = JSON.parse(readFileSync(sourcePath, "utf8"));
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error(`${filename} is not a ComfyUI API object workflow`);
+  }
+  cpSync(sourcePath, join(output, "workflows", filename));
+  copied.push({ id: workflow.id, source: "template", target: filename });
+}
 for (const workflow of sourceWorkflows) {
   const filename = candidates.get(workflow.id);
   const parsed = JSON.parse(readFileSync(join(source, filename), "utf8"));

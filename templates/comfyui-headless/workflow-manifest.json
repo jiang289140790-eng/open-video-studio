@@ -5,11 +5,11 @@
     {
       "capability": "image-editing",
       "workflowId": "E01",
-      "status": "missing",
+      "status": "inventory",
       "requiredInputs": ["source_image", "mask", "prompt"],
       "requiredProcessing": ["inpainting", "automatic-mask", "prompt-enhancement"],
       "outputType": "image",
-      "acceptanceGate": "Masked and unmasked edits preserve unaffected regions and complete the credits-to-Storage loop."
+      "acceptanceGate": "Masked and unmasked edits preserve unaffected regions and complete the credits-to-Storage loop. Automatic mask generation remains a separate qualification gate."
     },
     {
       "capability": "face-swap",
@@ -95,6 +95,23 @@
       "priority": 1,
       "models": [
         "Qwen-Image_ComfyUI/qwen_image_2512_fp8_e4m3fn.safetensors",
+        "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+        "qwen_image_vae.safetensors"
+      ]
+    },
+    {
+      "id": "E01",
+      "source": "template",
+      "filename": "E01-qwen-edit.json",
+      "capability": "masked-image-editing",
+      "status": "inventory",
+      "promptNodeId": "76",
+      "referenceImageNodeId": "78",
+      "maskImageNodeId": "79",
+      "minimumVramGb": 24,
+      "priority": 2,
+      "models": [
+        "qwen_image_edit_fp8_e4m3fn.safetensors",
         "qwen_2.5_vl_7b_fp8_scaled.safetensors",
         "qwen_image_vae.safetensors"
       ]
