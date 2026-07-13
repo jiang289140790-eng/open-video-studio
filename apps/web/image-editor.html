@@ -9,15 +9,114 @@
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
-    <header class="topbar"><a class="brand" href="./zh/app/"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a><nav class="topnav"><a href="./zh/app/image-editor/" aria-current="page">图像工具</a><a href="./zh/app/image-to-video/">视频工具</a><a href="./zh/pricing/">购买积分</a><a href="./zh/free-coins/">免费硬币</a><a href="./zh/my-creations/">我的创作</a></nav><nav class="accountnav"><a class="daily-check" href="./zh/free-coins/">每日签到</a><a href="./zh/login/">登录</a></nav></header>
-    <main class="app-surface tool-detail-page">
-      <section class="tool-detail-hero">
-        <div class="tool-detail-copy"><p class="eyebrow">AI 图像</p><h1>图片编辑器</h1><p class="lead">上传图片，用提示词修改画面、替换背景、修复细节，并把结果保存为可复用资产。</p><div class="tool-chip-row"><span>重绘</span><span>扩图</span><span>局部修复</span><span>参考图</span></div><a class="btn primary" href="./zh/app/generate/">开始编辑</a></div>
-        <div class="tool-detail-preview"><div class="tool-preview-canvas art-3"></div><div class="tool-control-row"><span>上传图片</span><span>输入修改需求</span><span>保存到资产库</span></div></div>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
+      <nav class="topnav" aria-label="Primary navigation">
+        <a href="./zh/image-tools/">图像工具</a>
+        <a href="./zh/video-tools/">视频工具</a>
+        <a href="./zh/pricing/">购买积分</a>
+        <a href="./zh/free-coins/">免费硬币</a>
+        <a href="./zh/my-creations/">我的创作</a>
+      </nav>
+      <nav class="accountnav" aria-label="Account navigation">
+        <a class="daily-check" href="./zh/free-coins/">每日签到</a>
+        <a href="./zh/login/">登录</a>
+      </nav>
+      <a class="btn primary nav-cta" href="./zh/pricing/"><span data-credit-balance>40</span> 积分</a>
+    </header>
+
+    <main class="studio-shell" data-image-editor>
+      <section class="studio-panel control-panel">
+        <p class="eyebrow">AI 图像 · 编辑</p>
+        <h1>图片编辑器</h1>
+        <p class="lead">上传图片，用提示词修改画面、移除对象、替换背景、增强画质，并把结果保存为可复用资产。</p>
+
+        <div class="preset-summary">
+          <span>当前预设</span>
+          <strong>图片编辑 · 8 积分起</strong>
+          <p>支持重绘、扩图、局部修复、背景替换、移除对象。</p>
+        </div>
+
+        <div class="mode-grid">
+          <button class="mode-card active" data-edit-mode="inpaint"><span>局部重绘</span><strong>指定区域修改</strong><em>8 积分起</em></button>
+          <button class="mode-card" data-edit-mode="outpaint"><span>扩图</span><strong>画面外扩</strong><em>12 积分起</em></button>
+          <button class="mode-card" data-edit-mode="remove"><span>移除对象</span><strong>智能去水印/物体</strong><em>8 积分起</em></button>
+          <button class="mode-card" data-edit-mode="enhance"><span>画质增强</span><strong>高清放大</strong><em>16 积分起</em></button>
+        </div>
+
+        <section class="upload-zone video-reference-zone" data-edit-upload-zone>
+          <div class="upload-zone-head">
+            <strong>上传参考图片</strong>
+            <span data-edit-upload-status>等待选择</span>
+          </div>
+          <p>上传产品图、人物图或场景图作为编辑基础。支持 JPG/PNG/WebP。</p>
+          <div class="reference-input-actions">
+            <label class="btn glass">从相册选择<input type="file" aria-label="上传参考图片" accept="image/*" data-edit-upload hidden></label>
+            <label class="btn glass">拍照上传<input type="file" aria-label="拍照上传参考图片" accept="image/*" capture="environment" data-edit-camera hidden></label>
+          </div>
+          <article class="reference-card" data-edit-reference-card hidden>
+            <span class="thumb art-3" data-edit-reference-thumb></span>
+            <div>
+              <strong data-edit-reference-label>尚未选择参考图</strong>
+              <small data-edit-reference-meta>请选择需要编辑的图片</small>
+            </div>
+          </article>
+        </section>
+
+        <label class="studio-field">编辑描述
+          <textarea class="textarea hero-textarea" data-edit-prompt rows="4">把背景换成纯白工作室风格，保持产品清晰不变，增强光影细节</textarea>
+        </label>
+        <button class="btn glass" data-enhance type="button">优化提示词</button>
       </section>
-      <section class="tool-flow-grid"><article><span>01</span><h3>上传参考</h3><p>选择产品图、人物图或场景图作为编辑基础。</p></article><article><span>02</span><h3>描述修改</h3><p>使用自然语言说明风格、镜头、背景和构图。</p></article><article><span>03</span><h3>继续复用</h3><p>结果进入素材库，可用于视频或后续生成。</p></article></section>
+
+      <section class="studio-panel preview-panel">
+        <div class="preview-head">
+          <div>
+            <p class="eyebrow">实时预览</p>
+            <h2>编辑预览</h2>
+          </div>
+          <span class="credit-pill" data-credit-cost>8 积分</span>
+        </div>
+        <div class="creative-preview art-3" data-edit-preview>
+          <span class="play-dot"></span>
+          <strong data-mode-label>图片编辑</strong>
+          <small data-edit-preview-meta>上传图片后预览</small>
+        </div>
+        <div class="generation-preflight">
+          <div><span>模式</span><strong data-preflight-edit-mode>局部重绘</strong></div>
+          <div><span>参考图</span><strong data-preflight-edit-ref>未选择</strong></div>
+          <div><span>预计耗时</span><strong>约 30-60 秒</strong></div>
+          <div><span>输出</span><strong>PNG 编辑结果</strong></div>
+          <div><span>扣费</span><strong>8 积分</strong></div>
+          <p data-edit-ready-state>请先上传参考图片并输入编辑描述，再提交任务。</p>
+        </div>
+        <div class="sticky-generate">
+          <div>
+            <strong>准备生成</strong>
+            <p data-edit-cost-note>预计消耗 8 积分。结果会保存到资产库和我的创作。</p>
+          </div>
+          <button class="btn primary" data-generate type="button">开始编辑</button>
+        </div>
+        <div class="recent-results" data-queue><h2>生成任务</h2></div>
+      </section>
     </main>
+
+    <section class="app-surface tool-section">
+      <div class="tool-section-head"><h2>更多图像工具</h2><a href="./zh/image-tools/">返回图像工具</a></div>
+      <div class="card-carousel">
+        <a class="tool-poster art-2" href="./zh/app/face-swap/"><strong>AI 换脸</strong><span>一键替换面部</span></a>
+        <a class="tool-poster art-11" href="./zh/app/outfit-studio/"><strong>造型工作室</strong><span>服装与风格</span></a>
+        <a class="tool-poster art-10" href="./zh/app/pose-generator/"><strong>姿势生成器</strong><span>动作参考</span></a>
+        <a class="tool-poster art-5" href="./zh/app/image-combiner/"><strong>图像组合器</strong><span>多图合成</span></a>
+      </div>
+    </section>
+
+    <section class="tool-flow-grid">
+      <article><span>01</span><h3>上传参考图</h3><p>选择产品图、人物图或场景图作为编辑基础。</p></article>
+      <article><span>02</span><h3>描述修改需求</h3><p>使用自然语言说明要修改的内容、风格和效果。</p></article>
+      <article><span>03</span><h3>保存复用</h3><p>结果进入资产库，可用于视频生成或后续编辑。</p></article>
+    </section>
+
     <script type="module" src="./app.js"></script>
   </body>
 </html>
-

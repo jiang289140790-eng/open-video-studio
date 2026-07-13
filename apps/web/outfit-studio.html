@@ -1,13 +1,115 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>造型工作室 | Luravyn</title>
-    <link rel="icon" type="image/png" href="./favicon.png"><meta name="description" content="为角色生成不同服装、场景和品牌造型参考。"><link rel="stylesheet" href="./styles.css"></head>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>造型工作室 | Luravyn</title>
+    <link rel="icon" type="image/png" href="./favicon.png">
+    <meta name="description" content="为同一个角色快速切换服装、场景和风格，保持品牌视觉一致。">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
   <body>
-    <header class="topbar"><a class="brand" href="./zh/app/"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a><nav class="topnav"><a href="./zh/app/image-editor/">图像工具</a><a href="./zh/app/image-to-video/">视频工具</a><a href="./zh/pricing/">购买积分</a><a href="./zh/free-coins/">免费硬币</a><a href="./zh/my-creations/">我的创作</a></nav><nav class="accountnav"><a class="daily-check" href="./zh/free-coins/">每日签到</a><a href="./zh/login/">登录</a></nav></header>
-    <main class="app-surface tool-detail-page">
-      <section class="tool-detail-hero"><div class="tool-detail-copy"><p class="eyebrow">AI 图像</p><h1>造型工作室</h1><p class="lead">为同一角色快速尝试不同服装、配色和拍摄场景，保持品牌视觉一致。</p><div class="tool-chip-row"><span>商务</span><span>街拍</span><span>发布会</span><span>社媒</span></div><a class="btn primary" href="./zh/app/generate/">生成造型</a></div><div class="tool-detail-preview"><div class="tool-preview-canvas art-11"></div><div class="tool-control-row"><span>选择角色</span><span>选择风格</span><span>生成封面</span></div></div></section>
-      <section class="tool-flow-grid"><article><span>01</span><h3>角色不变</h3><p>沿用角色记忆和标签。</p></article><article><span>02</span><h3>切换造型</h3><p>组合服装、场景、色彩和镜头。</p></article><article><span>03</span><h3>批量保存</h3><p>把满意版本加入资产库。</p></article></section>
-    </main><script type="module" src="./app.js"></script>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
+      <nav class="topnav" aria-label="Primary navigation">
+        <a href="./zh/image-tools/">图像工具</a>
+        <a href="./zh/video-tools/">视频工具</a>
+        <a href="./zh/pricing/">购买积分</a>
+        <a href="./zh/free-coins/">免费硬币</a>
+        <a href="./zh/my-creations/">我的创作</a>
+      </nav>
+      <nav class="accountnav" aria-label="Account navigation">
+        <a class="daily-check" href="./zh/free-coins/">每日签到</a>
+        <a href="./zh/login/">登录</a>
+      </nav>
+      <a class="btn primary nav-cta" href="./zh/pricing/"><span data-credit-balance>40</span> 积分</a>
+    </header>
+
+    <main class="studio-shell" data-outfit-studio>
+      <section class="studio-panel control-panel">
+        <p class="eyebrow">AI 图像 · 造型</p>
+        <h1>造型工作室</h1>
+        <p class="lead">为同一个角色快速尝试不同服装、配色和拍摄场景，保持品牌视觉一致性。适合电商模特、品牌代言和社媒内容创作。</p>
+
+        <div class="preset-summary">
+          <span>当前预设</span>
+          <strong>造型生成 · 12 积分起</strong>
+          <p>支持商务、街拍、发布会、社媒等多种风格。</p>
+        </div>
+
+        <div class="mode-grid">
+          <button class="mode-card active" data-outfit-style="business"><span>商务造型</span><strong>职业装/正装</strong><em>12 积分起</em></button>
+          <button class="mode-card" data-outfit-style="street"><span>街拍风格</span><strong>休闲/潮流</strong><em>12 积分起</em></button>
+          <button class="mode-card" data-outfit-style="evening"><span>晚装/礼服</span><strong>正式场合</strong><em>16 积分起</em></button>
+          <button class="mode-card" data-outfit-style="social"><span>社媒风格</span><strong>网红/时尚</strong><em>12 积分起</em></button>
+        </div>
+
+        <section class="upload-zone video-reference-zone" data-outfit-upload-zone>
+          <div class="upload-zone-head">
+            <strong>上传角色参考图</strong>
+            <span data-outfit-upload-status>等待选择</span>
+          </div>
+          <p>上传角色面部或全身参考照，AI 将在保持面部一致的前提下更换造型。</p>
+          <div class="reference-input-actions">
+            <label class="btn glass">从相册选择<input type="file" aria-label="上传角色参考图" accept="image/*" data-outfit-upload hidden></label>
+            <label class="btn glass">拍照上传<input type="file" aria-label="拍照上传角色参考图" accept="image/*" capture="environment" data-outfit-camera hidden></label>
+          </div>
+          <article class="reference-card" data-outfit-reference-card hidden>
+            <span class="thumb art-11" data-outfit-reference-thumb></span>
+            <div>
+              <strong data-outfit-reference-label>尚未选择参考图</strong>
+              <small data-outfit-reference-meta>请选择角色照片</small>
+            </div>
+          </article>
+        </section>
+
+        <label class="studio-field">风格描述
+          <textarea class="textarea hero-textarea" data-outfit-prompt rows="3">身穿米色西装套装，站在现代办公室落地窗前，自然光，杂志摄影风格</textarea>
+        </label>
+      </section>
+
+      <section class="studio-panel preview-panel">
+        <div class="preview-head">
+          <div>
+            <p class="eyebrow">实时预览</p>
+            <h2>造型预览</h2>
+          </div>
+          <span class="credit-pill" data-credit-cost>12 积分</span>
+        </div>
+        <div class="creative-preview art-11" data-outfit-preview>
+          <span class="play-dot"></span>
+          <strong data-mode-label>造型生成</strong>
+          <small data-outfit-preview-meta>上传角色照片后预览</small>
+        </div>
+        <div class="generation-preflight">
+          <div><span>风格</span><strong data-preflight-outfit-style>商务造型</strong></div>
+          <div><span>参考图</span><strong data-preflight-outfit-ref>未选择</strong></div>
+          <div><span>预计耗时</span><strong>约 30-60 秒</strong></div>
+          <div><span>输出</span><strong>PNG 造型结果</strong></div>
+          <div><span>扣费</span><strong>12 积分</strong></div>
+          <p data-outfit-ready-state>请先上传角色参考图并选择风格，再提交生成任务。</p>
+        </div>
+        <div class="sticky-generate">
+          <div>
+            <strong>准备生成</strong>
+            <p data-outfit-cost-note>预计消耗 12 积分。结果会保存到资产库和我的创作。</p>
+          </div>
+          <button class="btn primary" data-generate type="button">生成造型</button>
+        </div>
+        <div class="recent-results" data-queue><h2>生成任务</h2></div>
+      </section>
+    </main>
+
+    <section class="app-surface tool-section">
+      <div class="tool-section-head"><h2>更多图像工具</h2><a href="./zh/image-tools/">返回图像工具</a></div>
+      <div class="card-carousel">
+        <a class="tool-poster art-2" href="./zh/app/face-swap/"><strong>AI 换脸</strong><span>一键替换面部</span></a>
+        <a class="tool-poster art-3" href="./zh/app/image-editor/"><strong>图片编辑器</strong><span>重绘与修复</span></a>
+        <a class="tool-poster art-10" href="./zh/app/pose-generator/"><strong>姿势生成器</strong><span>动作参考</span></a>
+        <a class="tool-poster art-5" href="./zh/app/image-combiner/"><strong>图像组合器</strong><span>多图合成</span></a>
+      </div>
+    </section>
+
+    <script type="module" src="./app.js"></script>
   </body>
 </html>
-

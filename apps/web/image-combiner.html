@@ -1,13 +1,119 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>图像组合器 | Luravyn</title>
-    <link rel="icon" type="image/png" href="./favicon.png"><meta name="description" content="组合多张参考图、角色图和产品图，生成统一风格的创意资产。"><link rel="stylesheet" href="./styles.css"></head>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>图像组合器 | Luravyn</title>
+    <link rel="icon" type="image/png" href="./favicon.png">
+    <meta name="description" content="组合多张参考图、角色图和产品图，生成统一风格的创意合成资产。">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
   <body>
-    <header class="topbar"><a class="brand" href="./zh/app/"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a><nav class="topnav"><a href="./zh/app/image-editor/">图像工具</a><a href="./zh/app/image-to-video/">视频工具</a><a href="./zh/pricing/">购买积分</a><a href="./zh/free-coins/">免费硬币</a><a href="./zh/my-creations/">我的创作</a></nav><nav class="accountnav"><a class="daily-check" href="./zh/free-coins/">每日签到</a><a href="./zh/login/">登录</a></nav></header>
-    <main class="app-surface tool-detail-page">
-      <section class="tool-detail-hero"><div class="tool-detail-copy"><p class="eyebrow">AI 图像</p><h1>图像组合器</h1><p class="lead">把产品、角色、背景和参考风格合并成一张统一画面，适合广告图和活动主视觉。</p><div class="tool-chip-row"><span>多图参考</span><span>产品图</span><span>角色图</span><span>品牌风格</span></div><a class="btn primary" href="./zh/assets/">选择资产</a></div><div class="tool-detail-preview"><div class="tool-preview-canvas art-9"></div><div class="tool-control-row"><span>拖入资产</span><span>设置权重</span><span>生成合成图</span></div></div></section>
-      <section class="tool-flow-grid"><article><span>01</span><h3>添加素材</h3><p>从素材库选择多张参考。</p></article><article><span>02</span><h3>描述目标</h3><p>说明最终画面需要表达什么。</p></article><article><span>03</span><h3>保存结果</h3><p>产出保存到资产库并可转视频。</p></article></section>
-    </main><script type="module" src="./app.js"></script>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
+      <nav class="topnav" aria-label="Primary navigation">
+        <a href="./zh/image-tools/">图像工具</a>
+        <a href="./zh/video-tools/">视频工具</a>
+        <a href="./zh/pricing/">购买积分</a>
+        <a href="./zh/free-coins/">免费硬币</a>
+        <a href="./zh/my-creations/">我的创作</a>
+      </nav>
+      <nav class="accountnav" aria-label="Account navigation">
+        <a class="daily-check" href="./zh/free-coins/">每日签到</a>
+        <a href="./zh/login/">登录</a>
+      </nav>
+      <a class="btn primary nav-cta" href="./zh/pricing/"><span data-credit-balance>40</span> 积分</a>
+    </header>
+
+    <main class="studio-shell" data-image-combiner>
+      <section class="studio-panel control-panel">
+        <p class="eyebrow">AI 图像 · 合成</p>
+        <h1>图像组合器</h1>
+        <p class="lead">把产品、角色、背景和参考风格合并成一张统一画面，适合广告图、活动主视觉和品牌宣传素材。</p>
+
+        <div class="preset-summary">
+          <span>当前预设</span>
+          <strong>图像组合 · 16 积分起</strong>
+          <p>支持多图参考、产品图+场景、角色+背景、品牌风格合成。</p>
+        </div>
+
+        <div class="mode-grid">
+          <button class="mode-card active" data-combine-mode="product"><span>产品+场景</span><strong>商品合成</strong><em>16 积分起</em></button>
+          <button class="mode-card" data-combine-mode="character"><span>角色+背景</span><strong>人物合成</strong><em>16 积分起</em></button>
+          <button class="mode-card" data-combine-mode="multi"><span>多图参考</span><strong>风格融合</strong><em>24 积分起</em></button>
+        </div>
+
+        <section class="upload-zone video-reference-zone" data-combine-main-zone>
+          <div class="upload-zone-head">
+            <strong>上传主体图片</strong>
+            <span data-combine-main-status>等待选择</span>
+          </div>
+          <p>上传产品图或角色图作为合成主体。</p>
+          <div class="reference-input-actions">
+            <label class="btn glass">从相册选择<input type="file" aria-label="上传主体图片" accept="image/*" data-combine-main-upload hidden></label>
+            <button class="btn glass" data-open-asset-picker type="button">从资产库选择</button>
+          </div>
+        </section>
+
+        <section class="upload-zone video-reference-zone" data-combine-ref-zone>
+          <div class="upload-zone-head">
+            <strong>上传参考背景/风格图</strong>
+            <span data-combine-ref-status>等待选择</span>
+          </div>
+          <p>上传背景图或风格参考图。</p>
+          <div class="reference-input-actions">
+            <label class="btn glass">从相册选择<input type="file" aria-label="上传背景参考图" accept="image/*" data-combine-ref-upload hidden></label>
+          </div>
+        </section>
+
+        <label class="studio-field">合成描述
+          <textarea class="textarea hero-textarea" data-combine-prompt rows="3">将产品放置在奢华酒店大堂场景中，暖金色灯光，景深效果，高端广告摄影风格</textarea>
+        </label>
+      </section>
+
+      <section class="studio-panel preview-panel">
+        <div class="preview-head">
+          <div>
+            <p class="eyebrow">实时预览</p>
+            <h2>合成预览</h2>
+          </div>
+          <span class="credit-pill" data-credit-cost>16 积分</span>
+        </div>
+        <div class="creative-preview art-5" data-combine-preview>
+          <span class="play-dot"></span>
+          <strong data-mode-label>图像组合</strong>
+          <small data-combine-preview-meta>上传素材后预览</small>
+        </div>
+        <div class="generation-preflight">
+          <div><span>模式</span><strong data-preflight-combine-mode>产品+场景</strong></div>
+          <div><span>主体图</span><strong data-preflight-combine-main>未选择</strong></div>
+          <div><span>参考图</span><strong data-preflight-combine-ref>未选择</strong></div>
+          <div><span>预计耗时</span><strong>约 1-2 分钟</strong></div>
+          <div><span>输出</span><strong>PNG 合成结果</strong></div>
+          <div><span>扣费</span><strong>16 积分</strong></div>
+          <p data-combine-ready-state>请先上传主体图和参考背景图，再提交合成任务。</p>
+        </div>
+        <div class="sticky-generate">
+          <div>
+            <strong>准备生成</strong>
+            <p data-combine-cost-note>预计消耗 16 积分。结果会保存到资产库和我的创作。</p>
+          </div>
+          <button class="btn primary" data-generate type="button">开始合成</button>
+        </div>
+        <div class="recent-results" data-queue><h2>生成任务</h2></div>
+      </section>
+    </main>
+
+    <section class="app-surface tool-section">
+      <div class="tool-section-head"><h2>更多图像工具</h2><a href="./zh/image-tools/">返回图像工具</a></div>
+      <div class="card-carousel">
+        <a class="tool-poster art-2" href="./zh/app/face-swap/"><strong>AI 换脸</strong><span>一键替换面部</span></a>
+        <a class="tool-poster art-3" href="./zh/app/image-editor/"><strong>图片编辑器</strong><span>重绘与修复</span></a>
+        <a class="tool-poster art-11" href="./zh/app/outfit-studio/"><strong>造型工作室</strong><span>服装与风格</span></a>
+        <a class="tool-poster art-10" href="./zh/app/pose-generator/"><strong>姿势生成器</strong><span>动作参考</span></a>
+      </div>
+    </section>
+
+    <script type="module" src="./app.js"></script>
   </body>
 </html>
-

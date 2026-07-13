@@ -1,13 +1,149 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>AI 换脸 | Luravyn</title>
-    <link rel="icon" type="image/png" href="./favicon.png"><meta name="description" content="为授权角色和品牌素材创建一致的人物形象替换流程。"><link rel="stylesheet" href="./styles.css"></head>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI 换脸 | Luravyn</title>
+    <link rel="icon" type="image/png" href="./favicon.png">
+    <meta name="description" content="上传源照片和目标照片，一键完成高精度 AI 换脸，保持角色一致性。">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
   <body>
-    <header class="topbar"><a class="brand" href="./zh/app/"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a><nav class="topnav"><a href="./zh/app/image-editor/">图像工具</a><a href="./zh/app/image-to-video/">视频工具</a><a href="./zh/pricing/">购买积分</a><a href="./zh/free-coins/">免费硬币</a><a href="./zh/my-creations/">我的创作</a></nav><nav class="accountnav"><a class="daily-check" href="./zh/free-coins/">每日签到</a><a href="./zh/login/">登录</a></nav></header>
-    <main class="app-surface tool-detail-page">
-      <section class="tool-detail-hero"><div class="tool-detail-copy"><p class="eyebrow">AI 图像</p><h1>AI 换脸</h1><p class="lead">为经过授权的角色素材建立一致面部参考，快速生成品牌代言、课程封面和短视频人物图。</p><div class="tool-chip-row"><span>授权素材</span><span>角色一致性</span><span>封面图</span><span>资产保存</span></div><a class="btn primary" href="./zh/app/characters/">选择角色</a></div><div class="tool-detail-preview"><div class="tool-preview-canvas art-2"></div><div class="tool-control-row"><span>源角色</span><span>目标画面</span><span>一致性检查</span></div></div></section>
-      <section class="tool-flow-grid"><article><span>01</span><h3>选择角色</h3><p>从角色库选择已授权的形象。</p></article><article><span>02</span><h3>添加目标图</h3><p>上传需要替换的人像或场景画面。</p></article><article><span>03</span><h3>生成版本</h3><p>生成结果进入历史和素材库。</p></article></section>
-    </main><script type="module" src="./app.js"></script>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
+      <nav class="topnav" aria-label="Primary navigation">
+        <a href="./zh/image-tools/">图像工具</a>
+        <a href="./zh/video-tools/">视频工具</a>
+        <a href="./zh/pricing/">购买积分</a>
+        <a href="./zh/free-coins/">免费硬币</a>
+        <a href="./zh/my-creations/">我的创作</a>
+      </nav>
+      <nav class="accountnav" aria-label="Account navigation">
+        <a class="daily-check" href="./zh/free-coins/">每日签到</a>
+        <a href="./zh/login/">登录</a>
+      </nav>
+      <a class="btn primary nav-cta" href="./zh/pricing/"><span data-credit-balance>40</span> 积分</a>
+    </header>
+
+    <main class="studio-shell" data-face-swap>
+      <section class="studio-panel control-panel">
+        <p class="eyebrow">AI 图像 · 换脸</p>
+        <h1>AI 换脸</h1>
+        <p class="lead">上传源照片和目标照片，AI 自动完成高精度面部替换。适合角色一致性创作、品牌代言图和创意封面。</p>
+
+        <div class="preset-summary">
+          <span>当前预设</span>
+          <strong>AI 换脸 · 40 积分/次</strong>
+          <p>支持单人/多人换脸；结果自动进入资产库和我的创作。</p>
+        </div>
+
+        <div class="mode-grid">
+          <button class="mode-card active" data-face-swap-mode="single"><span>单人换脸</span><strong>单角色替换</strong><em>40 积分起</em></button>
+          <button class="mode-card" data-face-swap-mode="multi"><span>多人换脸</span><strong>多角色批量</strong><em>80 积分起</em></button>
+        </div>
+
+        <section class="upload-zone video-reference-zone" data-source-upload-zone>
+          <div class="upload-zone-head">
+            <strong>上传源照片（要被替换的脸）</strong>
+            <span data-source-upload-status>等待选择</span>
+          </div>
+          <p>上传包含目标面部的照片，AI 将提取这张脸用于替换。</p>
+          <div class="reference-input-actions">
+            <label class="btn glass">从相册选择<input type="file" aria-label="上传源照片" accept="image/*" data-source-upload hidden></label>
+            <label class="btn glass">拍照上传<input type="file" aria-label="拍照上传源照片" accept="image/*" capture="environment" data-source-camera hidden></label>
+          </div>
+          <article class="reference-card" data-source-reference-card hidden>
+            <span class="thumb art-2" data-source-reference-thumb></span>
+            <div>
+              <strong data-source-reference-label>尚未选择源照片</strong>
+              <small data-source-reference-meta>请先选择包含目标面部的照片</small>
+            </div>
+          </article>
+        </section>
+
+        <section class="upload-zone video-reference-zone" data-target-upload-zone>
+          <div class="upload-zone-head">
+            <strong>上传目标照片（要换到哪张图上）</strong>
+            <span data-target-upload-status>等待选择</span>
+          </div>
+          <p>上传需要替换面部的目标图片（海报、场景图、封面模板等）。</p>
+          <div class="reference-input-actions">
+            <label class="btn glass">从相册选择<input type="file" aria-label="上传目标照片" accept="image/*" data-target-upload hidden></label>
+            <label class="btn glass">拍照上传<input type="file" aria-label="拍照上传目标照片" accept="image/*" capture="environment" data-target-camera hidden></label>
+          </div>
+          <article class="reference-card" data-target-reference-card hidden>
+            <span class="thumb art-3" data-target-reference-thumb></span>
+            <div>
+              <strong data-target-reference-label>尚未选择目标照片</strong>
+              <small data-target-reference-meta>请选择需要替换面部的目标图</small>
+            </div>
+          </article>
+        </section>
+
+        <div class="asset-picker-actions">
+          <button class="btn glass" type="button" data-open-asset-picker>从资产库选择</button>
+          <button class="btn glass" type="button" data-demo-reference>使用示例图片</button>
+        </div>
+
+        <label class="studio-field">换脸强度
+          <select data-face-swap-strength>
+            <option value="0.8">高精度（推荐）</option>
+            <option value="0.6">中等</option>
+            <option value="0.4">轻度融合</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="studio-panel preview-panel">
+        <div class="preview-head">
+          <div>
+            <p class="eyebrow">实时预览</p>
+            <h2>换脸预览</h2>
+          </div>
+          <span class="credit-pill" data-credit-cost>40 积分</span>
+        </div>
+        <div class="creative-preview art-2" data-face-swap-preview>
+          <span class="play-dot"></span>
+          <strong data-mode-label>AI 换脸</strong>
+          <small data-face-swap-preview-meta>上传源照片和目标照片后预览</small>
+        </div>
+        <div class="generation-preflight">
+          <div><span>源照片</span><strong data-preflight-source>未选择</strong></div>
+          <div><span>目标照片</span><strong data-preflight-target>未选择</strong></div>
+          <div><span>模式</span><strong data-preflight-mode>单人换脸</strong></div>
+          <div><span>强度</span><strong data-preflight-strength>高精度</strong></div>
+          <div><span>预计耗时</span><strong>约 30-60 秒</strong></div>
+          <div><span>输出</span><strong>PNG 换脸结果</strong></div>
+          <div><span>扣费</span><strong>40 积分</strong></div>
+          <p data-face-swap-ready-state>请先上传源照片和目标照片，再提交换脸任务。</p>
+        </div>
+        <div class="sticky-generate">
+          <div>
+            <strong>准备生成</strong>
+            <p data-face-swap-cost-note>预计消耗 40 积分。结果会保存到资产库和我的创作。</p>
+          </div>
+          <button class="btn primary" data-generate type="button">开始换脸</button>
+        </div>
+        <div class="recent-results" data-queue><h2>生成任务</h2></div>
+      </section>
+    </main>
+
+    <section class="app-surface tool-section">
+      <div class="tool-section-head"><h2>更多图像工具</h2><a href="./zh/image-tools/">返回图像工具</a></div>
+      <div class="card-carousel">
+        <a class="tool-poster art-3" href="./zh/app/image-editor/"><strong>图片编辑器</strong><span>重绘与修复</span></a>
+        <a class="tool-poster art-11" href="./zh/app/outfit-studio/"><strong>造型工作室</strong><span>服装与风格</span></a>
+        <a class="tool-poster art-10" href="./zh/app/pose-generator/"><strong>姿势生成器</strong><span>动作参考</span></a>
+        <a class="tool-poster art-5" href="./zh/app/image-combiner/"><strong>图像组合器</strong><span>多图合成</span></a>
+      </div>
+    </section>
+
+    <section class="tool-flow-grid">
+      <article><span>01</span><h3>上传源照片</h3><p>选择包含目标面部的照片，AI 自动提取面部特征。</p></article>
+      <article><span>02</span><h3>选择目标图</h3><p>上传需要替换面部的海报、场景图或封面模板。</p></article>
+      <article><span>03</span><h3>一键换脸</h3><p>AI 自动完成面部替换，结果保存到资产库并可继续用于视频生成。</p></article>
+    </section>
+
+    <script type="module" src="./app.js"></script>
   </body>
 </html>
-
