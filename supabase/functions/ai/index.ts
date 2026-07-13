@@ -2,6 +2,7 @@
 // Server-only provider orchestration for Qwen Vision, DeepSeek text, Qianwen generation, and Fake Worker fallback.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { ensureCompShareInstanceReady, scheduleCompShareShutdown } from "../_shared/compshare.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -533,35 +534,70 @@ async function callZealmanWorkflow(env: AiEnv, job: Record<string, any>) {
   if (!env.zealmanPanelBaseUrl || !env.zealmanComfyBaseUrl) {
     throw new AiFunctionError("ZEALMAN_NOT_CONFIGURED", "Zealman panel and ComfyUI URLs are missing.", 500);
   }
+  await ensureCompShareRuntime(env);
   const workflowName = resolveZealmanWorkflowName(env, job);
   if (!workflowName) {
     throw new AiFunctionError("ZEALMAN_WORKFLOW_MISSING", "Zealman workflow name is missing.", 500);
   }
 
-  const workflow = await fetchZealmanWorkflow(env, workflowName);
-  applyZealmanPrompt(workflow, String(job.prompt || ""), env.zealmanPromptNodeId);
-  const inputParams = safeObject(job.input_params);
-  const sourceImageUrl = String(inputParams.sourceImageUrl || inputParams.source_image_url || "").trim();
-  if (sourceImageUrl) {
-    const uploadedImage = await uploadZealmanSourceImage(env, sourceImageUrl, String(job.id || crypto.randomUUID()));
-    applyZealmanUploadedImage(workflow, uploadedImage);
-  }
+  try {
+    const workflow = await fetchZealmanWorkflow(env, workflowName);
+    applyZealmanPrompt(workflow, String(job.prompt || ""), env.zealmanPromptNodeId);
+    const inputParams = safeObject(job.input_params);
+    const sourceImageUrl = String(inputParams.sourceImageUrl || inputParams.source_image_url || "").trim();
+    if (sourceImageUrl) {
+      const uploadedImage = await uploadZealmanSourceImage(env, sourceImageUrl, String(job.id || crypto.randomUUID()));
+      applyZealmanUploadedImage(workflow, uploadedImage);
+    }
 
-  const submit = await submitZealmanWorkflow(env, workflow);
-  const providerJobId = String(submit.prompt_id || submit.promptId || submit.data?.prompt_id || "").trim();
-  if (!providerJobId) {
-    throw new AiFunctionError("ZEALMAN_SUBMIT_FAILED", "Zealman did not return a prompt id.", 502);
-  }
+    const submit = await submitZealmanWorkflow(env, workflow);
+    const providerJobId = String(submit.prompt_id || submit.promptId || submit.data?.prompt_id || "").trim();
+    if (!providerJobId) {
+      throw new AiFunctionError("ZEALMAN_SUBMIT_FAILED", "Zealman did not return a prompt id.", 502);
+    }
 
-  const result = await pollZealmanHistory(env, providerJobId);
-  const outputs = extractZealmanOutputs(env, result, providerJobId);
-  if (!outputs.length) {
-    throw new AiFunctionError("ZEALMAN_OUTPUT_MISSING", "Zealman workflow completed without an output file.", 502);
+    const result = await pollZealmanHistory(env, providerJobId);
+    const outputs = extractZealmanOutputs(env, result, providerJobId);
+    if (!outputs.length) {
+      throw new AiFunctionError("ZEALMAN_OUTPUT_MISSING", "Zealman workflow completed without an output file.", 502);
+    }
+    return {
+      providerJobId,
+      outputUrl: outputs[0].url,
+      outputHeaders: zealmanHeaders(env, false),
+      raw: { workflowName, submit, outputs, status: result?.status ?? null },
+    };
+  } finally {
+    await scheduleCompShareIdleShutdown(env).catch(() => undefined);
   }
+}
+
+async function ensureCompShareRuntime(env: AiEnv) {
+  if (!env.compShareInstanceId) return;
+  try {
+    await ensureCompShareInstanceReady(compShareConfig(env), `${env.zealmanPanelBaseUrl.replace(/\/$/, "")}/api/health`);
+  } catch (error) {
+    throw new AiFunctionError("COMPSHARE_RUNTIME_UNAVAILABLE", error instanceof Error ? error.message : String(error), 503);
+  }
+}
+
+async function scheduleCompShareIdleShutdown(env: AiEnv) {
+  if (!env.compShareInstanceId) return;
+  await scheduleCompShareShutdown(compShareConfig(env));
+}
+
+function compShareConfig(env: AiEnv) {
   return {
-    providerJobId,
-    outputUrl: outputs[0].url,
-    raw: { workflowName, submit, outputs, status: result?.status ?? null },
+    baseUrl: env.compShareApiBaseUrl,
+    publicKey: env.compSharePublicKey,
+    privateKey: env.compSharePrivateKey,
+    projectId: env.compShareProjectId,
+    region: env.compShareRegion,
+    zone: env.compShareZone,
+    instanceId: env.compShareInstanceId,
+    coldStartTimeoutMs: env.compShareColdStartTimeoutMs,
+    pollIntervalMs: env.compSharePollIntervalMs,
+    idleShutdownSeconds: env.compShareIdleShutdownSeconds,
   };
 }
 
@@ -1040,7 +1076,7 @@ async function storeGeneratedMediaObject(env: AiEnv, userId: string, assetId: st
   }
 
   if (result.outputUrl) {
-    const downloaded = await downloadProviderOutputUrl(env, String(result.outputUrl), mediaType);
+    const downloaded = await downloadProviderOutputUrl(env, String(result.outputUrl), mediaType, safeObject(result.outputHeaders));
     return {
       storageKey: `${userId}/${assetId}/${mediaType}-${job.id}.${extensionForContentType(downloaded.contentType, mediaType)}`,
       displayName: `${mediaType}-${job.id}.${extensionForContentType(downloaded.contentType, mediaType)}`,
@@ -1065,10 +1101,21 @@ async function storeGeneratedMediaObject(env: AiEnv, userId: string, assetId: st
   };
 }
 
-async function downloadProviderOutputUrl(env: AiEnv, outputUrl: string, mediaType: "image" | "video") {
+async function downloadProviderOutputUrl(
+  env: AiEnv,
+  outputUrl: string,
+  mediaType: "image" | "video",
+  providerHeaders: Record<string, unknown> = {},
+) {
+  const headers: Record<string, string> = {
+    Accept: mediaType === "video" ? "video/*,*/*" : "image/*,*/*",
+  };
+  for (const [key, value] of Object.entries(providerHeaders)) {
+    if (typeof value === "string" && value) headers[key] = value;
+  }
   const response = await fetchWithTimeout(outputUrl, {
     method: "GET",
-    headers: { Accept: mediaType === "video" ? "video/*,*/*" : "image/*,*/*" },
+    headers,
   }, env.providerTimeoutMs);
   if (!response.ok) {
     throw new AiFunctionError("PROVIDER_OUTPUT_DOWNLOAD_FAILED", `Could not download provider output: ${response.status}`, 502);
@@ -1652,6 +1699,16 @@ function loadAiEnv(): AiEnv {
     zealmanPromptNodeId: Deno.env.get("ZEALMAN_PROMPT_NODE_ID") ?? "",
     zealmanMaxPolls: clampNumber(Deno.env.get("ZEALMAN_MAX_POLLS"), 180, 1, 720),
     zealmanPollIntervalMs: clampNumber(Deno.env.get("ZEALMAN_POLL_INTERVAL_MS"), 5000, 1000, 30000),
+    compShareApiBaseUrl: Deno.env.get("COMPSHARE_API_BASE_URL") || "https://api.compshare.cn",
+    compSharePublicKey: Deno.env.get("COMPSHARE_PUBLIC_KEY") ?? "",
+    compSharePrivateKey: Deno.env.get("COMPSHARE_PRIVATE_KEY") ?? "",
+    compShareProjectId: Deno.env.get("COMPSHARE_PROJECT_ID") ?? "",
+    compShareRegion: Deno.env.get("COMPSHARE_REGION") || "cn-wlcb",
+    compShareZone: Deno.env.get("COMPSHARE_ZONE") || "cn-wlcb-01",
+    compShareInstanceId: Deno.env.get("COMPSHARE_INSTANCE_ID") ?? "",
+    compShareColdStartTimeoutMs: clampNumber(Deno.env.get("COMPSHARE_COLD_START_TIMEOUT_MS"), 240000, 30000, 600000),
+    compSharePollIntervalMs: clampNumber(Deno.env.get("COMPSHARE_POLL_INTERVAL_MS"), 5000, 1000, 30000),
+    compShareIdleShutdownSeconds: clampNumber(Deno.env.get("COMPSHARE_IDLE_SHUTDOWN_SECONDS"), 600, 300, 7200),
     aiProviderDefault: safeProvider(Deno.env.get("AI_PROVIDER_DEFAULT")) || "fake_worker",
     providerTimeoutMs: clampNumber(Deno.env.get("AI_PROVIDER_TIMEOUT_MS"), 60000, 5000, 180000),
     appUrl: Deno.env.get("APP_URL") || "https://jiang289140790-eng.github.io/open-video-studio",
@@ -1784,6 +1841,16 @@ interface AiEnv {
   zealmanPromptNodeId: string;
   zealmanMaxPolls: number;
   zealmanPollIntervalMs: number;
+  compShareApiBaseUrl: string;
+  compSharePublicKey: string;
+  compSharePrivateKey: string;
+  compShareProjectId: string;
+  compShareRegion: string;
+  compShareZone: string;
+  compShareInstanceId: string;
+  compShareColdStartTimeoutMs: number;
+  compSharePollIntervalMs: number;
+  compShareIdleShutdownSeconds: number;
   aiProviderDefault: string;
   providerTimeoutMs: number;
   appUrl: string;

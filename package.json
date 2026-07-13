@@ -22,6 +22,7 @@
     "verify:production-config": "node scripts/check-production-config.mjs",
     "verify:admin": "node scripts/verify-admin-console.mjs",
     "verify:ai-assets": "npm run build:server && node --test dist/tests/ai-assets-mcp.test.js",
+    "prepare:comfy-headless": "node scripts/prepare-comfyui-headless.mjs",
     "mcp:ai-assets": "node dist/src/mcp/ai-assets/index.js",
     "deploy:function": "node scripts/deploy-supabase-function.mjs",
     "test": "npm run build && node --test dist/tests/**/*.test.js",

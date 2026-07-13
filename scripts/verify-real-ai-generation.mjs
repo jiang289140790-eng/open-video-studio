@@ -8,7 +8,14 @@ const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL || "";
 const anonKey = env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY || "";
 const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY || "";
 const mode = process.argv.includes("--video") || process.env.OVS_VERIFY_REAL_AI_MODE === "video" ? "video" : "image";
-const workflowId = mode === "video" ? "workflow-qianwen-video-v1" : "workflow-qianwen-image-v1";
+const providerArgument = process.argv.find((argument) => argument.startsWith("--provider="));
+const provider = providerArgument?.split("=", 2)[1] || process.env.OVS_VERIFY_REAL_AI_PROVIDER || "qianwen_generation";
+if (!["qianwen_generation", "zealman_workflow"].includes(provider)) {
+  throw new Error(`Unsupported verification provider: ${provider}`);
+}
+const workflowId = provider === "zealman_workflow"
+  ? (mode === "video" ? "workflow-zealman-g01-v1" : "workflow-zealman-a01-v1")
+  : (mode === "video" ? "workflow-qianwen-video-v1" : "workflow-qianwen-image-v1");
 const toolSlug = mode === "video" ? "image-to-video" : "generate";
 const prompt = mode === "video"
   ? "Open Video Studio production verification video: six second cinematic motion preview of a reusable AI creator workspace, smooth camera movement, premium dark interface."
@@ -38,7 +45,7 @@ const password = `RealAi-${crypto.randomUUID()}!`;
 const report = {
   ok: false,
   endpoint: aiEndpoint,
-  provider: "qianwen_generation",
+  provider,
   mode,
   workflowId,
   auth: {
@@ -93,11 +100,11 @@ try {
   report.auth.signedIn = true;
 
   const status = await invokeAi(accessToken, { action: "provider-status", probe: true });
-  const qianwen = (status.providers ?? []).find((provider) => provider.provider === "qianwen_generation");
-  report.providerStatus.configured = Boolean(qianwen?.configured);
-  report.providerStatus.probeMessage = String(qianwen?.probe?.message || "");
+  const providerStatus = (status.providers ?? []).find((item) => item.provider === provider);
+  report.providerStatus.configured = Boolean(providerStatus?.configured);
+  report.providerStatus.probeMessage = String(providerStatus?.probe?.message || "");
   if (!report.providerStatus.configured) {
-    throw new Error("qianwen_generation is not configured in Supabase Edge Function secrets");
+    throw new Error(`${provider} is not configured in Supabase Edge Function secrets`);
   }
 
   const order = await invokeAi(accessToken, {
@@ -113,7 +120,7 @@ try {
   const createdJob = await invokeAi(accessToken, {
     action: "create-generation-job",
     mediaType: mode,
-    provider: "qianwen_generation",
+    provider,
     workflowId,
     toolSlug,
     prompt,
@@ -172,9 +179,9 @@ try {
     report.generation.jobCreated &&
     report.generation.jobStatus === "completed" &&
     report.generation.assetCreated &&
-    report.generation.providerRecorded === "qianwen_generation" &&
+    report.generation.providerRecorded === provider &&
     Boolean(report.generation.storageKey);
-  if (!report.ok && !report.error) report.error = report.generation.errorMessage || "qianwen_generation_live_probe_failed";
+  if (!report.ok && !report.error) report.error = report.generation.errorMessage || `${provider}_live_probe_failed`;
 } catch (error) {
   report.ok = false;
   report.error = error instanceof Error ? error.message : "real_ai_generation_probe_failed";
@@ -319,9 +326,9 @@ function crc32(buffer) {
 }
 
 function loadEnv(path) {
-  if (!existsSync(path)) return {};
+  const entries = { ...process.env };
+  if (!existsSync(path)) return entries;
   const content = readFileSync(path, "utf8");
-  const entries = {};
   for (const line of content.split(/\r?\n/)) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) continue;

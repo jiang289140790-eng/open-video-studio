@@ -1,0 +1,102 @@
+{
+  "version": "1.0.0",
+  "source": "AutoDL zealman-ComfyUI v8.88 qualification inventory",
+  "workflows": [
+    {
+      "id": "A01",
+      "capability": "text-to-image",
+      "promptNodeId": "187",
+      "referenceImageNodeId": null,
+      "minimumVramGb": 24,
+      "priority": 1,
+      "models": [
+        "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+        "qwen_image_vae.safetensors",
+        "qwen_image_2512_fp8_e4m3fn.safetensors",
+        "Qwen-Image-2512-Lightning-4steps-V1.0-fp32.safetensors",
+        "ema_vae_fp16.safetensors",
+        "seedvr2_ema_3b_fp16.safetensors"
+      ]
+    },
+    {
+      "id": "A01-compshare",
+      "source": "template",
+      "capability": "text-to-image-baseline",
+      "promptNodeId": "4",
+      "referenceImageNodeId": null,
+      "minimumVramGb": 24,
+      "priority": 1,
+      "models": [
+        "Qwen-Image_ComfyUI/qwen_image_2512_fp8_e4m3fn.safetensors",
+        "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+        "qwen_image_vae.safetensors"
+      ]
+    },
+    {
+      "id": "C16",
+      "capability": "character-story-image",
+      "promptNodeIds": ["49", "63"],
+      "referenceImageNodeId": null,
+      "minimumVramGb": 24,
+      "priority": 5,
+      "models": ["ae.safetensors", "qwen_3_4b.safetensors", "seedvr2_ema_3b_fp16.safetensors"]
+    },
+    {
+      "id": "D14",
+      "capability": "multi-angle-storyboard",
+      "promptNodeId": null,
+      "referenceImageNodeId": "259",
+      "minimumVramGb": 24,
+      "priority": 6,
+      "models": ["flux2-klein-9b", "qwen_3_8b", "Qwen3.5-GGUF"]
+    },
+    {
+      "id": "G01",
+      "capability": "image-to-video",
+      "promptNodeId": "119",
+      "referenceImageNodeId": "145",
+      "minimumVramGb": 24,
+      "priority": 2,
+      "models": ["Wan2.2-I2V-A14B-HighNoise", "Wan2.2-I2V-A14B-LowNoise", "wan_2.1_vae", "umt5_xxl"]
+    },
+    {
+      "id": "G03",
+      "capability": "smooth-image-to-video",
+      "promptNodeId": null,
+      "referenceImageNodeId": "52",
+      "minimumVramGb": 24,
+      "priority": 3,
+      "models": ["Wan2.2-SmoothMix-HighNoise", "Wan2.2-SmoothMix-LowNoise", "wan_2.1_vae", "umt5_xxl", "RIFE"]
+    },
+    {
+      "id": "J11",
+      "capability": "digital-human-product-video",
+      "promptNodeIds": ["153", "187", "188", "189"],
+      "referenceImageNodeId": "14",
+      "minimumVramGb": 48,
+      "priority": 4,
+      "models": ["LTX-2.3", "Gemma-CLIP", "LTX-VAE", "MelRoFormer"]
+    }
+  ],
+  "requiredCustomNodeModules": [
+    "comfy-mtb",
+    "audio-separation-nodes-comfyui",
+    "ComfyUI_Comfyroll_CustomNodes",
+    "ComfyUI-WanVideoWrapper",
+    "ComfyUI-KJNodes",
+    "ComfyLiterals",
+    "comfyui-impact-pack",
+    "ComfyUI_LayerStyle",
+    "ComfyUI-Custom-Scripts",
+    "ComfyUI-MelBandRoFormer",
+    "ComfyUI-PromptRelay",
+    "comfyui-frame-interpolation",
+    "rgthree-comfy",
+    "seedvr2_videoupscaler",
+    "ComfyUI-TT-Resolution_selector-Node",
+    "was-ns",
+    "ComfyUI-VideoHelperSuite",
+    "ComfyUI-Easy-Use",
+    "llama-cpp_vllm"
+  ]
+}

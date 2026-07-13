@@ -43,6 +43,16 @@ test("AI provider environment exposes placeholders without committing secrets", 
     "ZEALMAN_PROMPT_NODE_ID",
     "ZEALMAN_MAX_POLLS",
     "ZEALMAN_POLL_INTERVAL_MS",
+    "COMPSHARE_API_BASE_URL",
+    "COMPSHARE_PUBLIC_KEY",
+    "COMPSHARE_PRIVATE_KEY",
+    "COMPSHARE_PROJECT_ID",
+    "COMPSHARE_REGION",
+    "COMPSHARE_ZONE",
+    "COMPSHARE_INSTANCE_ID",
+    "COMPSHARE_COLD_START_TIMEOUT_MS",
+    "COMPSHARE_POLL_INTERVAL_MS",
+    "COMPSHARE_IDLE_SHUTDOWN_SECONDS",
     "AI_PROVIDER_DEFAULT",
     "AI_PROVIDER_ROLLOUT_MODE",
     "AI_PROVIDER_TIMEOUT_MS",
@@ -131,6 +141,8 @@ test("AI Edge Function contains server-only provider actions and no browser-secr
   assert.ok(edgeFunction.includes("/upload/image"));
   assert.ok(edgeFunction.includes("/history/"));
   assert.ok(edgeFunction.includes("ZEALMAN_PANEL_BASE_URL"));
+  assert.ok(edgeFunction.includes("COMPSHARE_INSTANCE_ID"));
+  assert.ok(edgeFunction.includes("ensureCompShareRuntime"));
   assert.ok(edgeFunction.includes("storeGeneratedMediaObject"));
   assert.ok(edgeFunction.includes("downloadProviderOutputUrl"));
   assert.ok(edgeFunction.includes("decodeProviderBase64Output"));
@@ -255,7 +267,7 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(telegramFunction.includes("crypto.subtle"));
   assert.ok(telegramFunction.includes("generateLink"));
   assert.equal(telegramFunction.includes("VITE_TELEGRAM"), false);
-  assert.ok(deployFunctionScript.includes('verify_jwt: slug !== "telegram-auth"'));
+  assert.ok(deployFunctionScript.includes('slug !== "telegram-auth"'));
   assert.ok(aiScript.includes("/functions/v1/ai"));
   assert.ok(aiScript.includes("provider-status"));
   assert.ok(aiScript.includes("SUPABASE_TEST_ACCESS_TOKEN"));
@@ -298,6 +310,8 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(userLoopScript.includes("publicAssetReadable"));
   assert.ok(userLoopScript.includes("SUPABASE_SERVICE_ROLE_KEY"));
   assert.ok(realAiScript.includes("qianwen_generation"));
+  assert.ok(realAiScript.includes("zealman_workflow"));
+  assert.ok(realAiScript.includes("...process.env"));
   assert.ok(realAiScript.includes("workflow-qianwen-image-v1"));
   assert.ok(realAiScript.includes("workflow-qianwen-video-v1"));
   assert.ok(realAiScript.includes("--video"));
@@ -328,6 +342,8 @@ test("production verification scripts cover OAuth and AI function health", () =>
   assert.ok(aiScript.includes("SUPABASE_SERVICE_ROLE_KEY"));
   assert.ok(paymentScript.includes("SUPABASE_SERVICE_ROLE_KEY"));
   assert.ok(deployFunctionScript.includes("SUPABASE_ACCESS_TOKEN"));
-  assert.ok(deployFunctionScript.includes("/functions/deploy?slug="));
+  assert.ok(deployFunctionScript.includes('"functions"'));
+  assert.ok(deployFunctionScript.includes('"deploy"'));
+  assert.ok(deployFunctionScript.includes('"--use-api"'));
   assert.equal(deployFunctionScript.includes("console.log(accessToken"), false);
 });

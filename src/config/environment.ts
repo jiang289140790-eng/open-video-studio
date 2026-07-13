@@ -47,6 +47,16 @@ export interface AppEnvironment {
   zealmanPromptNodeId?: string;
   zealmanMaxPolls?: number;
   zealmanPollIntervalMs?: number;
+  compShareApiBaseUrl?: string;
+  compSharePublicKey?: string;
+  compSharePrivateKey?: string;
+  compShareProjectId?: string;
+  compShareRegion?: string;
+  compShareZone?: string;
+  compShareInstanceId?: string;
+  compShareColdStartTimeoutMs?: number;
+  compSharePollIntervalMs?: number;
+  compShareIdleShutdownSeconds?: number;
   aiProviderDefault?: string;
   aiProviderRolloutMode?: string;
   aiProviderTimeoutMs?: number;
@@ -102,6 +112,16 @@ export function loadEnvironment(filePath?: string): AppEnvironment {
     zealmanPromptNodeId: emptyToUndefined(value("ZEALMAN_PROMPT_NODE_ID")),
     zealmanMaxPolls: Number(value("ZEALMAN_MAX_POLLS", "180")),
     zealmanPollIntervalMs: Number(value("ZEALMAN_POLL_INTERVAL_MS", "5000")),
+    compShareApiBaseUrl: value("COMPSHARE_API_BASE_URL", "https://api.compshare.cn"),
+    compSharePublicKey: emptyToUndefined(value("COMPSHARE_PUBLIC_KEY")),
+    compSharePrivateKey: emptyToUndefined(value("COMPSHARE_PRIVATE_KEY")),
+    compShareProjectId: emptyToUndefined(value("COMPSHARE_PROJECT_ID")),
+    compShareRegion: value("COMPSHARE_REGION", "cn-wlcb"),
+    compShareZone: value("COMPSHARE_ZONE", "cn-wlcb-01"),
+    compShareInstanceId: emptyToUndefined(value("COMPSHARE_INSTANCE_ID")),
+    compShareColdStartTimeoutMs: Number(value("COMPSHARE_COLD_START_TIMEOUT_MS", "240000")),
+    compSharePollIntervalMs: Number(value("COMPSHARE_POLL_INTERVAL_MS", "5000")),
+    compShareIdleShutdownSeconds: Number(value("COMPSHARE_IDLE_SHUTDOWN_SECONDS", "600")),
     aiProviderDefault: value("AI_PROVIDER_DEFAULT", "fake_worker"),
     aiProviderRolloutMode: value("AI_PROVIDER_ROLLOUT_MODE", "admin_config"),
     aiProviderTimeoutMs: Number(value("AI_PROVIDER_TIMEOUT_MS", "60000")),
