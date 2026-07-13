@@ -25,6 +25,14 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Audited the AutoDL ComfyUI exports against seven requested product workflows. General image generation is qualified; image-to-video exists but remains unqualified; dedicated image editing, face swap, outfit change, pose generation and one/two-reference composition workflows are absent.
+- Added a machine-readable capability coverage registry with permanent E01, F01, O01, P01, A01, M01 and G01 IDs, explicit input/processing/output contracts, and release gates. Missing definitions are deliberately excluded from deployment bundles so unavailable tools cannot be mistaken for working workflows.
+- Added `AI-WORKFLOW-002` as the implementation order and qualification source of truth. Cloud GPU instances remain stopped while workflow contracts and dependencies are prepared.
+
+### Validation
+
+- Validated the workflow manifest JSON and added regression coverage for all seven capability states and deployment exclusion rules.
+
 - Qualified the first real Compshare image-generation runtime. The original `A01-compshare.json` Qwen Image 2512 baseline completed a 1024x1024 generation on the selected 4090 instance without changing frontend contracts.
 - Completed a full Supabase-backed real-provider verification through `zealman_workflow`: temporary user creation and sign-in, test credit grant, credit debit, generation job processing, ComfyUI output download, Supabase Storage persistence, `media_assets` and history records, and cleanup all passed.
 - Added application-image recovery for the protected gateway. ComfyUI now restores the gateway after an instance restart, verifies `/api/health` instead of trusting an occupied port, and can intentionally reclaim the bundled code-server port when configured.

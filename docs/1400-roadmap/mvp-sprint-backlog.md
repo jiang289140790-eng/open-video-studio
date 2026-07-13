@@ -396,6 +396,25 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Related Documents: BE-ARCH-GPU-JOBS-001, AI-PROVIDER-001, API-GEN-IMAGE-001, API-GEN-VIDEO-001, DEVOPS-INDEX-001.
 - Current Evidence: the six-workflow inventory and private bundle, official UCloud signing, provider integration, Qwen Image 2512 A01 baseline, protected gateway, application-image automatic recovery, whole-instance stop/start, lifecycle shutdown, Supabase `ai` function version 29, real credit debit, ComfyUI output, Storage asset/history persistence, verifier cleanup, and 81 regression tests all pass. AutoDL and both Compshare instances are stopped. Permanent provider activation is a deployment configuration gate: create the owned HTTPS hostname and then set lifecycle/provider Secrets; G01/G03/J11 qualification remains separate video work.
 
+### AI-WF-002 - Complete requested workflow capability inventory
+
+- Priority: P0
+- Estimated Time: 0.5 day
+- Dependencies: AI-WF-001
+- Acceptance Criteria: all seven requested capabilities have permanent workflow IDs, explicit inputs and acceptance gates; unavailable workflows are identified from node-level export inspection; missing workflows cannot enter the deployment bundle.
+- Related Documents: AI-WORKFLOW-002, AI-PROVIDER-001, BACKEND-GPU-004
+- Status: Done
+- Current Evidence: A01-compshare is qualified, G01 is inventory-only, and E01/F01/O01/P01/M01 are explicitly missing. Manifest and regression tests enforce these states while all cloud GPU instances remain stopped.
+
+### AI-WF-003 - Implement E01 masked image editing
+
+- Priority: P0
+- Estimated Time: 1-2 days after a compatible model image is selected
+- Dependencies: AI-WF-002, production HTTPS gateway
+- Acceptance Criteria: source image, optional mask and prompt map to explicit ComfyUI nodes; edited output preserves unmasked regions; automatic mask fallback is tested; credits, refund, timeout, Storage, history and shutdown pass.
+- Related Documents: AI-WORKFLOW-002, API-IMAGE-002, BACKEND-GPU-004
+- Status: Backlog
+
 ## Sprint 4: Admin And MVP Integration
 
 ### MVP-S4-001 Admin Read APIs

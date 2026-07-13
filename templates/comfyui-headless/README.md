@@ -24,6 +24,8 @@ Do not commit workflow exports, licensed models, user inputs, or provider keys. 
 
 Run `node scripts/prepare-comfyui-headless.mjs` to copy the six local workflow exports from the ignored `.data` directory into an ignored deployment bundle.
 
+`workflow-manifest.json` also owns the seven user-facing generation capability contracts. A capability with status `missing` is a tracked implementation gap, not an executable workflow, and the bundle script deliberately excludes it. Status may advance only in this order: `missing` -> `inventory` -> `qualified` -> `published`.
+
 ## Build and run
 
 ```bash
@@ -51,6 +53,11 @@ For production access, copy `Caddyfile` to `/root/ovs-headless/Caddyfile`, insta
 3. G03 smooth image-to-video.
 4. J11 digital-human/product video.
 5. C16 and D14 character/storyboard workflows after their product inputs are mapped.
+6. E01 masked image editing.
+7. M01 one/two-reference image composition.
+8. P01 identity-preserving pose generation.
+9. O01 identity-preserving outfit change.
+10. F01 consent-gated face swap.
 
 Do not enable a workflow in Workflow Center until its health, output persistence, credit charge, failure refund, and timeout behavior pass.
 

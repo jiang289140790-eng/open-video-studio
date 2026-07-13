@@ -57,6 +57,30 @@ test("workflow manifest contains the qualified AutoDL workflow set without raw e
   assert.ok(manifest.requiredCustomNodeModules.includes("seedvr2_videoupscaler"));
 });
 
+test("workflow manifest distinguishes product capability gaps from executable workflows", () => {
+  const manifest = JSON.parse(readFileSync(join(templateRoot, "workflow-manifest.json"), "utf8"));
+  const coverage = manifest.productCapabilityCoverage;
+  assert.deepEqual(coverage.map((item: any) => item.capability), [
+    "image-editing",
+    "face-swap",
+    "outfit-change",
+    "pose-generation",
+    "text-to-image",
+    "image-composition",
+    "image-to-video",
+  ]);
+  assert.equal(coverage.find((item: any) => item.workflowId === "A01-compshare").status, "qualified");
+  assert.equal(coverage.find((item: any) => item.workflowId === "G01").status, "inventory");
+  assert.deepEqual(
+    coverage.filter((item: any) => item.status === "missing").map((item: any) => item.workflowId),
+    ["E01", "F01", "O01", "P01", "M01"],
+  );
+  const executableIds = new Set(manifest.workflows.map((item: any) => item.id));
+  for (const item of coverage.filter((entry: any) => entry.status === "missing")) {
+    assert.equal(executableIds.has(item.workflowId), false, `${item.workflowId} must not be packaged before it is executable`);
+  }
+});
+
 test("CompShare UCloud signing matches the official SDK algorithm", async () => {
   const source = readFileSync(join(root, "supabase", "functions", "_shared", "compshare.ts"), "utf8");
   const javascript = ts.transpileModule(source, {

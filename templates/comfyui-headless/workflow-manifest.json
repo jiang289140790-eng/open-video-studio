@@ -1,6 +1,73 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "source": "AutoDL zealman-ComfyUI v8.88 qualification inventory",
+  "productCapabilityCoverage": [
+    {
+      "capability": "image-editing",
+      "workflowId": "E01",
+      "status": "missing",
+      "requiredInputs": ["source_image", "mask", "prompt"],
+      "requiredProcessing": ["inpainting", "automatic-mask", "prompt-enhancement"],
+      "outputType": "image",
+      "acceptanceGate": "Masked and unmasked edits preserve unaffected regions and complete the credits-to-Storage loop."
+    },
+    {
+      "capability": "face-swap",
+      "workflowId": "F01",
+      "status": "missing",
+      "requiredInputs": ["source_face", "target_image"],
+      "requiredProcessing": ["face-detection", "identity-transfer", "face-fusion", "face-restoration"],
+      "outputType": "image",
+      "acceptanceGate": "The selected source identity is transferred with explicit consent and the output passes face-safety checks."
+    },
+    {
+      "capability": "outfit-change",
+      "workflowId": "O01",
+      "status": "missing",
+      "requiredInputs": ["person_image", "garment_reference_or_prompt"],
+      "requiredProcessing": ["human-parsing", "garment-replacement", "body-preservation", "lighting-fusion"],
+      "outputType": "image",
+      "acceptanceGate": "Identity, body geometry, hands and background remain stable while the requested garment changes."
+    },
+    {
+      "capability": "pose-generation",
+      "workflowId": "P01",
+      "status": "missing",
+      "requiredInputs": ["person_image", "pose_reference", "prompt"],
+      "requiredProcessing": ["pose-detection", "pose-control", "identity-preserving-redraw"],
+      "outputType": "image",
+      "acceptanceGate": "The output follows the target skeleton while preserving character identity and valid anatomy."
+    },
+    {
+      "capability": "text-to-image",
+      "workflowId": "A01-compshare",
+      "status": "qualified",
+      "requiredInputs": ["prompt", "generation_parameters"],
+      "requiredProcessing": ["text-to-image", "resolution", "seed", "guidance"],
+      "outputType": "image",
+      "acceptanceGate": "Qualified through authentication, credits, ComfyUI, Storage, assets and history."
+    },
+    {
+      "capability": "image-composition",
+      "workflowId": "M01",
+      "status": "missing",
+      "relatedInventory": ["D14"],
+      "requiredInputs": ["reference_images", "prompt", "blend_strength"],
+      "requiredProcessing": ["subject-fusion", "style-fusion", "scene-fusion"],
+      "outputType": "image",
+      "acceptanceGate": "One or two references can be fused with controllable influence without silently using D14 storyboard defaults."
+    },
+    {
+      "capability": "image-to-video",
+      "workflowId": "G01",
+      "status": "inventory",
+      "alternatives": ["G03", "J11"],
+      "requiredInputs": ["source_image", "motion_prompt", "video_parameters"],
+      "requiredProcessing": ["image-to-video", "motion-preset"],
+      "outputType": "video",
+      "acceptanceGate": "Must pass reference upload, video output, credits, timeout, refund, Storage, history and shutdown tests."
+    }
+  ],
   "workflows": [
     {
       "id": "A01",
