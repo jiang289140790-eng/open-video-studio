@@ -48,8 +48,8 @@ test("headless runtime terminates TLS at the gateway boundary", () => {
 
 test("workflow manifest contains the qualified AutoDL workflow set without raw exports", () => {
   const manifest = JSON.parse(readFileSync(join(templateRoot, "workflow-manifest.json"), "utf8"));
-  assert.deepEqual(manifest.workflows.map((item: any) => item.id), ["A01", "A01-compshare", "E01", "C16", "D14", "D18", "G01", "G03", "J11"]);
-  assert.equal(new Set(manifest.workflows.map((item: any) => item.id)).size, 9);
+  assert.deepEqual(manifest.workflows.map((item: any) => item.id), ["A01", "A01-compshare", "E01", "P01", "C16", "D14", "D18", "G01", "G03", "J11"]);
+  assert.equal(new Set(manifest.workflows.map((item: any) => item.id)).size, 10);
   assert.equal(manifest.workflows.find((item: any) => item.id === "A01").promptNodeId, "187");
   assert.equal(manifest.workflows.find((item: any) => item.id === "A01-compshare").promptNodeId, "4");
   assert.equal(manifest.workflows.find((item: any) => item.id === "E01").maskImageNodeId, "79");
@@ -74,7 +74,7 @@ test("workflow manifest distinguishes product capability gaps from executable wo
   assert.equal(coverage.find((item: any) => item.workflowId === "A01-compshare").status, "qualified");
   assert.equal(coverage.find((item: any) => item.workflowId === "E01").status, "inventory");
   assert.equal(coverage.find((item: any) => item.workflowId === "M01").status, "inventory");
-  assert.equal(coverage.find((item: any) => item.workflowId === "P01").implementationWorkflowId, "D18");
+  assert.equal(coverage.find((item: any) => item.workflowId === "P01").implementationWorkflowId, "P01");
   assert.equal(coverage.find((item: any) => item.workflowId === "O01").implementationWorkflowId, "D18");
   assert.equal(coverage.find((item: any) => item.workflowId === "F01").implementationWorkflowId, "D18");
   assert.equal(coverage.find((item: any) => item.workflowId === "G01").status, "inventory");
@@ -90,13 +90,23 @@ test("workflow manifest distinguishes product capability gaps from executable wo
 
 test("E01 is an API workflow with explicit source, mask, prompt and masked output nodes", () => {
   const workflow = JSON.parse(readFileSync(join(templateRoot, "workflows", "E01-qwen-edit.json"), "utf8"));
-  assert.equal(workflow["37"].inputs.unet_name, "qwen_image_edit_fp8_e4m3fn.safetensors");
-  assert.equal(workflow["76"].class_type, "TextEncodeQwenImageEdit");
+  assert.equal(workflow["37"].inputs.unet_name, "qwen/qwen_image_edit_2509_fp8_e4m3fn.safetensors");
+  assert.equal(workflow["76"].class_type, "TextEncodeQwenImageEditPlus");
   assert.equal(workflow["78"].class_type, "LoadImage");
   assert.equal(workflow["79"].class_type, "LoadImage");
   assert.equal(workflow["95"].class_type, "ImageToMask");
   assert.equal(workflow["96"].class_type, "ImageCompositeMasked");
+  assert.equal(workflow["97"].class_type, "GrowMaskWithBlur");
   assert.deepEqual(workflow["60"].inputs.images, ["96", 0]);
+});
+
+test("P01 uses dedicated OpenPose and Qwen ControlNet inputs", () => {
+  const workflow = JSON.parse(readFileSync(join(root, "templates", "comfyui-headless", "workflows", "P01-qwen-openpose.json"), "utf8"));
+  assert.equal(workflow["78"].class_type, "LoadImage");
+  assert.equal(workflow["79"].class_type, "LoadImage");
+  assert.equal(workflow["94"].class_type, "OpenposePreprocessor");
+  assert.equal(workflow["89"].inputs.control_net_name, "Qwen-Image-ControlNet-Union.safetensors");
+  assert.equal(workflow["91"].class_type, "ControlNetApplySD3");
 });
 
 test("CompShare UCloud signing matches the official SDK algorithm", async () => {

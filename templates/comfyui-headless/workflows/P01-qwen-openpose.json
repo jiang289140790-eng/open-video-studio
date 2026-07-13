@@ -1,0 +1,20 @@
+{
+  "3": { "inputs": { "seed": 1, "steps": 4, "cfg": 1, "sampler_name": "euler", "scheduler": "simple", "denoise": 1, "model": ["75", 0], "positive": ["91", 0], "negative": ["91", 1], "latent_image": ["88", 0] }, "class_type": "KSampler", "_meta": { "title": "P01 pose sampler" } },
+  "8": { "inputs": { "samples": ["3", 0], "vae": ["39", 0] }, "class_type": "VAEDecode", "_meta": { "title": "Decode posed image" } },
+  "37": { "inputs": { "unet_name": "qwen/qwen_image_edit_2509_fp8_e4m3fn.safetensors", "weight_dtype": "default" }, "class_type": "UNETLoader", "_meta": { "title": "Load Qwen Image Edit 2509" } },
+  "38": { "inputs": { "clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors", "type": "qwen_image", "device": "default" }, "class_type": "CLIPLoader", "_meta": { "title": "Load Qwen vision encoder" } },
+  "39": { "inputs": { "vae_name": "qwen_image_vae.safetensors" }, "class_type": "VAELoader", "_meta": { "title": "Load Qwen image VAE" } },
+  "40": { "inputs": { "lora_name": "Qwen/Qwen-Image-Edit-2509-Lightning-4steps-V1.0-bf16.safetensors", "strength_model": 1, "model": ["37", 0] }, "class_type": "LoraLoaderModelOnly", "_meta": { "title": "Load Qwen Edit Lightning LoRA" } },
+  "60": { "inputs": { "filename_prefix": "luravyn/p01-pose", "images": ["8", 0] }, "class_type": "SaveImage", "_meta": { "title": "Save posed image" } },
+  "66": { "inputs": { "shift": 3, "model": ["40", 0] }, "class_type": "ModelSamplingAuraFlow", "_meta": { "title": "Qwen sampling shift" } },
+  "75": { "inputs": { "strength": 1, "model": ["66", 0] }, "class_type": "CFGNorm", "_meta": { "title": "Qwen CFG normalization" } },
+  "76": { "inputs": { "prompt": "Use image 1 only for identity, face, hair and clothing. Use image 2 only for the target body pose. Redraw exactly one person following the ControlNet pose in a clean photorealistic scene with valid anatomy and hands. Do not reproduce any other person or pose-guide graphics from image 2.", "clip": ["38", 0], "vae": ["39", 0], "image1": ["93", 0], "image2": ["79", 0] }, "class_type": "TextEncodeQwenImageEditPlus", "_meta": { "title": "Identity and pose prompt" } },
+  "77": { "inputs": { "prompt": "two people, second person, copied face from image 2, openpose skeleton, colored pose lines, control points, black background, changed clothing, malformed body, extra limbs, bad hands", "clip": ["38", 0], "vae": ["39", 0], "image1": ["93", 0], "image2": ["79", 0] }, "class_type": "TextEncodeQwenImageEditPlus", "_meta": { "title": "Negative pose prompt" } },
+  "78": { "inputs": { "image": "p01-identity.png" }, "class_type": "LoadImage", "_meta": { "title": "P01 identity image" } },
+  "79": { "inputs": { "image": "p01-pose.png" }, "class_type": "LoadImage", "_meta": { "title": "P01 pose reference" } },
+  "88": { "inputs": { "width": 832, "height": 1216, "batch_size": 1 }, "class_type": "EmptySD3LatentImage", "_meta": { "title": "Create target pose canvas" } },
+  "89": { "inputs": { "control_net_name": "Qwen-Image-ControlNet-Union.safetensors" }, "class_type": "ControlNetLoader", "_meta": { "title": "Load Qwen ControlNet Union" } },
+  "91": { "inputs": { "positive": ["76", 0], "negative": ["77", 0], "control_net": ["89", 0], "vae": ["39", 0], "image": ["94", 0], "strength": 0.9, "start_percent": 0, "end_percent": 0.85 }, "class_type": "ControlNetApplySD3", "_meta": { "title": "Apply OpenPose ControlNet" } },
+  "93": { "inputs": { "upscale_method": "nearest-exact", "megapixels": 1, "resolution_steps": 1, "image": ["78", 0] }, "class_type": "ImageScaleToTotalPixels", "_meta": { "title": "Normalize identity image" } },
+  "94": { "inputs": { "image": ["79", 0] }, "class_type": "OpenposePreprocessor", "_meta": { "title": "Extract target OpenPose" } }
+}

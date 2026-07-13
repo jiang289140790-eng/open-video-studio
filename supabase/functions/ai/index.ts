@@ -735,7 +735,7 @@ function zealmanWorkflowInputContract(job: Record<string, any>) {
     return { promptNodeId: "1072", sourceImageNodeId: "1103", sourceImageNodeIds: ["1103", "1104"], maskImageNodeId: "", disabledImageNodeIds: ["1105", "1106", "1112", "1117"], sourceImageRequired: true, minimumSourceImages: 1 };
   }
   if (workflowId.includes("p01")) {
-    return { promptNodeId: "1072", sourceImageNodeId: "1103", sourceImageNodeIds: ["1103", "1104"], maskImageNodeId: "", disabledImageNodeIds: ["1105", "1106", "1112", "1117"], sourceImageRequired: true, minimumSourceImages: 2 };
+    return { promptNodeId: "76", sourceImageNodeId: "78", sourceImageNodeIds: ["78", "79"], maskImageNodeId: "", disabledImageNodeIds: [], sourceImageRequired: true, minimumSourceImages: 2 };
   }
   if (workflowId.includes("o01")) {
     return { promptNodeId: "1072", sourceImageNodeId: "1103", sourceImageNodeIds: ["1103", "1104"], maskImageNodeId: "", disabledImageNodeIds: ["1105", "1106", "1112", "1117"], sourceImageRequired: true, minimumSourceImages: 2 };

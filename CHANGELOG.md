@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 1.14.0 |
+| Version | 1.14.1 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -24,6 +24,10 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 ## 2026-07-13
 
 ### Improved
+
+- Rebuilt E01 around the installed Qwen Image Edit 2509 model and Lightning LoRA, then qualified it directly on AutoDL. Expanded Gaussian mask blending removed the hard rectangular seam and produced a valid 1,015,671-byte PNG.
+- Added a dedicated P01 OpenPose/Qwen ControlNet workflow with fixed identity and pose inputs. Runtime proved pose control, while visual review correctly kept P01 identity-gated because the pose-reference character overrode the source identity.
+- Updated the server workflow contracts, Admin workflow metadata, environment templates, manifest and tests for repository-owned E01/P01 graphs. The AutoDL instance was shut down and verified in `shutdown` state after cost-bearing tests.
 
 - Added F01 as a fixed target/identity D18 preset with mandatory two-image input, a dedicated provider environment selector and a server-side `identityConsent` gate.
 - Qualified F01's runtime and scene-preservation behavior directly on AutoDL: the workflow produced a valid 7,256,708-byte PNG while retaining one subject, red dress, pose, chair and outdoor scene. Identity similarity remains a separate release gate.

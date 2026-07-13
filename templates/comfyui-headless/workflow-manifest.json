@@ -35,11 +35,11 @@
       "capability": "pose-generation",
       "workflowId": "P01",
       "status": "inventory",
-      "implementationWorkflowId": "D18",
+      "implementationWorkflowId": "P01",
       "requiredInputs": ["person_image", "pose_reference", "prompt"],
       "requiredProcessing": ["pose-detection", "pose-control", "identity-preserving-redraw"],
       "outputType": "image",
-      "acceptanceGate": "D18 receives identity as image 1 and pose/composition as image 2; output follows the target pose while preserving character identity and valid anatomy."
+      "acceptanceGate": "P01 extracts OpenPose from image 2 and applies Qwen ControlNet while image 1 supplies identity; output follows the target pose while preserving one character identity, clothing and valid anatomy."
     },
     {
       "capability": "text-to-image",
@@ -114,7 +114,26 @@
       "minimumVramGb": 24,
       "priority": 2,
       "models": [
-        "qwen_image_edit_fp8_e4m3fn.safetensors",
+        "qwen/qwen_image_edit_2509_fp8_e4m3fn.safetensors",
+        "Qwen/Qwen-Image-Edit-2509-Lightning-4steps-V1.0-bf16.safetensors",
+        "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+        "qwen_image_vae.safetensors"
+      ]
+    },
+    {
+      "id": "P01",
+      "source": "template",
+      "filename": "P01-qwen-openpose.json",
+      "capability": "identity-preserving-pose-generation",
+      "status": "inventory",
+      "promptNodeId": "76",
+      "referenceImageNodeIds": ["78", "79"],
+      "minimumVramGb": 24,
+      "priority": 3,
+      "models": [
+        "qwen/qwen_image_edit_2509_fp8_e4m3fn.safetensors",
+        "Qwen/Qwen-Image-Edit-2509-Lightning-4steps-V1.0-bf16.safetensors",
+        "Qwen-Image-ControlNet-Union.safetensors",
         "qwen_2.5_vl_7b_fp8_scaled.safetensors",
         "qwen_image_vae.safetensors"
       ]
