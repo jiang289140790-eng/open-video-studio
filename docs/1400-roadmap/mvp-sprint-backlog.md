@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.28.0 |
+| Version | 1.29.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -445,6 +445,16 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Related Documents: AI-WORKFLOW-002, API-IMAGE-002, BACKEND-GPU-004
 - Status: Doing
 - Current Evidence: the D18 P01 preset accepts two fixed references and produced a valid 6,320,961-byte PNG. Visual review failed the semantic gate because the output composed two characters instead of proving pose-only transfer. Add DWPose/OpenPose or equivalent pose conditioning before release.
+
+### AI-WF-007 - Implement O01 AI outfit change
+
+- Priority: P0
+- Estimated Time: 1 day
+- Dependencies: AI-WF-005
+- Acceptance Criteria: person and garment references map to deterministic inputs; one intended subject, identity, body geometry, hands, pose and background remain stable while only clothing changes; the full SaaS qualification gate passes.
+- Related Documents: AI-WORKFLOW-002, API-IMAGE-002, BACKEND-GPU-004
+- Status: Doing
+- Current Evidence: the fixed D18 person/garment preset produced a valid 7,139,337-byte PNG. Visual review confirmed one subject, preserved pose/chair/background and successful black-and-white garment transfer. Controlled identity fixtures and the Supabase qualification gate remain.
 
 ## Sprint 4: Admin And MVP Integration
 

@@ -23,11 +23,12 @@
     {
       "capability": "outfit-change",
       "workflowId": "O01",
-      "status": "missing",
+      "status": "inventory",
+      "implementationWorkflowId": "D18",
       "requiredInputs": ["person_image", "garment_reference_or_prompt"],
       "requiredProcessing": ["human-parsing", "garment-replacement", "body-preservation", "lighting-fusion"],
       "outputType": "image",
-      "acceptanceGate": "Identity, body geometry, hands and background remain stable while the requested garment changes."
+      "acceptanceGate": "D18 receives the person as image 1 and garment reference as image 2; identity, body geometry, hands, pose and background remain stable while only the requested garment changes."
     },
     {
       "capability": "pose-generation",

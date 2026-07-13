@@ -635,6 +635,7 @@ function resolveZealmanWorkflowName(env: AiEnv, job: Record<string, any>): strin
   if (workflowId.includes("e01")) return env.zealmanImageEditWorkflow || env.zealmanImageWorkflow;
   if (workflowId.includes("m01")) return env.zealmanImageCompositionWorkflow || env.zealmanImageWorkflow;
   if (workflowId.includes("p01")) return env.zealmanPoseWorkflow || env.zealmanImageCompositionWorkflow || env.zealmanImageWorkflow;
+  if (workflowId.includes("o01")) return env.zealmanOutfitWorkflow || env.zealmanImageCompositionWorkflow || env.zealmanImageWorkflow;
   if (workflowId.includes("g03")) return env.zealmanSmoothVideoWorkflow || env.zealmanVideoWorkflow;
   if (workflowId.includes("j11")) return env.zealmanDigitalHumanWorkflow || env.zealmanVideoWorkflow;
   return mediaType === "video" ? env.zealmanVideoWorkflow : env.zealmanImageWorkflow;
@@ -732,14 +733,22 @@ function zealmanWorkflowInputContract(job: Record<string, any>) {
   if (workflowId.includes("p01")) {
     return { promptNodeId: "1072", sourceImageNodeId: "1103", sourceImageNodeIds: ["1103", "1104"], maskImageNodeId: "", disabledImageNodeIds: ["1105", "1106", "1112", "1117"], sourceImageRequired: true, minimumSourceImages: 2 };
   }
+  if (workflowId.includes("o01")) {
+    return { promptNodeId: "1072", sourceImageNodeId: "1103", sourceImageNodeIds: ["1103", "1104"], maskImageNodeId: "", disabledImageNodeIds: ["1105", "1106", "1112", "1117"], sourceImageRequired: true, minimumSourceImages: 2 };
+  }
   return { promptNodeId: "", sourceImageNodeId: "", sourceImageNodeIds: [], maskImageNodeId: "", disabledImageNodeIds: [], sourceImageRequired: false, minimumSourceImages: 0 };
 }
 
 function zealmanPromptForJob(job: Record<string, any>): string {
   const prompt = String(job.prompt || "").trim();
   const workflowId = String(job.workflow_id || "").toLowerCase();
-  if (!workflowId.includes("p01")) return prompt;
-  return `Reference image 1 is the identity source. Preserve that person's face, hair, clothing and body characteristics. Reference image 2 is pose and composition guidance only; do not copy its identity or clothing. Redraw image 1 in image 2's pose with valid anatomy. ${prompt}`.trim();
+  if (workflowId.includes("p01")) {
+    return `Reference image 1 is the identity source. Preserve that person's face, hair, clothing and body characteristics. Reference image 2 is pose and composition guidance only; do not copy its identity or clothing. Redraw image 1 in image 2's pose with valid anatomy. ${prompt}`.trim();
+  }
+  if (workflowId.includes("o01")) {
+    return `Reference image 1 is the person source. Preserve that person's face, hair, skin, body geometry, pose, hands and background. Reference image 2 is garment guidance only; do not copy its person, face, body or background. Replace only the clothing on image 1 with the garment from image 2 and integrate fabric, folds, occlusion and lighting naturally. ${prompt}`.trim();
+  }
+  return prompt;
 }
 
 function disableZealmanImageNodes(workflow: Record<string, any>, nodeIds: string[]) {
@@ -1769,6 +1778,7 @@ function loadAiEnv(): AiEnv {
     zealmanImageEditWorkflow: Deno.env.get("ZEALMAN_IMAGE_EDIT_WORKFLOW") ?? "",
     zealmanImageCompositionWorkflow: Deno.env.get("ZEALMAN_IMAGE_COMPOSITION_WORKFLOW") ?? "",
     zealmanPoseWorkflow: Deno.env.get("ZEALMAN_POSE_WORKFLOW") ?? "",
+    zealmanOutfitWorkflow: Deno.env.get("ZEALMAN_OUTFIT_WORKFLOW") ?? "",
     zealmanVideoWorkflow: Deno.env.get("ZEALMAN_VIDEO_WORKFLOW") ?? "",
     zealmanSmoothVideoWorkflow: Deno.env.get("ZEALMAN_SMOOTH_VIDEO_WORKFLOW") ?? "",
     zealmanDigitalHumanWorkflow: Deno.env.get("ZEALMAN_DIGITAL_HUMAN_WORKFLOW") ?? "",
@@ -1914,6 +1924,7 @@ interface AiEnv {
   zealmanImageEditWorkflow: string;
   zealmanImageCompositionWorkflow: string;
   zealmanPoseWorkflow: string;
+  zealmanOutfitWorkflow: string;
   zealmanVideoWorkflow: string;
   zealmanSmoothVideoWorkflow: string;
   zealmanDigitalHumanWorkflow: string;

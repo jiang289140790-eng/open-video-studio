@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 1.12.0 |
+| Version | 1.13.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Added O01 as a fixed two-reference D18 preset with person/garment role separation, minimum input validation, dedicated provider environment selection and a testing-only Admin workflow entry.
+- Qualified O01 directly on AutoDL: the workflow produced a valid 7,139,337-byte PNG with one subject, preserved seated pose/chair/outdoor background and transferred the black-and-white garment without copying a second identity.
 - Ran M01 directly on the stopped-by-default AutoDL image. D18 accepted a fixed uploaded reference, disabled unused vendor inputs and produced a valid 6,146,977-byte PNG before shutdown.
 - Added the P01 two-reference server contract and dedicated prompt policy. A direct runtime produced a valid 6,320,961-byte PNG, but visual review showed a two-character composition rather than identity-preserving pose transfer; P01 therefore remains quality-gated and unpublished.
 - Added `ZEALMAN_POSE_WORKFLOW`, minimum source-image validation and testing-only Admin registration for P01 without exposing ComfyUI node IDs to the browser.
@@ -45,6 +47,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Stopped the AutoDL instance immediately after O01 qualification and verified it entered the shutdown sequence.
 - Confirmed AutoDL returned to `shutdown` after the M01 and P01 cost-bearing tests; no cloud GPU is left running.
 - Built a nine-workflow private deployment bundle, completed the production TypeScript and Vite builds, and passed 14 focused provider/headless tests after the G01 and M01 changes.
 - Verified AutoDL returned to `shutdown` after the G01 cost-bearing test.
