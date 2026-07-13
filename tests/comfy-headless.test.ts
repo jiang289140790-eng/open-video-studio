@@ -74,10 +74,11 @@ test("workflow manifest distinguishes product capability gaps from executable wo
   assert.equal(coverage.find((item: any) => item.workflowId === "A01-compshare").status, "qualified");
   assert.equal(coverage.find((item: any) => item.workflowId === "E01").status, "inventory");
   assert.equal(coverage.find((item: any) => item.workflowId === "M01").status, "inventory");
+  assert.equal(coverage.find((item: any) => item.workflowId === "P01").implementationWorkflowId, "D18");
   assert.equal(coverage.find((item: any) => item.workflowId === "G01").status, "inventory");
   assert.deepEqual(
     coverage.filter((item: any) => item.status === "missing").map((item: any) => item.workflowId),
-    ["F01", "O01", "P01"],
+    ["F01", "O01"],
   );
   const executableIds = new Set(manifest.workflows.map((item: any) => item.id));
   for (const item of coverage.filter((entry: any) => entry.status === "missing")) {
@@ -128,5 +129,7 @@ test("AI Edge Function starts and schedules the optional CompShare runtime", () 
   assert.ok(edge.includes('promptNodeId: "76", sourceImageNodeId: "78", sourceImageNodeIds: ["78"], maskImageNodeId: "79"'));
   assert.ok(edge.includes('promptNodeId: "119", sourceImageNodeId: "145", sourceImageNodeIds: ["145"], maskImageNodeId: ""'));
   assert.ok(edge.includes('promptNodeId: "1072", sourceImageNodeId: "1103", sourceImageNodeIds: ["1103", "1104"]'));
+  assert.ok(edge.includes("ZEALMAN_SOURCE_IMAGES_INCOMPLETE"));
+  assert.ok(edge.includes("Reference image 1 is the identity source"));
   assert.ok(edge.includes("ZEALMAN_SOURCE_IMAGE_REQUIRED"));
 });

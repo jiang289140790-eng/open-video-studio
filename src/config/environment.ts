@@ -43,6 +43,7 @@ export interface AppEnvironment {
   zealmanImageWorkflow?: string;
   zealmanImageEditWorkflow?: string;
   zealmanImageCompositionWorkflow?: string;
+  zealmanPoseWorkflow?: string;
   zealmanVideoWorkflow?: string;
   zealmanSmoothVideoWorkflow?: string;
   zealmanDigitalHumanWorkflow?: string;
@@ -110,6 +111,7 @@ export function loadEnvironment(filePath?: string): AppEnvironment {
     zealmanImageWorkflow: emptyToUndefined(value("ZEALMAN_IMAGE_WORKFLOW")),
     zealmanImageEditWorkflow: emptyToUndefined(value("ZEALMAN_IMAGE_EDIT_WORKFLOW")),
     zealmanImageCompositionWorkflow: emptyToUndefined(value("ZEALMAN_IMAGE_COMPOSITION_WORKFLOW")),
+    zealmanPoseWorkflow: emptyToUndefined(value("ZEALMAN_POSE_WORKFLOW")),
     zealmanVideoWorkflow: emptyToUndefined(value("ZEALMAN_VIDEO_WORKFLOW")),
     zealmanSmoothVideoWorkflow: emptyToUndefined(value("ZEALMAN_SMOOTH_VIDEO_WORKFLOW")),
     zealmanDigitalHumanWorkflow: emptyToUndefined(value("ZEALMAN_DIGITAL_HUMAN_WORKFLOW")),

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.27.0 |
+| Version | 1.28.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -404,7 +404,7 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Acceptance Criteria: all seven requested capabilities have permanent workflow IDs, explicit inputs and acceptance gates; unavailable workflows are identified from node-level export inspection; missing workflows cannot enter the deployment bundle.
 - Related Documents: AI-WORKFLOW-002, AI-PROVIDER-001, BACKEND-GPU-004
 - Status: Done
-- Current Evidence: A01-compshare is qualified, G01 is inventory-only, and E01/F01/O01/P01/M01 are explicitly missing. Manifest and regression tests enforce these states while all cloud GPU instances remain stopped.
+- Current Evidence: A01-compshare is qualified; G01 and M01 have direct runtime outputs; E01 has a repository-owned executable graph; P01 has an executable D18 preset but failed its first pose-quality review; F01 and O01 remain missing. Manifest and regression tests enforce release gates while all cloud GPU instances remain stopped outside qualification.
 
 ### AI-WF-003 - Implement E01 masked image editing
 
@@ -434,7 +434,17 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Acceptance Criteria: one or two references map to explicit nodes, unused vendor inputs are disabled, prompt is injected deterministically, output completes the full SaaS qualification gate.
 - Related Documents: AI-WORKFLOW-002, API-IMAGE-002, BACKEND-GPU-004
 - Status: Doing
-- Current Evidence: D18 was recovered from the AutoDL image; nodes 1103/1104 are exposed, nodes 1105/1106/1112/1117 are disabled server-side, and the private bundle includes D18. GPU and Supabase qualification remain.
+- Current Evidence: D18 was recovered from the AutoDL image; nodes 1103/1104 are exposed, nodes 1105/1106/1112/1117 are disabled server-side, and a one-reference runtime produced a valid 6,146,977-byte PNG. Two-reference semantic quality and the Supabase qualification gate remain.
+
+### AI-WF-006 - Implement P01 identity-preserving pose generation
+
+- Priority: P0
+- Estimated Time: 1-2 days
+- Dependencies: AI-WF-005
+- Acceptance Criteria: identity and pose references map to deterministic inputs; the output contains one intended subject, follows the target skeleton and preserves identity, clothing and valid anatomy; the full SaaS qualification gate passes.
+- Related Documents: AI-WORKFLOW-002, API-IMAGE-002, BACKEND-GPU-004
+- Status: Doing
+- Current Evidence: the D18 P01 preset accepts two fixed references and produced a valid 6,320,961-byte PNG. Visual review failed the semantic gate because the output composed two characters instead of proving pose-only transfer. Add DWPose/OpenPose or equivalent pose conditioning before release.
 
 ## Sprint 4: Admin And MVP Integration
 

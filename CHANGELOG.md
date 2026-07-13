@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 1.11.0 |
+| Version | 1.12.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,9 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Ran M01 directly on the stopped-by-default AutoDL image. D18 accepted a fixed uploaded reference, disabled unused vendor inputs and produced a valid 6,146,977-byte PNG before shutdown.
+- Added the P01 two-reference server contract and dedicated prompt policy. A direct runtime produced a valid 6,320,961-byte PNG, but visual review showed a two-character composition rather than identity-preserving pose transfer; P01 therefore remains quality-gated and unpublished.
+- Added `ZEALMAN_POSE_WORKFLOW`, minimum source-image validation and testing-only Admin registration for P01 without exposing ComfyUI node IDs to the browser.
 - Qualified the G01 Wan2.2 runtime directly on the stopped-by-default AutoDL image. A 512px, 25-frame test completed both sampler stages and produced a 238,040-byte MP4; the instance was stopped immediately afterward.
 - Replaced heuristic G01 input injection with fixed prompt node 119 and source-image node 145, including required-source validation.
 - Discovered and inventoried the additional D18 multi-image editing workflow from the same AutoDL image. M01 now accepts one or two source URLs, maps them only to D18 nodes 1103/1104, and disables its four remaining demo-image switches before submission.
@@ -42,6 +45,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Confirmed AutoDL returned to `shutdown` after the M01 and P01 cost-bearing tests; no cloud GPU is left running.
 - Built a nine-workflow private deployment bundle, completed the production TypeScript and Vite builds, and passed 14 focused provider/headless tests after the G01 and M01 changes.
 - Verified AutoDL returned to `shutdown` after the G01 cost-bearing test.
 - Built the private headless bundle with eight workflows including E01 and ran 14 focused AI provider/headless tests successfully. The production build succeeds; the full test suite currently has two unrelated frontend expectation failures caused by concurrent tool-page edits and those files were not folded into this workflow change.
