@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | ROADMAP-MVP-SPRINTS-001 |
-| Version | 1.29.0 |
+| Version | 1.30.0 |
 | Status | Active |
 | Owner | Product / Engineering |
 | Dependencies | PB-010, PAGE-GENERATE-001, API-BIBLE-001, DB-BIBLE-001, ADR-004, ADR-005, REVIEW-MVP-PRODUCT-001 |
@@ -455,6 +455,16 @@ Product basis: `REVIEW-MVP-PRODUCT-001`.
 - Related Documents: AI-WORKFLOW-002, API-IMAGE-002, BACKEND-GPU-004
 - Status: Doing
 - Current Evidence: the fixed D18 person/garment preset produced a valid 7,139,337-byte PNG. Visual review confirmed one subject, preserved pose/chair/background and successful black-and-white garment transfer. Controlled identity fixtures and the Supabase qualification gate remain.
+
+### AI-WF-008 - Implement F01 consented face replacement
+
+- Priority: P0
+- Estimated Time: 1-2 days
+- Dependencies: AI-WF-005, identity safety policy
+- Acceptance Criteria: target and consented identity references map to deterministic inputs; only the selected facial identity changes; clothing, body, pose and scene remain stable; consent is required and audited; identity similarity and the full SaaS qualification gate pass.
+- Related Documents: AI-WORKFLOW-002, API-IMAGE-002, BACKEND-GPU-004, SEC-INDEX-001
+- Status: Doing
+- Current Evidence: the fixed D18 target/identity preset produced a valid 7,256,708-byte PNG with one subject and preserved dress, pose, chair and scene. The server rejects F01 without `identityConsent=true`. Quantitative identity fidelity, misuse safeguards and Supabase qualification remain; a dedicated identity stack is preferred before release.
 
 ## Sprint 4: Admin And MVP Integration
 

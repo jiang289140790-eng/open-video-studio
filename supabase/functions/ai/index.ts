@@ -559,6 +559,9 @@ async function callZealmanWorkflow(env: AiEnv, job: Record<string, any>) {
     if (sourceImageUrls.length < contract.minimumSourceImages) {
       throw new AiFunctionError("ZEALMAN_SOURCE_IMAGES_INCOMPLETE", `This workflow requires ${contract.minimumSourceImages} source images.`, 400);
     }
+    if (String(job.workflow_id || "").toLowerCase().includes("f01") && inputParams.identityConsent !== true) {
+      throw new AiFunctionError("IDENTITY_CONSENT_REQUIRED", "Face replacement requires permission to use both identities.", 400);
+    }
     for (let index = 0; index < sourceImageUrls.length; index += 1) {
       const uploadedImage = await uploadZealmanSourceImage(env, sourceImageUrls[index], `${String(job.id || crypto.randomUUID())}-source-${index + 1}`);
       applyZealmanUploadedImage(workflow, uploadedImage, contract.sourceImageNodeIds[index] || contract.sourceImageNodeId);
@@ -636,6 +639,7 @@ function resolveZealmanWorkflowName(env: AiEnv, job: Record<string, any>): strin
   if (workflowId.includes("m01")) return env.zealmanImageCompositionWorkflow || env.zealmanImageWorkflow;
   if (workflowId.includes("p01")) return env.zealmanPoseWorkflow || env.zealmanImageCompositionWorkflow || env.zealmanImageWorkflow;
   if (workflowId.includes("o01")) return env.zealmanOutfitWorkflow || env.zealmanImageCompositionWorkflow || env.zealmanImageWorkflow;
+  if (workflowId.includes("f01")) return env.zealmanFaceSwapWorkflow || env.zealmanImageCompositionWorkflow || env.zealmanImageWorkflow;
   if (workflowId.includes("g03")) return env.zealmanSmoothVideoWorkflow || env.zealmanVideoWorkflow;
   if (workflowId.includes("j11")) return env.zealmanDigitalHumanWorkflow || env.zealmanVideoWorkflow;
   return mediaType === "video" ? env.zealmanVideoWorkflow : env.zealmanImageWorkflow;
@@ -736,6 +740,9 @@ function zealmanWorkflowInputContract(job: Record<string, any>) {
   if (workflowId.includes("o01")) {
     return { promptNodeId: "1072", sourceImageNodeId: "1103", sourceImageNodeIds: ["1103", "1104"], maskImageNodeId: "", disabledImageNodeIds: ["1105", "1106", "1112", "1117"], sourceImageRequired: true, minimumSourceImages: 2 };
   }
+  if (workflowId.includes("f01")) {
+    return { promptNodeId: "1072", sourceImageNodeId: "1103", sourceImageNodeIds: ["1103", "1104"], maskImageNodeId: "", disabledImageNodeIds: ["1105", "1106", "1112", "1117"], sourceImageRequired: true, minimumSourceImages: 2 };
+  }
   return { promptNodeId: "", sourceImageNodeId: "", sourceImageNodeIds: [], maskImageNodeId: "", disabledImageNodeIds: [], sourceImageRequired: false, minimumSourceImages: 0 };
 }
 
@@ -747,6 +754,9 @@ function zealmanPromptForJob(job: Record<string, any>): string {
   }
   if (workflowId.includes("o01")) {
     return `Reference image 1 is the person source. Preserve that person's face, hair, skin, body geometry, pose, hands and background. Reference image 2 is garment guidance only; do not copy its person, face, body or background. Replace only the clothing on image 1 with the garment from image 2 and integrate fabric, folds, occlusion and lighting naturally. ${prompt}`.trim();
+  }
+  if (workflowId.includes("f01")) {
+    return `Reference image 1 is the target scene and body. Preserve its clothing, hair style, body, pose, hands, camera, lighting and background. Reference image 2 is the consented identity source. Replace only the target person's facial identity with reference image 2, matching expression, head angle, skin lighting and edges naturally. Do not add another person and do not change the scene. ${prompt}`.trim();
   }
   return prompt;
 }
@@ -1779,6 +1789,7 @@ function loadAiEnv(): AiEnv {
     zealmanImageCompositionWorkflow: Deno.env.get("ZEALMAN_IMAGE_COMPOSITION_WORKFLOW") ?? "",
     zealmanPoseWorkflow: Deno.env.get("ZEALMAN_POSE_WORKFLOW") ?? "",
     zealmanOutfitWorkflow: Deno.env.get("ZEALMAN_OUTFIT_WORKFLOW") ?? "",
+    zealmanFaceSwapWorkflow: Deno.env.get("ZEALMAN_FACE_SWAP_WORKFLOW") ?? "",
     zealmanVideoWorkflow: Deno.env.get("ZEALMAN_VIDEO_WORKFLOW") ?? "",
     zealmanSmoothVideoWorkflow: Deno.env.get("ZEALMAN_SMOOTH_VIDEO_WORKFLOW") ?? "",
     zealmanDigitalHumanWorkflow: Deno.env.get("ZEALMAN_DIGITAL_HUMAN_WORKFLOW") ?? "",
@@ -1925,6 +1936,7 @@ interface AiEnv {
   zealmanImageCompositionWorkflow: string;
   zealmanPoseWorkflow: string;
   zealmanOutfitWorkflow: string;
+  zealmanFaceSwapWorkflow: string;
   zealmanVideoWorkflow: string;
   zealmanSmoothVideoWorkflow: string;
   zealmanDigitalHumanWorkflow: string;

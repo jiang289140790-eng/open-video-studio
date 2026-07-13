@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Unique ID | CHANGELOG-001 |
-| Version | 1.13.0 |
+| Version | 1.14.0 |
 | Status | Active |
 | Owner | Engineering Operations |
 | Dependencies | DOC-STD-001, TASK-DONE-STD-001 |
@@ -25,6 +25,8 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Improved
 
+- Added F01 as a fixed target/identity D18 preset with mandatory two-image input, a dedicated provider environment selector and a server-side `identityConsent` gate.
+- Qualified F01's runtime and scene-preservation behavior directly on AutoDL: the workflow produced a valid 7,256,708-byte PNG while retaining one subject, red dress, pose, chair and outdoor scene. Identity similarity remains a separate release gate.
 - Added O01 as a fixed two-reference D18 preset with person/garment role separation, minimum input validation, dedicated provider environment selection and a testing-only Admin workflow entry.
 - Qualified O01 directly on AutoDL: the workflow produced a valid 7,139,337-byte PNG with one subject, preserved seated pose/chair/outdoor background and transferred the black-and-white garment without copying a second identity.
 - Ran M01 directly on the stopped-by-default AutoDL image. D18 accepted a fixed uploaded reference, disabled unused vendor inputs and produced a valid 6,146,977-byte PNG before shutdown.
@@ -47,6 +49,7 @@ Record meaningful changes to the Open Video Studio workspace, documentation, arc
 
 ### Validation
 
+- Stopped the AutoDL instance immediately after F01 qualification; no cloud GPU remains intentionally running.
 - Stopped the AutoDL instance immediately after O01 qualification and verified it entered the shutdown sequence.
 - Confirmed AutoDL returned to `shutdown` after the M01 and P01 cost-bearing tests; no cloud GPU is left running.
 - Built a nine-workflow private deployment bundle, completed the production TypeScript and Vite builds, and passed 14 focused provider/headless tests after the G01 and M01 changes.

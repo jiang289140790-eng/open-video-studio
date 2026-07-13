@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | ID | AI-WORKFLOW-002 |
-| Version | 1.4.0 |
+| Version | 1.5.0 |
 | Status | Active |
 | Owner | AI Platform |
 | Dependencies | AI-PROVIDER-001, BACKEND-GPU-004, API-IMAGE-002, API-VIDEO-003 |
@@ -26,7 +26,7 @@ Define the permanent mapping between user-facing generation capabilities and exe
 | Product capability | Workflow | Current status | Current evidence | Missing before release |
 |---|---:|---|---|---|
 | AI image editing | E01 | Inventory | Original API-format Qwen Image Edit workflow now maps prompt node 76, source node 78, mask node 79 and masked composite output 96 | Install `qwen_image_edit_fp8_e4m3fn.safetensors`, verify native nodes, add automatic-mask stage, run full qualification |
-| AI face swap | F01 | Missing | No ReActor, InsightFace, PuLID or InstantID workflow found | Select identity stack, consent/safety checks, restoration stage, run full qualification |
+| AI face swap | F01 | Runtime qualified, identity gated | The fixed D18 target/identity preset produced a valid 7,256,708-byte PNG with one subject and preserved red dress, pose, chair and outdoor scene; explicit identity consent is enforced server-side | Measure identity similarity with controlled fixtures, prefer an InsightFace/PuLID/InstantID stack for production fidelity, add face-safety checks and run the full SaaS qualification |
 | AI outfit change | O01 | Runtime qualified | The fixed D18 person/garment preset produced a valid 7,139,337-byte PNG with one subject, preserved seated pose/chair/outdoor background and replaced the red dress with the black-and-white reference garment | Run controlled identity similarity fixtures and the complete credits/refund/Storage/history/shutdown qualification |
 | AI pose generation | P01 | Runtime executable, quality gated | The P01 preset submitted two fixed D18 references and produced a valid 6,320,961-byte PNG; visual review showed a two-character composition rather than proven identity-preserving pose transfer | Add DWPose/OpenPose control or stronger pose conditioning, test with controlled identity/pose fixtures, then run full SaaS qualification |
 | General image generation | A01-compshare | Qualified | Real Qwen Image 2512 credits-to-Storage loop passed | Add optional parameters and production HTTPS before publishing |
@@ -43,6 +43,7 @@ Define the permanent mapping between user-facing generation capabilities and exe
 - M01 remains unpublished until two-image behavior and the complete SaaS data/billing loop pass.
 - P01 remains unpublished: successful execution is not sufficient because the first visual result did not meet the identity-preserving pose acceptance gate.
 - O01 remains unpublished until controlled identity preservation and the complete SaaS data/billing loop pass.
+- F01 remains unpublished until identity similarity, consent/audit behavior, misuse safeguards and the complete SaaS data/billing loop pass.
 - Every future status change updates this document, `SUMMARY.md`, `CHANGELOG.md` and the MVP backlog.
 
 ## Future Evolution

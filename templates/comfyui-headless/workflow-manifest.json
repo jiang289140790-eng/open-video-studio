@@ -14,11 +14,12 @@
     {
       "capability": "face-swap",
       "workflowId": "F01",
-      "status": "missing",
+      "status": "inventory",
+      "implementationWorkflowId": "D18",
       "requiredInputs": ["source_face", "target_image"],
       "requiredProcessing": ["face-detection", "identity-transfer", "face-fusion", "face-restoration"],
       "outputType": "image",
-      "acceptanceGate": "The selected source identity is transferred with explicit consent and the output passes face-safety checks."
+      "acceptanceGate": "D18 receives the target scene as image 1 and consented identity reference as image 2; identity transfers only to the selected face with no clothing, body, pose or scene drift."
     },
     {
       "capability": "outfit-change",
