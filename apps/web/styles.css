@@ -2110,6 +2110,21 @@ body.demo-mode .dashboard-sections article::before {
   color-scheme: dark;
   font-weight: 850;
 }
+
+.video-effect-selector { margin: 16px 0; padding: 14px 16px; border: 1px solid var(--line, #30303a); border-radius: 14px; background: rgba(255,255,255,.03); }
+.video-effect-selector-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.video-effect-selector-head div { display:flex; flex-direction:column; gap:4px; }
+.video-effect-selector-head strong { font-size: 16px; }
+.video-effect-selector p { margin: 8px 0 0; color: var(--muted, #a7a7b2); font-size: 13px; }
+.video-effect-modal { max-width: 980px; }
+.video-effect-picker-grid { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:12px; margin-top:18px; }
+.video-effect-choice { min-height: 150px; border:1px solid rgba(255,255,255,.14); border-radius:14px; color:#fff; text-align:left; padding:14px; display:flex; flex-direction:column; justify-content:flex-end; gap:6px; background-color:#202027; background-size:cover; background-position:center; cursor:pointer; position:relative; overflow:hidden; }
+.video-effect-choice::before { content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 25%, rgba(0,0,0,.78)); }
+.video-effect-choice strong, .video-effect-choice small { position:relative; z-index:1; }
+.video-effect-choice strong { font-size:15px; }
+.video-effect-choice small { color:#d2d2dc; }
+.video-effect-choice:hover, .video-effect-choice.active { border-color:#ff5eb5; box-shadow:0 0 0 2px rgba(255,94,181,.18); }
+.video-effect-tabs { margin-top: 14px; }
 .asset-picker-actions {
   display: flex;
   flex-wrap: wrap;
@@ -4466,6 +4481,7 @@ body.tool-layout .site-footer {
   .tool-filter-tabs button { flex: 0 0 auto; min-width: max-content; min-height: 44px; }
   .tool-market-grid,
   .video-options-grid { grid-template-columns: 1fr; }
+  .video-effect-picker-grid { grid-template-columns: 1fr 1fr; }
   .video-workflow-card { min-height: 320px; }
   .support-flow-card { min-height: 190px; }
   .tool-specs { grid-template-columns: 1fr 1fr; }

@@ -3333,6 +3333,51 @@ const videoWorkflowPresets = {
   }
 };
 
+const videoEffectLabels = {
+  "image-video": "通用图片转视频",
+  "adult-effects": "服装变化特效（成年人/已授权）",
+  "movie-closeup": "电影近景特效",
+  "social-reel": "社媒竖屏动作"
+};
+
+function openVideoEffectPicker() {
+  const overlay = document.querySelector("[data-video-effect-picker]");
+  if (!overlay) return;
+  overlay.hidden = false;
+  document.body.classList.add("modal-open");
+}
+
+function closeVideoEffectPicker() {
+  const overlay = document.querySelector("[data-video-effect-picker]");
+  if (overlay) overlay.hidden = true;
+  document.body.classList.remove("modal-open");
+}
+
+function setupVideoEffectPicker() {
+  document.querySelector("[data-open-video-effect-picker]")?.addEventListener("click", openVideoEffectPicker);
+  document.querySelector("[data-close-video-effect-picker]")?.addEventListener("click", closeVideoEffectPicker);
+  document.querySelector("[data-video-effect-picker]")?.addEventListener("click", (event) => {
+    if (event.target?.matches("[data-video-effect-picker]")) closeVideoEffectPicker();
+  });
+  document.querySelectorAll("[data-video-effect-filter]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const filter = button.dataset.videoEffectFilter || "all";
+      document.querySelectorAll("[data-video-effect-filter]").forEach((item) => item.classList.toggle("active", item === button));
+      document.querySelectorAll("[data-video-effect-choice]").forEach((card) => {
+        const tags = String(card.dataset.videoEffectTags || "").split(/\s+/);
+        card.hidden = filter !== "all" && !tags.includes(filter);
+      });
+    });
+  });
+  document.querySelectorAll("[data-video-effect-choice]").forEach((card) => {
+    card.addEventListener("click", () => {
+      const presetId = card.dataset.videoEffectChoice || "image-video";
+      applyVideoPreset(presetId, { updateUrl: true });
+      closeVideoEffectPicker();
+    });
+  });
+}
+
 function applyGenerationModelVisibility(current = state) {
   document.querySelectorAll("[data-video-model]").forEach((select) => {
     const isAdmin = isAdminActor(current.user);
@@ -3380,6 +3425,7 @@ function applyInitialVideoPreset() {
   applyGenerationModelVisibility(state);
   const preset = new URLSearchParams(window.location.search).get("preset") || "image-video";
   applyVideoPreset(videoWorkflowPresets[preset] ? preset : "image-video", { updateUrl: false });
+  setupVideoEffectPicker();
   document.querySelectorAll("[data-video-ratio], [data-video-duration], [data-video-model]").forEach((input) => {
     input.addEventListener("change", updateVideoEstimateFromControls);
   });
@@ -4065,6 +4111,12 @@ function applyVideoPreset(presetId, options = {}) {
   if (durationInput) durationInput.value = preset.duration;
   if (modelInput) modelInput.value = preset.model;
   if (promptBox) promptBox.value = preset.prompt;
+  const effectLabel = document.querySelector("[data-video-effect-label]");
+  if (effectLabel) effectLabel.textContent = videoEffectLabels[presetId] || preset.title;
+  const effectNote = document.querySelector("[data-video-effect-note]");
+  if (effectNote) effectNote.textContent = presetId === "adult-effects"
+    ? "仅允许成年人、虚构角色或已获授权素材；生成前请确认符合平台内容规则。"
+    : "点击选择特效后，会在当前页面保留图片、参数和生成结果。";
   if (costTarget) costTarget.textContent = `${preset.cost} 积分`;
   if (modeTarget) modeTarget.textContent = preset.title;
   const preview = document.querySelector("[data-video-preview]");
@@ -7771,7 +7823,7 @@ if (selectedCharacterName) {
 }
 
 /* ── ComfyUI Gateway Integration ── */
-const COMFYUI_GATEWAY_URL = "https://u863228-7804939cc4bd.westd.seetacloud.com:8443";
+const COMFYUI_GATEWAY_URL = "https://uu863228-7841f4d2206a.westd.seetacloud.com:8443";
 const COMFYUI_GATEWAY_TEMPLATES = {
   "wan22-i2v": { file: "wan22_i2v.json", nodeId: { image: "1", prompt: "5", seed: "7", steps: "7", cfg: "7", shift: "7" } },
   "flux-klein": { file: "flux_klein_enhance.json", nodeId: { image: "1", prompt: "9", lora: "5", steps: "16", cfg: "18", seed: "15" } },
