@@ -5442,3 +5442,14 @@ body.admin-shell-body .admin-config-card.admin-tool-config-card {
 .pose-preset-card strong { font-size: 14px; }
 .pose-preset-card small { color: #c7c7cf; margin-top: 4px; }
 @media (max-width: 760px) { .pose-preset-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.spicy-effects-page { max-width: 1280px; }
+.spicy-age-notice { margin: 0 auto 18px; max-width: 900px; padding: 12px 16px; border: 1px solid rgba(255,90,179,.45); border-radius: 12px; color: #ffd8ec; background: rgba(255,90,179,.08); text-align: center; }
+.spicy-filter-row { display:flex; flex-wrap:wrap; gap:8px; margin: 0 0 18px; }
+.spicy-card-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:14px; }
+.spicy-effect-card { min-height:210px; border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:14px; color:#fff; display:flex; flex-direction:column; justify-content:flex-end; position:relative; background-size:cover; background-blend-mode:soft-light; transition:.18s ease; }
+.spicy-effect-card:hover { border-color:#ff5ab3; transform:translateY(-2px); box-shadow:0 10px 28px rgba(0,0,0,.25); }
+.spicy-effect-card strong { font-size:16px; line-height:1.25; text-shadow:0 1px 4px #000; }
+.spicy-effect-card small { color:#ddd; margin-top:5px; }
+.spicy-card-lock { position:absolute; top:12px; right:12px; padding:5px 8px; border-radius:999px; background:rgba(255,90,179,.9); font-size:12px; }
+@media (max-width: 980px) { .spicy-card-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media (max-width: 620px) { .spicy-card-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
