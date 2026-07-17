@@ -33,6 +33,9 @@ Deno.serve(async (req) => {
     if (authError || !authData.user) {
       return json({ error: { code: "AI_AUTH_REQUIRED", message: "Login is required." } }, 401);
     }
+    if (authData.user.is_anonymous && !env.stagingAnonymousGeneration) {
+      return json({ error: { code: "AI_AUTH_REQUIRED", message: "登录后才能使用真实生成。" } }, 401);
+    }
 
     const body = await req.json().catch(() => ({}));
     const action = String(body.action ?? "");
@@ -60,7 +63,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "create-generation-job") {
-      const job = await createGenerationJob(adminClient, env, user.id, body);
+      const job = await createGenerationJob(adminClient, env, user.id, body, Boolean(user.is_anonymous));
       return json({ job });
     }
 
@@ -151,7 +154,7 @@ async function analyzeImage(adminClient: any, env: AiEnv, userId: string, body: 
   return { provider: "qwen_vision", model: env.qwenVisionModel, durationMs, analysis };
 }
 
-async function createGenerationJob(adminClient: any, env: AiEnv, userId: string, body: Record<string, unknown>) {
+async function createGenerationJob(adminClient: any, env: AiEnv, userId: string, body: Record<string, unknown>, isAnonymous = false) {
   const mediaType = normalizeMediaType(body.mediaType);
   const prompt = requireText(body.prompt, "PROMPT_REQUIRED");
   const durationSeconds = mediaType === "video" ? clampNumber(body.durationSeconds, 6, 1, 60) : null;
@@ -159,7 +162,7 @@ async function createGenerationJob(adminClient: any, env: AiEnv, userId: string,
   const workflow = await resolveWorkflowConfig(adminClient, workflowId);
   const provider = safeProvider(body.provider) || safeProvider(workflow?.provider) || env.aiProviderDefault;
   const model = String(body.model || defaultModel(env, mediaType, provider)).trim();
-  const costCredits = estimateCredits(mediaType, durationSeconds ?? undefined);
+  const costCredits = isAnonymous && env.stagingAnonymousGeneration ? 0 : estimateCredits(mediaType, durationSeconds ?? undefined);
   const timestamp = new Date().toISOString();
   const job = {
     id: createId("job"),
@@ -1664,6 +1667,7 @@ function loadAiEnv(): AiEnv {
     zealmanSmoothVideoWorkflow: Deno.env.get("ZEALMAN_SMOOTH_VIDEO_WORKFLOW") ?? "",
     zealmanDigitalHumanWorkflow: Deno.env.get("ZEALMAN_DIGITAL_HUMAN_WORKFLOW") ?? "",
     zealmanWorkflowMapJson: Deno.env.get("ZEALMAN_WORKFLOW_MAP_JSON") ?? "",
+    stagingAnonymousGeneration: Deno.env.get("STAGING_ANONYMOUS_GENERATION") === "true",
     zealmanPromptNodeId: Deno.env.get("ZEALMAN_PROMPT_NODE_ID") ?? "",
     zealmanMaxPolls: clampNumber(Deno.env.get("ZEALMAN_MAX_POLLS"), 180, 1, 720),
     zealmanPollIntervalMs: clampNumber(Deno.env.get("ZEALMAN_POLL_INTERVAL_MS"), 5000, 1000, 30000),
@@ -1797,6 +1801,7 @@ interface AiEnv {
   zealmanSmoothVideoWorkflow: string;
   zealmanDigitalHumanWorkflow: string;
   zealmanWorkflowMapJson: string;
+  stagingAnonymousGeneration: boolean;
   zealmanPromptNodeId: string;
   zealmanMaxPolls: number;
   zealmanPollIntervalMs: number;
