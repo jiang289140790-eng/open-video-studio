@@ -7837,4 +7837,15 @@ document.querySelectorAll("[data-pose-preset]").forEach((button) => {
   });
 });
 
+document.querySelectorAll("[data-spicy-filter]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const filter = button.dataset.spicyFilter || "all";
+    document.querySelectorAll("[data-spicy-filter]").forEach((item) => item.classList.toggle("active", item === button));
+    document.querySelectorAll("[data-spicy-card]").forEach((card) => {
+      const tags = String(card.dataset.spicyTags || "").split(/\s+/);
+      card.hidden = filter !== "all" && !tags.includes(filter);
+    });
+  });
+});
+
 renderState(state);
