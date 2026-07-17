@@ -825,13 +825,16 @@ const defaultPageBuilderConfig = {
 
 const defaultToolCatalogConfig = {
   tools: [
-    { slug: "face-swap", name: "AI 换脸", category: "image", status: "published", provider: "comfyui_gateway", model: "comfyui-faceswap-v1", workflowId: "workflow-faceswap-v1", creditCost: 40, route: "./zh/app/face-swap/", featured: true, versions: [{ version: "v1", changelog: "AI 换脸工作流", modelVersion: "comfyui-faceswap-v1", workflowVersion: "workflow-faceswap-v1", promptVersion: "prompt-faceswap-v1", status: "published" }] },
-    { slug: "image-editor", name: "图片编辑器", category: "image", status: "published", provider: "comfyui_gateway", model: "comfyui-flux-klein-v1", workflowId: "workflow-flux-klein-v1", creditCost: 8, route: "./zh/app/image-editor/", featured: true, versions: [{ version: "v1", changelog: "Flux Klein 图片增强工作流", modelVersion: "comfyui-flux-klein-v1", workflowVersion: "workflow-flux-klein-v1", promptVersion: "prompt-flux-klein-v1", status: "published" }] },
-    { slug: "outfit-studio", name: "造型工作室", category: "image", status: "published", provider: "comfyui_gateway", model: "comfyui-outfit-v1", workflowId: "workflow-outfit-v1", creditCost: 12, route: "./zh/app/outfit-studio/", featured: true, versions: [{ version: "v1", changelog: "造型生成工作流", modelVersion: "comfyui-outfit-v1", workflowVersion: "workflow-outfit-v1", promptVersion: "prompt-outfit-v1", status: "published" }] },
-    { slug: "pose-generator", name: "姿势生成器", category: "image", status: "published", provider: "comfyui_gateway", model: "comfyui-pose-v1", workflowId: "workflow-pose-v1", creditCost: 8, route: "./zh/app/pose-generator/", featured: true, versions: [{ version: "v1", changelog: "姿势生成工作流", modelVersion: "comfyui-pose-v1", workflowVersion: "workflow-pose-v1", promptVersion: "prompt-pose-v1", status: "published" }] },
-    { slug: "nano-banana", name: "Nano Banana", category: "image", status: "published", provider: "comfyui_gateway", model: "comfyui-nano-banana-v1", workflowId: "workflow-nano-banana-v1", creditCost: 4, route: "./zh/app/nano-banana/", featured: true, versions: [{ version: "v1", changelog: "Nano Banana 快速创意工作流", modelVersion: "comfyui-nano-banana-v1", workflowVersion: "workflow-nano-banana-v1", promptVersion: "prompt-nano-banana-v1", status: "published" }] },
-    { slug: "image-combiner", name: "图像组合器", category: "image", status: "published", provider: "comfyui_gateway", model: "comfyui-combiner-v1", workflowId: "workflow-combiner-v1", creditCost: 16, route: "./zh/app/image-combiner/", featured: true, versions: [{ version: "v1", changelog: "图像组合工作流", modelVersion: "comfyui-combiner-v1", workflowVersion: "workflow-combiner-v1", promptVersion: "prompt-combiner-v1", status: "published" }] },
-    { slug: "image-to-video", name: "图片转视频", category: "video", status: "published", provider: "comfyui_gateway", model: "comfyui-wan22-i2v-v1", workflowId: "workflow-wan22-i2v-v1", creditCost: 24, route: "./zh/app/image-to-video/", featured: true, versions: [{ version: "v1", changelog: "WAN 2.2 图生视频工作流", modelVersion: "comfyui-wan22-i2v-v1", workflowVersion: "workflow-wan22-i2v-v1", promptVersion: "prompt-wan22-i2v-v1", status: "published" }] }
+    { slug: "face-swap", name: "AI 换脸", category: "image", status: "published", provider: "zealman_workflow", model: "zealman_workflow", workflowId: "workflow-hifun-face-swap-v1", creditCost: 40, route: "./zh/app/face-swap/", featured: true, versions: [{ version: "v1", changelog: "绑定 Zealman AI 换脸 API", modelVersion: "zealman_workflow", workflowVersion: "workflow-hifun-face-swap-v1", promptVersion: "prompt-faceswap-v1", status: "published" }] },
+    { slug: "image-editor", name: "图片编辑器", category: "image", status: "published", provider: "zealman_workflow", model: "zealman_workflow", workflowId: "workflow-hifun-image-editor-v1", creditCost: 8, route: "./zh/app/image-editor/", featured: true, versions: [{ version: "v1", changelog: "绑定 Zealman 自然语言图片编辑 API", modelVersion: "zealman_workflow", workflowVersion: "workflow-hifun-image-editor-v1", promptVersion: "prompt-image-editor-v1", status: "published" }] },
+    { slug: "outfit-studio", name: "造型工作室", category: "image", status: "published", provider: "zealman_workflow", model: "zealman_workflow", workflowId: "workflow-hifun-outfit-v1", creditCost: 12, route: "./zh/app/outfit-studio/", featured: true, versions: [{ version: "v1", changelog: "绑定 Zealman 虚构成人角色换装 API", modelVersion: "zealman_workflow", workflowVersion: "workflow-hifun-outfit-v1", promptVersion: "prompt-outfit-v1", status: "published" }] },
+    { slug: "pose-generator", name: "姿势生成器", category: "image", status: "published", provider: "zealman_workflow", model: "zealman_workflow", workflowId: "workflow-hifun-pose-v1", creditCost: 8, route: "./zh/app/pose-generator/", featured: true, versions: [{ version: "v1", changelog: "绑定 Zealman 姿势重构 API", modelVersion: "zealman_workflow", workflowVersion: "workflow-hifun-pose-v1", promptVersion: "prompt-pose-v1", status: "published" }] },
+    { slug: "nano-banana", name: "自然语言图片编辑", category: "image", status: "published", provider: "zealman_workflow", model: "zealman_workflow", workflowId: "workflow-hifun-nano-v1", creditCost: 8, route: "./zh/app/nano-banana/", featured: true, versions: [{ version: "v1", changelog: "绑定 Zealman 自然语言图片编辑 API", modelVersion: "zealman_workflow", workflowVersion: "workflow-hifun-nano-v1", promptVersion: "prompt-nano-v1", status: "published" }] },
+    { slug: "image-combiner", name: "多图智能合成", category: "image", status: "published", provider: "zealman_workflow", model: "zealman_workflow", workflowId: "workflow-hifun-combiner-v1", creditCost: 16, route: "./zh/app/image-combiner/", featured: true, versions: [{ version: "v1", changelog: "绑定 Zealman 多图合成 API", modelVersion: "zealman_workflow", workflowVersion: "workflow-hifun-combiner-v1", promptVersion: "prompt-combiner-v1", status: "published" }] },
+    { slug: "image-to-video", name: "图片转视频", category: "video", status: "published", provider: "zealman_workflow", model: "zealman_workflow", workflowId: "workflow-hifun-image-to-video-v1", creditCost: 24, route: "./zh/app/image-to-video/", featured: true, versions: [{ version: "v1", changelog: "绑定 Zealman WAN 2.2 图生视频 API", modelVersion: "zealman_workflow", workflowVersion: "workflow-hifun-image-to-video-v1", promptVersion: "prompt-wan22-i2v-v1", status: "published" }] },
+    { slug: "adult-effects", name: "成人特效（已满18岁）", category: "video", status: "published", provider: "zealman_workflow", model: "zealman_workflow", workflowId: "workflow-hifun-adult-effects-v1", creditCost: 32, route: "./zh/app/image-to-video/?preset=adult-effects", featured: false, versions: [{ version: "v1", changelog: "绑定 Zealman Wan 2.2 4in1 API；仅限成年且合规内容", modelVersion: "zealman_workflow", workflowVersion: "workflow-hifun-adult-effects-v1", promptVersion: "prompt-adult-effects-v1", status: "published" }] },
+    { slug: "movie-closeup", name: "电影近景特效", category: "video", status: "published", provider: "zealman_workflow", model: "zealman_workflow", workflowId: "workflow-hifun-movie-closeup-v1", creditCost: 28, route: "./zh/app/image-to-video/?preset=movie-closeup", featured: false, versions: [{ version: "v1", changelog: "绑定 Zealman 电影近景 API", modelVersion: "zealman_workflow", workflowVersion: "workflow-hifun-movie-closeup-v1", promptVersion: "prompt-movie-closeup-v1", status: "published" }] },
+    { slug: "image-upscale", name: "图片高清修复", category: "image", status: "published", provider: "zealman_workflow", model: "zealman_workflow", workflowId: "workflow-hifun-upscale-v1", creditCost: 16, route: "./zh/app/image-editor/", featured: false, versions: [{ version: "v1", changelog: "绑定 Zealman 高清修复 API", modelVersion: "zealman_workflow", workflowVersion: "workflow-hifun-upscale-v1", promptVersion: "prompt-upscale-v1", status: "published" }] }
   ]
 };
 const defaultWorkflowCenterConfig = {
@@ -1396,6 +1399,7 @@ function injectToolWorkbench() {
 
 function injectToolDiscovery() {
   const page = document.querySelector(".tool-detail-page");
+  if (document.querySelector(".spicy-effects-page")) return;
   if (!page || document.querySelector("[data-tool-discovery]")) return;
   const toolName = document.querySelector(".tool-detail-copy h1")?.textContent?.trim() || "AI 工具";
   const isVideo = toolName.includes("视频");
@@ -3302,10 +3306,30 @@ const videoWorkflowPresets = {
     art: "art-13"
   },
   "adult-effects": {
-    title: "成人特效（已满18岁）", description: "仅处理成年、虚构或已获授权的合规素材；禁止未成年人、真人色情换脸、名人色情和非自愿亲密内容。", summary: "Wan 2.2 4in1 · 32 积分起", detail: "默认 5 秒、16:9；提交前必须确认年满18岁。", prompt: "对这张成年且已获授权的虚构角色图片生成合规的电影感动作短片，保持人物身份和服装连续。", ratio: "16:9", duration: "5", model: "zealman_workflow", cost: 32, preview: "16:9 · 5秒 · 成人合规预设", art: "art-13"
+    title: "成人特效（已满18岁）",
+    description: "仅处理成年、虚构或已获授权的合规素材；禁止未成年人、真人色情换脸、名人色情和非自愿亲密内容。",
+    summary: "Wan 2.2 4in1 · 32 积分起",
+    detail: "默认 5 秒、16:9；提交前必须确认年满18岁并同意平台内容规则。",
+    prompt: "对这张成年且已获授权的虚构角色图片生成合规的电影感动作短片，保持人物身份和服装连续，不涉及未成年人、真人色情换脸或非自愿内容。",
+    ratio: "16:9",
+    duration: "5",
+    model: "zealman_workflow",
+    cost: 32,
+    preview: "16:9 · 5秒 · 成人合规预设",
+    art: "art-13"
   },
   "movie-closeup": {
-    title: "电影近景特效", description: "使用 Wan 2.2 电影近景工作流制作合规的电影感近景镜头。", summary: "电影近景 · 28 积分起", detail: "默认 5 秒、16:9。", prompt: "将这张成年且已获授权的角色图生成 5 秒电影近景短片，镜头缓慢推进，保持脸部和服装一致。", ratio: "16:9", duration: "5", model: "zealman_workflow", cost: 28, preview: "16:9 · 5秒 · 电影近景预设", art: "art-1"
+    title: "电影近景特效",
+    description: "使用 Wan 2.2 电影近景工作流制作合规的电影感近景镜头。",
+    summary: "电影近景 · 28 积分起",
+    detail: "默认 5 秒、16:9；适合角色表情、镜头推进和氛围测试。",
+    prompt: "将这张成年且已获授权的角色图生成 5 秒电影近景短片，镜头缓慢推进，保持脸部和服装一致，电影级灯光与景深。",
+    ratio: "16:9",
+    duration: "5",
+    model: "zealman_workflow",
+    cost: 28,
+    preview: "16:9 · 5秒 · 电影近景预设",
+    art: "art-1"
   }
 };
 
@@ -6312,7 +6336,16 @@ function normalizePageModules(modules) {
 function normalizeToolCatalogConfig(config) {
   const tools = Array.isArray(config?.tools) ? config.tools : defaultToolCatalogConfig.tools;
   const zealmanBindings = {
-    "face-swap": "workflow-hifun-face-swap-v1", "image-editor": "workflow-hifun-image-editor-v1", "outfit-studio": "workflow-hifun-outfit-v1", "pose-generator": "workflow-hifun-pose-v1", "nano-banana": "workflow-hifun-nano-v1", "image-combiner": "workflow-hifun-combiner-v1", "image-to-video": "workflow-hifun-image-to-video-v1", "adult-effects": "workflow-hifun-adult-effects-v1", "movie-closeup": "workflow-hifun-movie-closeup-v1", "image-upscale": "workflow-hifun-upscale-v1"
+    "face-swap": "workflow-hifun-face-swap-v1",
+    "image-editor": "workflow-hifun-image-editor-v1",
+    "outfit-studio": "workflow-hifun-outfit-v1",
+    "pose-generator": "workflow-hifun-pose-v1",
+    "nano-banana": "workflow-hifun-nano-v1",
+    "image-combiner": "workflow-hifun-combiner-v1",
+    "image-to-video": "workflow-hifun-image-to-video-v1",
+    "adult-effects": "workflow-hifun-adult-effects-v1",
+    "movie-closeup": "workflow-hifun-movie-closeup-v1",
+    "image-upscale": "workflow-hifun-upscale-v1"
   };
   return {
     tools: tools.map((tool) => ({
