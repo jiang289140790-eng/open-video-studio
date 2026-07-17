@@ -183,6 +183,8 @@ async function createGenerationJob(adminClient: any, env: AiEnv, userId: string,
       durationSeconds,
       providerRequested: provider,
       workflowStatus: workflow?.status ?? "default",
+      workflowName: safeObject(workflow?.jsonConfig).workflowName ?? null,
+      workflowOverrides: safeObject(workflow?.jsonConfig).workflowOverrides ?? null,
     },
     output_assets: [],
     aspect_ratio: body.aspectRatio ?? "16:9",
@@ -573,9 +575,21 @@ function resolveZealmanWorkflowName(env: AiEnv, job: Record<string, any>): strin
   const model = String(job.model || "").trim();
   if (model && !["zealman_workflow", "zealman-image-v1", "zealman-video-v1"].includes(model)) return model;
   const workflowId = String(job.workflow_id || "").toLowerCase();
+  const configuredMap = parseWorkflowMap(env.zealmanWorkflowMapJson);
+  const mapped = configuredMap[workflowId] || configuredMap[String(job.tool_slug || "").toLowerCase()];
+  if (mapped) return mapped;
   if (workflowId.includes("g03")) return env.zealmanSmoothVideoWorkflow || env.zealmanVideoWorkflow;
   if (workflowId.includes("j11")) return env.zealmanDigitalHumanWorkflow || env.zealmanVideoWorkflow;
   return mediaType === "video" ? env.zealmanVideoWorkflow : env.zealmanImageWorkflow;
+}
+
+function parseWorkflowMap(raw: string): Record<string, string> {
+  if (!raw) return {};
+  try {
+    const value = JSON.parse(raw);
+    if (!value || typeof value !== "object") return {};
+    return Object.fromEntries(Object.entries(value).filter(([, item]) => typeof item === "string" && item.trim()).map(([key, item]) => [String(key).toLowerCase(), String(item).trim()]));
+  } catch { return {}; }
 }
 
 async function fetchZealmanWorkflow(env: AiEnv, workflowName: string): Promise<Record<string, any>> {
@@ -1649,6 +1663,7 @@ function loadAiEnv(): AiEnv {
     zealmanVideoWorkflow: Deno.env.get("ZEALMAN_VIDEO_WORKFLOW") ?? "",
     zealmanSmoothVideoWorkflow: Deno.env.get("ZEALMAN_SMOOTH_VIDEO_WORKFLOW") ?? "",
     zealmanDigitalHumanWorkflow: Deno.env.get("ZEALMAN_DIGITAL_HUMAN_WORKFLOW") ?? "",
+    zealmanWorkflowMapJson: Deno.env.get("ZEALMAN_WORKFLOW_MAP_JSON") ?? "",
     zealmanPromptNodeId: Deno.env.get("ZEALMAN_PROMPT_NODE_ID") ?? "",
     zealmanMaxPolls: clampNumber(Deno.env.get("ZEALMAN_MAX_POLLS"), 180, 1, 720),
     zealmanPollIntervalMs: clampNumber(Deno.env.get("ZEALMAN_POLL_INTERVAL_MS"), 5000, 1000, 30000),
@@ -1781,6 +1796,7 @@ interface AiEnv {
   zealmanVideoWorkflow: string;
   zealmanSmoothVideoWorkflow: string;
   zealmanDigitalHumanWorkflow: string;
+  zealmanWorkflowMapJson: string;
   zealmanPromptNodeId: string;
   zealmanMaxPolls: number;
   zealmanPollIntervalMs: number;
