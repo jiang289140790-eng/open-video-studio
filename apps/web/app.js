@@ -7818,4 +7818,23 @@ checkComfyUIGateway();
 
 /* ── End ComfyUI Gateway Integration ── */
 
+const posePresetPrompts = {
+  standing: "成年且已获授权的虚构角色正面站立，右手自然放在腰间，眼神看向镜头，时尚杂志封面构图，全身照",
+  sitting: "成年且已获授权的虚构角色自然坐姿，身体舒展，双手姿态自然，柔和摄影棚灯光，完整构图",
+  side: "成年且已获授权的虚构角色侧身回眸，肩线和身体比例自然，电影感侧光，中景构图",
+  action: "成年且已获授权的虚构角色做自然动态展示动作，衣物和身体结构连续，运动摄影构图",
+  kneeling: "成年且已获授权的虚构角色低姿态构图，膝盖和手部结构自然，柔和光线，完整身体比例",
+  custom: ""
+};
+document.querySelectorAll("[data-pose-preset]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const preset = button.dataset.posePreset || "custom";
+    document.querySelectorAll("[data-pose-preset]").forEach((item) => item.classList.toggle("active", item === button));
+    const prompt = document.querySelector("[data-pose-prompt]");
+    if (prompt && preset !== "custom") prompt.value = posePresetPrompts[preset] || "";
+    const type = document.querySelector(`[data-pose-type="${preset}"]`) || document.querySelector('[data-pose-type="standing"]');
+    type?.click();
+  });
+});
+
 renderState(state);
