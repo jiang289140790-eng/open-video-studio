@@ -3289,6 +3289,12 @@ const videoWorkflowPresets = {
     cost: 28,
     preview: "9:16 · 5秒 · 社媒竖屏预设",
     art: "art-13"
+  },
+  "adult-effects": {
+    title: "成人特效（已满18岁）", description: "仅处理成年、虚构或已获授权的合规素材；禁止未成年人、真人色情换脸、名人色情和非自愿亲密内容。", summary: "Wan 2.2 4in1 · 32 积分起", detail: "默认 5 秒、16:9；提交前必须确认年满18岁。", prompt: "对这张成年且已获授权的虚构角色图片生成合规的电影感动作短片，保持人物身份和服装连续。", ratio: "16:9", duration: "5", model: "zealman_workflow", cost: 32, preview: "16:9 · 5秒 · 成人合规预设", art: "art-13"
+  },
+  "movie-closeup": {
+    title: "电影近景特效", description: "使用 Wan 2.2 电影近景工作流制作合规的电影感近景镜头。", summary: "电影近景 · 28 积分起", detail: "默认 5 秒、16:9。", prompt: "将这张成年且已获授权的角色图生成 5 秒电影近景短片，镜头缓慢推进，保持脸部和服装一致。", ratio: "16:9", duration: "5", model: "zealman_workflow", cost: 28, preview: "16:9 · 5秒 · 电影近景预设", art: "art-1"
   }
 };
 
@@ -4448,10 +4454,12 @@ async function runRemoteGeneration(input) {
 
 function workflowIdForGeneration(mediaType, provider, preset) {
   if (provider === "zealman_workflow") {
-    if (mediaType === "image") return "workflow-zealman-image-a01-v1";
+    if (mediaType === "image") return "workflow-hifun-image-editor-v1";
+    if (preset === "adult-effects") return "workflow-hifun-adult-effects-v1";
+    if (preset === "movie-closeup") return "workflow-hifun-movie-closeup-v1";
     if (preset === "social-reel") return "workflow-zealman-video-g03-v1";
     if (preset === "product-teaser") return "workflow-zealman-digital-human-j11-v1";
-    return "workflow-zealman-video-g01-v1";
+    return "workflow-hifun-image-to-video-v1";
   }
   if (provider === "liblib_generation" && mediaType === "image") return "workflow-liblib-image-v1";
   return mediaType === "video" ? "workflow-qianwen-video-v1" : "workflow-qianwen-image-v1";
@@ -6292,15 +6300,18 @@ function normalizePageModules(modules) {
 
 function normalizeToolCatalogConfig(config) {
   const tools = Array.isArray(config?.tools) ? config.tools : defaultToolCatalogConfig.tools;
+  const zealmanBindings = {
+    "face-swap": "workflow-hifun-face-swap-v1", "image-editor": "workflow-hifun-image-editor-v1", "outfit-studio": "workflow-hifun-outfit-v1", "pose-generator": "workflow-hifun-pose-v1", "nano-banana": "workflow-hifun-nano-v1", "image-combiner": "workflow-hifun-combiner-v1", "image-to-video": "workflow-hifun-image-to-video-v1", "adult-effects": "workflow-hifun-adult-effects-v1", "movie-closeup": "workflow-hifun-movie-closeup-v1", "image-upscale": "workflow-hifun-upscale-v1"
+  };
   return {
     tools: tools.map((tool) => ({
       slug: String(tool.slug || "").trim(),
       name: String(tool.name || "").trim(),
       category: ["image", "video", "character", "asset", "prompt"].includes(tool.category) ? tool.category : "image",
       status: ["published", "draft", "hidden"].includes(tool.status) ? tool.status : "published",
-      provider: String(tool.provider || "fake_worker").trim(),
-      model: String(tool.model || "local-demo").trim(),
-      workflowId: String(tool.workflowId || tool.workflow_id || "workflow-v1").trim(),
+      provider: zealmanBindings[String(tool.slug || "").trim()] ? "zealman_workflow" : String(tool.provider || "fake_worker").trim(),
+      model: zealmanBindings[String(tool.slug || "").trim()] ? "zealman_workflow" : String(tool.model || "local-demo").trim(),
+      workflowId: zealmanBindings[String(tool.slug || "").trim()] || String(tool.workflowId || tool.workflow_id || "workflow-v1").trim(),
       creditCost: Math.max(0, Math.min(999, Number(tool.creditCost || 0))),
       route: sanitizeHomepageHref(String(tool.route || "./zh/app/generate/")),
       featured: Boolean(tool.featured),
