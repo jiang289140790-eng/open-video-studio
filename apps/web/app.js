@@ -7893,11 +7893,21 @@ async function runComfyUIGeneration(templateId, overrides, onProgress) {
 
 let gatewayAvailable = false;
 async function checkComfyUIGateway() {
-  try {
-    const resp = await fetch(`${COMFYUI_GATEWAY_URL}/system_stats`, { signal: AbortSignal.timeout(5000) });
-    gatewayAvailable = resp.ok;
-    return gatewayAvailable;
-  } catch { gatewayAvailable = false; return false; }
+  // The active provider is the AutoDL/Zealman panel API. Keep the standard
+  // ComfyUI probe only as a compatibility fallback for older local workflows.
+  for (const path of ["/api/health", "/api/workflow/list", "/system_stats"]) {
+    try {
+      const resp = await fetch(`${COMFYUI_GATEWAY_URL}${path}`, { signal: AbortSignal.timeout(5000) });
+      if (resp.ok) {
+        gatewayAvailable = true;
+        return true;
+      }
+    } catch {
+      // Try the next compatible endpoint without exposing credentials.
+    }
+  }
+  gatewayAvailable = false;
+  return false;
 }
 checkComfyUIGateway();
 
