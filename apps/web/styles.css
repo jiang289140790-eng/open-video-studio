@@ -5434,3 +5434,11 @@ body.admin-shell-body .admin-config-card.admin-tool-config-card {
   border-radius: 4px;
   text-transform: uppercase;
 }
+/* Hifun-style selectable pose presets */
+.pose-preset-section { margin-top: 18px; }
+.pose-preset-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+.pose-preset-card { min-height: 112px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; background: #242424; color: #fff; padding: 12px; text-align: left; display: flex; flex-direction: column; justify-content: flex-end; cursor: pointer; background-size: cover; background-blend-mode: soft-light; transition: .18s ease; }
+.pose-preset-card:hover, .pose-preset-card.active { border-color: #ff5ab3; box-shadow: 0 0 0 1px #ff5ab3 inset; transform: translateY(-1px); }
+.pose-preset-card strong { font-size: 14px; }
+.pose-preset-card small { color: #c7c7cf; margin-top: 4px; }
+@media (max-width: 760px) { .pose-preset-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
