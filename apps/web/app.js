@@ -4546,7 +4546,7 @@ function workflowIdForGeneration(mediaType, provider, preset) {
     if (preset === "movie-closeup") return "workflow-hifun-movie-closeup-v1";
     if (preset === "social-reel") return "workflow-zealman-video-g03-v1";
     if (preset === "product-teaser") return "workflow-zealman-digital-human-j11-v1";
-    return "workflow-hifun-image-to-video-v1";
+    return "workflow-zealman-video-g01-v1";
   }
   if (provider === "liblib_generation" && mediaType === "image") return "workflow-liblib-image-v1";
   return mediaType === "video" ? "workflow-qianwen-video-v1" : "workflow-qianwen-image-v1";

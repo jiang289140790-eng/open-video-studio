@@ -1,4 +1,4 @@
-# AutoDL / Zealman API 工作流目录
+# AutoDL / Zealman（非 RunningHub）API 工作流目录
 
 记录时间：2026-07-17（实例关闭前）  
 实例入口：`https://uu863228-7841f4d2206a.westd.seetacloud.com:8443/`  

@@ -581,6 +581,36 @@ function resolveZealmanWorkflowName(env: AiEnv, job: Record<string, any>): strin
   const configuredMap = parseWorkflowMap(env.zealmanWorkflowMapJson);
   const mapped = configuredMap[workflowId] || configuredMap[String(job.tool_slug || "").toLowerCase()];
   if (mapped) return mapped;
+
+  // These are the workflow IDs published in the AutoDL/Zealman API panel.
+  // Keep the mapping here as a safe fallback so a missing optional
+  // ZEALMAN_WORKFLOW_MAP_JSON cannot silently route every tool to one generic
+  // workflow. The values are workflow names only; no credentials are stored.
+  const publishedWorkflowMap: Record<string, string> = {
+    "workflow-zealman-image-a01-v1": "A01-文生图-Qwen2512高清放大",
+    "workflow-hifun-image-editor-v1": "功能03-自然语言图片编辑（本地）",
+    "workflow-hifun-face-swap-v1": "功能01-授权虚构角色换脸（本地）",
+    "workflow-hifun-outfit-v1": "功能04-成年虚构角色换装（本地）",
+    "workflow-hifun-pose-v1": "功能05-人物姿势重构（本地）",
+    "workflow-hifun-nano-v1": "功能03-自然语言图片编辑（本地）",
+    "workflow-hifun-combiner-v1": "功能02-多图智能合成（本地）",
+    "workflow-hifun-upscale-v1": "功能07-图片高清修复（本地）",
+    "workflow-hifun-image-to-video-v1": "测试01-Wan2.2Remix-图生视频",
+    "workflow-zealman-video-g01-v1": "测试01-Wan2.2Remix-图生视频",
+    "workflow-hifun-movie-closeup-v1": "功能09-Wan2.2-电影近景特效（本地）",
+    "workflow-hifun-adult-effects-v1": "功能08-Wan2.2-4in1成人特效（本地）",
+    "workflow-zealman-video-g03-v1": "G03-图生视频-Wan2.2SmoothMix",
+    "workflow-zealman-digital-human-j11-v1": "J11-LTX2.3高清超自然电商数字人",
+    "image-editor": "功能03-自然语言图片编辑（本地）",
+    "face-swap": "功能01-授权虚构角色换脸（本地）",
+    "outfit-studio": "功能04-成年虚构角色换装（本地）",
+    "pose-generator": "功能05-人物姿势重构（本地）",
+    "nano-banana": "功能03-自然语言图片编辑（本地）",
+    "image-combiner": "功能02-多图智能合成（本地）",
+    "image-to-video": "测试01-Wan2.2Remix-图生视频",
+  };
+  const published = publishedWorkflowMap[workflowId] || publishedWorkflowMap[String(job.tool_slug || "").toLowerCase()];
+  if (published) return published;
   if (workflowId.includes("g03")) return env.zealmanSmoothVideoWorkflow || env.zealmanVideoWorkflow;
   if (workflowId.includes("j11")) return env.zealmanDigitalHumanWorkflow || env.zealmanVideoWorkflow;
   return mediaType === "video" ? env.zealmanVideoWorkflow : env.zealmanImageWorkflow;
