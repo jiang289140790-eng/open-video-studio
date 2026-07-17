@@ -74,6 +74,8 @@ const oauthProviderFlags = {
   telegram: import.meta.env.VITE_TELEGRAM_OAUTH_READY === "true"
 };
 const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+// Temporary staging switch. Disable after API verification is complete.
+const ENABLE_ANONYMOUS_TEST_MODE = true;
 const AUTH_ROUTE_ALIASES = new Map([
   ["app", "app.html"],
   ["gallery", "gallery.html"],
@@ -1488,6 +1490,7 @@ function stateUserFromSupabaseUser(user) {
     name: String(user.user_metadata?.display_name || user.email || "创作者"),
     email: user.email || "",
     provider: "supabase",
+    isAnonymous: Boolean(user.is_anonymous),
     role: String(appMetadata.role || user.user_metadata?.role || "user").toLowerCase(),
     appMetadata,
     createdAt: user.created_at || new Date().toISOString()
@@ -1508,6 +1511,14 @@ async function hydrateAuthSession() {
     await syncRemoteProductData();
     localStorage.removeItem(AUTH_RETURN_KEY);
     saveState(state);
+    renderState(state);
+  } else if (ENABLE_ANONYMOUS_TEST_MODE) {
+    const anonymous = await supabase.auth.signInAnonymously().catch(() => null);
+    if (anonymous?.data?.user) {
+      state.user = stateUserFromSupabaseUser(anonymous.data.user);
+      await syncRemoteProductData();
+      saveState(state);
+    }
     renderState(state);
   } else {
     renderState(state);
