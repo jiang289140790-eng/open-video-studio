@@ -81,6 +81,13 @@
             </select>
           </label>
         </div>
+        <section class="video-effect-selector" aria-label="视频特效选择">
+          <div class="video-effect-selector-head">
+            <div><span class="eyebrow">当前特效</span><strong data-video-effect-label>通用图片转视频</strong></div>
+            <button class="btn glass" type="button" data-open-video-effect-picker>选择特效</button>
+          </div>
+          <p data-video-effect-note>点击选择特效后，会在当前页面保留图片、参数和生成结果。</p>
+        </section>
 
         <section class="upload-zone video-reference-zone" data-video-upload-zone>
           <div class="upload-zone-head">
@@ -182,6 +189,26 @@
           <button class="btn glass" type="button" data-trigger-reference-upload>上传新参考图</button>
           <button class="btn glass" type="button" data-picker-demo-reference>使用示例图</button>
           <a class="btn glass" href="./zh/assets/">打开完整资产库</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="asset-picker-overlay video-effect-picker" data-video-effect-picker hidden>
+      <div class="asset-picker-modal video-effect-modal">
+        <button class="modal-close" type="button" data-close-video-effect-picker aria-label="关闭特效选择器">×</button>
+        <p class="eyebrow">18+ 合规特效</p>
+        <h2>选择视频特效</h2>
+        <p class="muted">仅允许成年人、虚构角色或已获授权的素材。禁止未成年人、未经同意的真人处理和规避平台审核。</p>
+        <div class="chip-row compact video-effect-tabs" role="tablist">
+          <button class="chip active" type="button" data-video-effect-filter="all">全部</button>
+          <button class="chip" type="button" data-video-effect-filter="motion">动作</button>
+          <button class="chip" type="button" data-video-effect-filter="cinematic">电影感</button>
+        </div>
+        <div class="video-effect-picker-grid">
+          <button class="video-effect-choice art-7" type="button" data-video-effect-choice="image-video" data-video-effect-tags="motion cinematic"><strong>Image to Video</strong><small>通用图片转视频</small></button>
+          <button class="video-effect-choice art-13" type="button" data-video-effect-choice="adult-effects" data-video-effect-tags="motion"><strong>服装变化特效</strong><small>成年人/已授权素材</small></button>
+          <button class="video-effect-choice art-1" type="button" data-video-effect-choice="movie-closeup" data-video-effect-tags="cinematic"><strong>电影近景</strong><small>镜头推进与表情动作</small></button>
+          <button class="video-effect-choice art-4" type="button" data-video-effect-choice="social-reel" data-video-effect-tags="motion"><strong>社媒竖屏动作</strong><small>9:16 短视频节奏</small></button>
         </div>
       </div>
     </div>
