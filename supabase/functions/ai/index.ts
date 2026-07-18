@@ -581,17 +581,26 @@ function resolveZealmanWorkflowName(env: AiEnv, job: Record<string, any>): strin
   const configuredMap = parseWorkflowMap(env.zealmanWorkflowMapJson);
   const verifiedWorkflowMap: Record<string, string> = {
     "workflow-hifun-image-editor-v1": "功能03-自然语言图片编辑（本地）",
+    "workflow-nano-banana-v1": "功能03-自然语言图片编辑（本地）",
     "workflow-hifun-face-swap-v1": "功能01-授权虚构角色换脸（本地）",
+    "workflow-faceswap-v1": "功能01-授权虚构角色换脸（本地）",
     "workflow-hifun-combiner-v1": "功能02-多图智能合成（本地）",
+    "workflow-combiner-v1": "功能02-多图智能合成（本地）",
     "workflow-hifun-upscale-v1": "功能07-图片高清修复（本地）",
     "workflow-hifun-adult-effects-v1": "WAN-NSFW-Undress",
     "workflow-hifun-outfit-v1": "功能04-成年虚构角色换装（本地）",
+    "workflow-outfit-v1": "功能04-成年虚构角色换装（本地）",
     "workflow-hifun-pose-v1": "功能05-人物姿势重构（本地）",
+    "workflow-pose-v1": "功能05-人物姿势重构（本地）",
     "workflow-hifun-image-to-video-v1": "测试01-Wan2.2Remix-图生视频",
     "workflow-zealman-video-g01-v1": "测试01-Wan2.2Remix-图生视频",
     "workflow-hifun-movie-closeup-v1": "功能09-Wan2.2-电影近景特效（本地）",
     "workflow-zealman-video-g03-v1": "G03-图生视频-Wan2.2SmoothMix",
-    "workflow-zealman-digital-human-j11-v1": "J11-LTX2.3高清超自然电商数字人"
+    "workflow-zealman-digital-human-j11-v1": "J11-LTX2.3高清超自然电商数字人",
+    "workflow-qianwen-image-v1": "A01-文生图-Qwen2512高清放大",
+    "workflow-flux-klein-v1": "D14-分镜-Flux克莱因9B多角度多场景",
+    "workflow-wan22-i2v-v1": "测试01-Wan2.2Remix-图生视频",
+    "workflow-qianwen-video-v1": "测试01-Wan2.2Remix-图生视频"
   };
   const mapped = configuredMap[workflowId] || configuredMap[String(job.tool_slug || "").toLowerCase()] || verifiedWorkflowMap[workflowId];
   if (mapped) return mapped;
