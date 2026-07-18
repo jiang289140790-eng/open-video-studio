@@ -9,5 +9,5 @@ for (const file of ["styles.css", "app.js"]) {
 }
 await copyFile(resolve(root, "public", "favicon.png"), resolve(out, "favicon.png"));
 for (const dir of ["brand", "home-assets"]) {
-  await cp(resolve(root, dir), resolve(out, dir), { recursive: true, force: true });
+  await cp(resolve(root, "public", dir), resolve(out, dir), { recursive: true, force: true });
 }
