@@ -7990,6 +7990,26 @@ function setupOutfitStudio() {
 }
 
 setupOutfitStudio();
+function setupPosePicker() {
+  const picker = document.querySelector("[data-pose-picker]");
+  if (!picker) return;
+  const close = () => { picker.hidden = true; document.body.classList.remove("modal-open"); };
+  document.querySelector("[data-open-pose-picker]")?.addEventListener("click", () => { picker.hidden = false; document.body.classList.add("modal-open"); });
+  document.querySelector("[data-close-pose-picker]")?.addEventListener("click", close);
+  picker.addEventListener("click", (event) => { if (event.target === picker) close(); });
+  document.querySelectorAll("[data-pose-filter]").forEach((button) => button.addEventListener("click", () => {
+    const filter = button.dataset.poseFilter || "all";
+    document.querySelectorAll("[data-pose-filter]").forEach((item) => item.classList.toggle("active", item === button));
+    document.querySelectorAll("[data-pose-choice]").forEach((card) => { const tags = String(card.dataset.poseTags || "").split(/\s+/); card.hidden = filter !== "all" && !tags.includes(filter); });
+  }));
+  document.querySelectorAll("[data-pose-choice]").forEach((card) => card.addEventListener("click", () => {
+    const id = card.dataset.poseChoice || "standing";
+    document.querySelector(`[data-pose-preset="${id}"]`)?.click();
+    const label = document.querySelector("[data-pose-label]"); if (label) label.textContent = card.querySelector("strong")?.textContent || "站立展示";
+    close();
+  }));
+}
+setupPosePicker();
 document.querySelectorAll("[data-pose-preset]").forEach((button) => {
   button.addEventListener("click", () => {
     const preset = button.dataset.posePreset || "custom";
