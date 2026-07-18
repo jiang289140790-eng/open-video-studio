@@ -446,7 +446,7 @@ const defaultState = {
       research: "关注创作者从提示词到可发布内容的断点：脚本、提示词、封面、字幕、CTA 和平台适配。",
       script: "Hook：一个提示词不该只生成一张图。展示如何把它变成图片、视频、Caption 和多平台版本。",
       prompt: "深色高级 AI 创作平台界面，角色主持人展示可复用视频资产，电影感灯光，适合竖屏短视频。",
-      imagePlaceholder: "发布主视觉占位：角色主持人 + 深色 AI Studio 背景",
+      imagePlaceholder: "发布主视觉占位：角色主持人 + 深色创作工作台背景",
       videoPlaceholder: "8 秒竖屏视频占位：镜头推进 + Caption 动效",
       thumbnailPlaceholder: "缩略图占位：强标题 + 高对比主体",
       caption: "把一个创意变成完整内容包，并保存为可复用资产。",
@@ -471,7 +471,7 @@ const defaultState = {
     { id: "analytics_x_pack", contentItemId: "content_prompt_pack", platform: "X", views: 6400, likes: 310, comments: 29, shares: 58, clicks: 220, signups: 14, revenue: 0, conversionRate: 6.3 }
   ],
   automationRules: [
-    { id: "auto_review", name: "AI Studio 草稿进入 Review", trigger: "content_created", action: "move_to_review", status: "active", lastRun: "等待首次运行" },
+    { id: "auto_review", name: "创建内容草稿进入审核", trigger: "content_created", action: "move_to_review", status: "active", lastRun: "等待首次运行" },
     { id: "auto_retry", name: "失败发布提醒", trigger: "publish_failed", action: "retry_failed", status: "paused", lastRun: "未运行" }
   ],
   contentSettings: {
@@ -1207,15 +1207,13 @@ function renderAccountNavigation(current) {
       <button class="account-trigger" type="button" aria-expanded="false"><span>${initial}</span><b data-user-name>${current.user.name}</b></button>
       <div class="account-dropdown">
         <a href="./zh/dashboard/">控制台</a>
-        <a href="./zh/campaigns/">营销活动 <em class="nav-beta">Beta</em></a>
-        <a href="./zh/ai-studio/">AI 工作室 <em class="nav-beta">Beta</em></a>
-        <a href="./zh/pipeline/">内容流水线 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/queue/">内容队列 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/accounts/">发布账号 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/publishing/">内容发布 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/calendar/">内容日历 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/analytics/">数据分析 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/automation/">自动化 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/ai-studio/">创建内容</a>
+        <a href="./zh/pipeline/">内容库 / 审核</a>
+        <a href="./zh/calendar/">日历排期</a>
+        <a href="./zh/analytics/">数据分析</a>
+        <a href="./zh/accounts/">发布账号</a>
+        <a href="./zh/campaigns/">内容计划</a>
+        <a href="./zh/automation/">自动化</a>
         <a href="./zh/settings/">设置</a>
         <a href="./zh/my-creations/">我的作品</a>
         <a href="./zh/history/">生成任务</a>
@@ -1252,16 +1250,16 @@ function injectAppShell() {
         <a href="./zh/app/generate/" class="${active("generate.html")}">图片生成器</a>
         <a href="./zh/app/characters/" class="${active("characters.html")}">角色生成器</a>
         <a href="./zh/assets/" class="${active("assets.html")}">资产库</a>
-        <span>内容运营 Beta</span>
-        <a href="./zh/campaigns/" class="${active("campaigns.html")}">营销活动 <em class="nav-beta">Beta</em></a>
-        <a href="./zh/ai-studio/" class="${active("ai-studio.html")}">AI 工作室 <em class="nav-beta">Beta</em></a>
-        <a href="./zh/pipeline/" class="${active("pipeline.html")}">内容流水线 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/queue/" class="${active("queue.html")}">内容队列 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/accounts/" class="${active("accounts.html")}">发布账号 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/publishing/" class="${active("publishing.html")}">内容发布 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/calendar/" class="${active("calendar.html")}">内容日历 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/analytics/" class="${active("analytics.html")}">数据分析 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/automation/" class="${active("automation.html")}">自动化 <em class="nav-beta">开发中</em></a>
+        <span>创作者工作流</span>
+        <a href="./zh/dashboard/" class="${active("dashboard.html")}">控制台</a>
+        <a href="./zh/ai-studio/" class="${active("ai-studio.html")}">创建内容</a>
+        <a href="./zh/pipeline/" class="${active("pipeline.html")}">内容库 / 审核</a>
+        <a href="./zh/calendar/" class="${active("calendar.html")}">日历排期</a>
+        <a href="./zh/analytics/" class="${active("analytics.html")}">数据分析</a>
+        <span>辅助配置</span>
+        <a href="./zh/accounts/" class="${active("accounts.html")}">发布账号</a>
+        <a href="./zh/campaigns/" class="${active("campaigns.html")}">内容计划</a>
+        <a href="./zh/automation/" class="${active("automation.html")}">自动化</a>
         <a href="./zh/settings/" class="${active("settings.html")}">设置</a>
         <span>AI 视频</span>
         <a href="./zh/video-tools/" class="${active("video-tools.html")}">全部视频工具</a>
@@ -1305,15 +1303,14 @@ function injectGlobalFooter() {
         <a href="./zh/app/image-to-video/">图片转视频</a>
         <a href="./zh/history/">生成任务</a>
         <a href="./zh/my-creations/">我的作品</a>
-        <a href="./zh/campaigns/">营销活动 <em class="nav-beta">Beta</em></a>
-        <a href="./zh/ai-studio/">AI 工作室 <em class="nav-beta">Beta</em></a>
-        <a href="./zh/pipeline/">内容流水线 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/queue/">内容队列 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/accounts/">发布账号 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/publishing/">内容发布 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/calendar/">内容日历 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/analytics/">数据分析 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/automation/">自动化 <em class="nav-beta">开发中</em></a>
+        <a href="./zh/dashboard/">控制台</a>
+        <a href="./zh/ai-studio/">创建内容</a>
+        <a href="./zh/pipeline/">内容库 / 审核</a>
+        <a href="./zh/calendar/">日历排期</a>
+        <a href="./zh/analytics/">数据分析</a>
+        <a href="./zh/accounts/">发布账号</a>
+        <a href="./zh/campaigns/">内容计划</a>
+        <a href="./zh/automation/">自动化</a>
         <a href="./zh/settings/">设置</a>
       </div>
       <div>
@@ -2387,7 +2384,7 @@ document.addEventListener("submit", async (event) => {
     const contentItem = createMockContentItem(campaign, topic, character);
     state.contentItems.unshift(contentItem);
     saveState(state);
-    showSiteToast("AI Studio 草稿已生成");
+    showSiteToast("内容包已生成，已进入审核");
     window.setTimeout(() => renderAiStudioOutput(state), 0);
     return;
   }
@@ -5525,6 +5522,18 @@ function renderDashboardNextActions(current) {
   if (current.credits < 8) {
     actions.push({ title: "积分不足", detail: "购买或领取免费积分后继续生成。", href: "./zh/pricing/", label: "购买积分", art: "art-10" });
   }
+  const reviewItems = current.contentItems.filter((item) => ["caption", "review"].includes(item.stage) || item.reviewStatus === "needs_review");
+  const scheduledItems = current.contentQueue.filter((item) => item.status === "scheduled");
+  const accountIssues = current.socialAccounts.filter((account) => account.status !== "connected");
+  if (reviewItems.length) {
+    actions.push({ title: "审核待发布内容", detail: `${reviewItems.length} 条内容正在等你确认文案和素材。`, href: "./zh/pipeline/", label: "去审核", art: "art-13" });
+  }
+  if (scheduledItems.length) {
+    actions.push({ title: "查看本周排期", detail: `${scheduledItems.length} 条内容已经进入日历。`, href: "./zh/calendar/", label: "看日历", art: "art-7" });
+  }
+  if (accountIssues.length) {
+    actions.push({ title: "确认发布账号", detail: `${accountIssues.length} 个账号需要检查连接状态。`, href: "./zh/accounts/", label: "处理账号", art: "art-9" });
+  }
   if (runningJobs.length) {
     actions.push({ title: "查看运行中的任务", detail: `${runningJobs.length} 个任务正在排队或生成中。`, href: "./zh/history/", label: "查看任务", art: "art-7" });
   }
@@ -5534,7 +5543,7 @@ function renderDashboardNextActions(current) {
   if (firstImage) {
     actions.push({ title: "把最近图片转成视频", detail: firstImage.title, href: `./zh/app/image-to-video/?source=${encodeURIComponent(firstImage.id)}`, label: "转视频", art: "art-3" });
   }
-  actions.push({ title: "开始一次新生成", detail: "上传图片、选择角色或输入提示词。", href: "./zh/app/image-to-video/", label: "上传图片生成视频", art: "art-12" });
+  actions.push({ title: "创建下一条内容", detail: "从主题、平台和内容类型开始，生成一组可审核的内容包。", href: "./zh/ai-studio/", label: "创建内容", art: "art-12" });
   target.innerHTML = actions.slice(0, 4).map((action) => `
     <article class="dashboard-row">
       <span class="thumb ${action.art}"></span>
@@ -5641,11 +5650,11 @@ function renderCampaignList(current) {
       </div>
       <div class="content-chip-row">${(campaign.platforms || []).map((platform) => `<em>${escapeHtml(platform)}</em>`).join("")}</div>
       <div class="character-action-row">
-        <a class="btn glass" href="./zh/ai-studio/">生成内容</a>
-        <a class="btn glass" href="./zh/pipeline/">查看 Pipeline</a>
+        <a class="btn glass" href="./zh/ai-studio/">创建内容</a>
+        <a class="btn glass" href="./zh/pipeline/">查看内容库</a>
       </div>
     </article>
-  `).join("") : `<article class="content-os-card"><strong>暂无 Campaign</strong><p>创建第一个 Campaign 后，AI Studio 会围绕它生成内容包。</p></article>`;
+  `).join("") : `<article class="content-os-card"><strong>暂无内容计划</strong><p>创建第一个内容计划后，系统会围绕它生成可审核的内容包。</p></article>`;
 }
 
 function renderCampaignSelect(current) {
@@ -5659,29 +5668,29 @@ function renderAiStudioOutput(current) {
   if (!target) return;
   const item = current.contentItems[0];
   if (!item) {
-    target.innerHTML = `<article><strong>等待生成</strong><p>选择 Campaign 和 Topic 后生成第一份内容包。</p></article>`;
+    target.innerHTML = `<article><strong>等待创建</strong><p>选择目标、平台和主题后，生成第一份可审核的内容包。</p></article>`;
     return;
   }
   target.innerHTML = [
-    ["Research", item.research],
-    ["Script", item.script],
-    ["Prompt", item.prompt],
-    ["Image Placeholder", item.imagePlaceholder],
-    ["Video Placeholder", item.videoPlaceholder],
-    ["Thumbnail", item.thumbnailPlaceholder],
-    ["Caption", item.caption],
+    ["选题洞察", item.research],
+    ["短视频脚本", item.script],
+    ["素材生成提示词", item.prompt],
+    ["图片素材位", item.imagePlaceholder],
+    ["视频素材位", item.videoPlaceholder],
+    ["封面缩略图", item.thumbnailPlaceholder],
+    ["发布文案", item.caption],
     ["CTA", item.cta],
     ["Hashtags", (item.hashtags || []).map((tag) => `#${tag}`).join(" ")],
-    ["Translation", Object.entries(item.translations || {}).map(([locale, value]) => `${locale}: ${value}`).join(" / ")],
-    ["Quality Check", `阶段：${stageLabel(item.stage)} · 审核：${reviewLabel(item.reviewStatus)}`]
+    ["多语言版本", Object.entries(item.translations || {}).map(([locale, value]) => `${locale}: ${value}`).join(" / ")],
+    ["当前状态", `阶段：${stageLabel(item.stage)} · 审核：${reviewLabel(item.reviewStatus)}`]
   ].map(([label, value]) => `
     <article>
       <span>${escapeHtml(label)}</span>
-      <p>${escapeHtml(value || "等待 AI Studio 输出")}</p>
+      <p>${escapeHtml(value || "等待创建内容输出")}</p>
     </article>
   `).join("") + `
     <article class="studio-platform-variants">
-      <span>Platform Versions</span>
+      <span>平台版本</span>
       <div class="platform-version-list">
         ${(item.variants || []).map((variant) => `
           <section class="platform-version-card">
@@ -5700,26 +5709,30 @@ function renderAiStudioOutput(current) {
 function renderPipelineBoard(current) {
   const target = document.querySelector("[data-pipeline-board]");
   if (!target) return;
-  const stages = ["idea", "research", "script", "prompt", "asset", "caption", "review", "scheduled", "published", "analyzed"];
+  const stages = ["draft", "review", "scheduled", "published"];
   target.innerHTML = stages.map((stage) => {
-    const items = current.contentItems.filter((item) => item.stage === stage);
+    const items = current.contentItems.filter((item) => contentBoardStage(item) === stage);
     return `
       <section class="pipeline-column">
         <h2>${stageLabel(stage)} <span>${items.length}</span></h2>
-        ${items.length ? items.map((item) => pipelineCard(item)).join("") : `<p class="pipeline-empty">暂无内容</p>`}
+        ${items.length ? items.map((item) => pipelineCard(item)).join("") : `<p class="pipeline-empty">暂无内容，创建后会自动进入这里。</p>`}
       </section>
     `;
   }).join("");
 }
 
 function pipelineCard(item) {
-  const next = nextStage(item.stage);
+  const boardStage = contentBoardStage(item);
+  const next = nextBoardStage(boardStage);
+  const assetStatus = item.videoPlaceholder || item.imagePlaceholder ? "素材占位已准备" : "等待素材";
+  const platforms = (item.variants || []).map((variant) => variant.platform).filter(Boolean);
   return `
     <article class="pipeline-card">
       <strong>${escapeHtml(item.title)}</strong>
       <p>${escapeHtml(item.topic || item.caption || "内容生产中")}</p>
+      <small>${escapeHtml(platforms.join(" / ") || "未选择平台")} · ${assetStatus}</small>
       <div class="content-chip-row">${(item.hashtags || []).slice(0, 3).map((tag) => `<em>#${escapeHtml(tag)}</em>`).join("")}</div>
-      ${next ? `<button type="button" data-pipeline-move="${escapeHtml(item.id)}" data-stage="${escapeHtml(next)}">移动到 ${stageLabel(next)}</button>` : `<a href="./zh/queue/">查看队列</a>`}
+      ${next ? `<button type="button" data-pipeline-move="${escapeHtml(item.id)}" data-stage="${escapeHtml(next)}">移动到 ${stageLabel(next)}</button>` : `<a href="./zh/analytics/">查看表现</a>`}
     </article>
   `;
 }
@@ -5751,7 +5764,7 @@ function createMockContentItem(campaign, topic, character) {
     campaignId: campaign?.id || "camp_local",
     title: topic,
     topic,
-    stage: "caption",
+    stage: "review",
     reviewStatus: "needs_review",
     character,
     research: `围绕「${topic}」分析受众痛点、视觉钩子、平台节奏和转化 CTA。`,
@@ -5783,18 +5796,29 @@ function nextStage(stage) {
   return index >= 0 && index < stages.length - 1 ? stages[index + 1] : "";
 }
 
+function contentBoardStage(item) {
+  if (item.stage === "scheduled" || item.stage === "published") return item.stage;
+  if (item.reviewStatus === "needs_review" || item.stage === "review" || item.stage === "caption") return "review";
+  return "draft";
+}
+
+function nextBoardStage(stage) {
+  return ({ draft: "review", review: "scheduled", scheduled: "published" })[stage] || "";
+}
+
 function stageLabel(stage) {
   return ({
-    idea: "Idea",
-    research: "Research",
-    script: "Script",
-    prompt: "Prompt",
-    asset: "Asset",
-    caption: "Caption",
-    review: "Review",
-    scheduled: "Scheduled",
-    published: "Published",
-    analyzed: "Analyzed"
+    idea: "想法",
+    draft: "草稿",
+    research: "选题研究",
+    script: "脚本",
+    prompt: "提示词",
+    asset: "素材",
+    caption: "文案",
+    review: "待审核",
+    scheduled: "已排期",
+    published: "已发布",
+    analyzed: "已复盘"
   })[stage] || stage;
 }
 
@@ -5832,12 +5856,10 @@ function renderContentCalendar(current) {
   const target = document.querySelector("[data-content-calendar]");
   if (!target) return;
   const groups = [
-    ["today", "Today"],
-    ["tomorrow", "Tomorrow"],
-    ["this_week", "This Week"],
-    ["scheduled", "Scheduled"],
-    ["failed", "Failed"],
-    ["published", "Published"]
+    ["today", "今天"],
+    ["tomorrow", "明天"],
+    ["this_week", "本周"],
+    ["scheduled", "全部排期"]
   ];
   target.innerHTML = groups.map(([key, label]) => {
     const rows = current.contentQueue.filter((item) => key === "scheduled" ? item.status === "scheduled" : item.status === key);
@@ -5850,7 +5872,7 @@ function renderContentCalendar(current) {
             <p>${escapeHtml(item.platform)} · ${escapeHtml(item.scheduledAt || "未设置")}</p>
             <small>${escapeHtml(queueStatusLabel(item.status))}</small>
           </article>
-        `).join("") : `<p class="pipeline-empty">暂无排期</p>`}
+        `).join("") : `<p class="pipeline-empty">暂无排期。内容从“内容库 / 审核”移动到已排期后，会出现在这里。</p>`}
       </section>
     `;
   }).join("");
@@ -5870,14 +5892,17 @@ function renderContentAnalytics(current) {
   }, { views: 0, likes: 0, shares: 0, clicks: 0, signups: 0 });
   if (summary) {
     summary.innerHTML = [
-      ["Views", totals.views],
-      ["Likes", totals.likes],
-      ["Shares", totals.shares],
-      ["Clicks", totals.clicks],
-      ["Signups", totals.signups]
+      ["总曝光", totals.views],
+      ["总互动", totals.likes + totals.shares],
+      ["链接点击", totals.clicks],
+      ["注册转化", totals.signups]
     ].map(([label, value]) => `<article><span>${label}</span><strong>${value}</strong><p>演示指标</p></article>`).join("");
   }
   if (list) {
+    if (!current.contentAnalytics.length) {
+      list.innerHTML = `<article class="content-os-card"><strong>还没有足够数据</strong><p>发布至少 3 条内容后，这里会生成平台表现、最佳内容和 AI 优化建议。</p></article>`;
+      return;
+    }
     list.innerHTML = current.contentAnalytics.map((row) => {
       const item = current.contentItems.find((entry) => entry.id === row.contentItemId);
       return `
@@ -5885,12 +5910,12 @@ function renderContentAnalytics(current) {
           <div>
             <span>${escapeHtml(row.platform)}</span>
             <strong>${escapeHtml(item?.title || "内容表现")}</strong>
-            <p>Views ${row.views} · Likes ${row.likes} · Shares ${row.shares} · Clicks ${row.clicks}</p>
+            <p>曝光 ${row.views} · 点赞 ${row.likes} · 分享 ${row.shares} · 点击 ${row.clicks}</p>
           </div>
           <div class="content-os-meta">
-            <small>${row.signups} Signups</small>
-            <small>${row.conversionRate}% Conversion</small>
-            <small>优化建议占位</small>
+            <small>${row.signups} 注册</small>
+            <small>${row.conversionRate}% 转化率</small>
+            <small>建议：复用高点击选题，生成下一批变体</small>
           </div>
         </article>
       `;
@@ -5962,7 +5987,7 @@ function renderContentSettings(current) {
     <article class="content-os-card">
       <span>默认 CTA</span>
       <strong>${escapeHtml(settings.defaultCta)}</strong>
-      <p>AI Studio 生成 Caption 时可作为默认转化动作。</p>
+      <p>创建内容时可作为默认转化动作。</p>
     </article>
     <article class="content-os-card">
       <span>发布安全</span>
@@ -7924,6 +7949,47 @@ const posePresetPrompts = {
   kneeling: "成年且已获授权的虚构角色低姿态构图，膝盖和手部结构自然，柔和光线，完整身体比例",
   custom: ""
 };
+
+const outfitStylePresets = {
+  business: { label: "职业装/正装", summary: "造型生成 · 12 积分起", detail: "商务、通勤和品牌目录造型。", prompt: "成年且已获授权的虚构角色穿着简洁职业正装，站在现代办公场景，柔和自然光，品牌目录摄影风格。", cost: 12 },
+  street: { label: "休闲/潮流", summary: "街拍造型 · 12 积分起", detail: "休闲、运动和街头潮流造型。", prompt: "成年且已获授权的虚构角色穿着层次丰富的休闲街头服装，城市街拍场景，自然光和时尚杂志构图。", cost: 12 },
+  evening: { label: "正式晚装", summary: "晚装礼服 · 16 积分起", detail: "晚宴、发布会和正式场合造型。", prompt: "成年且已获授权的虚构角色穿着优雅正式晚装，置身高级室内场景，电影感灯光，保持面部和身份一致。", cost: 16 },
+  social: { label: "网红/时尚", summary: "社媒造型 · 12 积分起", detail: "适合社媒封面和时尚内容。", prompt: "成年且已获授权的虚构角色穿着时尚社媒造型，干净背景，明亮柔光，适合竖屏封面和品牌内容。", cost: 12 },
+  lingerie: { label: "成人合规内衣", summary: "成人合规造型 · 16 积分起", detail: "仅限成年虚构或已授权角色。", prompt: "成年且已获授权的虚构角色穿着合规成人内衣造型，非色情展示，保持身份、姿态和场景连续。", cost: 16 },
+  custom: { label: "自定义服饰", summary: "自定义造型 · 12 积分起", detail: "使用提示词描述服饰和场景。", prompt: "", cost: 12 }
+};
+
+function setupOutfitStudio() {
+  if (!document.querySelector("[data-outfit-studio]")) return;
+  const picker = document.querySelector("[data-outfit-picker]");
+  const apply = (style) => {
+    const preset = outfitStylePresets[style] || outfitStylePresets.business;
+    document.querySelectorAll("[data-outfit-style]").forEach((item) => item.classList.toggle("active", item.dataset.outfitStyle === style));
+    document.querySelectorAll("[data-outfit-choice]").forEach((item) => item.classList.toggle("active", item.dataset.outfitChoice === style));
+    const prompt = document.querySelector("[data-outfit-prompt]");
+    if (prompt && preset.prompt) prompt.value = preset.prompt;
+    const label = document.querySelector("[data-outfit-label]"); if (label) label.textContent = preset.label;
+    const summary = document.querySelector("[data-outfit-summary]"); if (summary) summary.textContent = preset.summary;
+    const detail = document.querySelector("[data-outfit-summary-detail]"); if (detail) detail.textContent = preset.detail;
+    const styleText = document.querySelector("[data-preflight-outfit-style]"); if (styleText) styleText.textContent = preset.label;
+    const cost = document.querySelector("[data-credit-cost]"); if (cost) cost.textContent = `${preset.cost} 积分`;
+    const note = document.querySelector("[data-outfit-cost-note]"); if (note) note.textContent = `预计消耗 ${preset.cost} 积分，结果会保存到资产库和我的作品。`;
+    const previewMeta = document.querySelector("[data-outfit-preview-meta]"); if (previewMeta) previewMeta.textContent = `${preset.label} · 上传角色照片后预览`;
+    if (picker) { picker.hidden = true; document.body.classList.remove("modal-open"); }
+  };
+  document.querySelectorAll("[data-outfit-style]").forEach((button) => button.addEventListener("click", () => apply(button.dataset.outfitStyle)));
+  document.querySelector("[data-open-outfit-picker]")?.addEventListener("click", () => { if (picker) { picker.hidden = false; document.body.classList.add("modal-open"); } });
+  document.querySelector("[data-close-outfit-picker]")?.addEventListener("click", () => { if (picker) picker.hidden = true; document.body.classList.remove("modal-open"); });
+  picker?.addEventListener("click", (event) => { if (event.target === picker) { picker.hidden = true; document.body.classList.remove("modal-open"); } });
+  document.querySelectorAll("[data-outfit-filter]").forEach((button) => button.addEventListener("click", () => {
+    const filter = button.dataset.outfitFilter || "all";
+    document.querySelectorAll("[data-outfit-filter]").forEach((item) => item.classList.toggle("active", item === button));
+    document.querySelectorAll("[data-outfit-choice]").forEach((card) => { const tags = String(card.dataset.outfitTags || "").split(/\s+/); card.hidden = filter !== "all" && !tags.includes(filter); });
+  }));
+  document.querySelectorAll("[data-outfit-choice]").forEach((card) => card.addEventListener("click", () => apply(card.dataset.outfitChoice || "business")));
+}
+
+setupOutfitStudio();
 document.querySelectorAll("[data-pose-preset]").forEach((button) => {
   button.addEventListener("click", () => {
     const preset = button.dataset.posePreset || "custom";
