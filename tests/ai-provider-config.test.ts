@@ -128,8 +128,8 @@ test("AI Edge Function contains server-only provider actions and no browser-secr
   assert.ok(edgeFunction.includes("uploadZealmanSourceImage"));
   assert.ok(edgeFunction.includes("pollZealmanHistory"));
   assert.ok(edgeFunction.includes("/api/workflow/generate"));
-  assert.ok(edgeFunction.includes("/upload/image"));
-  assert.ok(edgeFunction.includes("/history/"));
+  assert.ok(edgeFunction.includes("/api/comfy/upload/file"));
+  assert.ok(edgeFunction.includes("/api/workflow/result?prompt_id="));
   assert.ok(edgeFunction.includes("ZEALMAN_PANEL_BASE_URL"));
   assert.ok(edgeFunction.includes("storeGeneratedMediaObject"));
   assert.ok(edgeFunction.includes("downloadProviderOutputUrl"));

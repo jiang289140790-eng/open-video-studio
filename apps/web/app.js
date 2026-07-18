@@ -4546,7 +4546,7 @@ function workflowIdForGeneration(mediaType, provider, preset) {
     if (preset === "movie-closeup") return "workflow-hifun-movie-closeup-v1";
     if (preset === "social-reel") return "workflow-zealman-video-g03-v1";
     if (preset === "product-teaser") return "workflow-zealman-digital-human-j11-v1";
-    return "workflow-hifun-image-to-video-v1";
+    return "workflow-zealman-video-g01-v1";
   }
   if (provider === "liblib_generation" && mediaType === "image") return "workflow-liblib-image-v1";
   return mediaType === "video" ? "workflow-qianwen-video-v1" : "workflow-qianwen-image-v1";
@@ -7893,11 +7893,21 @@ async function runComfyUIGeneration(templateId, overrides, onProgress) {
 
 let gatewayAvailable = false;
 async function checkComfyUIGateway() {
-  try {
-    const resp = await fetch(`${COMFYUI_GATEWAY_URL}/system_stats`, { signal: AbortSignal.timeout(5000) });
-    gatewayAvailable = resp.ok;
-    return gatewayAvailable;
-  } catch { gatewayAvailable = false; return false; }
+  // The active provider is the AutoDL/Zealman panel API. Keep the standard
+  // ComfyUI probe only as a compatibility fallback for older local workflows.
+  for (const path of ["/api/health", "/api/workflow/list", "/system_stats"]) {
+    try {
+      const resp = await fetch(`${COMFYUI_GATEWAY_URL}${path}`, { signal: AbortSignal.timeout(5000) });
+      if (resp.ok) {
+        gatewayAvailable = true;
+        return true;
+      }
+    } catch {
+      // Try the next compatible endpoint without exposing credentials.
+    }
+  }
+  gatewayAvailable = false;
+  return false;
 }
 checkComfyUIGateway();
 

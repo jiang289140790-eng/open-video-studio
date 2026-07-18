@@ -535,8 +535,8 @@ function normalizeLiblibImageSize(resolution: unknown, aspectRatio: unknown): { 
 }
 
 async function callZealmanWorkflow(env: AiEnv, job: Record<string, any>) {
-  if (!env.zealmanPanelBaseUrl || !env.zealmanComfyBaseUrl) {
-    throw new AiFunctionError("ZEALMAN_NOT_CONFIGURED", "Zealman panel and ComfyUI URLs are missing.", 500);
+  if (!env.zealmanPanelBaseUrl) {
+    throw new AiFunctionError("ZEALMAN_NOT_CONFIGURED", "Zealman panel URL is missing.", 500);
   }
   const workflowName = resolveZealmanWorkflowName(env, job);
   if (!workflowName) {
@@ -581,6 +581,36 @@ function resolveZealmanWorkflowName(env: AiEnv, job: Record<string, any>): strin
   const configuredMap = parseWorkflowMap(env.zealmanWorkflowMapJson);
   const mapped = configuredMap[workflowId] || configuredMap[String(job.tool_slug || "").toLowerCase()];
   if (mapped) return mapped;
+
+  // These are the workflow IDs published in the AutoDL/Zealman API panel.
+  // Keep the mapping here as a safe fallback so a missing optional
+  // ZEALMAN_WORKFLOW_MAP_JSON cannot silently route every tool to one generic
+  // workflow. The values are workflow names only; no credentials are stored.
+  const publishedWorkflowMap: Record<string, string> = {
+    "workflow-zealman-image-a01-v1": "A01-文生图-Qwen2512高清放大",
+    "workflow-hifun-image-editor-v1": "功能03-自然语言图片编辑（本地）",
+    "workflow-hifun-face-swap-v1": "功能01-授权虚构角色换脸（本地）",
+    "workflow-hifun-outfit-v1": "功能04-成年虚构角色换装（本地）",
+    "workflow-hifun-pose-v1": "功能05-人物姿势重构（本地）",
+    "workflow-hifun-nano-v1": "功能03-自然语言图片编辑（本地）",
+    "workflow-hifun-combiner-v1": "功能02-多图智能合成（本地）",
+    "workflow-hifun-upscale-v1": "功能07-图片高清修复（本地）",
+    "workflow-hifun-image-to-video-v1": "测试01-Wan2.2Remix-图生视频",
+    "workflow-zealman-video-g01-v1": "测试01-Wan2.2Remix-图生视频",
+    "workflow-hifun-movie-closeup-v1": "功能09-Wan2.2-电影近景特效（本地）",
+    "workflow-hifun-adult-effects-v1": "功能08-Wan2.2-4in1成人特效（本地）",
+    "workflow-zealman-video-g03-v1": "G03-图生视频-Wan2.2SmoothMix",
+    "workflow-zealman-digital-human-j11-v1": "J11-LTX2.3高清超自然电商数字人",
+    "image-editor": "功能03-自然语言图片编辑（本地）",
+    "face-swap": "功能01-授权虚构角色换脸（本地）",
+    "outfit-studio": "功能04-成年虚构角色换装（本地）",
+    "pose-generator": "功能05-人物姿势重构（本地）",
+    "nano-banana": "功能03-自然语言图片编辑（本地）",
+    "image-combiner": "功能02-多图智能合成（本地）",
+    "image-to-video": "测试01-Wan2.2Remix-图生视频",
+  };
+  const published = publishedWorkflowMap[workflowId] || publishedWorkflowMap[String(job.tool_slug || "").toLowerCase()];
+  if (published) return published;
   if (workflowId.includes("g03")) return env.zealmanSmoothVideoWorkflow || env.zealmanVideoWorkflow;
   if (workflowId.includes("j11")) return env.zealmanDigitalHumanWorkflow || env.zealmanVideoWorkflow;
   return mediaType === "video" ? env.zealmanVideoWorkflow : env.zealmanImageWorkflow;
@@ -596,12 +626,20 @@ function parseWorkflowMap(raw: string): Record<string, string> {
 }
 
 async function fetchZealmanWorkflow(env: AiEnv, workflowName: string): Promise<Record<string, any>> {
-  const endpoint = `${env.zealmanPanelBaseUrl.replace(/\/$/, "")}/api/workflows/download/${encodeURIComponent(workflowName)}`;
+  // The Zealman panel exposes the saved API card and its executable template
+  // through the singular workflow config endpoint. `/api/workflows/download`
+  // is not the API-card route and returns 400 on the active instance.
+  const endpoint = `${env.zealmanPanelBaseUrl.replace(/\/$/, "")}/api/workflow/config/${encodeURIComponent(workflowName)}`;
   const response = await fetchWithTimeout(endpoint, {
     method: "GET",
     headers: zealmanHeaders(env),
   }, env.providerTimeoutMs);
-  return await parseProviderResponse(response, "ZEALMAN_WORKFLOW_DOWNLOAD_FAILED");
+  const payload = await parseProviderResponse(response, "ZEALMAN_WORKFLOW_CONFIG_FAILED");
+  const template = payload?.workflow_template || payload?.data?.workflow_template || payload?.workflow || payload?.template;
+  if (!template || typeof template !== "object") {
+    throw new AiFunctionError("ZEALMAN_WORKFLOW_CONFIG_FAILED", "Zealman workflow config did not include an executable template.", 502);
+  }
+  return template as Record<string, any>;
 }
 
 function applyZealmanPrompt(workflow: Record<string, any>, prompt: string, promptNodeId: string) {
@@ -633,9 +671,9 @@ async function uploadZealmanSourceImage(env: AiEnv, sourceImageUrl: string, jobI
   const contentType = normalizeGeneratedContentType(source.headers.get("content-type"), "image");
   const extension = extensionForContentType(contentType, "image");
   const form = new FormData();
-  form.append("image", new Blob([await source.arrayBuffer()], { type: contentType }), `${jobId}.${extension}`);
+  form.append("file", new Blob([await source.arrayBuffer()], { type: contentType }), `${jobId}.${extension}`);
   form.append("overwrite", "true");
-  const response = await fetchWithTimeout(`${env.zealmanComfyBaseUrl.replace(/\/$/, "")}/upload/image`, {
+  const response = await fetchWithTimeout(`${env.zealmanPanelBaseUrl.replace(/\/$/, "")}/api/comfy/upload/file`, {
     method: "POST",
     headers: zealmanHeaders(env, false),
     body: form,
@@ -673,11 +711,15 @@ async function pollZealmanHistory(env: AiEnv, promptId: string) {
   let latest: any = null;
   for (let index = 0; index < maxPolls; index += 1) {
     if (index > 0) await sleep(pollIntervalMs);
-    const response = await fetchWithTimeout(`${env.zealmanComfyBaseUrl.replace(/\/$/, "")}/history/${encodeURIComponent(promptId)}`, {
+    const response = await fetchWithTimeout(`${env.zealmanPanelBaseUrl.replace(/\/$/, "")}/api/workflow/result?prompt_id=${encodeURIComponent(promptId)}`, {
       method: "GET",
       headers: zealmanHeaders(env, false),
     }, env.providerTimeoutMs);
     const data = await parseProviderResponse(response, "ZEALMAN_HISTORY_FAILED");
+    if (data?.success === false) {
+      throw new AiFunctionError("ZEALMAN_HISTORY_FAILED", data?.message || "Zealman workflow result failed.", 502);
+    }
+    if (data?.pending === true) continue;
     latest = data?.[promptId] || data?.data?.[promptId] || data;
     if (!latest || !Object.keys(latest).length) continue;
     const status = String(latest?.status?.status_str || latest?.status || "").toLowerCase();
@@ -692,6 +734,16 @@ async function pollZealmanHistory(env: AiEnv, promptId: string) {
 
 function extractZealmanOutputs(env: AiEnv, history: any, promptId: string): Array<Record<string, string>> {
   const outputs: Array<Record<string, string>> = [];
+  for (const result of arrayOfRecords(history?.results || history?.data?.results)) {
+    const remotePath = String(result.url || result.path || "").trim();
+    if (!remotePath) continue;
+    const filename = String(result.filename || result.raw?.filename || remotePath.split("/").pop() || "").trim();
+    const url = /^https?:\/\//i.test(remotePath)
+      ? remotePath
+      : `${env.zealmanPanelBaseUrl.replace(/\/$/, "")}/${remotePath.replace(/^\//, "")}`;
+    outputs.push({ filename, type: String(result.type || result.raw?.type || "output"), promptId, url });
+  }
+  if (outputs.length) return outputs;
   const nodes = history?.outputs || history?.data?.outputs || {};
   for (const output of Object.values(nodes)) {
     const files = [
@@ -710,7 +762,7 @@ function extractZealmanOutputs(env: AiEnv, history: any, promptId: string): Arra
         subfolder,
         type,
         promptId,
-        url: `${env.zealmanComfyBaseUrl.replace(/\/$/, "")}/view?${query.toString()}`,
+        url: `${(env.zealmanComfyBaseUrl || env.zealmanPanelBaseUrl).replace(/\/$/, "")}/view?${query.toString()}`,
       });
     }
   }
@@ -1541,7 +1593,7 @@ function providerStatus(env: AiEnv) {
     { provider: "deepseek_text", configured: Boolean(env.deepseekApiKey), model: env.deepseekModel, endpoint: env.deepseekBaseUrl },
     { provider: "qianwen_generation", configured: Boolean(env.qianwenApiKey && env.qianwenBaseUrl), imageModel: env.qianwenImageModel, videoModel: env.qianwenVideoModel, endpoint: env.qianwenBaseUrl, imageEndpoint: env.qianwenImageEndpoint || "", videoEndpoint: env.qianwenVideoEndpoint || "" },
     { provider: "liblib_generation", configured: Boolean(env.liblibAccessKey && env.liblibSecretKey && env.liblibText2ImageTemplateUuid), imageModel: env.liblibImageModel, endpoint: env.liblibBaseUrl, templateUuid: env.liblibText2ImageTemplateUuid ? "configured" : "" },
-    { provider: "zealman_workflow", configured: Boolean(env.zealmanPanelBaseUrl && env.zealmanComfyBaseUrl && (env.zealmanImageWorkflow || env.zealmanVideoWorkflow)), imageWorkflow: env.zealmanImageWorkflow ? "configured" : "", videoWorkflow: env.zealmanVideoWorkflow ? "configured" : "", endpoint: env.zealmanPanelBaseUrl },
+    { provider: "zealman_workflow", configured: Boolean(env.zealmanPanelBaseUrl && (env.zealmanImageWorkflow || env.zealmanVideoWorkflow)), imageWorkflow: env.zealmanImageWorkflow ? "configured" : "", videoWorkflow: env.zealmanVideoWorkflow ? "configured" : "", endpoint: env.zealmanPanelBaseUrl },
     { provider: "fake_worker", configured: true, model: "local-demo", endpoint: "internal" },
   ];
 }
