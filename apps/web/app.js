@@ -3263,7 +3263,7 @@ const enhanceButton = document.querySelector("[data-enhance]");
 const promptBox = document.querySelector(".hero-textarea");
 
 const modeCosts = { image: 8, video: 24, character: 12 };
-const videoWorkflowPresets = {
+var videoWorkflowPresets = {
   "image-video": {
     title: "图片转视频",
     description: "上传一张角色、商品或场景图，生成可保存、可下载、可分享的短视频资产。",
@@ -3394,7 +3394,7 @@ function applyGenerationModelVisibility(current = state) {
   });
 }
 
-let selectedVideoReference = null;
+var selectedVideoReference = null;
 let videoAssetPickerSearch = "";
 let videoAssetPickerFilter = "all";
 
@@ -4162,7 +4162,7 @@ function updateVideoEstimateFromControls() {
 function getActiveVideoPreset() {
   // Auth hydration can render the shell before the video preset table is
   // initialized; keep the first render safe and let the preset setup run next.
-  if (typeof videoWorkflowPresets === "undefined") return null;
+  if (!videoWorkflowPresets) return null;
   const button = document.querySelector("[data-video-preset-button].active");
   const id = button?.dataset.videoPresetButton || "";
   const preset = videoWorkflowPresets[id];
@@ -4176,7 +4176,15 @@ function getActiveVideoPreset() {
 }
 
 function getVideoPreflightEstimate() {
-  const preset = getActiveVideoPreset() || videoWorkflowPresets["image-video"];
+  const fallbackPreset = {
+    id: "image-video",
+    title: "图片转视频",
+    ratio: "16:9",
+    duration: 5,
+    model: "fake_worker",
+    cost: 24
+  };
+  const preset = getActiveVideoPreset() || videoWorkflowPresets?.["image-video"] || fallbackPreset;
   const ratio = document.querySelector("[data-video-ratio]")?.value || preset.ratio;
   const duration = Number(document.querySelector("[data-video-duration]")?.value || preset.duration);
   const modelInput = document.querySelector("[data-video-model]");
