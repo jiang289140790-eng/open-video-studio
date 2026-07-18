@@ -8032,6 +8032,39 @@ function setupPosePicker() {
   }));
 }
 setupPosePicker();
+
+// Public Hifun-style generators share one upload contract. Keep the visual
+// page simple while passing the selected local image into the existing
+// generation pipeline as the reference asset.
+function setupPublicImageUploads() {
+  const inputs = document.querySelectorAll("[data-edit-upload], [data-outfit-upload], [data-pose-upload]");
+  inputs.forEach((input) => input.addEventListener("change", () => {
+    const file = input.files?.[0];
+    if (!file || !file.type.startsWith("image/")) return;
+    const previewUrl = URL.createObjectURL(file);
+    selectedVideoReference = {
+      id: `local-${Date.now()}`,
+      title: file.name,
+      fileName: file.name,
+      type: "image",
+      previewUrl,
+      sourceImageUrl: previewUrl,
+      sourceType: "reference_image",
+      remote: false,
+      status: "ready"
+    };
+    const root = input.closest("main") || document;
+    root.querySelectorAll("[data-edit-reference-card], [data-outfit-reference-card]").forEach((card) => { card.hidden = false; });
+    root.querySelectorAll("[data-edit-reference-label], [data-outfit-reference-label], [data-video-reference-label]").forEach((node) => { node.textContent = file.name; });
+    root.querySelectorAll("[data-edit-reference-thumb], [data-outfit-reference-thumb], [data-pose-preview]").forEach((node) => {
+      if (node.matches("[data-pose-preview]")) node.style.backgroundImage = `url(${JSON.stringify(previewUrl)})`;
+      else node.style.backgroundImage = `url(${JSON.stringify(previewUrl)})`;
+    });
+    root.querySelectorAll("[data-edit-preview], [data-outfit-preview]").forEach((node) => { node.style.backgroundImage = `url(${JSON.stringify(previewUrl)})`; });
+    showSiteToast("已选择参考图片，可以开始创建。");
+  }));
+}
+setupPublicImageUploads();
 document.querySelectorAll("[data-pose-preset]").forEach((button) => {
   button.addEventListener("click", () => {
     const preset = button.dataset.posePreset || "custom";
