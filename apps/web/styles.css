@@ -3685,6 +3685,13 @@ body.tool-layout .site-footer {
 .minimal-undress-page .topbar {
   display: none;
 }
+.minimal-undress-page .side-rail,
+.minimal-undress-page .floating-dock,
+.minimal-undress-page .app-footer,
+.minimal-undress-page .cookie-consent,
+.minimal-undress-page .cookie-banner {
+  display: none !important;
+}
 .undress-minimal {
   width: min(100% - 72px, 1640px);
   max-width: none;
@@ -3772,9 +3779,12 @@ body.tool-layout .site-footer {
   background: #222;
 }
 .undress-minimal .video-effect-selector-head > div {
-  display: flex;
+  display: flex !important;
   align-items: center;
   gap: 12px;
+}
+.undress-minimal .video-effect-selector-head > div .eyebrow {
+  display: none !important;
 }
 .undress-minimal .video-effect-selector-head > div::before {
   content: "";
@@ -3827,8 +3837,12 @@ body.tool-layout .site-footer {
 .undress-minimal .sticky-generate > div p {
   margin: 0;
   color: #ffca00;
-  font-size: 1.2rem;
+  font-size: 0;
   font-weight: 900;
+}
+.undress-minimal .sticky-generate > div p::after {
+  content: "40";
+  font-size: 1.2rem;
 }
 .undress-minimal .sticky-generate .btn {
   width: 100%;
