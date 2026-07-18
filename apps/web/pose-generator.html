@@ -43,17 +43,7 @@
           <button class="mode-card" data-pose-type="camera"><span>镜头角度</span><strong>多角度分镜</strong><em>16 积分起</em></button>
           <button class="mode-card" data-pose-type="storyboard"><span>故事板</span><strong>连续分镜</strong><em>24 积分起</em></button>
         </div>
-        <section class="pose-preset-section" aria-label="姿势预设">
-          <div class="upload-zone-head"><strong>选择姿势</strong><span>也可以使用 Custom Prompt</span></div>
-          <div class="pose-preset-grid">
-            <button class="pose-preset-card active art-10" type="button" data-pose-preset="standing"><strong>站立展示</strong><small>正面全身 · 时尚姿态</small></button>
-            <button class="pose-preset-card art-3" type="button" data-pose-preset="sitting"><strong>坐姿</strong><small>自然坐姿 · 生活方式</small></button>
-            <button class="pose-preset-card art-5" type="button" data-pose-preset="side"><strong>侧身回眸</strong><small>侧面构图 · 回头看镜头</small></button>
-            <button class="pose-preset-card art-7" type="button" data-pose-preset="action"><strong>动态动作</strong><small>行走、转身、展示动作</small></button>
-            <button class="pose-preset-card art-8" type="button" data-pose-preset="kneeling"><strong>低姿态</strong><small>跪坐或低机位构图</small></button>
-            <button class="pose-preset-card art-13" type="button" data-pose-preset="custom"><strong>Custom Prompt</strong><small>完全自定义姿势</small></button>
-          </div>
-        </section>
+        <section class="video-effect-selector pose-preset-section" aria-label="姿势预设"><div class="video-effect-selector-head"><div><span class="eyebrow">当前姿势</span><strong data-pose-label>站立展示</strong></div><button class="btn glass" type="button" data-open-pose-picker>选择姿势</button></div><p>打开姿势库，按动作和镜头分类选择预设。</p></section>
 
         <section class="upload-zone video-reference-zone" data-pose-upload-zone>
           <div class="upload-zone-head">
@@ -113,6 +103,7 @@
       </div>
     </section>
 
+    <div class="asset-picker-overlay video-effect-picker" data-pose-picker hidden><div class="asset-picker-modal video-effect-modal"><button class="modal-close" type="button" data-close-pose-picker aria-label="关闭姿势选择器">×</button><p class="eyebrow">姿势库</p><h2>选择姿势</h2><p class="muted">选择一个姿势预设，生成前可继续编辑提示词。</p><div class="chip-row compact video-effect-tabs"><button class="chip active" type="button" data-pose-filter="all">全部</button><button class="chip" type="button" data-pose-filter="portrait">人像</button><button class="chip" type="button" data-pose-filter="action">动作</button><button class="chip" type="button" data-pose-filter="camera">镜头</button></div><div class="video-effect-picker-grid"><button class="video-effect-choice art-10 active" type="button" data-pose-choice="standing" data-pose-tags="portrait camera"><strong>站立展示</strong><small>正面全身 · 时尚姿态</small></button><button class="video-effect-choice art-3" type="button" data-pose-choice="sitting" data-pose-tags="portrait"><strong>坐姿</strong><small>自然坐姿 · 生活方式</small></button><button class="video-effect-choice art-5" type="button" data-pose-choice="side" data-pose-tags="portrait camera"><strong>侧身回眸</strong><small>侧面构图 · 回头看镜头</small></button><button class="video-effect-choice art-7" type="button" data-pose-choice="action" data-pose-tags="action"><strong>动态动作</strong><small>行走、转身、展示动作</small></button><button class="video-effect-choice art-8" type="button" data-pose-choice="kneeling" data-pose-tags="action camera"><strong>低姿态</strong><small>低机位构图</small></button><button class="video-effect-choice art-13" type="button" data-pose-choice="custom" data-pose-tags="all"><strong>Custom Prompt</strong><small>完全自定义姿势</small></button></div></div></div>
     <script type="module" src="./app.js"></script>
   </body>
 </html>
