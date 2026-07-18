@@ -446,7 +446,7 @@ const defaultState = {
       research: "关注创作者从提示词到可发布内容的断点：脚本、提示词、封面、字幕、CTA 和平台适配。",
       script: "Hook：一个提示词不该只生成一张图。展示如何把它变成图片、视频、Caption 和多平台版本。",
       prompt: "深色高级 AI 创作平台界面，角色主持人展示可复用视频资产，电影感灯光，适合竖屏短视频。",
-      imagePlaceholder: "发布主视觉占位：角色主持人 + 深色 AI Studio 背景",
+      imagePlaceholder: "发布主视觉占位：角色主持人 + 深色创作工作台背景",
       videoPlaceholder: "8 秒竖屏视频占位：镜头推进 + Caption 动效",
       thumbnailPlaceholder: "缩略图占位：强标题 + 高对比主体",
       caption: "把一个创意变成完整内容包，并保存为可复用资产。",
@@ -471,7 +471,7 @@ const defaultState = {
     { id: "analytics_x_pack", contentItemId: "content_prompt_pack", platform: "X", views: 6400, likes: 310, comments: 29, shares: 58, clicks: 220, signups: 14, revenue: 0, conversionRate: 6.3 }
   ],
   automationRules: [
-    { id: "auto_review", name: "AI Studio 草稿进入 Review", trigger: "content_created", action: "move_to_review", status: "active", lastRun: "等待首次运行" },
+    { id: "auto_review", name: "创建内容草稿进入审核", trigger: "content_created", action: "move_to_review", status: "active", lastRun: "等待首次运行" },
     { id: "auto_retry", name: "失败发布提醒", trigger: "publish_failed", action: "retry_failed", status: "paused", lastRun: "未运行" }
   ],
   contentSettings: {
@@ -2384,7 +2384,7 @@ document.addEventListener("submit", async (event) => {
     const contentItem = createMockContentItem(campaign, topic, character);
     state.contentItems.unshift(contentItem);
     saveState(state);
-    showSiteToast("AI Studio 草稿已生成");
+    showSiteToast("内容包已生成，已进入审核");
     window.setTimeout(() => renderAiStudioOutput(state), 0);
     return;
   }
@@ -5686,7 +5686,7 @@ function renderAiStudioOutput(current) {
   ].map(([label, value]) => `
     <article>
       <span>${escapeHtml(label)}</span>
-      <p>${escapeHtml(value || "等待 AI Studio 输出")}</p>
+      <p>${escapeHtml(value || "等待创建内容输出")}</p>
     </article>
   `).join("") + `
     <article class="studio-platform-variants">
@@ -5987,7 +5987,7 @@ function renderContentSettings(current) {
     <article class="content-os-card">
       <span>默认 CTA</span>
       <strong>${escapeHtml(settings.defaultCta)}</strong>
-      <p>AI Studio 生成 Caption 时可作为默认转化动作。</p>
+      <p>创建内容时可作为默认转化动作。</p>
     </article>
     <article class="content-os-card">
       <span>发布安全</span>
@@ -7949,6 +7949,47 @@ const posePresetPrompts = {
   kneeling: "成年且已获授权的虚构角色低姿态构图，膝盖和手部结构自然，柔和光线，完整身体比例",
   custom: ""
 };
+
+const outfitStylePresets = {
+  business: { label: "职业装/正装", summary: "造型生成 · 12 积分起", detail: "商务、通勤和品牌目录造型。", prompt: "成年且已获授权的虚构角色穿着简洁职业正装，站在现代办公场景，柔和自然光，品牌目录摄影风格。", cost: 12 },
+  street: { label: "休闲/潮流", summary: "街拍造型 · 12 积分起", detail: "休闲、运动和街头潮流造型。", prompt: "成年且已获授权的虚构角色穿着层次丰富的休闲街头服装，城市街拍场景，自然光和时尚杂志构图。", cost: 12 },
+  evening: { label: "正式晚装", summary: "晚装礼服 · 16 积分起", detail: "晚宴、发布会和正式场合造型。", prompt: "成年且已获授权的虚构角色穿着优雅正式晚装，置身高级室内场景，电影感灯光，保持面部和身份一致。", cost: 16 },
+  social: { label: "网红/时尚", summary: "社媒造型 · 12 积分起", detail: "适合社媒封面和时尚内容。", prompt: "成年且已获授权的虚构角色穿着时尚社媒造型，干净背景，明亮柔光，适合竖屏封面和品牌内容。", cost: 12 },
+  lingerie: { label: "成人合规内衣", summary: "成人合规造型 · 16 积分起", detail: "仅限成年虚构或已授权角色。", prompt: "成年且已获授权的虚构角色穿着合规成人内衣造型，非色情展示，保持身份、姿态和场景连续。", cost: 16 },
+  custom: { label: "自定义服饰", summary: "自定义造型 · 12 积分起", detail: "使用提示词描述服饰和场景。", prompt: "", cost: 12 }
+};
+
+function setupOutfitStudio() {
+  if (!document.querySelector("[data-outfit-studio]")) return;
+  const picker = document.querySelector("[data-outfit-picker]");
+  const apply = (style) => {
+    const preset = outfitStylePresets[style] || outfitStylePresets.business;
+    document.querySelectorAll("[data-outfit-style]").forEach((item) => item.classList.toggle("active", item.dataset.outfitStyle === style));
+    document.querySelectorAll("[data-outfit-choice]").forEach((item) => item.classList.toggle("active", item.dataset.outfitChoice === style));
+    const prompt = document.querySelector("[data-outfit-prompt]");
+    if (prompt && preset.prompt) prompt.value = preset.prompt;
+    const label = document.querySelector("[data-outfit-label]"); if (label) label.textContent = preset.label;
+    const summary = document.querySelector("[data-outfit-summary]"); if (summary) summary.textContent = preset.summary;
+    const detail = document.querySelector("[data-outfit-summary-detail]"); if (detail) detail.textContent = preset.detail;
+    const styleText = document.querySelector("[data-preflight-outfit-style]"); if (styleText) styleText.textContent = preset.label;
+    const cost = document.querySelector("[data-credit-cost]"); if (cost) cost.textContent = `${preset.cost} 积分`;
+    const note = document.querySelector("[data-outfit-cost-note]"); if (note) note.textContent = `预计消耗 ${preset.cost} 积分，结果会保存到资产库和我的作品。`;
+    const previewMeta = document.querySelector("[data-outfit-preview-meta]"); if (previewMeta) previewMeta.textContent = `${preset.label} · 上传角色照片后预览`;
+    if (picker) { picker.hidden = true; document.body.classList.remove("modal-open"); }
+  };
+  document.querySelectorAll("[data-outfit-style]").forEach((button) => button.addEventListener("click", () => apply(button.dataset.outfitStyle)));
+  document.querySelector("[data-open-outfit-picker]")?.addEventListener("click", () => { if (picker) { picker.hidden = false; document.body.classList.add("modal-open"); } });
+  document.querySelector("[data-close-outfit-picker]")?.addEventListener("click", () => { if (picker) picker.hidden = true; document.body.classList.remove("modal-open"); });
+  picker?.addEventListener("click", (event) => { if (event.target === picker) { picker.hidden = true; document.body.classList.remove("modal-open"); } });
+  document.querySelectorAll("[data-outfit-filter]").forEach((button) => button.addEventListener("click", () => {
+    const filter = button.dataset.outfitFilter || "all";
+    document.querySelectorAll("[data-outfit-filter]").forEach((item) => item.classList.toggle("active", item === button));
+    document.querySelectorAll("[data-outfit-choice]").forEach((card) => { const tags = String(card.dataset.outfitTags || "").split(/\s+/); card.hidden = filter !== "all" && !tags.includes(filter); });
+  }));
+  document.querySelectorAll("[data-outfit-choice]").forEach((card) => card.addEventListener("click", () => apply(card.dataset.outfitChoice || "business")));
+}
+
+setupOutfitStudio();
 document.querySelectorAll("[data-pose-preset]").forEach((button) => {
   button.addEventListener("click", () => {
     const preset = button.dataset.posePreset || "custom";
