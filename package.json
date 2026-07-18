@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "tsc -p tsconfig.json && vite build && node scripts/copy-web-assets.mjs",
+    "build": "node scripts/repair-css-encoding.mjs && tsc -p tsconfig.json && vite build && node scripts/copy-web-assets.mjs",
     "build:server": "tsc -p tsconfig.json",
     "build:web": "vite build",
     "seo:apply": "node scripts/apply-seo.mjs",
