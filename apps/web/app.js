@@ -3304,15 +3304,15 @@ const videoWorkflowPresets = {
     art: "art-13"
   },
   "adult-effects": {
-    title: "成人特效（已满18岁）",
+    title: "Undress Video",
     description: "仅处理成年、虚构或已获授权的合规素材；禁止未成年人、真人色情换脸、名人色情和非自愿亲密内容。",
-    summary: "Wan 2.2 4in1 · 32 积分起",
+    summary: "Undress Video · 40 积分起",
     detail: "默认 5 秒、16:9；提交前必须确认年满18岁并同意平台内容规则。",
     prompt: "对这张成年且已获授权的虚构角色图片生成合规的电影感动作短片，保持人物身份和服装连续，不涉及未成年人、真人色情换脸或非自愿内容。",
     ratio: "16:9",
     duration: "5",
     model: "zealman_workflow",
-    cost: 32,
+    cost: 40,
     preview: "16:9 · 5秒 · 成人合规预设",
     art: "art-13"
   },
@@ -3333,7 +3333,7 @@ const videoWorkflowPresets = {
 
 const videoEffectLabels = {
   "image-video": "通用图片转视频",
-  "adult-effects": "服装变化特效（成年人/已授权）",
+  "adult-effects": "Undress Video",
   "movie-closeup": "电影近景特效",
   "social-reel": "社媒竖屏动作"
 };

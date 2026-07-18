@@ -3676,6 +3676,208 @@ body.tool-layout .site-footer {
 .video-tool-page .lead {
   margin-bottom: 18px;
 }
+
+/* Minimal Undress Video workbench: mirrors the two-column reference layout
+   while leaving the prompt/model controls in the DOM for the API adapter. */
+.minimal-undress-page {
+  background: #111;
+}
+.minimal-undress-page .topbar {
+  display: none;
+}
+.undress-minimal {
+  width: min(100% - 72px, 1640px);
+  max-width: none;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 8px;
+  padding: 16px 0 28px;
+  align-items: stretch;
+}
+.undress-minimal .studio-panel {
+  border-radius: 0;
+  border-color: rgba(255,255,255,0.04);
+  background: #1b1b1b;
+  padding: 24px;
+}
+.undress-minimal .control-panel {
+  min-height: calc(100vh - 44px);
+}
+.undress-minimal .back-link {
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 900;
+  margin-bottom: 22px;
+}
+.undress-minimal .back-link::first-letter {
+  color: #fff;
+}
+.undress-minimal .eyebrow,
+.undress-minimal .lead,
+.undress-minimal .mode-grid,
+.undress-minimal .preset-summary,
+.undress-minimal .video-options-grid,
+.undress-minimal .undress-config-hidden {
+  display: none !important;
+}
+.undress-minimal .control-panel h1 {
+  display: none;
+}
+.undress-minimal .upload-zone {
+  min-height: 176px;
+  margin-top: 0;
+  border: 2px dashed #3c3c46;
+  border-radius: 8px;
+  background: #151515;
+  align-content: center;
+  text-align: center;
+}
+.undress-minimal .upload-zone-head {
+  justify-content: center;
+}
+.undress-minimal .upload-zone-head strong {
+  font-size: 0;
+}
+.undress-minimal .upload-zone-head strong::after {
+  content: "在此处拖动图片，或";
+  font-size: 1rem;
+}
+.undress-minimal .upload-zone-head span {
+  display: none;
+}
+.undress-minimal .upload-zone > p {
+  margin: 0;
+  font-size: .8rem;
+  color: #8291b6;
+}
+.undress-minimal .reference-input-actions {
+  justify-content: center;
+}
+.undress-minimal .reference-input-actions .btn {
+  display: none;
+}
+.undress-minimal .reference-input-actions .btn:last-child {
+  display: inline-flex;
+}
+.undress-minimal .video-effect-selector {
+  margin-top: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.undress-minimal .video-effect-selector-head {
+  min-height: 90px;
+  padding: 12px 14px;
+  border: 1px solid #3c3c46;
+  border-radius: 8px;
+  background: #222;
+}
+.undress-minimal .video-effect-selector-head > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.undress-minimal .video-effect-selector-head > div::before {
+  content: "";
+  width: 64px;
+  height: 64px;
+  flex: none;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #766c5c, #d8c6a1 48%, #3b2d2a);
+}
+.undress-minimal .video-effect-selector-head strong {
+  color: #fff;
+  font-size: 1rem;
+}
+.undress-minimal .video-effect-selector-head button {
+  margin-left: auto;
+  min-width: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #9da0aa;
+  font-size: 0;
+}
+.undress-minimal .video-effect-selector-head button::after {
+  content: "›";
+  font-size: 1.8rem;
+}
+.undress-minimal .video-effect-selector > p {
+  display: none;
+}
+.undress-minimal .sticky-generate {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 24px;
+  display: grid;
+  gap: 12px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+.undress-minimal .sticky-generate > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  color: #fff;
+}
+.undress-minimal .sticky-generate > div strong {
+  font-size: .95rem;
+}
+.undress-minimal .sticky-generate > div p {
+  margin: 0;
+  color: #ffca00;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+.undress-minimal .sticky-generate .btn {
+  width: 100%;
+  min-height: 42px;
+  border-radius: 7px;
+  background: #f45eb3;
+  color: #171717;
+}
+.undress-minimal .preview-panel {
+  min-height: calc(100vh - 44px);
+  border-radius: 0;
+  background: #1a1a1a;
+}
+.undress-minimal .preview-head h2 {
+  font-size: 1.15rem;
+}
+.undress-minimal .credit-pill {
+  display: none;
+}
+.undress-minimal .creative-preview {
+  min-height: 400px;
+  border: 1px solid #41414b;
+  border-radius: 16px;
+  background: #1b1b1b;
+}
+.undress-minimal .creative-preview strong {
+  display: none;
+}
+.undress-minimal .creative-preview small {
+  color: #777b89;
+}
+.undress-minimal .recent-results {
+  margin-top: 24px;
+}
+@media (max-width: 860px) {
+  .undress-minimal {
+    width: 100%;
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+  .undress-minimal .control-panel,
+  .undress-minimal .preview-panel {
+    min-height: auto;
+  }
+  .undress-minimal .sticky-generate {
+    position: static;
+    margin-top: 24px;
+  }
+}
 .tool-card span {
   color: #dbeafe;
   font-size: 0.78rem;
