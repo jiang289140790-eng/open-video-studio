@@ -3424,8 +3424,10 @@ applyInitialVideoPreset();
 function applyInitialVideoPreset() {
   if (!document.querySelector("[data-video-generator]")) return;
   applyGenerationModelVisibility(state);
-  const preset = new URLSearchParams(window.location.search).get("preset") || "image-video";
-  applyVideoPreset(videoWorkflowPresets[preset] ? preset : "image-video", { updateUrl: false });
+  const pageName = window.location.pathname.split("/").pop() || "";
+  const defaultPreset = pageName === "undress-video.html" ? "adult-effects" : "image-video";
+  const preset = new URLSearchParams(window.location.search).get("preset") || defaultPreset;
+  applyVideoPreset(videoWorkflowPresets[preset] ? preset : defaultPreset, { updateUrl: false });
   setupVideoEffectPicker();
   document.querySelectorAll("[data-video-ratio], [data-video-duration], [data-video-model]").forEach((input) => {
     input.addEventListener("change", updateVideoEstimateFromControls);
