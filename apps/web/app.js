@@ -1238,34 +1238,15 @@ function injectAppShell() {
       <a class="rail-brand" href="./index.html" aria-label="Luravyn home"><img src="./brand/luravyn-logo.png" alt="Luravyn"></a>
       <nav class="rail-nav">
         <a href="./zh/app/" class="${active("app.html")}">首页</a>
-        <a href="./zh/gallery/" class="${active("gallery.html")}">热门作品</a>
-        <a href="./zh/app/ai-effects/" class="${active("ai-effects.html")}">AI 特效 <em>HOT</em></a>
+        <a href="./zh/app/spicy-effects/" class="${active("ai-effects.html")}">合规特效 <em>HOT</em></a>
         <span>AI 图像</span>
-        <a href="./zh/image-tools/" class="${active("image-tools.html")}">全部图像工具</a>
-        <a href="./zh/app/image-editor/" class="${active("image-editor.html")}">图片编辑器</a>
-        <a href="./zh/app/face-swap/" class="${active("face-swap.html")}">AI 换脸</a>
-        <a href="./zh/app/outfit-studio/" class="${active("outfit-studio.html")}">造型工作室</a>
-        <a href="./zh/app/pose-generator/" class="${active("pose-generator.html")}">姿势生成器</a>
-        <a href="./zh/app/nano-banana/" class="${active("nano-banana.html")}">Nano Banana</a>
-        <a href="./zh/app/image-combiner/" class="${active("image-combiner.html")}">图像组合器</a>
-        <a href="./zh/app/generate/" class="${active("generate.html")}">图片生成器</a>
-        <a href="./zh/app/characters/" class="${active("characters.html")}">角色生成器</a>
-        <a href="./zh/assets/" class="${active("assets.html")}">资产库</a>
-        <span>内容运营 Beta</span>
-        <a href="./zh/campaigns/" class="${active("campaigns.html")}">营销活动 <em class="nav-beta">Beta</em></a>
-        <a href="./zh/ai-studio/" class="${active("ai-studio.html")}">AI 工作室 <em class="nav-beta">Beta</em></a>
-        <a href="./zh/pipeline/" class="${active("pipeline.html")}">内容流水线 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/queue/" class="${active("queue.html")}">内容队列 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/accounts/" class="${active("accounts.html")}">发布账号 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/publishing/" class="${active("publishing.html")}">内容发布 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/calendar/" class="${active("calendar.html")}">内容日历 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/analytics/" class="${active("analytics.html")}">数据分析 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/automation/" class="${active("automation.html")}">自动化 <em class="nav-beta">开发中</em></a>
-        <a href="./zh/settings/" class="${active("settings.html")}">设置</a>
+        <a href="./zh/app/img-editor/" class="${active("image-editor.html")}">图片编辑器</a>
+        <a href="./zh/app/faceswap/" class="${active("face-swap.html")}">AI 换脸</a>
+        <a href="./zh/app/sex-dress-up/" class="${active("outfit-studio.html")}">服装造型</a>
+        <a href="./zh/app/sex-pose/" class="${active("pose-generator.html")}">姿势生成器</a>
         <span>AI 视频</span>
-        <a href="./zh/video-tools/" class="${active("video-tools.html")}">全部视频工具</a>
-        <a href="./zh/app/image-to-video/" class="${active("image-to-video.html")}">图片转视频</a>
-        <a href="./zh/my-creations/" class="${active("my-creations.html")}">我的作品</a>
+        <a href="./zh/app/img-to-video/" class="${active("image-to-video.html")}">图片转视频</a>
+        <a href="./zh/my-creations/" class="${active("my-creations.html")}">我的创作</a>
         <a href="./zh/history/" class="${active("history.html")}">生成任务</a>
         <a href="./zh/admin/" class="${active("admin.html")}" data-admin-nav-link hidden>管理后台</a>
       </nav>
