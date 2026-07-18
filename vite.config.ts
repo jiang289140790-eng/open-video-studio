@@ -38,6 +38,7 @@ export default defineConfig({
         imageTools: resolve(webRoot, "image-tools.html"),
         videoTools: resolve(webRoot, "video-tools.html"),
         imageToVideo: resolve(webRoot, "image-to-video.html"),
+        undressVideo: resolve(webRoot, "undress-video.html"),
         imageEditor: resolve(webRoot, "image-editor.html"),
         faceSwap: resolve(webRoot, "face-swap.html"),
         outfitStudio: resolve(webRoot, "outfit-studio.html"),
