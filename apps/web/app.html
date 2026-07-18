@@ -1,47 +1,47 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AI 工具 | Luravyn</title>
+    <title>AI 创作工具 | Luravyn</title>
     <link rel="icon" type="image/png" href="./favicon.png">
-    <meta name="description" content="Luravyn AI 工具中心，包含图片生成、图片转视频、角色生成、资产库和我的创作。">
+    <meta name="description" content="图片编辑、姿势参考、换脸、服装造型和图片转视频工具。">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./index.html"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
-      <nav class="topnav" aria-label="Primary navigation">
+      <nav class="topnav" aria-label="主导航">
         <a href="./zh/image-tools/">图像工具</a>
         <a href="./zh/video-tools/">视频工具</a>
         <a href="./zh/pricing/">购买积分</a>
         <a href="./zh/free-coins/">免费硬币</a>
         <a href="./zh/my-creations/">我的创作</a>
       </nav>
-      <nav class="accountnav" aria-label="Account navigation">
-        <a class="daily-check" href="./zh/free-coins/">每日签到</a>
+      <nav class="accountnav" aria-label="账户导航">
+        <a class="daily-check" href="./zh/free-coins/">🎁 每日签到</a>
         <a href="./zh/login/">登录</a>
       </nav>
     </header>
 
-    <main class="app-surface tool-home">
-      <section class="app-hero-grid" aria-label="Featured tools">
-        <a class="feature-banner banner-image" href="./zh/image-tools/">
+    <main class="app-surface tool-home target-home">
+      <section class="app-hero-grid" aria-label="精选工具">
+        <a class="feature-banner banner-image" href="./zh/app/img-editor/">
           <span>图像工具</span>
-          <strong>AI 换脸 · 编辑器 · 造型工作室</strong>
+          <strong>图片编辑 · AI 换脸 · 造型工作室</strong>
         </a>
-        <a class="feature-banner banner-video" href="./zh/app/image-to-video/?preset=image-video">
+        <a class="feature-banner banner-video" href="./zh/app/img-to-video/">
           <span>视频工具</span>
           <strong>图片转视频</strong>
         </a>
       </section>
 
-      <section class="quick-tool-row" aria-label="Quick tools">
-        <a class="quick-tool-card" href="./zh/app/face-swap/"><span>换脸</span><strong>AI 换脸</strong><i>↗</i></a>
-        <a class="quick-tool-card" href="./zh/app/image-editor/"><span>编辑</span><strong>图片编辑器</strong><i>↗</i></a>
-        <a class="quick-tool-card" href="./zh/app/pose-generator/"><span>姿势</span><strong>姿势生成器</strong><i>↗</i></a>
-        <a class="quick-tool-card" href="./zh/app/image-to-video/"><span>视频</span><strong>图片转视频</strong><i>↗</i></a>
-        <a class="quick-tool-card" href="./zh/gallery/"><span>灵感</span><strong>作品探索</strong><i>↗</i></a>
+      <section class="quick-tool-row" aria-label="快捷工具">
+        <a class="quick-tool-card" href="./zh/app/img-editor/"><span>编辑</span><strong>图片编辑器</strong><i>↗</i></a>
+        <a class="quick-tool-card" href="./zh/app/sex-pose/"><span>姿势</span><strong>姿势生成器</strong><i>↗</i></a>
+        <a class="quick-tool-card" href="./zh/app/faceswap/"><span>换脸</span><strong>AI 换脸</strong><i>↗</i></a>
+        <a class="quick-tool-card" href="./zh/app/img-to-video/"><span>视频</span><strong>图片转视频</strong><i>↗</i></a>
+        <a class="quick-tool-card" href="./zh/app/sex-dress-up/"><span>造型</span><strong>服装造型</strong><i>↗</i></a>
       </section>
 
       <section class="tool-directory-bar" aria-label="工具筛选">
@@ -55,57 +55,66 @@
         </div>
         <label class="tool-search-box">
           <span>搜索工具</span>
-          <input type="search" placeholder="搜索图片、视频、角色、资产..." data-tool-home-search>
+          <input type="search" placeholder="搜索图片、视频、角色..." data-tool-home-search>
         </label>
       </section>
 
       <section class="tool-section" data-tool-home-section="image hot">
-        <div class="tool-section-head">
-          <h1>图像工具</h1>
-          <a href="./zh/image-tools/">查看更多</a>
-        </div>
+        <div class="tool-section-head"><h1>图片编辑器</h1><a href="./zh/app/img-editor/">查看更多</a></div>
         <div class="card-carousel">
-          <a class="tool-poster art-2" href="./zh/app/face-swap/" data-tool-home-card data-tool-tags="image hot face 换脸 AI 角色"><strong>AI 换脸</strong><span>上传照片一键换脸</span></a>
-          <a class="tool-poster art-3" href="./zh/app/image-editor/" data-tool-home-card data-tool-tags="image hot editor 图片 编辑 重绘 修复"><strong>图片编辑器</strong><span>重绘、扩图、局部修复</span></a>
-          <a class="tool-poster art-11" href="./zh/app/outfit-studio/" data-tool-home-card data-tool-tags="image outfit 造型 服装 风格"><strong>造型工作室</strong><span>服装与品牌风格</span></a>
-          <a class="tool-poster art-10" href="./zh/app/pose-generator/" data-tool-home-card data-tool-tags="image pose 姿势 动作 分镜"><strong>姿势生成器</strong><span>动作和镜头参考</span></a>
-          <a class="tool-poster art-8" href="./zh/app/nano-banana/" data-tool-home-card data-tool-tags="image new nano banana 快速 创意"><strong>Nano Banana</strong><span>快速创意实验</span></a>
-          <a class="tool-poster art-5" href="./zh/app/image-combiner/" data-tool-home-card data-tool-tags="image combiner 图像组合 多图 参考"><strong>图像组合器</strong><span>多图参考合成</span></a>
+          <a class="tool-poster art-2" href="./zh/app/img-editor/?editor=retouch" data-tool-home-card data-tool-tags="image hot editor 编辑 修复"><strong>自然语言编辑</strong><span>重绘、扩图和局部修复</span></a>
+          <a class="tool-poster art-3" href="./zh/app/faceswap/" data-tool-home-card data-tool-tags="image hot face 换脸"><strong>AI 换脸</strong><span>授权角色与虚构角色替换</span></a>
+          <a class="tool-poster art-11" href="./zh/app/sex-dress-up/" data-tool-home-card data-tool-tags="image outfit 造型 服装"><strong>服装造型</strong><span>服装、场景与品牌风格</span></a>
+          <a class="tool-poster art-10" href="./zh/app/sex-pose/" data-tool-home-card data-tool-tags="image pose 姿势 动作"><strong>姿势生成器</strong><span>动作和镜头参考</span></a>
+          <a class="tool-poster art-8" href="./zh/app/img-editor/?editor=creative" data-tool-home-card data-tool-tags="image new 创意"><strong>创意编辑</strong><span>快速创意实验</span></a>
+          <a class="tool-poster art-5" href="./zh/app/img-editor/?editor=combine" data-tool-home-card data-tool-tags="image 多图 合成"><strong>多图合成</strong><span>多张参考图智能合成</span></a>
         </div>
       </section>
 
-      <section class="tool-section" data-tool-home-section="character new">
-        <div class="tool-section-head">
-          <h2>AI 角色生成器 <small>(12+)</small></h2>
-          <a href="./zh/app/characters/">查看更多</a>
-        </div>
+      <section class="tool-section" data-tool-home-section="image new">
+        <div class="tool-section-head"><h2>AI 姿势生成器 <small>(59+)</small></h2><a href="./zh/app/sex-pose/">查看更多</a></div>
         <div class="card-carousel compact">
-          <a class="tool-poster art-12" href="./zh/app/characters/" data-tool-home-card data-tool-tags="character hot studio host 视频主持人 角色"><strong>Studio Host</strong><span>视频主持人</span></a>
-          <a class="tool-poster art-7" href="./zh/app/characters/" data-tool-home-card data-tool-tags="character brand avatar 品牌角色"><strong>Brand Avatar</strong><span>品牌角色</span></a>
-          <a class="tool-poster art-4" href="./zh/app/characters/" data-tool-home-card data-tool-tags="character campaign cast 系列角色"><strong>Campaign Cast</strong><span>系列角色</span></a>
-          <a class="tool-poster art-6" href="./zh/app/characters/" data-tool-home-card data-tool-tags="character new creator twin 创作者形象"><strong>Creator Twin</strong><span>创作者形象</span></a>
-          <a class="tool-poster art-9" href="./zh/app/characters/" data-tool-home-card data-tool-tags="character product guide 产品讲解"><strong>Product Guide</strong><span>产品讲解</span></a>
+          <a class="tool-poster art-12" href="./zh/app/sex-pose/?pose=standing" data-tool-home-card data-tool-tags="image pose standing 姿势"><strong>自然站姿</strong><span>全身构图参考</span></a>
+          <a class="tool-poster art-7" href="./zh/app/sex-pose/?pose=sitting" data-tool-home-card data-tool-tags="image pose sitting 姿势"><strong>坐姿参考</strong><span>室内镜头与坐姿</span></a>
+          <a class="tool-poster art-4" href="./zh/app/sex-pose/?pose=side" data-tool-home-card data-tool-tags="image pose side 姿势"><strong>侧身回眸</strong><span>电影感侧面构图</span></a>
+          <a class="tool-poster art-6" href="./zh/app/sex-pose/?pose=action" data-tool-home-card data-tool-tags="image pose action 动作"><strong>动态动作</strong><span>运动与动作参考</span></a>
+          <a class="tool-poster art-9" href="./zh/app/sex-pose/?pose=custom" data-tool-home-card data-tool-tags="image pose custom 自定义"><strong>自定义姿势</strong><span>上传参考或输入提示词</span></a>
+        </div>
+      </section>
+
+      <section class="tool-section" data-tool-home-section="image hot">
+        <div class="tool-section-head"><h2>服装造型</h2><a href="./zh/app/sex-dress-up/">查看更多</a></div>
+        <div class="card-carousel compact">
+          <a class="tool-poster art-1" href="./zh/app/sex-dress-up/?dress=lingerie" data-tool-home-card data-tool-tags="image outfit 造型"><strong>时装造型</strong><span>替换服装并保留姿态</span></a>
+          <a class="tool-poster art-13" href="./zh/app/sex-dress-up/?dress=latex" data-tool-home-card data-tool-tags="image outfit 造型"><strong>材质风格</strong><span>皮革、针织与舞台材质</span></a>
+          <a class="tool-poster art-4" href="./zh/app/sex-dress-up/?dress=bikini" data-tool-home-card data-tool-tags="image outfit 造型"><strong>夏日造型</strong><span>泳装与度假风格</span></a>
+          <a class="tool-poster art-6" href="./zh/app/sex-dress-up/?dress=custom" data-tool-home-card data-tool-tags="image outfit custom"><strong>自定义造型</strong><span>上传服装参考图</span></a>
         </div>
       </section>
 
       <section class="tool-section" data-tool-home-section="video hot">
-        <div class="tool-section-head">
-          <h2>视频工具</h2>
-          <a href="./zh/video-tools/">查看更多</a>
-        </div>
+        <div class="tool-section-head"><h2>视频工具</h2><a href="./zh/app/img-to-video/">查看更多</a></div>
         <div class="card-carousel video-row">
-          <a class="tool-poster art-7" href="./zh/app/image-to-video/" data-tool-home-card data-tool-tags="video hot image to video 图片转视频"><strong>图片转视频</strong><span>单图生成动态视频</span></a>
-          <a class="tool-poster art-1" href="./zh/app/image-to-video/?preset=product-teaser" data-tool-home-card data-tool-tags="video product teaser 产品短片"><strong>产品短片</strong><span>商品广告模板</span></a>
-          <a class="tool-poster art-13" href="./zh/app/image-to-video/?preset=social-reel" data-tool-home-card data-tool-tags="video new social reel 社媒视频"><strong>社媒竖屏视频</strong><span>9:16 短视频</span></a>
-          <a class="tool-poster art-4" href="./zh/history/" data-tool-home-card data-tool-tags="video history creations 生成历史 我的创作"><strong>生成任务</strong><span>查看状态和作品</span></a>
+          <a class="tool-poster art-7" href="./zh/app/img-to-video/" data-tool-home-card data-tool-tags="video hot image video 图片转视频"><strong>图片转视频</strong><span>单图生成动态视频</span></a>
+          <a class="tool-poster art-1" href="./zh/app/img-to-video/?preset=product-teaser" data-tool-home-card data-tool-tags="video product 产品短片"><strong>产品短片</strong><span>商品广告模板</span></a>
+          <a class="tool-poster art-13" href="./zh/app/img-to-video/?preset=social-reel" data-tool-home-card data-tool-tags="video social reel 社媒视频"><strong>社媒竖屏视频</strong><span>9:16 短视频</span></a>
+          <a class="tool-poster art-4" href="./zh/history/" data-tool-home-card data-tool-tags="video history 生成任务"><strong>生成任务</strong><span>查看状态和作品</span></a>
         </div>
       </section>
 
-      <p class="empty-tool-state" data-tool-home-empty hidden>没有找到匹配工具。试试“图像”“视频”“角色”或返回全部。</p>
+      <section class="tool-section adult-safe-section" data-tool-home-section="video hot">
+        <div class="tool-section-head"><h2>成人内容（18+）</h2><a href="./zh/app/spicy-effects/">查看合规特效</a></div>
+        <p class="section-note">仅支持成年、虚构或已获授权素材；禁止未成年人、真人色情换脸和未经同意的亲密内容。</p>
+        <div class="card-carousel compact">
+          <a class="tool-poster art-2" href="./zh/app/spicy-effects/?preset=cinematic" data-tool-home-card data-tool-tags="video hot adult 18+ 合规"><strong>电影感特效</strong><span>成人内容合规测试</span></a>
+          <a class="tool-poster art-8" href="./zh/app/spicy-effects/?preset=wardrobe" data-tool-home-card data-tool-tags="video adult 18+ 服装"><strong>服装变化</strong><span>虚构成年角色造型</span></a>
+          <a class="tool-poster art-10" href="./zh/app/spicy-effects/?preset=pose" data-tool-home-card data-tool-tags="video adult 18+ 姿势"><strong>姿势参考</strong><span>安全动作与镜头预设</span></a>
+          <a class="tool-poster art-5" href="./zh/app/spicy-effects/" data-tool-home-card data-tool-tags="video adult 18+ 合规"><strong>合规特效库</strong><span>需年满18岁并确认规则</span></a>
+        </div>
+      </section>
 
+      <p class="empty-tool-state" data-tool-home-empty hidden>没有找到匹配工具，请尝试其他关键词。</p>
     </main>
     <script type="module" src="./app.js"></script>
   </body>
 </html>
-
-
