@@ -3769,7 +3769,14 @@ async function handleVideoReferenceUpload(event) {
   showSiteToast("参考图已选择，正在准备生成输入。");
 
   if (!supabase) {
-    setVideoUploadStatus("本地可用", "ready");
+    setVideoUploadStatus("已选择（本地）", "ready");
+    return;
+  }
+  const { data: currentSession } = await supabase.auth.getSession();
+  if (!currentSession.session?.user) {
+    setVideoUploadStatus("已选择（本地）", "ready");
+    updateVideoReferenceCard(reference, "图片已保留在当前浏览器；登录后可上传到云端，当前可先验证页面流程。", "local");
+    showSiteToast("图片已选择，可先点击生成验证流程；登录后再同步到云端。");
     return;
   }
   setVideoUploadStatus("上传中", "uploading");
@@ -4241,7 +4248,9 @@ if (enhanceButton && promptBox) {
 
 if (generateButton && queueTarget) {
   generateButton.addEventListener("click", async () => {
-    const demoGeneration = !isRealAuthenticatedUser(state.user) && consumeDemoGenerationIntent();
+    // In staging, an unsigned-in visitor can still verify the complete form flow.
+    // A real provider job remains gated behind a real/anonymous Supabase session.
+    const demoGeneration = !isRealAuthenticatedUser(state.user) && (consumeDemoGenerationIntent() || ENABLE_ANONYMOUS_TEST_MODE);
     if (!demoGeneration && !requireRealLoginForAction("generation-submit", window.location.pathname.split("/").pop() || "./zh/app/image-to-video/")) {
       return;
     }
@@ -4309,6 +4318,7 @@ if (generateButton && queueTarget) {
           durationSeconds,
           model,
           preset: activePreset?.id || "",
+          workflowFamily: document.querySelector("[data-video-generator]")?.dataset.workflowFamily || "",
           reference,
           onJobCreated: (job) => {
             const remoteJobId = String(job?.id || "");
@@ -4512,7 +4522,7 @@ async function runRemoteGeneration(input) {
     throw new Error("请先登录后使用真实生成。");
   }
   const mediaType = input.mode === "video" ? "video" : "image";
-  const workflowId = workflowIdForGeneration(mediaType, input.model, input.preset);
+  const workflowId = workflowIdForGeneration(mediaType, input.model, input.preset, input.workflowFamily);
   const createResult = await invokeAi("create-generation-job", {
     mediaType,
     prompt: input.prompt,
@@ -4539,9 +4549,10 @@ async function runRemoteGeneration(input) {
   return processed;
 }
 
-function workflowIdForGeneration(mediaType, provider, preset) {
+function workflowIdForGeneration(mediaType, provider, preset, workflowFamily = "") {
   if (provider === "zealman_workflow") {
     if (mediaType === "image") return "workflow-hifun-image-editor-v1";
+    if (workflowFamily === "adult-4in1") return "workflow-hifun-adult-effects-v1";
     if (preset === "adult-effects") return "workflow-hifun-adult-effects-v1";
     if (preset === "movie-closeup") return "workflow-hifun-movie-closeup-v1";
     if (preset === "social-reel") return "workflow-zealman-video-g03-v1";

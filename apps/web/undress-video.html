@@ -13,7 +13,7 @@
       <nav class="topnav" aria-label="主导航"><a href="./zh/app/img-editor/">图像工具</a><a href="./zh/app/img-to-video/">视频工具</a><a href="./zh/pricing/">购买积分</a><a href="./zh/free-coins/">免费硬币</a><a href="./zh/my-creations/">我的创作</a></nav>
       <nav class="accountnav" aria-label="账户导航"><a class="daily-check" href="./zh/free-coins/">每日签到</a><a href="./zh/login/">登录</a></nav>
     </header>
-    <main class="studio-shell video-tool-page undress-workbench" data-video-generator>
+    <main class="studio-shell video-tool-page undress-workbench" data-video-generator data-workflow-family="adult-4in1">
       <section class="studio-panel control-panel">
         <a class="back-link" href="./zh/app/">← 返回工具首页</a>
         <p class="eyebrow">18+ · 合规视频工作台</p>
@@ -29,9 +29,9 @@
           <div class="reference-input-actions"><label class="btn glass">从相册选择<input type="file" aria-label="上传参考图片" accept="image/*" data-video-upload hidden></label><label class="btn glass">拍照上传<input type="file" aria-label="拍照上传参考图片" accept="image/*" capture="environment" data-video-camera-upload hidden></label><button class="btn glass" type="button" data-demo-reference>使用示例图片</button></div>
           <article class="reference-card" data-video-reference-card hidden><span class="thumb art-3" data-video-reference-thumb></span><div><strong data-video-reference-label>尚未选择参考图</strong><small data-video-reference-meta>选择图片后继续</small></div></article>
         </section>
-        <section class="video-effect-selector" aria-label="选择效果"><div class="video-effect-selector-head"><div><span class="eyebrow">当前效果</span><strong data-video-effect-label>合规成人特效</strong></div><button class="btn glass" type="button" data-open-video-effect-picker>选择效果</button></div><p data-video-effect-note>只允许成年、虚构或已获授权素材。</p></section>
+        <section class="video-effect-selector" aria-label="选择类型"><div class="video-effect-selector-head"><div><span class="eyebrow">当前类型</span><strong data-video-effect-label>Undress Video</strong></div><button class="btn glass" type="button" data-open-video-effect-picker>选择类型</button></div><p data-video-effect-note>以下选项均属于同一个 Wan 2.2 4in1 工作流的不同类型。</p></section>
         <label class="studio-field">动作描述<textarea class="textarea hero-textarea" data-video-prompt rows="5">对这张成年且已获授权的虚构角色图片生成合规的电影感动作短片，保持人物身份和服装连续，不涉及未成年人、真人色情换脸或非自愿内容。</textarea></label>
-        <div class="video-options-grid"><label class="studio-field">输出比例<select data-video-ratio><option value="16:9">16:9 横屏</option><option value="9:16">9:16 竖屏</option><option value="1:1">1:1 方形</option></select></label><label class="studio-field">视频时长<select data-video-duration><option value="5">5 秒</option><option value="10">10 秒</option></select></label><label class="studio-field">生成模型<select data-video-model><option value="zealman_workflow">AutoDL / Zealman 工作流</option></select></label></div>
+        <div class="video-options-grid"><label class="studio-field">输出比例<select data-video-ratio><option value="16:9">16:9 横屏</option><option value="9:16">9:16 竖屏</option><option value="1:1">1:1 方形</option></select></label><label class="studio-field">视频时长<select data-video-duration><option value="5">5 秒</option><option value="10">10 秒</option></select></label><label class="studio-field">工作流<select data-video-model><option value="zealman_workflow">WAN2.2 NSFW 4in1 Adult PX</option></select></label></div>
       </section>
       <section class="studio-panel preview-panel">
         <div class="preview-head"><div><p class="eyebrow">生成结果</p><h2>生成结果</h2></div><span class="credit-pill" data-credit-cost>32 积分</span></div>
@@ -45,7 +45,7 @@
       <div class="asset-picker-modal video-effect-modal">
         <button class="modal-close" type="button" data-close-video-effect-picker aria-label="关闭效果选择器">×</button>
         <p class="eyebrow">18+ 合规效果库</p><h2>选择辣味效果</h2>
-        <p class="muted">选择一个已登记的工作流预设。所有内容必须为成年、虚构或已获授权素材。</p>
+        <p class="muted">选择同一个 Wan 2.2 4in1 工作流中的类型。所有内容必须为成年、虚构或已获授权素材。</p>
         <div class="chip-row compact video-effect-tabs" role="tablist"><button class="chip active" type="button" data-video-effect-filter="all">全部</button><button class="chip" type="button" data-video-effect-filter="motion">动作</button><button class="chip" type="button" data-video-effect-filter="cinematic">电影感</button><button class="chip" type="button" data-video-effect-filter="social">竖屏</button></div>
         <div class="video-effect-picker-grid">
           <button class="video-effect-choice art-13 active" type="button" data-video-effect-choice="adult-effects" data-video-effect-tags="motion cinematic"><strong>Undress Video</strong><small>成年、虚构、已授权素材</small></button>
