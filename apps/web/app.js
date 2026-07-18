@@ -4160,6 +4160,9 @@ function updateVideoEstimateFromControls() {
 }
 
 function getActiveVideoPreset() {
+  // Auth hydration can render the shell before the video preset table is
+  // initialized; keep the first render safe and let the preset setup run next.
+  if (typeof videoWorkflowPresets === "undefined") return null;
   const button = document.querySelector("[data-video-preset-button].active");
   const id = button?.dataset.videoPresetButton || "";
   const preset = videoWorkflowPresets[id];
