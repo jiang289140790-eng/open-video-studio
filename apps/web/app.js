@@ -68,9 +68,9 @@ const supabaseStorageBucket = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || "o
 const telegramBotUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "";
 const telegramAuthUrl = import.meta.env.VITE_TELEGRAM_AUTH_URL || "";
 const oauthProviderFlags = {
-  google: import.meta.env.VITE_GOOGLE_OAUTH_READY === "true",
-  x: import.meta.env.VITE_X_OAUTH_READY === "true",
-  discord: import.meta.env.VITE_DISCORD_OAUTH_READY === "true",
+  google: import.meta.env.VITE_GOOGLE_OAUTH_READY !== "false",
+  x: import.meta.env.VITE_X_OAUTH_READY !== "false",
+  discord: import.meta.env.VITE_DISCORD_OAUTH_READY !== "false",
   telegram: import.meta.env.VITE_TELEGRAM_OAUTH_READY === "true"
 };
 const supabase = authSupabase;
