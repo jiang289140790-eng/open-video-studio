@@ -55,6 +55,8 @@ export default defineConfig({
         share: resolve(webRoot, "share.html"),
         admin: resolve(webRoot, "admin.html"),
         app: resolve(webRoot, "app-shell.html"),
+        spicyEffects: resolve(webRoot, "spicy-effects.html"),
+        tool: resolve(webRoot, "tool.html"),
       },
     },
   },
