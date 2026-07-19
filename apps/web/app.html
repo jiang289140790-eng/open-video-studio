@@ -94,9 +94,27 @@
         qtSection.appendChild(qtRow);
         frag.appendChild(qtSection);
 
+        // Target-site style directory filters and search.
+        // Contract: data-tool-home-filter="hot", data-tool-home-filter="new",
+        // data-tool-home-filter="image", data-tool-home-filter="video",
+        // data-tool-home-filter="character", data-tool-home-search,
+        // data-tool-home-card, data-tool-home-empty.
+        frag.appendChild(h('section', {className:'tool-directory-bar'}, [
+          h('div', {className:'tool-filter-tabs'}, [
+            h('button', {type:'button', 'data-tool-home-filter':'all', className:'active'}, '全部'),
+            h('button', {type:'button', 'data-tool-home-filter':'hot'}, '热门'),
+            h('button', {type:'button', 'data-tool-home-filter':'new'}, '最新'),
+            h('button', {type:'button', 'data-tool-home-filter':'image'}, '图像'),
+            h('button', {type:'button', 'data-tool-home-filter':'video'}, '视频'),
+            h('button', {type:'button', 'data-tool-home-filter':'character'}, '角色')
+          ]),
+          h('input', {type:'search', 'data-tool-home-search':'', placeholder:'搜索图像或视频工具', 'aria-label':'搜索图像或视频工具'})
+        ]));
+
         // ── Content Sections ──
         d.sections.forEach(function(sec) {
-          var section = h('section', {className:'home-section'});
+          var category = sec.id === 'spicy-effects' ? 'video' : 'image';
+          var section = h('section', {className:'home-section', 'data-tool-home-section':'', 'data-tool-tags':category + ' ' + sec.id + ' ' + (sec.title || '')});
 
           // Section head with title + count + link
           var countHtml = sec.count ? ' <small>(' + esc(sec.count) + ')</small>' : '';
@@ -122,7 +140,7 @@
           var row = h('div', {className:'card-row'});
           sec.items.forEach(function(item) {
             row.appendChild(
-              h('a', {className:'hc-card', href:item.link}, [
+              h('a', {className:'hc-card', href:item.link, 'data-tool-home-card':'', 'data-tool-tags':category + ' ' + sec.id + ' ' + (item.tag || '') + ' ' + item.name}, [
                 h('div', {className:'hc-img'}, [
                   h('img', {src:item.image, alt:item.name, loading:'lazy'})
                 ]),
@@ -137,6 +155,7 @@
           section.appendChild(row);
           frag.appendChild(section);
         });
+        frag.appendChild(h('p', {className:'tool-directory-empty', 'data-tool-home-empty':'', hidden:'true'}, '没有匹配的工具'));
 
         // ── Spicy Chat Banner ──
         if (d.chatBanner) {
