@@ -1,4 +1,5 @@
-﻿import { createClient } from "@supabase/supabase-js";
+﻿import { supabase as authSupabase } from "./supabase-client.js";
+import { getSession, loginWithProvider, logout, onAuthStateChange } from "./auth-service.js";
 
 const STORE_KEY = "ovs_mvp_state_v1";
 const COOKIE_PREF_KEY = "ovs_cookie_preferences_v1";
@@ -63,8 +64,6 @@ const PROTECTED_PRODUCT_PAGES = new Set([
   "settings.html",
   "admin.html"
 ]);
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 const supabaseStorageBucket = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || "open-video-studio-assets";
 const telegramBotUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "";
 const telegramAuthUrl = import.meta.env.VITE_TELEGRAM_AUTH_URL || "";
@@ -74,7 +73,7 @@ const oauthProviderFlags = {
   discord: import.meta.env.VITE_DISCORD_OAUTH_READY === "true",
   telegram: import.meta.env.VITE_TELEGRAM_OAUTH_READY === "true"
 };
-const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+const supabase = authSupabase;
 // Temporary staging switch. Disable after API verification is complete.
 const ENABLE_ANONYMOUS_TEST_MODE = true;
 const AUTH_ROUTE_ALIASES = new Map([
@@ -1247,12 +1246,13 @@ function renderAccountNavigation(current) {
     return;
   }
   const initial = (current.user.name || "创作者").trim().charAt(0).toUpperCase();
+  const avatarUrl = String(current.user.avatarUrl || "");
   accountnav.innerHTML = `
     <a class="daily-check" href="./zh/free-coins/">🎁 每日奖励</a>
     <a class="account-credit" href="./zh/pricing/"><span data-credit-balance>${current.credits}</span> 积分</a>
     ${languageMenuMarkup()}
     <div class="account-menu">
-      <button class="account-trigger" type="button" aria-expanded="false"><span>${initial}</span><b data-user-name>${current.user.name}</b></button>
+      <button class="account-trigger" type="button" aria-expanded="false"><span data-auth-avatar>${escapeHtml(initial)}</span><b data-user-name>${escapeHtml(current.user.name)}</b></button>
       <div class="account-dropdown">
         <a href="./zh/dashboard/">控制台</a>
         <a href="./zh/ai-studio/">创建内容</a>
@@ -1273,6 +1273,13 @@ function renderAccountNavigation(current) {
       </div>
     </div>
   `;
+  if (avatarUrl) {
+    const avatar = accountnav.querySelector("[data-auth-avatar]");
+    avatar.style.backgroundImage = `url(${JSON.stringify(avatarUrl)})`;
+    avatar.style.backgroundPosition = "center";
+    avatar.style.backgroundSize = "cover";
+    avatar.style.color = "transparent";
+  }
 }
 
 function injectAppShell() {
@@ -1535,13 +1542,24 @@ function injectCarouselControls() {
 
 function stateUserFromSupabaseUser(user) {
   const appMetadata = user.app_metadata || {};
+  const userMetadata = user.user_metadata || {};
+  const name = String(
+    userMetadata.display_name ||
+    userMetadata.full_name ||
+    userMetadata.name ||
+    userMetadata.user_name ||
+    userMetadata.preferred_username ||
+    user.email ||
+    "创作者"
+  );
   return {
     id: user.id,
-    name: String(user.user_metadata?.display_name || user.email || "创作者"),
+    name,
     email: user.email || "",
     provider: "supabase",
     isAnonymous: Boolean(user.is_anonymous),
-    role: String(appMetadata.role || user.user_metadata?.role || "user").toLowerCase(),
+    avatarUrl: String(userMetadata.avatar_url || userMetadata.picture || ""),
+    role: String(appMetadata.role || "user").toLowerCase(),
     appMetadata,
     createdAt: user.created_at || new Date().toISOString()
   };
@@ -1555,22 +1573,16 @@ async function hydrateAuthSession() {
     renderState(state);
     return;
   }
-  const { data } = await supabase.auth.getSession();
-  if (data.session?.user) {
-    state.user = stateUserFromSupabaseUser(data.session.user);
+  const session = await getSession();
+  if (session?.user && !session.user.is_anonymous) {
+    state.user = stateUserFromSupabaseUser(session.user);
     await syncRemoteProductData();
     localStorage.removeItem(AUTH_RETURN_KEY);
     saveState(state);
     renderState(state);
-  } else if (ENABLE_ANONYMOUS_TEST_MODE) {
-    const anonymous = await supabase.auth.signInAnonymously().catch(() => null);
-    if (anonymous?.data?.user) {
-      state.user = stateUserFromSupabaseUser(anonymous.data.user);
-      await syncRemoteProductData();
-      saveState(state);
-    }
-    renderState(state);
   } else {
+    state.user = null;
+    saveState(state);
     renderState(state);
   }
 }
@@ -1578,14 +1590,14 @@ async function hydrateAuthSession() {
 function bindSupabaseAuthState() {
   if (!supabase || window.__ovsAuthStateBound) return;
   window.__ovsAuthStateBound = true;
-  supabase.auth.onAuthStateChange(async (event, session) => {
+  onAuthStateChange(async (event, session) => {
     if (event === "SIGNED_OUT") {
       state.user = null;
       saveState(state);
       renderState(state);
       return;
     }
-    if (session?.user) {
+    if (session?.user && !session.user.is_anonymous) {
       state.user = stateUserFromSupabaseUser(session.user);
       await syncRemoteProductData();
       localStorage.removeItem(AUTH_RETURN_KEY);
@@ -1864,6 +1876,7 @@ function ensureUser(provider = "email") {
 
 function isRealAuthenticatedUser(user = state.user) {
   if (!user?.id) return false;
+  if (user.isAnonymous) return false;
   if (String(user.id) === "user_demo") return false;
   if (String(user.provider || "").toLowerCase().includes("demo")) return false;
   return true;
@@ -2103,7 +2116,7 @@ document.querySelectorAll("[data-auth-provider]").forEach((button) => {
       method: provider,
       returnTarget
     });
-    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: getAuthRedirectUrl(returnTarget) } });
+    const { error } = await loginWithProvider(provider, getAuthRedirectUrl(returnTarget));
     if (error) showAuthMessage(error.message, "error");
   });
 });
@@ -2335,7 +2348,7 @@ document.addEventListener("click", async (event) => {
   }
   const logoutButton = event.target.closest("[data-logout]");
   if (logoutButton) {
-    if (supabase) await supabase.auth.signOut();
+    await logout();
     state.user = null;
     saveState(state);
     return;
@@ -2694,7 +2707,7 @@ async function startSocialAuth(provider, nextUrl = "./zh/dashboard/") {
     return;
   }
   const redirectTo = getAuthRedirectUrl(returnTarget);
-  const { error } = await supabase.auth.signInWithOAuth({ provider: normalizedProvider, options: { redirectTo } });
+  const { error } = await loginWithProvider(normalizedProvider, redirectTo);
   if (error) setMessage(error.message);
 }
 
