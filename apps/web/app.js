@@ -28,6 +28,7 @@ const APP_SHELL_PAGES = new Set([
   "automation.html",
   "settings.html",
   "dashboard.html",
+  "growth-dashboard.html",
   "pricing.html",
   "free-coins.html",
   "referral.html",
@@ -49,6 +50,7 @@ const APP_SHELL_PAGES = new Set([
 ]);
 const PROTECTED_PRODUCT_PAGES = new Set([
   "dashboard.html",
+  "growth-dashboard.html",
   "my-creations.html",
   "assets.html",
   "history.html",
@@ -98,14 +100,14 @@ const PAYMENT_PROVIDERS = [
     id: "stripe",
     label: "Stripe 卡支付",
     shortLabel: "Stripe",
-    configured: Boolean(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY),
+    configured: import.meta.env.VITE_STRIPE_BILLING_ENABLED === "true" && Boolean(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY),
     note: "支持银行卡和本地钱包；配置 Stripe Key 后启用真实结账。"
   },
   {
     id: "paypal",
     label: "PayPal",
     shortLabel: "PayPal",
-    configured: Boolean(import.meta.env.VITE_PAYPAL_CLIENT_ID),
+    configured: false,
     note: "支持 PayPal 钱包；配置 PayPal Client ID / Secret 后启用真实结账。"
   }
 ];
@@ -761,6 +763,7 @@ state.socialAccounts = Array.isArray(state.socialAccounts) ? state.socialAccount
 state.contentAnalytics = Array.isArray(state.contentAnalytics) ? state.contentAnalytics : structuredClone(defaultState.contentAnalytics);
 state.automationRules = Array.isArray(state.automationRules) ? state.automationRules : structuredClone(defaultState.automationRules);
 state.contentSettings = state.contentSettings && typeof state.contentSettings === "object" ? { ...defaultState.contentSettings, ...state.contentSettings } : structuredClone(defaultState.contentSettings);
+state.agentTasks = Array.isArray(state.agentTasks) ? state.agentTasks : [];
 let selectedCharacterId = state.characters[0]?.id || "";
 let toolHomeFilter = "all";
 let toolHomeSearch = "";
@@ -1307,6 +1310,7 @@ function injectAppShell() {
         <a href="./zh/assets/" class="${active("assets.html")}">资产库</a>
         <span>创作者工作流</span>
         <a href="./zh/dashboard/" class="${active("dashboard.html")}">控制台</a>
+        <a href="./zh/growth-dashboard/" class="${active("growth-dashboard.html")}">Growth Dashboard</a>
         <a href="./zh/ai-studio/" class="${active("ai-studio.html")}">创建内容</a>
         <a href="./zh/pipeline/" class="${active("pipeline.html")}">内容库 / 审核</a>
         <a href="./zh/calendar/" class="${active("calendar.html")}">日历排期</a>
@@ -1609,14 +1613,15 @@ function bindSupabaseAuthState() {
 
 async function syncRemoteProductData() {
   if (!supabase || !state.user?.id) return;
-  const [profileResult, assetsResult, jobsResult, creditsResult, creditBalanceResult, sharesResult, charactersResult] = await Promise.all([
+  const [profileResult, assetsResult, jobsResult, creditsResult, creditBalanceResult, sharesResult, charactersResult, agentTasksResult] = await Promise.all([
     supabase.from("profiles").select("display_name,email,role,account_status,credit_balance").eq("id", state.user.id).maybeSingle(),
     supabase.from("media_assets").select("*").eq("owner_user_id", state.user.id).is("deleted_at", null).order("updated_at", { ascending: false }).limit(80),
     supabase.from("generation_jobs").select("*").eq("user_id", state.user.id).order("created_at", { ascending: false }).limit(80),
     supabase.from("credit_transactions").select("id,balance_impact,status,operation_category,source_type,source_id,reason,created_at").eq("user_id", state.user.id).order("created_at", { ascending: false }).limit(100),
     supabase.from("credit_transactions").select("balance_impact,status").eq("user_id", state.user.id),
     supabase.from("share_links").select("*").eq("owner_user_id", state.user.id).eq("visibility_status", "active").is("revoked_at", null).order("created_at", { ascending: false }).limit(80),
-    supabase.from("characters").select("*").eq("owner_user_id", state.user.id).is("archived_at", null).order("updated_at", { ascending: false }).limit(80)
+    supabase.from("characters").select("*").eq("owner_user_id", state.user.id).is("archived_at", null).order("updated_at", { ascending: false }).limit(80),
+    supabase.from("agent_tasks").select("*").eq("user_id", state.user.id).order("created_at", { ascending: false }).limit(100)
   ]);
   if (!profileResult.error && profileResult.data) {
     state.user = {
@@ -1666,6 +1671,55 @@ async function syncRemoteProductData() {
       selectedCharacterId = state.characters[0]?.id || selectedCharacterId;
     }
   }
+  if (!agentTasksResult.error && Array.isArray(agentTasksResult.data)) {
+    state.agentTasks = agentTasksResult.data.map(mapRemoteAgentTask);
+  }
+}
+
+function mapRemoteAgentTask(task) {
+  return {
+    id: String(task.id),
+    agentId: String(task.agent_id || "agent_analyst_v1"),
+    type: String(task.task_type || "other"),
+    title: String(task.title || "Agent Task"),
+    detail: String(task.description || ""),
+    status: String(task.status || "pending"),
+    statusLabel: { pending: "待执行", running: "运行中", completed: "已完成", failed: "失败" }[String(task.status || "pending")] || String(task.status || "pending"),
+    priority: String(task.priority || "normal"),
+    payload: parseMaybeJson(task.payload),
+    result: parseMaybeJson(task.result),
+    createdAt: task.created_at || "",
+    completedAt: task.completed_at || "",
+    remote: true
+  };
+}
+
+async function persistAgentTask(task) {
+  if (!supabase || !isRealAuthenticatedUser(state.user)) return task;
+  const { data, error } = await supabase.from("agent_tasks").insert({
+    user_id: state.user.id,
+    agent_id: task.agentId,
+    task_type: task.type || "other",
+    title: task.title,
+    description: task.detail || "",
+    status: task.status || "pending",
+    priority: task.priority || "normal",
+    payload: task.payload || {},
+    result: task.result || {},
+    created_at: task.createdAt || new Date().toISOString()
+  }).select("*").single();
+  if (error) throw new Error(error.message || "Agent Task 保存失败");
+  return mapRemoteAgentTask(data);
+}
+
+async function updateAgentTaskRemote(task) {
+  if (!supabase || !isRealAuthenticatedUser(state.user) || !task.remote) return;
+  const { error } = await supabase.from("agent_tasks").update({
+    status: task.status,
+    result: task.result || {},
+    completed_at: task.status === "completed" ? (task.completedAt || new Date().toISOString()) : null
+  }).eq("id", task.id).eq("user_id", state.user.id);
+  if (error) throw new Error(error.message || "Agent Task 更新失败");
 }
 
 async function hydrateRemoteShareByToken() {
@@ -1944,6 +1998,7 @@ function renderState(current) {
   renderHistory(current);
   renderCreations(current);
   renderDashboard(current);
+  renderGrowthDashboard(current);
   renderContentOperatingSystem(current);
   renderReferral(current);
   renderShare(current);
@@ -1976,7 +2031,7 @@ function renderProtectedPageGate(current) {
 
 function isAdminActor(user) {
   const role = String(user?.role || user?.appMetadata?.role || user?.app_metadata?.role || "").toLowerCase();
-  return role === "admin" || role === "operator";
+  return ["admin", "operator", "content_manager", "marketing_manager"].includes(role);
 }
 
 function updateAdminNavigation(current) {
@@ -2152,6 +2207,82 @@ document.querySelectorAll("[data-telegram-auth]").forEach((button) => {
 });
 
 document.addEventListener("click", async (event) => {
+  const executeSuggestion = event.target.closest("[data-growth-execute-suggestion]");
+  if (executeSuggestion) {
+    event.preventDefault();
+    const id = executeSuggestion.dataset.growthExecuteSuggestion;
+    const root = document.querySelector("[data-growth-dashboard]");
+    const character = (state.characters || []).slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0))[0];
+    const tool = (toolCatalogConfig.tools || []).find((entry) => entry.status === "published" && entry.featured) || toolCatalogConfig.tools?.[0];
+    const content = state.contentItems?.[0];
+    const records = {
+      "character-content": { title: character ? `增加 ${character.name} 的内容` : "增加角色内容", detail: "由 Analysis Agent 创建的内容任务", type: "content", characterId: character?.id || "" },
+      "prompt-variant": { title: "复用最高表现 Prompt", detail: content?.prompt || "创建内容 Prompt 变体", type: "prompt", prompt: content?.prompt || "创建一个适合今日渠道的内容变体" },
+      "workflow-run": { title: tool ? `运行 ${tool.name} Workflow` : "运行推荐 Workflow", detail: tool?.workflowId || "等待绑定 Workflow", type: "workflow", workflowId: tool?.workflowId || "", toolSlug: tool?.slug || "" }
+    };
+    const record = records[id] || { title: "Growth Dashboard 运营任务", detail: "由 Analysis Agent 创建", type: "content" };
+    const task = { id: `agent_task_${Date.now()}`, agentId: "agent_analyst_v1", createdAt: new Date().toISOString(), status: "pending", statusLabel: "待执行", payload: record, ...record };
+    try {
+      const persisted = await persistAgentTask(task);
+      Object.assign(task, persisted);
+    } catch (error) {
+      showSiteToast(`任务暂存本地：${error.message || "远程保存失败"}`);
+    }
+    state.agentTasks.unshift(task);
+    saveState(state);
+    renderGrowthDashboard(state);
+    executeSuggestion.textContent = "已创建";
+    showSiteToast("Agent Task 已创建，可在今日任务中心跟踪。", "success");
+    return;
+  }
+  const taskStatus = event.target.closest("[data-growth-task-status]");
+  if (taskStatus) {
+    event.preventDefault();
+    const task = state.agentTasks.find((entry) => entry.id === taskStatus.dataset.growthTaskStatus);
+    if (task) {
+      task.status = task.status === "completed" ? "pending" : "completed";
+      task.statusLabel = task.status === "completed" ? "已完成" : "待执行";
+      task.updatedAt = new Date().toISOString();
+      try { await updateAgentTaskRemote(task); } catch (error) { showSiteToast(error.message || "任务同步失败"); }
+      saveState(state);
+      renderGrowthDashboard(state);
+    }
+    return;
+  }
+  const growthRefresh = event.target.closest("[data-growth-refresh]");
+  if (growthRefresh) {
+    event.preventDefault();
+    growthRefresh.disabled = true;
+    growthRefresh.textContent = "分析中…";
+    const root = document.querySelector("[data-growth-dashboard]");
+    const suggestion = root?.querySelector("[data-growth-suggestions]");
+    if (suggestion) {
+      suggestion.dataset.ready = "false";
+      suggestion.innerHTML = "<li>Analysis Agent 正在读取今天的运营数据…</li>";
+    }
+    try {
+      const snapshot = {
+        accounts: state.socialAccounts,
+        content: state.contentItems,
+        queue: state.contentQueue,
+        history: state.history,
+        analytics: state.contentAnalytics,
+        credits: state.credits
+      };
+      if (supabase && isRealAuthenticatedUser(state.user)) {
+        const result = await invokeAi("growth-analysis", { snapshot });
+        if (suggestion) suggestion.innerHTML = String(result.suggestion || "暂无新的运营建议").split(/\n+/).filter(Boolean).map((line) => `<li>${escapeHtml(line.replace(/^[-•*]\s*/, ""))}</li>`).join("");
+      } else {
+        renderGrowthDashboard(state);
+      }
+    } catch (error) {
+      if (suggestion) suggestion.innerHTML = `<li>Analysis Agent 暂时不可用：${escapeHtml(error.message || "请稍后重试")}</li>`;
+    } finally {
+      growthRefresh.disabled = false;
+      growthRefresh.textContent = "刷新 AI 建议";
+    }
+    return;
+  }
   const adminRefresh = event.target.closest("[data-admin-refresh]");
   if (adminRefresh) {
     event.preventDefault();
@@ -2470,14 +2601,17 @@ document.addEventListener("submit", async (event) => {
   if (automationForm) {
     event.preventDefault();
     const formData = new FormData(automationForm);
-    state.automationRules.unshift({
+    const automation = {
       id: `auto_${Date.now()}`,
       name: String(formData.get("name") || "Untitled automation"),
       trigger: String(formData.get("trigger") || "content_created"),
       action: String(formData.get("action") || "move_to_review"),
       status: "active",
       lastRun: "刚刚保存"
-    });
+    };
+    state.automationRules.unshift(automation);
+    const task = { id: `agent_task_${Date.now()}`, agentId: "agent_director_v1", type: "automation", title: `运行自动化：${automation.name}`, detail: `触发器 ${automation.trigger} · 动作 ${automation.action}`, status: "pending", statusLabel: "待执行", priority: "normal", payload: automation, createdAt: new Date().toISOString() };
+    try { state.agentTasks.unshift(await persistAgentTask(task)); } catch { state.agentTasks.unshift(task); }
     saveState(state);
     showSiteToast("自动化规则已保存");
     return;
@@ -2507,6 +2641,49 @@ document.addEventListener("submit", async (event) => {
     const config = readHomepageForm(formData);
     await runAdminAction(button, "update-homepage-config", {
       config,
+      reason: String(formData.get("reason") || "").trim()
+    });
+    return;
+  }
+
+  const toolCommerceForm = event.target.closest("[data-admin-tool-commerce-form]");
+  if (toolCommerceForm) {
+    event.preventDefault();
+    const tool = (adminData?.dbTools || []).find((item) => String(item.id) === String(toolCommerceForm.dataset.adminToolCommerceForm));
+    if (!tool) return;
+    const formData = new FormData(toolCommerceForm);
+    const button = toolCommerceForm.querySelector("button[type='submit']");
+    await runAdminAction(button, "upsert-tool", {
+      tool: {
+        ...tool,
+        cost_per_run: Number(formData.get("cost_per_run") || 0),
+        free_credits: Number(formData.get("free_credits") || 0),
+        daily_limit: Number(formData.get("daily_limit") || 0),
+        visibility: String(formData.get("visibility") || "public"),
+        membership_required: formData.get("membership_required") === "on"
+      },
+      reason: String(formData.get("reason") || "").trim()
+    });
+    return;
+  }
+
+  const planForm = event.target.closest("[data-admin-plan-form]");
+  if (planForm) {
+    event.preventDefault();
+    const plan = (adminData?.plans || []).find((item) => String(item.id) === String(planForm.dataset.adminPlanForm));
+    if (!plan) return;
+    const formData = new FormData(planForm);
+    const button = planForm.querySelector("button[type='submit']");
+    await runAdminAction(button, "upsert-plan", {
+      plan: {
+        ...plan,
+        price: Number(formData.get("price") || 0),
+        credits: Number(formData.get("credits") || 0),
+        daily_limit: Number(formData.get("daily_limit") || 0),
+        stripe_price_id: String(formData.get("stripe_price_id") || "").trim() || null,
+        tool_access: String(formData.get("tool_access") || "").split(",").map((item) => item.trim()).filter(Boolean),
+        status: String(formData.get("status") || "draft")
+      },
       reason: String(formData.get("reason") || "").trim()
     });
     return;
@@ -4389,6 +4566,7 @@ if (generateButton && queueTarget) {
           ratio,
           durationSeconds,
           model,
+          toolSlug: activePreset?.id || (activeMode === "video" ? "image-to-video" : "image-editor"),
           preset: activePreset?.id || "",
           workflowFamily: document.querySelector("[data-video-generator]")?.dataset.workflowFamily || "",
           reference,
@@ -4599,7 +4777,7 @@ async function runRemoteGeneration(input) {
     mediaType,
     prompt: input.prompt,
     workflowId,
-    toolSlug: mediaType === "video" ? "image-to-video" : "generate",
+    toolSlug: input.toolSlug || (mediaType === "video" ? "image-to-video" : "generate"),
     durationSeconds: mediaType === "video" ? input.durationSeconds || 6 : undefined,
     aspectRatio: input.ratio || undefined,
     provider: input.model || undefined,
@@ -4607,7 +4785,8 @@ async function runRemoteGeneration(input) {
     sourceImageUrl: input.reference?.sourceImageUrl || undefined,
     preset: input.preset || undefined,
     workflowName: input.workflowName || undefined,
-    workflowOverrides: input.workflowOverrides || undefined
+    workflowOverrides: input.workflowOverrides || undefined,
+    agentTaskId: input.agentTaskId || undefined
   });
   const job = createResult.job;
   input.onJobCreated?.(job);
@@ -4657,6 +4836,7 @@ window.__OVS_WORKFLOW_API__ = {
       workflowId: workflow.workflowId,
       preset: toolId,
       workflowFamily: toolId === "adult-effects" ? "adult-4in1" : "",
+      toolSlug: toolId,
       workflowName: workflow.workflowName,
       workflowOverrides: params.workflowOverrides || (params.effect ? { effect: params.effect } : undefined),
       reference,
@@ -5635,6 +5815,101 @@ function renderDashboard(current) {
   }
 }
 
+function growthToday(value) {
+  if (!value) return false;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+  const now = new Date();
+  return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
+}
+
+function growthTimestamp(item) {
+  return item?.createdAt || item?.created_at || item?.publishedAt || item?.published_at || item?.updatedAt || item?.updated_at || "";
+}
+
+function growthMetricNumber(item, ...keys) {
+  for (const key of keys) {
+    const value = Number(item?.[key]);
+    if (Number.isFinite(value)) return value;
+  }
+  return 0;
+}
+
+function renderGrowthDashboard(current) {
+  const root = document.querySelector("[data-growth-dashboard]");
+  if (!root) return;
+  const accounts = Array.isArray(current.socialAccounts) ? current.socialAccounts : [];
+  const activeAccounts = accounts.filter((account) => ["connected", "active", "ok"].includes(String(account.status || "").toLowerCase()));
+  const abnormalAccounts = accounts.filter((account) => !activeAccounts.includes(account));
+  const accountHealth = accounts.map((account) => {
+    const frequency = Math.min(100, growthMetricNumber(account, "publishFrequency", "publishingFrequency") || (activeAccounts.includes(account) ? 70 : 25));
+    const engagement = Math.min(100, growthMetricNumber(account, "engagementRate", "engagement") * (growthMetricNumber(account, "engagementRate", "engagement") <= 1 ? 100 : 1) || (activeAccounts.includes(account) ? 60 : 20));
+    const trend = Math.max(0, Math.min(100, 50 + growthMetricNumber(account, "growthTrend", "growth") * 10));
+    return { account, score: Math.round(frequency * 0.35 + engagement * 0.35 + trend * 0.3) };
+  });
+  const histories = Array.isArray(current.history) ? current.history : [];
+  const todayJobs = histories.filter((job) => growthToday(growthTimestamp(job)));
+  const todayAssets = (current.assets || []).filter((asset) => growthToday(growthTimestamp(asset)));
+  const generated = todayJobs.length || todayAssets.length;
+  const completed = todayJobs.filter((job) => ["completed", "success", "succeeded"].includes(normalizeJobStatus(job.status))).length;
+  const failed = todayJobs.filter((job) => ["failed", "cancelled", "canceled"].includes(normalizeJobStatus(job.status))).length;
+  const successRate = todayJobs.length ? Math.round((completed / todayJobs.length) * 100) : 0;
+  const cost = todayJobs.reduce((sum, job) => sum + growthMetricNumber(job, "credits", "creditsUsed", "cost"), 0) + todayAssets.reduce((sum, asset) => sum + growthMetricNumber(asset, "credits", "creditsUsed", "cost"), 0);
+  const queue = Array.isArray(current.contentQueue) ? current.contentQueue : [];
+  const publishedToday = queue.filter((item) => ["published", "completed", "sent"].includes(String(item.status || "").toLowerCase()) && growthToday(growthTimestamp(item))).length;
+  const analytics = Array.isArray(current.contentAnalytics) ? current.contentAnalytics : [];
+  const clicks = analytics.reduce((sum, row) => sum + growthMetricNumber(row, "clicks", "click_count"), 0);
+  const signups = analytics.reduce((sum, row) => sum + growthMetricNumber(row, "signups", "registrations"), 0);
+  const conversion = clicks ? `${((signups / clicks) * 100).toFixed(1)}%` : "暂无数据";
+  const roiRows = analytics.map((row) => ({ ...row, roi: growthMetricNumber(row, "roi", "roiScore") || (growthMetricNumber(row, "revenue") - growthMetricNumber(row, "cost")) }));
+  const topContent = roiRows.slice().sort((a, b) => growthMetricNumber(b, "views", "clicks") - growthMetricNumber(a, "views", "clicks"))[0];
+  const topRoi = roiRows.slice().sort((a, b) => b.roi - a.roi)[0];
+  const text = (selector, value) => root.querySelectorAll(selector).forEach((node) => { node.textContent = String(value); });
+  text("[data-growth-account-total]", accounts.length);
+  text("[data-growth-account-active]", activeAccounts.length);
+  text("[data-growth-account-error]", abnormalAccounts.length);
+  text("[data-growth-account-health]", accountHealth.length ? `${Math.round(accountHealth.reduce((sum, row) => sum + row.score, 0) / accountHealth.length)}/100` : "暂无数据");
+  text("[data-growth-generated]", generated);
+  text("[data-growth-published]", publishedToday);
+  text("[data-growth-runs]", todayJobs.length);
+  text("[data-growth-success]", `${successRate}%`);
+  text("[data-growth-cost]", `${cost} 积分`);
+  text("[data-growth-failed]", failed);
+  text("[data-growth-clicks]", clicks);
+  text("[data-growth-signups]", signups);
+  text("[data-growth-conversion]", conversion);
+  text("[data-growth-top-content]", topContent ? (current.contentItems.find((item) => item.id === topContent.contentItemId)?.title || "内容表现") : "暂无数据");
+  text("[data-growth-top-roi]", topRoi ? `${topRoi.platform || "渠道"} · ROI ${topRoi.roi.toFixed(1)}` : "暂无数据");
+  const recent = root.querySelector("[data-growth-account-recent]");
+  if (recent) recent.innerHTML = accountHealth.slice().sort((a, b) => b.score - a.score).slice(0, 4).map(({ account, score }) => `<li><strong>${escapeHtml(account.platform || "账号")} · ${score}/100</strong><span>${escapeHtml(account.handle || "未命名")} · ${escapeHtml(account.status || "未知")}</span></li>`).join("") || "<li>暂无账号数据</li>";
+  const tasks = root.querySelector("[data-growth-tasks]");
+  if (tasks) {
+    const next = [];
+    if (abnormalAccounts.length) next.push(`检查 ${abnormalAccounts.length} 个异常账号的连接状态`);
+    if (!queue.some((item) => item.status === "scheduled" && growthToday(item.scheduledAt || item.scheduled_at))) next.push("生成并排期今天要发布的内容");
+    if (failed) next.push(`处理 ${failed} 个失败生成任务`);
+    if (!next.length) next.push("复盘最高 ROI 内容，并复制表现好的主题");
+    tasks.innerHTML = next.slice(0, 4).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  }
+  const bestCharacter = (current.characters || []).slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0))[0];
+  const recommendedTool = (toolCatalogConfig.tools || []).find((tool) => tool.status === "published" && tool.featured) || toolCatalogConfig.tools?.[0];
+  const recommendations = [
+    { id: "character-content", title: bestCharacter ? `增加 ${bestCharacter.name} 的内容` : "增加角色内容", detail: bestCharacter ? `${bestCharacter.role} · 一致性评分 ${bestCharacter.score}` : "先选择一个可复用角色", action: "创建内容任务", payload: { type: "content", characterId: bestCharacter?.id || "", character: bestCharacter?.name || "" } },
+    { id: "prompt-variant", title: "复用最高表现 Prompt", detail: topContent ? (current.contentItems.find((item) => item.id === topContent.contentItemId)?.prompt || "根据最高表现内容创建变体") : "积累内容表现后推荐 Prompt", action: "创建内容任务", payload: { type: "prompt", prompt: current.contentItems.find((item) => item.id === topContent?.contentItemId)?.prompt || "创建一个适合今日渠道的内容变体" } },
+    { id: "workflow-run", title: recommendedTool ? `运行 ${recommendedTool.name} Workflow` : "运行推荐 Workflow", detail: recommendedTool?.workflowId || "暂无已发布 Workflow", action: "创建内容任务", payload: { type: "workflow", workflowId: recommendedTool?.workflowId || "", toolSlug: recommendedTool?.slug || "" } }
+  ];
+  const suggestion = root.querySelector("[data-growth-suggestions]");
+  if (suggestion && !suggestion.dataset.ready) {
+    suggestion.dataset.ready = "true";
+    suggestion.innerHTML = recommendations.map((item) => `<li class="growth-recommendation"><div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.detail)}</span></div><button class="btn glass" type="button" data-growth-execute-suggestion="${escapeHtml(item.id)}">${escapeHtml(item.action)}</button></li>`).join("");
+  }
+  const taskList = root.querySelector("[data-growth-agent-tasks]");
+  if (taskList) {
+    const tasks = Array.isArray(current.agentTasks) ? current.agentTasks : [];
+    taskList.innerHTML = tasks.length ? tasks.slice().reverse().slice(0, 8).map((task) => `<li class="growth-task"><div><strong>${escapeHtml(task.title)}</strong><span>${escapeHtml(task.detail || "Agent Task")} · ${escapeHtml(task.statusLabel || task.status || "queued")}</span></div><button class="btn glass" type="button" data-growth-task-status="${escapeHtml(task.id)}">${task.status === "completed" ? "已完成" : "标记完成"}</button></li>`).join("") : "<li>还没有 Agent Task，点击上面的执行按钮创建今天的任务。</li>";
+  }
+}
+
 function renderDashboardNextActions(current) {
   const target = document.querySelector("[data-dashboard-next-actions]");
   if (!target) return;
@@ -6138,7 +6413,7 @@ function renderAdmin(current) {
     return;
   }
   if (!isAdminActor(current.user)) {
-    setAdminAccess("blocked", "无权限", "当前账号不是 admin 或 operator。后台入口只对内部运营账号开放。");
+    setAdminAccess("blocked", "无权限", "当前账号不是受支持的运营角色。后台入口只对内部运营账号开放。");
     fillAdminEmptyState();
     return;
   }
@@ -6164,6 +6439,13 @@ function renderAdmin(current) {
   setText("[data-admin-summary-credits]", summary.creditsConsumed ?? 0);
   setText("[data-admin-summary-orders]", summary.orders ?? 0);
   setText("[data-admin-summary-shares]", summary.activeShares ?? 0);
+  const usageSummary = adminData.toolUsageSummary || {};
+  setText("[data-admin-tool-runs]", usageSummary.runs ?? 0);
+  setText("[data-admin-tool-cost]", usageSummary.estimatedCost ?? 0);
+  setText("[data-admin-tool-profit]", usageSummary.estimatedProfit ?? 0);
+  const subscriptionSummary = adminData.subscriptionSummary || {};
+  setText("[data-admin-membership-count]", subscriptionSummary.activeMembers ?? 0);
+  setText("[data-admin-subscription-revenue]", formatMoney(subscriptionSummary.subscriptionRevenueCents ?? 0));
   setText("[data-admin-moderation-count]", summary.pendingAssets ?? 0);
   setText("[data-admin-kpi-new-users]", summary.todayNewUsers ?? 0);
   setText("[data-admin-kpi-paid-users]", summary.todayPaidUsers ?? 0);
@@ -6174,6 +6456,9 @@ function renderAdmin(current) {
   setText("[data-admin-health]", "已连接");
   setText("[data-admin-supabase-status]", "Supabase 已配置。后台数据来自安全函数，不从浏览器暴露 service key。");
   renderAdminOperatingInsights(summary);
+  renderAdminDatabaseCatalog(adminData.dbTools || [], adminData.dbWorkflows || [], adminData.homepageSections || []);
+  renderAdminPlans(adminData.plans || []);
+  renderAdminSubscriptions(adminData.subscriptions || []);
   renderAdminSystemReadiness(adminData.aiProviders || [], adminData.aiProviderError || "", adminData.oauthProviders || [], adminData.oauthProviderError || "");
 
   const homepage = normalizeHomepageConfig(adminData.homepage?.value_json || adminData.homepage || defaultHomepageConfig);
@@ -6400,7 +6685,7 @@ async function loadAdminConsole() {
   if (!document.querySelector("[data-admin-page]") || !supabase || adminLoading) return;
   adminLoading = true;
   try {
-    const [summary, users, orders, assets, jobs, workers, shares, homepage, pageBuilder, toolCatalog, workflowCenter, promptLibrary, contentIntelligence, agentCenter, costAnalytics, audit, aiStatus, oauthStatus] = await Promise.all([
+    const [summary, users, orders, assets, jobs, workers, shares, homepage, pageBuilder, toolCatalog, workflowCenter, promptLibrary, contentIntelligence, agentCenter, costAnalytics, audit, aiStatus, oauthStatus, dbTools, dbWorkflows, homepageSections, toolUsageSummary, plans, subscriptions, subscriptionSummary] = await Promise.all([
       invokeAdmin("dashboard-summary"),
       invokeAdmin("list-users"),
       invokeAdmin("list-orders"),
@@ -6418,7 +6703,14 @@ async function loadAdminConsole() {
       invokeAdmin("list-cost-analytics").catch(() => ({ costAnalytics: [] })),
       invokeAdmin("list-audit-logs").catch((error) => ({ auditLogs: [], auditError: error.message })),
       invokeAi("provider-status", { probe: true }).catch((error) => ({ providers: [], providerError: error.message })),
-      invokeAdmin("oauth-provider-status", { redirectTo: getAuthRedirectUrl("signin.html") }).catch((error) => ({ oauthProviders: [], oauthProviderError: error.message }))
+      invokeAdmin("oauth-provider-status", { redirectTo: getAuthRedirectUrl("signin.html") }).catch((error) => ({ oauthProviders: [], oauthProviderError: error.message })),
+      invokeAdmin("list-tools").catch(() => ({ tools: [] })),
+      invokeAdmin("list-workflows").catch(() => ({ workflows: [] })),
+      invokeAdmin("list-homepage-sections").catch(() => ({ sections: [] })),
+      invokeAdmin("tool-usage-summary").catch(() => ({ usageSummary: {} })),
+      invokeAdmin("list-plans").catch(() => ({ plans: [] })),
+      invokeAdmin("list-subscriptions").catch(() => ({ subscriptions: [] })),
+      invokeAdmin("subscription-summary").catch(() => ({ subscriptionSummary: {} }))
     ]);
     adminData = {
       actor: summary.actor || users.actor || orders.actor || assets.actor || jobs.actor,
@@ -6442,7 +6734,14 @@ async function loadAdminConsole() {
       aiProviders: aiStatus.providers || [],
       aiProviderError: aiStatus.providerError || "",
       oauthProviders: oauthStatus.oauthProviders || [],
-      oauthProviderError: oauthStatus.oauthProviderError || ""
+      oauthProviderError: oauthStatus.oauthProviderError || "",
+      dbTools: dbTools.tools || [],
+      dbWorkflows: dbWorkflows.workflows || [],
+      homepageSections: homepageSections.sections || [],
+      toolUsageSummary: toolUsageSummary.usageSummary || {},
+      plans: plans.plans || [],
+      subscriptions: subscriptions.subscriptions || [],
+      subscriptionSummary: subscriptionSummary.subscriptionSummary || {}
     };
     adminLoaded = true;
   } catch (error) {
@@ -7361,6 +7660,27 @@ function renderAdminRankList(selector, items, mapper) {
   }).join("") : `<article class="admin-row muted-row"><div><strong>等待真实数据</strong><p>生成、订单和积分流水出现后这里会自动汇总。</p></div></article>`;
 }
 
+function renderAdminDatabaseCatalog(tools, workflows, sections) {
+  const toolTarget = document.querySelector("[data-admin-db-tools]");
+  if (toolTarget) toolTarget.innerHTML = tools.length ? tools.map((tool) => `<article class="admin-row admin-config-row"><div><strong>${escapeHtml(tool.name)} <small>${escapeHtml(tool.slug)}</small></strong><p>${escapeHtml(tool.category)} · ${escapeHtml(tool.status)} · ${tool.featured ? "推荐" : "普通"} · ${Number(tool.cost_per_run ?? tool.credits_cost ?? 0)} 积分/次 · 免费额度 ${Number(tool.free_credits || 0)} · 日限额 ${Number(tool.daily_limit || 0) || "不限"}</p><form class="admin-inline-form" data-admin-tool-commerce-form="${escapeHtml(tool.id)}"><label>每次积分 <input name="cost_per_run" type="number" min="0" value="${Number(tool.cost_per_run ?? tool.credits_cost ?? 0)}"></label><label>免费额度 <input name="free_credits" type="number" min="0" value="${Number(tool.free_credits || 0)}"></label><label>日限额 <input name="daily_limit" type="number" min="0" value="${Number(tool.daily_limit || 0)}"></label><label>访问 <select name="visibility"><option value="public"${tool.visibility === "public" ? " selected" : ""}>公开</option><option value="unlisted"${tool.visibility === "unlisted" ? " selected" : ""}>隐藏链接</option><option value="private"${tool.visibility === "private" ? " selected" : ""}>私有</option></select></label><label><input name="membership_required" type="checkbox"${tool.membership_required ? " checked" : ""}>会员</label><input name="reason" placeholder="修改原因" required><button class="btn glass" type="submit">保存商业化配置</button></form></div><span>${tool.membership_required ? "会员专享" : "公开"} · ${escapeHtml(tool.visibility || "public")} · ${escapeHtml(tool.workflow_id || "未绑定 Workflow")}</span></article>`).join("") : `<article class="admin-row muted-row"><strong>暂无数据库工具</strong><p>执行 creator catalog migration 后会显示工具。</p></article>`;
+  const workflowTarget = document.querySelector("[data-admin-db-workflows]");
+  if (workflowTarget) workflowTarget.innerHTML = workflows.length ? workflows.map((workflow) => `<article class="admin-row admin-config-row"><div><strong>${escapeHtml(workflow.name)}</strong><p>${escapeHtml(workflow.provider)} · ${escapeHtml(workflow.version)} · ${escapeHtml(workflow.status)}</p></div><span>${escapeHtml(workflow.workflow_id)} · 成本 ${escapeHtml(workflow.cost)}</span></article>`).join("") : `<article class="admin-row muted-row"><strong>暂无数据库 Workflow</strong><p>执行 creator catalog migration 后会显示 Workflow。</p></article>`;
+  const sectionTarget = document.querySelector("[data-admin-homepage-sections]");
+  if (sectionTarget) sectionTarget.innerHTML = sections.length ? sections.map((section) => `<article class="admin-row admin-config-row"><div><strong>${escapeHtml(section.title || section.section_type)}</strong><p>${escapeHtml(section.section_type)} · ${section.enabled ? "已启用" : "已停用"}</p></div><span>排序 ${Number(section.sort_order || 0)}</span></article>`).join("") : `<article class="admin-row muted-row"><strong>暂无首页数据库模块</strong><p>首页模块将从 homepage_sections 读取。</p></article>`;
+}
+
+function renderAdminPlans(plans) {
+  const target = document.querySelector("[data-admin-plans]");
+  if (!target) return;
+  target.innerHTML = plans.length ? plans.map((plan) => `<article class="admin-row admin-config-row"><div><strong>${escapeHtml(plan.name)}</strong><p>${escapeHtml(plan.status)} · ${escapeHtml(plan.currency || "USD")} ${Number(plan.price || 0).toFixed(2)} · ${Number(plan.credits || 0)} 积分 · 每日 ${Number(plan.daily_limit || 0) || "不限"}</p><p>工具权限：${escapeHtml(Array.isArray(plan.tool_access) ? plan.tool_access.join(", ") : "未配置")} · Stripe Price：${escapeHtml(plan.stripe_price_id || "未配置")}</p><form class="admin-inline-form" data-admin-plan-form="${escapeHtml(plan.id)}"><label>价格 <input name="price" type="number" min="0" step="0.01" value="${Number(plan.price || 0)}"></label><label>积分 <input name="credits" type="number" min="0" value="${Number(plan.credits || 0)}"></label><label>每日限制 <input name="daily_limit" type="number" min="0" value="${Number(plan.daily_limit || 0)}"></label><label>Stripe Price ID <input name="stripe_price_id" value="${escapeHtml(plan.stripe_price_id || "")} " placeholder="price_..." autocomplete="off"></label><label>工具权限 <input name="tool_access" value="${escapeHtml(Array.isArray(plan.tool_access) ? plan.tool_access.join(",") : "")}" placeholder="slug,slug 或 *"></label><label>状态 <select name="status"><option value="draft"${plan.status === "draft" ? " selected" : ""}>草稿</option><option value="published"${plan.status === "published" ? " selected" : ""}>已发布</option><option value="archived"${plan.status === "archived" ? " selected" : ""}>已归档</option></select></label><input name="reason" placeholder="修改原因" required><button class="btn glass" type="submit">保存套餐</button></form></div></article>`).join("") : `<article class="admin-row muted-row"><strong>暂无会员套餐</strong><p>执行会员迁移后会显示 Free、Pro、Enterprise。</p></article>`;
+}
+
+function renderAdminSubscriptions(subscriptions) {
+  const target = document.querySelector("[data-admin-subscriptions]");
+  if (!target) return;
+  target.innerHTML = subscriptions.length ? subscriptions.map((subscription) => `<article class="admin-row admin-config-row"><div><strong>${escapeHtml(subscription.status || "pending")}</strong><p>用户 ${escapeHtml(subscription.user_id)} · 套餐 ${escapeHtml(subscription.plan_id)}</p></div><span>${escapeHtml(subscription.provider || "manual")} · Stripe Subscription ${escapeHtml(subscription.stripe_subscription_id || "未同步")} · Price ${escapeHtml(subscription.stripe_price_id || "未同步")}</span></article>`).join("") : `<article class="admin-row muted-row"><strong>暂无订阅</strong><p>Stripe Webhook 同步后会显示订阅状态。</p></article>`;
+}
+
 function splitCommaList(value) {
   return value.split(/[,，\n]/).map((item) => item.trim()).filter(Boolean).slice(0, 6);
 }
@@ -8191,5 +8511,81 @@ document.querySelectorAll("[data-spicy-filter]").forEach((button) => {
     });
   });
 });
+
+// Optional public catalog sync. Static data remains the safe fallback when the
+// catalog tables are unavailable, while published database records take over
+// as soon as the additive catalog migration is deployed.
+async function syncPublicCatalog() {
+  if (!supabase) return;
+  try {
+    const { data: tools, error } = await supabase.from("tools").select("*").eq("status", "published").order("sort_order", { ascending: true });
+    if (error || !Array.isArray(tools) || !tools.length) return;
+    const bySlug = new Map(tools.map((tool) => [String(tool.slug), tool]));
+    const getSlug = (card) => {
+      const href = card.getAttribute("href") || "";
+      const match = href.match(/[?&]tool=([^&]+)/) || href.match(/\/app\/([^/]+)\/?$/);
+      return match ? decodeURIComponent(match[1]) : "";
+    };
+    document.querySelectorAll(".qc-card, .hc-card").forEach((card) => {
+      const slug = getSlug(card);
+      if (slug && !bySlug.has(slug)) card.hidden = true;
+    });
+    document.querySelectorAll(".card-row").forEach((row) => {
+      [...row.children]
+        .sort((a, b) => {
+          const aTool = bySlug.get(getSlug(a));
+          const bTool = bySlug.get(getSlug(b));
+          if (!aTool && !bTool) return 0;
+          if (!aTool) return 1;
+          if (!bTool) return -1;
+          if (Boolean(aTool.featured) !== Boolean(bTool.featured)) return aTool.featured ? -1 : 1;
+          return Number(aTool.sort_order || 0) - Number(bTool.sort_order || 0);
+        })
+        .forEach((card) => row.appendChild(card));
+    });
+    const hero = document.querySelector(".home-hero");
+    const { data: sections } = await supabase.from("homepage_sections").select("*").order("sort_order", { ascending: true });
+    const sectionRows = Array.isArray(sections) ? sections : [];
+    if (sectionRows.length) {
+      const enabledTypes = new Set(sectionRows.filter((section) => section.enabled).map((section) => section.section_type));
+      document.querySelectorAll("[data-home-section-type]").forEach((section) => {
+        section.hidden = !enabledTypes.has(section.dataset.homeSectionType);
+      });
+    }
+    const heroSection = sectionRows.find((section) => section.section_type === "hero" && section.enabled);
+    if (heroSection && hero) {
+      hero.querySelector("h1")?.replaceChildren(document.createTextNode(heroSection.title || ""));
+      hero.querySelector("p")?.replaceChildren(document.createTextNode(heroSection.subtitle || ""));
+      const image = hero.querySelector(".hero-visual img");
+      if (image && heroSection.image) image.src = heroSection.image;
+    }
+  } catch (_) {
+    // Keep the existing static catalog if the public tables are not deployed.
+  }
+}
+
+async function syncDynamicToolPage() {
+  if (!supabase || !document.querySelector(".tool-page")) return;
+  const slug = new URLSearchParams(location.search).get("tool") || "";
+  if (!slug) return;
+  try {
+    const { data: tool } = await supabase.from("tools").select("*").eq("slug", slug).eq("status", "published").maybeSingle();
+    if (!tool) return;
+    document.querySelector(".tool-title")?.replaceChildren(document.createTextNode(tool.name));
+    document.querySelector(".tool-desc")?.replaceChildren(document.createTextNode(tool.description || ""));
+    const credit = document.querySelector(".tool-credit strong");
+    if (credit) credit.textContent = String(tool.credits_cost || 0);
+    const { data: workflow } = await supabase.from("workflows").select("*").eq("tool_id", tool.id).eq("status", "published").order("updated_at", { ascending: false }).limit(1).maybeSingle();
+    if (workflow) {
+      window.__OVS_DYNAMIC_WORKFLOW_MAP__ = window.__OVS_DYNAMIC_WORKFLOW_MAP__ || {};
+      window.__OVS_DYNAMIC_WORKFLOW_MAP__[slug] = { workflowId: workflow.workflow_id, workflowName: workflow.name, mediaType: tool.category === "video" ? "video" : "image" };
+    }
+  } catch (_) {
+    // Keep the existing static tool configuration as fallback.
+  }
+}
+
+syncPublicCatalog();
+syncDynamicToolPage();
 
 renderState(state);

@@ -16,7 +16,7 @@
   function generate(toolId, params) {
     params = params || {};
     return loadMap().then(function (map) {
-      var config = map[toolId];
+      var config = (window.__OVS_DYNAMIC_WORKFLOW_MAP__ && window.__OVS_DYNAMIC_WORKFLOW_MAP__[toolId]) || map[toolId];
       if (!config) throw new Error('未登记工作流：' + toolId);
       var bridge = window.__OVS_WORKFLOW_API__;
       if (bridge && typeof bridge.generate === 'function') {

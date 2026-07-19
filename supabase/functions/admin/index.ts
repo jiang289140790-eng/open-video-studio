@@ -119,6 +119,27 @@ Deno.serve(async (req) => {
       const toolCatalog = await getSetting(adminClient, "tool_catalog_config", defaultToolCatalogConfig());
       return json({ actor, toolCatalog });
     }
+    if (action === "list-tools") {
+      return json({ actor, tools: await select(adminClient, "tools", "sort_order", true) });
+    }
+    if (action === "list-workflows") {
+      return json({ actor, workflows: await select(adminClient, "workflows", "updated_at", false) });
+    }
+    if (action === "list-homepage-sections") {
+      return json({ actor, sections: await select(adminClient, "homepage_sections", "sort_order", true) });
+    }
+    if (action === "tool-usage-summary") {
+      return json({ actor, usageSummary: await getToolUsageSummary(adminClient) });
+    }
+    if (action === "list-plans") {
+      return json({ actor, plans: await select(adminClient, "plans", "price", true) });
+    }
+    if (action === "list-subscriptions") {
+      return json({ actor, subscriptions: await select(adminClient, "subscriptions", "created_at", false) });
+    }
+    if (action === "subscription-summary") {
+      return json({ actor, subscriptionSummary: await getSubscriptionSummary(adminClient) });
+    }
     if (action === "get-workflow-center-config") {
       const workflowCenter = await getSetting(adminClient, "workflow_center_config", defaultWorkflowCenterConfig());
       return json({ actor, workflowCenter });
@@ -182,6 +203,50 @@ Deno.serve(async (req) => {
       await audit(adminClient, actor, "admin.update_tool_catalog_config", "site_setting", "tool_catalog_config", { reason: body.reason });
       return json({ actor, toolCatalog: data });
     }
+    if (action === "upsert-tool") {
+      requireContentManager(actor);
+      requireReason(body.reason);
+      const tool = normalizeToolRecord(body.tool);
+      const { data, error } = await adminClient.from("tools").upsert(tool).select("*").single();
+      if (error) throw error;
+      await audit(adminClient, actor, "admin.upsert_tool", "tool", String(data.id), { reason: body.reason, slug: data.slug });
+      return json({ actor, tool: data });
+    }
+    if (action === "delete-tool") {
+      requireAdmin(actor);
+      requireReason(body.reason);
+      const { error } = await adminClient.from("tools").delete().eq("id", String(body.id));
+      if (error) throw error;
+      await audit(adminClient, actor, "admin.delete_tool", "tool", String(body.id), { reason: body.reason });
+      return json({ actor, deleted: body.id });
+    }
+
+    if (action === "upsert-plan") {
+      requireContentManager(actor);
+      requireReason(body.reason);
+      const plan = normalizePlanRecord(body.plan);
+      const { data, error } = await adminClient.from("plans").upsert(plan).select("*").single();
+      if (error) throw error;
+      await audit(adminClient, actor, "admin.upsert_plan", "plan", String(data.id), { reason: body.reason, name: data.name });
+      return json({ actor, plan: data });
+    }
+    if (action === "delete-plan") {
+      requireAdmin(actor);
+      requireReason(body.reason);
+      const { error } = await adminClient.from("plans").delete().eq("id", String(body.id));
+      if (error) throw error;
+      await audit(adminClient, actor, "admin.delete_plan", "plan", String(body.id), { reason: body.reason });
+      return json({ actor, deleted: body.id });
+    }
+    if (action === "upsert-subscription") {
+      requireAdmin(actor);
+      requireReason(body.reason);
+      const subscription = normalizeSubscriptionRecord(body.subscription);
+      const { data, error } = await adminClient.from("subscriptions").upsert(subscription).select("*").single();
+      if (error) throw error;
+      await audit(adminClient, actor, "admin.upsert_subscription", "subscription", String(data.id), { reason: body.reason, userId: data.user_id, planId: data.plan_id });
+      return json({ actor, subscription: data });
+    }
 
     if (action === "update-workflow-center-config") {
       requireAdmin(actor);
@@ -190,6 +255,40 @@ Deno.serve(async (req) => {
       if (error) throw error;
       await audit(adminClient, actor, "admin.update_workflow_center_config", "site_setting", "workflow_center_config", { reason: body.reason });
       return json({ actor, workflowCenter: data });
+    }
+    if (action === "upsert-workflow") {
+      requireContentManager(actor);
+      requireReason(body.reason);
+      const workflow = normalizeWorkflowRecord(body.workflow);
+      const { data, error } = await adminClient.from("workflows").upsert(workflow).select("*").single();
+      if (error) throw error;
+      await audit(adminClient, actor, "admin.upsert_workflow", "workflow", String(data.id), { reason: body.reason, workflowId: data.workflow_id });
+      return json({ actor, workflow: data });
+    }
+    if (action === "delete-workflow") {
+      requireAdmin(actor);
+      requireReason(body.reason);
+      const { error } = await adminClient.from("workflows").delete().eq("id", String(body.id));
+      if (error) throw error;
+      await audit(adminClient, actor, "admin.delete_workflow", "workflow", String(body.id), { reason: body.reason });
+      return json({ actor, deleted: body.id });
+    }
+    if (action === "upsert-homepage-section") {
+      requireContentManager(actor);
+      requireReason(body.reason);
+      const section = normalizeHomepageSection(body.section);
+      const { data, error } = await adminClient.from("homepage_sections").upsert(section).select("*").single();
+      if (error) throw error;
+      await audit(adminClient, actor, "admin.upsert_homepage_section", "homepage_section", String(data.id), { reason: body.reason });
+      return json({ actor, section: data });
+    }
+    if (action === "delete-homepage-section") {
+      requireAdmin(actor);
+      requireReason(body.reason);
+      const { error } = await adminClient.from("homepage_sections").delete().eq("id", String(body.id));
+      if (error) throw error;
+      await audit(adminClient, actor, "admin.delete_homepage_section", "homepage_section", String(body.id), { reason: body.reason });
+      return json({ actor, deleted: body.id });
     }
 
     if (action === "update-prompt-library-config") {
@@ -313,7 +412,7 @@ Deno.serve(async (req) => {
 async function getActor(client: ReturnType<typeof createClient>, userId: string) {
   const { data, error } = await client.from("profiles").select("*").eq("id", userId).single();
   if (error || !data) throw new AdminError("ADMIN_PROFILE_NOT_FOUND", error?.message ?? "Profile not found.", 404);
-  if (data.role !== "admin" && data.role !== "operator") throw new AdminError("ADMIN_FORBIDDEN", "Admin access is required.", 403);
+  if (!["admin", "operator", "content_manager", "marketing_manager"].includes(String(data.role))) throw new AdminError("ADMIN_FORBIDDEN", "Admin access is required.", 403);
   return { id: data.id, email: data.email, displayName: data.display_name, role: data.role };
 }
 
@@ -323,6 +422,65 @@ async function select(client: ReturnType<typeof createClient>, table: string, or
   const { data, error } = await query;
   if (error) throw error;
   return data ?? [];
+}
+
+async function getToolUsageSummary(client: ReturnType<typeof createClient>) {
+  const [usage, tools, workflows] = await Promise.all([
+    select(client, "tool_usage", "created_at", false),
+    select(client, "tools"),
+    select(client, "workflows")
+  ]);
+  const toolMap = new Map(tools.map((tool: Record<string, unknown>) => [String(tool.id), tool]));
+  const workflowMap = new Map(workflows.map((workflow: Record<string, unknown>) => [String(workflow.id), workflow]));
+  let runs = 0;
+  let creditsUsed = 0;
+  let estimatedCost = 0;
+  for (const row of usage) {
+    runs += 1;
+    const charged = Math.max(0, Number(row.credits_used ?? 0));
+    creditsUsed += charged;
+    const workflow = workflowMap.get(String(row.workflow_id || ""));
+    const tool = toolMap.get(String(row.tool_id || ""));
+    estimatedCost += Math.max(0, Number(workflow?.cost ?? tool?.cost_per_run ?? 0));
+  }
+  return {
+    runs,
+    creditsUsed,
+    estimatedCost,
+    estimatedProfit: creditsUsed - estimatedCost,
+    toolsTracked: toolMap.size,
+    generatedAt: new Date().toISOString()
+  };
+}
+
+async function getSubscriptionSummary(client: ReturnType<typeof createClient>) {
+  const [subscriptions, plans, profiles, orders] = await Promise.all([
+    select(client, "subscriptions", "created_at", false),
+    select(client, "plans"),
+    select(client, "profiles"),
+    select(client, "orders", "created_at", false)
+  ]);
+  const planMap = new Map(plans.map((plan: Record<string, unknown>) => [String(plan.id), plan]));
+  const active = subscriptions.filter((subscription: Record<string, unknown>) => ["active", "trialing"].includes(String(subscription.status)) && (!subscription.ended_at || new Date(String(subscription.ended_at)).getTime() > Date.now()));
+  const distribution = active.reduce((result: Record<string, number>, subscription: Record<string, unknown>) => {
+    const name = String(planMap.get(String(subscription.plan_id))?.name || "未知套餐");
+    result[name] = (result[name] || 0) + 1;
+    return result;
+  }, {});
+  const paidOrders = orders.filter((order: Record<string, unknown>) => ["paid", "fulfilled", "completed"].includes(String(order.status)) && String(order.order_type || "") !== "credit_purchase");
+  return {
+    activeMembers: active.length,
+    totalSubscriptions: subscriptions.length,
+    planDistribution: distribution,
+    subscriptionRevenueCents: paidOrders.reduce((sum: number, order: Record<string, unknown>) => sum + Number(order.amount_cents || 0), 0),
+    registeredUsers: profiles.length,
+    lifecycle: {
+      trialing: subscriptions.filter((item: Record<string, unknown>) => item.status === "trialing").length,
+      active: active.length,
+      cancelled: subscriptions.filter((item: Record<string, unknown>) => item.status === "cancelled").length,
+      expired: subscriptions.filter((item: Record<string, unknown>) => item.status === "expired").length
+    }
+  };
 }
 
 async function oauthProviderStatus(userClient: ReturnType<typeof createClient>, redirectTo: string) {
@@ -956,6 +1114,110 @@ async function audit(client: ReturnType<typeof createClient>, actor: { id: strin
 
 function requireAdmin(actor: { role: string }) {
   if (actor.role !== "admin") throw new AdminError("ADMIN_FORBIDDEN", "Admin access is required.", 403);
+}
+
+function requireContentManager(actor: { role: string }) {
+  if (!["admin", "content_manager", "marketing_manager"].includes(actor.role)) {
+    throw new AdminError("ADMIN_CONTENT_FORBIDDEN", "Content management permission is required.", 403);
+  }
+}
+
+function normalizeToolRecord(value: unknown): Record<string, unknown> {
+  const input = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
+  const status = ["draft", "published", "archived"].includes(String(input.status)) ? String(input.status) : "draft";
+  return {
+    ...(input.id ? { id: String(input.id) } : {}),
+    name: String(input.name ?? "").trim(),
+    slug: String(input.slug ?? "").trim(),
+    category: String(input.category ?? "image").trim(),
+    description: String(input.description ?? "").trim(),
+    cover_image: String(input.cover_image ?? "").trim(),
+    icon: String(input.icon ?? "").trim(),
+    credits_cost: Math.max(0, Math.round(Number(input.credits_cost ?? 0))),
+    free_credits: Math.max(0, Math.round(Number(input.free_credits ?? 0))),
+    cost_per_run: Math.max(0, Math.round(Number(input.cost_per_run ?? input.credits_cost ?? 0))),
+    daily_limit: Math.max(0, Math.round(Number(input.daily_limit ?? 0))),
+    membership_required: Boolean(input.membership_required),
+    visibility: ["public", "unlisted", "private"].includes(String(input.visibility)) ? String(input.visibility) : "public",
+    route: String(input.route ?? "").trim(),
+    workflow_id: input.workflow_id ? String(input.workflow_id).trim() : null,
+    status,
+    featured: Boolean(input.featured),
+    sort_order: Math.round(Number(input.sort_order ?? 0)),
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function normalizePlanRecord(value: unknown): Record<string, unknown> {
+  const input = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
+  const status = ["draft", "published", "archived"].includes(String(input.status)) ? String(input.status) : "draft";
+  const jsonArray = (candidate: unknown) => Array.isArray(candidate) ? candidate.map(String).filter(Boolean).slice(0, 100) : [];
+  return {
+    ...(input.id ? { id: String(input.id) } : {}),
+    name: String(input.name ?? "").trim(),
+    price: Math.max(0, Number(input.price ?? 0)),
+    currency: String(input.currency ?? "USD").trim().slice(0, 8) || "USD",
+    stripe_price_id: input.stripe_price_id ? String(input.stripe_price_id).trim() : null,
+    credits: Math.max(0, Math.round(Number(input.credits ?? 0))),
+    features: jsonArray(input.features),
+    tool_access: jsonArray(input.tool_access),
+    daily_limit: Math.max(0, Math.round(Number(input.daily_limit ?? 0))),
+    status,
+    updated_at: new Date().toISOString()
+  };
+}
+
+function normalizeSubscriptionRecord(value: unknown): Record<string, unknown> {
+  const input = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
+  const statuses = ["pending", "trialing", "active", "paused", "cancelled", "expired"];
+  return {
+    ...(input.id ? { id: String(input.id) } : {}),
+    user_id: String(input.user_id ?? "").trim(),
+    plan_id: String(input.plan_id ?? "").trim(),
+    status: statuses.includes(String(input.status)) ? String(input.status) : "pending",
+    started_at: input.started_at ? String(input.started_at) : null,
+    ended_at: input.ended_at ? String(input.ended_at) : null,
+    provider: String(input.provider ?? "manual").trim(),
+    external_id: input.external_id ? String(input.external_id).trim() : null,
+    stripe_customer_id: input.stripe_customer_id ? String(input.stripe_customer_id).trim() : null,
+    stripe_subscription_id: input.stripe_subscription_id ? String(input.stripe_subscription_id).trim() : null,
+    stripe_price_id: input.stripe_price_id ? String(input.stripe_price_id).trim() : null,
+    updated_at: new Date().toISOString()
+  };
+}
+
+function normalizeWorkflowRecord(value: unknown): Record<string, unknown> {
+  const input = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
+  const status = ["draft", "testing", "published", "deprecated"].includes(String(input.status)) ? String(input.status) : "draft";
+  return {
+    ...(input.id ? { id: String(input.id) } : {}),
+    name: String(input.name ?? "").trim(),
+    tool_id: input.tool_id ? String(input.tool_id) : null,
+    provider: String(input.provider ?? "zealman").trim(),
+    workflow_id: String(input.workflow_id ?? "").trim(),
+    version: String(input.version ?? "v1").trim(),
+    cost: Math.max(0, Number(input.cost ?? 0)),
+    status,
+    input_schema: input.input_schema && typeof input.input_schema === "object" ? input.input_schema : {},
+    output_schema: input.output_schema && typeof input.output_schema === "object" ? input.output_schema : {},
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function normalizeHomepageSection(value: unknown): Record<string, unknown> {
+  const input = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
+  const types = ["hero", "quick_tools", "popular_tools", "showcase"];
+  return {
+    ...(input.id ? { id: String(input.id) } : {}),
+    section_type: types.includes(String(input.section_type)) ? String(input.section_type) : "showcase",
+    title: String(input.title ?? "").trim(),
+    subtitle: String(input.subtitle ?? "").trim(),
+    image: String(input.image ?? "").trim(),
+    link: String(input.link ?? "").trim(),
+    sort_order: Math.round(Number(input.sort_order ?? 0)),
+    enabled: input.enabled !== false,
+    updated_at: new Date().toISOString(),
+  };
 }
 
 function requireReason(reason: unknown) {

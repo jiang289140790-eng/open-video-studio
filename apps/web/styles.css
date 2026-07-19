@@ -4381,6 +4381,38 @@ body.tool-layout .site-footer {
   font-weight: 850;
 }
 
+.growth-dashboard .plain-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.growth-dashboard .plain-list > li,
+.growth-dashboard .growth-recommendation,
+.growth-dashboard .growth-task {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 12px;
+  background: rgba(255,255,255,.035);
+}
+
+.growth-dashboard .plain-list li strong,
+.growth-dashboard .plain-list li span {
+  display: block;
+}
+
+.growth-dashboard .plain-list li span {
+  color: var(--muted);
+  font-size: .84rem;
+  margin-top: 3px;
+}
+
 .admin-action-form {
   display: grid;
   gap: 12px;

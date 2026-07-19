@@ -63,7 +63,7 @@
         // ── Hero ──
         var hero = d.hero;
         frag.appendChild(
-          h('section', {className:'home-hero'}, [
+          h('section', {className:'home-hero', 'data-home-section-type':'hero'}, [
             h('div', {className:'hero-main'}, [
               h('span', {className:'hero-eyebrow'}, 'NEW'),
               h('h1', {}, esc(hero.title)),
@@ -77,7 +77,7 @@
         );
 
         // ── Quick Tools Row ──
-        var qtSection = h('section', {className:'home-section'}, [
+        var qtSection = h('section', {className:'home-section', 'data-home-section-type':'quick_tools'}, [
           h('div', {className:'section-head'}, [h('h2', {}, '快捷工具')])
         ]);
         var qtRow = h('div', {className:'quick-row'});
@@ -114,7 +114,8 @@
         // ── Content Sections ──
         d.sections.forEach(function(sec) {
           var category = sec.id === 'spicy-effects' ? 'video' : 'image';
-          var section = h('section', {className:'home-section', 'data-tool-home-section':'', 'data-tool-tags':category + ' ' + sec.id + ' ' + (sec.title || '')});
+          var sectionType = /popular|hot/i.test(sec.id + ' ' + (sec.title || '')) ? 'popular_tools' : 'showcase';
+          var section = h('section', {className:'home-section', 'data-home-section-type':sectionType, 'data-tool-home-section':'', 'data-tool-tags':category + ' ' + sec.id + ' ' + (sec.title || '')});
 
           // Section head with title + count + link
           var countHtml = sec.count ? ' <small>(' + esc(sec.count) + ')</small>' : '';

@@ -30,6 +30,7 @@ export default defineConfig({
         automation: resolve(webRoot, "automation.html"),
         settings: resolve(webRoot, "settings.html"),
         dashboard: resolve(webRoot, "dashboard.html"),
+        growthDashboard: resolve(webRoot, "growth-dashboard.html"),
         history: resolve(webRoot, "history.html"),
         pricing: resolve(webRoot, "pricing.html"),
         freeCoins: resolve(webRoot, "free-coins.html"),

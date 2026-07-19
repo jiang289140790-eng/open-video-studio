@@ -57,6 +57,11 @@ Deno.serve(async (req) => {
       return json({ prompt, enhancedPrompt: enhanced.prompt, provider: enhanced.provider, model: enhanced.model, fallback: enhanced.fallback });
     }
 
+    if (action === "growth-analysis") {
+      const result = await analyzeGrowth(env, safeObject(body.snapshot));
+      return json({ suggestion: result.prompt, provider: result.provider, model: result.model, fallback: result.fallback });
+    }
+
     if (action === "analyze-image") {
       const result = await analyzeImage(adminClient, env, user.id, body);
       return json(result);
@@ -159,10 +164,18 @@ async function createGenerationJob(adminClient: any, env: AiEnv, userId: string,
   const prompt = requireText(body.prompt, "PROMPT_REQUIRED");
   const durationSeconds = mediaType === "video" ? clampNumber(body.durationSeconds, 6, 1, 60) : null;
   const workflowId = String(body.workflowId ?? (mediaType === "image" ? "workflow-qianwen-image-v1" : "workflow-qianwen-video-v1")).trim();
-  const workflow = await resolveWorkflowConfig(adminClient, workflowId);
+  const toolSlug = String(body.toolSlug || "").trim();
+  const tool = toolSlug ? await resolvePublishedTool(adminClient, toolSlug) : null;
+  const publishedWorkflow = await resolvePublishedWorkflow(adminClient, workflowId);
+  if (tool && publishedWorkflow?.tool_id && String(publishedWorkflow.tool_id) !== String(tool.id)) {
+    throw new AiFunctionError("TOOL_WORKFLOW_MISMATCH", "The selected workflow is not bound to this tool.", 409);
+  }
+  const workflow = publishedWorkflow || await resolveWorkflowConfig(adminClient, workflowId);
   const provider = safeProvider(body.provider) || safeProvider(workflow?.provider) || env.aiProviderDefault;
   const model = String(body.model || defaultModel(env, mediaType, provider)).trim();
-  const costCredits = isAnonymous && env.stagingAnonymousGeneration ? 0 : estimateCredits(mediaType, durationSeconds ?? undefined);
+  const commercial = await enforceToolCommercialRules(adminClient, userId, tool, isAnonymous);
+  const estimatedCredits = tool ? Math.max(0, commercial.costPerRun || Number(tool.credits_cost || 0) || estimateCredits(mediaType, durationSeconds ?? undefined)) : estimateCredits(mediaType, durationSeconds ?? undefined);
+  const costCredits = isAnonymous && env.stagingAnonymousGeneration ? 0 : Math.max(0, estimatedCredits - commercial.freeCreditsApplied);
   const timestamp = new Date().toISOString();
   const job = {
     id: createId("job"),
@@ -187,6 +200,11 @@ async function createGenerationJob(adminClient: any, env: AiEnv, userId: string,
       providerRequested: provider,
       workflowStatus: workflow?.status ?? "default",
       workflowName: body.workflowName ?? safeObject(workflow?.jsonConfig).workflowName ?? null,
+      toolId: tool?.id ?? null,
+      agentTaskId: body.agentTaskId ?? null,
+      freeCreditsApplied: commercial.freeCreditsApplied,
+      planId: commercial.plan?.id ?? null,
+      planName: commercial.plan?.name ?? "Free",
       workflowOverrides: Object.keys(safeObject(body.workflowOverrides)).length
         ? safeObject(body.workflowOverrides)
         : safeObject(workflow?.jsonConfig).workflowOverrides ?? {},
@@ -210,9 +228,24 @@ async function createGenerationJob(adminClient: any, env: AiEnv, userId: string,
   const { data, error } = await adminClient.from("generation_jobs").insert(job).select("*").single();
   if (error) throw new AiFunctionError("GENERATION_JOB_CREATE_FAILED", error.message, 502);
 
+  let creditsConsumed = false;
   try {
     await consumeCredits(adminClient, userId, costCredits, job.id, `${mediaType}_generation`);
+    creditsConsumed = true;
+    if (tool) {
+      await recordToolUsage(adminClient, {
+        user_id: userId,
+        tool_id: tool.id,
+        workflow_id: publishedWorkflow?.id ?? null,
+        workflow_key: workflowId,
+        credits_used: costCredits,
+        free_credits_used: commercial.freeCreditsApplied,
+      });
+    }
   } catch (error) {
+    if (creditsConsumed && costCredits > 0) {
+      await refundGenerationCredits(adminClient, userId, job, "Tool usage record failed; automatic refund");
+    }
     await updateOwnedJob(adminClient, userId, job.id, {
       status: "failed",
       progress: 0,
@@ -227,6 +260,77 @@ async function createGenerationJob(adminClient: any, env: AiEnv, userId: string,
   return data;
 }
 
+async function resolvePublishedTool(adminClient: any, slug: string): Promise<Record<string, any> | null> {
+  const { data, error } = await adminClient.from("tools").select("*").eq("slug", slug).eq("status", "published").maybeSingle();
+  if (error) return null;
+  if (!data || ["private"].includes(String(data.visibility || "public"))) {
+    if (data) throw new AiFunctionError("TOOL_NOT_AVAILABLE", "This AI tool is not publicly available.", 403);
+    return null;
+  }
+  return data;
+}
+
+async function resolvePublishedWorkflow(adminClient: any, workflowKey: string): Promise<Record<string, any> | null> {
+  if (!workflowKey) return null;
+  const { data, error } = await adminClient.from("workflows").select("*").eq("workflow_id", workflowKey).eq("status", "published").order("updated_at", { ascending: false }).limit(1).maybeSingle();
+  if (error || !data) return null;
+  return data;
+}
+
+async function enforceToolCommercialRules(adminClient: any, userId: string, tool: Record<string, any> | null, isAnonymous: boolean) {
+  if (!tool) return { costPerRun: 0, freeCreditsApplied: 0 };
+  let plan: Record<string, any> | null = null;
+  if (!isAnonymous) {
+    const { data: subscription, error: subscriptionError } = await adminClient
+      .from("subscriptions")
+      .select("id,plan_id,status,started_at,ended_at,plans(id,name,tool_access,daily_limit,status)")
+      .eq("user_id", userId)
+      .in("status", ["active", "trialing"])
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const subscriptionPlan = Array.isArray(subscription?.plans) ? subscription.plans[0] : subscription?.plans;
+    if (!subscriptionError && subscriptionPlan && subscriptionPlan.status === "published" && (!subscription.ended_at || new Date(subscription.ended_at).getTime() > Date.now())) {
+      plan = subscriptionPlan;
+    }
+  }
+  if (Boolean(tool.membership_required) && !plan) {
+    throw new AiFunctionError("TOOL_MEMBERSHIP_REQUIRED", "This tool requires an active membership plan.", 403);
+  }
+  if (plan) {
+    const access = Array.isArray(plan.tool_access) ? plan.tool_access.map(String) : [];
+    if (access.length && !access.includes("*") && !access.includes(String(tool.slug))) {
+      throw new AiFunctionError("PLAN_TOOL_ACCESS_DENIED", "Your membership plan does not include this tool.", 403);
+    }
+  }
+  const start = new Date();
+  start.setUTCHours(0, 0, 0, 0);
+  const { data: usage, error } = await adminClient.from("tool_usage").select("credits_used,free_credits_used,created_at").eq("tool_id", tool.id).eq("user_id", userId).gte("created_at", start.toISOString());
+  if (error) throw new AiFunctionError("TOOL_USAGE_READ_FAILED", error.message, 502);
+  const rows = usage || [];
+  const dailyLimit = Math.max(0, Number(tool.daily_limit || 0));
+  const planDailyLimit = Math.max(0, Number(plan?.daily_limit || 0));
+  const { data: planUsage, error: planUsageError } = plan
+    ? await adminClient.from("tool_usage").select("id").eq("user_id", userId).gte("created_at", start.toISOString())
+    : { data: [], error: null };
+  if (planUsageError) throw new AiFunctionError("TOOL_USAGE_READ_FAILED", planUsageError.message, 502);
+  if (dailyLimit > 0 && rows.length >= dailyLimit) {
+    throw new AiFunctionError("TOOL_DAILY_LIMIT_REACHED", "Daily limit reached for this tool.", 429);
+  }
+  if (planDailyLimit > 0 && (planUsage || []).length >= planDailyLimit) {
+    throw new AiFunctionError("PLAN_DAILY_LIMIT_REACHED", "Daily limit reached for your membership plan.", 429);
+  }
+  const freeCredits = Math.max(0, Number(tool.free_credits || 0));
+  const freeUsed = rows.reduce((sum: number, row: Record<string, unknown>) => sum + Math.max(0, Number(row.free_credits_used || 0)), 0);
+  const costPerRun = Math.max(0, Number(tool.cost_per_run || tool.credits_cost || 0));
+  return { costPerRun, freeCreditsApplied: Math.min(costPerRun, Math.max(0, freeCredits - freeUsed)), plan };
+}
+
+async function recordToolUsage(adminClient: any, usage: Record<string, unknown>) {
+  const { error } = await adminClient.from("tool_usage").insert({ id: crypto.randomUUID(), ...usage, created_at: new Date().toISOString() });
+  if (error) throw new AiFunctionError("TOOL_USAGE_WRITE_FAILED", error.message, 502);
+}
+
 async function processGenerationJob(adminClient: any, env: AiEnv, userId: string, body: Record<string, unknown>) {
   const jobId = requireText(body.jobId, "JOB_ID_REQUIRED");
   const job = await getOwnedJob(adminClient, userId, jobId);
@@ -235,6 +339,7 @@ async function processGenerationJob(adminClient: any, env: AiEnv, userId: string
   }
 
   const started = Date.now();
+  await updateAgentTaskFromJob(adminClient, userId, job, "running", { jobId });
   await updateOwnedJob(adminClient, userId, jobId, { status: "running", progress: 20, updated_at: new Date().toISOString() });
   try {
     const mediaType = normalizeMediaType(job.media_type);
@@ -257,6 +362,7 @@ async function processGenerationJob(adminClient: any, env: AiEnv, userId: string
       completed_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });
+    await updateAgentTaskFromJob(adminClient, userId, job, "completed", { jobId, assetId: asset.id, durationMs });
     return { job: completed, asset, provider, mediaType };
   } catch (error) {
     const failed = await updateOwnedJob(adminClient, userId, jobId, {
@@ -267,8 +373,21 @@ async function processGenerationJob(adminClient: any, env: AiEnv, userId: string
       updated_at: new Date().toISOString(),
     });
     const refund = await refundGenerationCredits(adminClient, userId, job, error instanceof Error ? error.message : "AI provider failed");
+    await updateAgentTaskFromJob(adminClient, userId, job, "failed", { jobId, error: failed.error_message });
     return { job: failed, asset: null, refund, error: { code: failed.error_code, message: failed.error_message } };
   }
+}
+
+async function updateAgentTaskFromJob(adminClient: any, userId: string, job: Record<string, any>, status: "running" | "completed" | "failed", result: Record<string, unknown>) {
+  const input = safeObject(job.input_params);
+  const taskId = String(input.agentTaskId || input.agent_task_id || "").trim();
+  if (!taskId) return;
+  const { error } = await adminClient.from("agent_tasks").update({
+    status,
+    result,
+    completed_at: status === "completed" || status === "failed" ? new Date().toISOString() : null
+  }).eq("id", taskId).eq("user_id", userId);
+  if (error) console.warn("agent task update failed", error.message);
 }
 
 async function callQwenVision(env: AiEnv, body: Record<string, unknown>) {
@@ -311,6 +430,34 @@ async function enhancePrompt(env: AiEnv, prompt: string, context: Record<string,
     return { provider: "deepseek_text", model: env.deepseekModel, prompt: String(enhanced || prompt).trim(), fallback: false };
   } catch {
     return { provider: "fake_worker", model: "local-prompt-v0", prompt, fallback: true };
+  }
+}
+
+async function analyzeGrowth(env: AiEnv, snapshot: Record<string, unknown>) {
+  const fallback = [
+    "先检查异常账号和失败任务，确保今天的内容可以按计划发布。",
+    "优先复制最高表现内容的主题和渠道组合，再做一到两个小变体。",
+    "保持小批量生产，持续观察 Workflow 成功率与单位积分成本，不要只追求数量。"
+  ].join("\n");
+  if (!env.deepseekApiKey) return { provider: "local_analysis", model: "growth-rules-v1", prompt: fallback, fallback: true };
+  try {
+    const response = await fetchWithTimeout(`${env.deepseekBaseUrl.replace(/\/$/, "")}/chat/completions`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${env.deepseekApiKey}`, "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({
+        model: env.deepseekModel,
+        temperature: 0.2,
+        messages: [
+          { role: "system", content: "你是个人 AI 内容运营分析助手。只根据提供的数据给出 3-5 条今天可以执行的中文建议；每条包含优先级、具体动作和数据依据。数据不足时明确说暂无数据，不要虚构数字，不要建议支付或商业 SaaS 功能。" },
+          { role: "user", content: JSON.stringify(snapshot) }
+        ]
+      })
+    }, env.providerTimeoutMs);
+    const data = await parseProviderResponse(response, "DEEPSEEK_GROWTH_ANALYSIS_FAILED");
+    const prompt = String(data?.choices?.[0]?.message?.content || data?.content || "").trim();
+    return prompt ? { provider: "deepseek_text", model: env.deepseekModel, prompt, fallback: false } : { provider: "local_analysis", model: "growth-rules-v1", prompt: fallback, fallback: true };
+  } catch {
+    return { provider: "local_analysis", model: "growth-rules-v1", prompt: fallback, fallback: true };
   }
 }
 
@@ -1338,6 +1485,9 @@ async function createDemoCreditPurchase(adminClient: any, userId: string, body: 
 }
 
 async function createPaymentCheckout(adminClient: any, env: AiEnv, userId: string, body: Record<string, unknown>) {
+  if (!env.billingEnabled) {
+    throw new AiFunctionError("BILLING_DISABLED", "Real billing is disabled until Stripe Billing review is complete.", 409);
+  }
   const provider = String(body.provider || "").trim().toLowerCase();
   if (!["stripe", "paypal"].includes(provider)) {
     throw new AiFunctionError("PAYMENT_PROVIDER_UNSUPPORTED", "Only Stripe and PayPal checkout are supported.", 400);
@@ -1767,6 +1917,7 @@ function loadAiEnv(): AiEnv {
     stripePublishableKey: Deno.env.get("STRIPE_PUBLISHABLE_KEY") ?? "",
     stripeWebhookSecret: Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "",
     stripeMode: Deno.env.get("STRIPE_MODE") === "live" ? "live" : "test",
+    billingEnabled: Deno.env.get("STRIPE_BILLING_ENABLED") === "true" && Deno.env.get("STRIPE_MODE") !== "live",
     paypalClientId: Deno.env.get("PAYPAL_CLIENT_ID") ?? "",
     paypalClientSecret: Deno.env.get("PAYPAL_CLIENT_SECRET") ?? "",
     paypalWebhookId: Deno.env.get("PAYPAL_WEBHOOK_ID") ?? "",
@@ -1901,6 +2052,7 @@ interface AiEnv {
   stripePublishableKey: string;
   stripeWebhookSecret: string;
   stripeMode: "test" | "live";
+  billingEnabled: boolean;
   paypalClientId: string;
   paypalClientSecret: string;
   paypalWebhookId: string;

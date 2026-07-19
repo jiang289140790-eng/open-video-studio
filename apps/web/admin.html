@@ -105,6 +105,11 @@
         <article><span>积分消耗</span><strong data-admin-summary-credits>0</strong><p>已消耗积分</p></article>
         <article><span>订单</span><strong data-admin-summary-orders>0</strong><p>待履约 / 已履约订单</p></article>
         <article><span>公开分享</span><strong data-admin-summary-shares>0</strong><p>有效分享链接</p></article>
+        <article><span>工具使用次数</span><strong data-admin-tool-runs>0</strong><p>tool_usage 记录</p></article>
+        <article><span>工具成本</span><strong data-admin-tool-cost>0</strong><p>Workflow 估算</p></article>
+        <article><span>工具利润</span><strong data-admin-tool-profit>0</strong><p>积分收入减估算成本</p></article>
+        <article><span>会员数量</span><strong data-admin-membership-count>0</strong><p>当前有效订阅</p></article>
+        <article><span>订阅收入</span><strong data-admin-subscription-revenue>0</strong><p>支付接入后同步</p></article>
       </section>
 
       <section class="admin-kpi-grid" id="operations-kpi" data-admin-kpi>
@@ -328,6 +333,36 @@
             </div>
           </form>
           <div class="admin-list" data-admin-homepage-preview-list></div>
+        </article>
+
+        <article class="panel admin-module" id="tools">
+          <div class="panel-heading"><div><p class="eyebrow">AI Products</p><h2>AI 工具管理</h2></div><span>Tools Catalog</span></div>
+          <p class="muted">工具上线、下架、推荐排序和 Workflow 绑定。生产首页只读取 published 工具。</p>
+          <div class="admin-list" data-admin-db-tools></div>
+        </article>
+
+        <article class="panel admin-module" id="homepage-sections">
+          <div class="panel-heading"><div><p class="eyebrow">Content Operations</p><h2>首页模块</h2></div><span>Homepage Sections</span></div>
+          <p class="muted">Hero、快捷工具、热门工具和案例展示的数据库配置。</p>
+          <div class="admin-list" data-admin-homepage-sections></div>
+        </article>
+
+        <article class="panel admin-module" id="workflows">
+          <div class="panel-heading"><div><p class="eyebrow">AI Infrastructure</p><h2>Workflow 管理</h2></div><span>Tool → Workflow → Provider</span></div>
+          <p class="muted">查看工具绑定的 Workflow、Provider、版本、成本和发布状态。</p>
+          <div class="admin-list" data-admin-db-workflows></div>
+        </article>
+
+        <article class="panel admin-module" id="plans">
+          <div class="panel-heading"><div><p class="eyebrow">Membership</p><h2>会员套餐管理</h2></div><span>Plans / Access</span></div>
+          <p class="muted">配置价格、积分、功能、工具权限和每日限制。当前阶段不连接支付供应商。</p>
+          <div class="admin-list" data-admin-plans></div>
+        </article>
+
+        <article class="panel admin-module" id="subscriptions">
+          <div class="panel-heading"><div><p class="eyebrow">Subscriptions</p><h2>订阅状态</h2></div><span>Stripe Webhook</span></div>
+          <p class="muted">只展示服务端同步的订阅状态和 Stripe 标识，不在浏览器保存支付密钥。</p>
+          <div class="admin-list" data-admin-subscriptions></div>
         </article>
 
         <article class="panel admin-module" id="system">

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Growth Dashboard | Luravyn</title>
+    <link rel="icon" type="image/png" href="./favicon.png">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
+      <nav class="topnav" aria-label="Primary navigation"></nav>
+      <nav class="accountnav" aria-label="Account navigation"></nav>
+    </header>
+    <main class="app-surface growth-dashboard" data-growth-dashboard>
+      <section class="page-hero compact">
+        <p class="eyebrow">个人 AI 内容运营系统</p>
+        <h1>Growth Operation Dashboard</h1>
+        <p class="lead">每天打开后台，先知道今天应该做什么，再决定生产什么内容。</p>
+      </section>
+
+      <section class="metric-grid dashboard-sections">
+        <article><span>账号总数</span><strong data-growth-account-total>0</strong><p>已登记的发布账号</p></article>
+        <article><span>活跃账号</span><strong data-growth-account-active>0</strong><p>连接正常，可用于发布</p></article>
+        <article><span>异常账号</span><strong data-growth-account-error>0</strong><p>需要检查连接状态</p></article>
+        <article><span>账号健康评分</span><strong data-growth-account-health>暂无数据</strong><p>发布频率、互动率和增长趋势</p></article>
+        <article><span>今日生成</span><strong data-growth-generated>0</strong><p>今天创建的内容任务</p></article>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="panel wide">
+          <div class="panel-heading"><div><p class="eyebrow">Today</p><h2>今天应该做什么</h2></div><button class="btn glass" type="button" data-growth-refresh>刷新 AI 建议</button></div>
+          <ul class="dashboard-list plain-list" data-growth-tasks></ul>
+          <h3>Analysis Agent 建议</h3>
+          <ul class="dashboard-list plain-list" data-growth-suggestions><li>正在读取你的运营数据…</li></ul>
+        </article>
+
+        <article class="panel wide">
+          <div class="panel-heading"><div><p class="eyebrow">Agent Tasks</p><h2>今日任务中心</h2></div><a class="btn glass" href="./zh/ai-studio/">打开生产工作台</a></div>
+          <ul class="dashboard-list plain-list" data-growth-agent-tasks><li>还没有 Agent Task。</li></ul>
+        </article>
+
+        <article class="panel">
+          <h2>账号矩阵</h2>
+          <ul class="dashboard-list plain-list" data-growth-account-recent></ul>
+          <a class="btn glass" href="./zh/accounts/">管理账号</a>
+        </article>
+
+        <article class="panel">
+          <h2>内容表现</h2>
+          <div class="dashboard-list">
+            <div class="dashboard-row"><div><strong>今日发布</strong><p>已发布到内容渠道</p></div><strong data-growth-published>0</strong></div>
+            <div class="dashboard-row"><div><strong>最高表现内容</strong><p>按曝光和点击排序</p></div><span data-growth-top-content>暂无数据</span></div>
+            <div class="dashboard-row"><div><strong>最高 ROI</strong><p>按渠道表现排序</p></div><span data-growth-top-roi>暂无数据</span></div>
+          </div>
+          <a class="btn glass" href="./zh/analytics/">查看分析</a>
+        </article>
+
+        <article class="panel">
+          <h2>AI 生产</h2>
+          <div class="dashboard-list">
+            <div class="dashboard-row"><span>任务数</span><strong data-growth-runs>0</strong></div>
+            <div class="dashboard-row"><span>Workflow 成功率</span><strong data-growth-success>0%</strong></div>
+            <div class="dashboard-row"><span>今日成本</span><strong data-growth-cost>0 积分</strong></div>
+            <div class="dashboard-row"><span>失败任务</span><strong data-growth-failed>0</strong></div>
+          </div>
+          <a class="btn glass" href="./zh/history/">查看任务</a>
+        </article>
+
+        <article class="panel">
+          <h2>增长数据</h2>
+          <div class="dashboard-list">
+            <div class="dashboard-row"><span>点击</span><strong data-growth-clicks>0</strong></div>
+            <div class="dashboard-row"><span>注册</span><strong data-growth-signups>0</strong></div>
+            <div class="dashboard-row"><span>转化率</span><strong data-growth-conversion>暂无数据</strong></div>
+            <div class="dashboard-row"><span>渠道 ROI</span><strong data-growth-top-roi>暂无数据</strong></div>
+          </div>
+          <a class="btn glass" href="./zh/analytics/">复盘渠道</a>
+        </article>
+      </section>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
