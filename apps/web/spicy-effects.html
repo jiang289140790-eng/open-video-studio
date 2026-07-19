@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>辣味特效 | Luravyn</title>
+    <meta name="description" content="辣味特效 — 将任何照片变成辣味视频">
+    <link rel="icon" type="image/png" href="./favicon.png">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
+      <nav class="topnav" aria-label="主导航">
+        <a href="./zh/image-tools/">图像工具</a>
+        <a href="./zh/video-tools/">视频工具</a>
+        <a href="./zh/pricing/">购买积分</a>
+        <a href="./zh/free-coins/">免费硬币</a>
+        <a href="./zh/my-creations/">我的创作</a>
+      </nav>
+      <nav class="accountnav" aria-label="账户导航"><a class="daily-check" href="./zh/free-coins/">Daily Check-in</a><a href="./zh/login/">登录</a></nav>
+    </header>
+    <div class="app-layout">
+      <aside class="side-rail" aria-label="工具导航">
+        <nav class="rail-menu" aria-label="工具菜单">
+          <a class="side-link" href="./zh/app/">首页</a>
+          <a class="side-link active" href="./zh/app/spicy-effects/">辛辣效果 <span class="badge-hot">HOT</span></a>
+          <p class="side-label">AI 图像</p>
+          <a class="side-link" href="./zh/app/image-editor/">图片编辑器</a>
+          <a class="side-link" href="./zh/app/face-swap/">AI 换脸</a>
+          <a class="side-link" href="./zh/app/outfit-studio/">性感礼服</a>
+          <a class="side-link" href="./zh/app/pose-generator/">性爱姿势</a>
+          <p class="side-label">AI 视频</p>
+          <a class="side-link" href="./zh/app/image-to-video/">图片转视频</a>
+          <a class="side-link" href="./zh/my-creations/">我的创作</a>
+        </nav>
+        <div class="rail-actions" aria-label="账户快捷入口">
+          <a href="./zh/referral/">推荐好友</a>
+          <a class="rail-upgrade" href="./zh/pricing/?from=sidebar">立即升级</a>
+        </div>
+      </aside>
+      <main class="app-surface spicy-page" id="spicyRoot"></main>
+    </div>
+    <script src="./spicy-effects-data.js"></script>
+    <script>
+      (function render() {
+        var d = window.__SPICY_DATA__;
+        if (!d) return setTimeout(render, 50);
+        var root = document.getElementById('spicyRoot');
+        if (!root) return;
+
+        function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+        function h(tag, attrs, children) {
+          var el = document.createElement(tag);
+          if (attrs) for (var k in attrs) { if (k==='className') el.className=attrs[k]; else el.setAttribute(k,attrs[k]); }
+          if (typeof children==='string') el.innerHTML=children;
+          else if (children) for (var i=0;i<children.length;i++) { if (typeof children[i]==='string') el.appendChild(document.createTextNode(children[i])); else el.appendChild(children[i]); }
+          return el;
+        }
+
+        var frag = document.createDocumentFragment();
+
+        // ── Page Hero ──
+        frag.appendChild(
+          h('section', {className:'spicy-hero'}, [
+            h('p', {className:'spicy-eyebrow'}, 'HOT · 18+'),
+            h('h1', {}, esc(d.header.title) + ' <small>(' + esc(d.header.count) + ')</small>'),
+            h('p', {className:'spicy-lead'}, esc(d.header.desc))
+          ])
+        );
+
+        // ── Age Notice ──
+        frag.appendChild(
+          h('div', {className:'spicy-age-notice'}, esc(d.header.ageNotice))
+        );
+
+        // ── Filter Tags ──
+        var filterRow = h('div', {className:'spicy-filter-bar', role:'tablist', 'aria-label':'特效分类'});
+        d.filterTags.forEach(function(tag, i) {
+          filterRow.appendChild(
+            h('button', {className:'spicy-chip' + (i===0?' active':''), type:'button', 'data-spicy-filter':tag}, esc(tag))
+          );
+        });
+        frag.appendChild(filterRow);
+
+        // ── Card Grid ──
+        var grid = h('section', {className:'spicy-card-grid', 'aria-label':'辣味特效卡片'});
+        d.cards.forEach(function(card, i) {
+          var lockBadge = card.locked ? h('span', {className:'spicy-card-lock'}, '解锁') : '';
+          grid.appendChild(
+            h('a', {className:'spicy-card art-' + ((i%10)+1), href:card.link, 'data-spicy-card':'', 'data-spicy-tags':card.tags.join(' ')}, [
+              lockBadge,
+              h('strong', {}, esc(card.name)),
+              h('small', {}, esc(card.desc))
+            ])
+          );
+        });
+        frag.appendChild(grid);
+
+        // ── Chat Banner ──
+        if (d.chatBanner) {
+          var cb = d.chatBanner;
+          frag.appendChild(
+            h('section', {className:'spicy-chat-banner'}, [
+              h('div', {className:'spicy-chat-text'}, [
+                h('h2', {}, esc(cb.title)),
+                h('p', {}, esc(cb.desc)),
+                h('a', {className:'hero-cta', href:'./zh/app/spicy-effects/'}, esc(cb.cta))
+              ]),
+              h('img', {src:cb.image, alt:cb.title, loading:'lazy'})
+            ])
+          );
+        }
+
+        root.appendChild(frag);
+      })();
+    </script>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

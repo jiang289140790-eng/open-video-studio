@@ -12,8 +12,8 @@
     <header class="topbar">
       <a class="brand" href="./index.html"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
       <nav class="topnav" aria-label="主导航">
-        <a href="./zh/image-tools/">图像工具⌄</a>
-        <a href="./zh/video-tools/">视频工具⌄</a>
+        <a href="./zh/image-tools/">图像工具</a>
+        <a href="./zh/video-tools/">视频工具</a>
         <a href="./zh/pricing/">购买积分</a>
         <a href="./zh/free-coins/">免费硬币</a>
         <a href="./zh/my-creations/">我的创作</a>
@@ -22,42 +22,142 @@
     </header>
     <div class="app-layout">
       <aside class="side-rail" aria-label="工具导航">
-        <a class="side-link active" href="./zh/app/">首页</a>
-        <a class="side-link" href="./zh/app/spicy-effects/">辛辣效果 <span class="badge-hot">HOT</span></a>
-        <p class="side-label">AI 图像</p>
-        <a class="side-link" href="./zh/app/image-editor/">图片编辑器</a>
-        <a class="side-link" href="./zh/app/face-swap/">AI 换脸</a>
-        <a class="side-link" href="./zh/app/outfit-studio/">性感礼服</a>
-        <a class="side-link" href="./zh/app/pose-generator/">性爱姿势</a>
-        <p class="side-label">AI 视频</p>
-        <a class="side-link" href="./zh/app/image-to-video/">图片转视频</a>
-        <a class="side-link" href="./zh/my-creations/">我的创作</a>
+        <nav class="rail-menu" aria-label="工具菜单">
+          <a class="side-link active" href="./zh/app/">首页</a>
+          <a class="side-link" href="./zh/app/spicy-effects/">辛辣效果 <span class="badge-hot">HOT</span></a>
+          <p class="side-label">AI 图像</p>
+          <a class="side-link" href="./zh/app/image-editor/">图片编辑器</a>
+          <a class="side-link" href="./zh/app/face-swap/">AI 换脸</a>
+          <a class="side-link" href="./zh/app/outfit-studio/">性感礼服</a>
+          <a class="side-link" href="./zh/app/pose-generator/">性爱姿势</a>
+          <p class="side-label">AI 视频</p>
+          <a class="side-link" href="./zh/app/image-to-video/">图片转视频</a>
+          <a class="side-link" href="./zh/my-creations/">我的创作</a>
+        </nav>
         <div class="rail-actions" aria-label="账户快捷入口">
           <a href="./zh/referral/">推荐好友</a>
           <a class="rail-upgrade" href="./zh/pricing/?from=sidebar">立即升级</a>
         </div>
       </aside>
-      <main class="app-surface tool-home">
-        <section class="app-hero-grid" aria-label="精选工具">
-          <a class="feature-banner banner-image" href="./zh/app/undress-video/"><span>成人特效视频</span><strong>Undress Video</strong><small>合规的图片转视频工作台</small></a>
-          <a class="feature-banner banner-video" href="./zh/app/image-to-video/?preset=image-video"><span>视频工具</span><strong>图片转视频</strong><small>将图片生成动态视频</small></a>
-        </section>
-        <section class="quick-tool-row" aria-label="快速工具">
-          <a class="quick-tool-card" href="./zh/app/face-swap/"><span>换脸</span><strong>AI 换脸</strong><i>↗</i></a>
-          <a class="quick-tool-card" href="./zh/app/image-editor/"><span>编辑</span><strong>图片编辑器</strong><i>↗</i></a>
-          <a class="quick-tool-card" href="./zh/app/pose-generator/"><span>姿势</span><strong>姿势生成器</strong><i>↗</i></a>
-          <a class="quick-tool-card" href="./zh/app/image-to-video/"><span>视频</span><strong>图片转视频</strong><i>↗</i></a>
-          <a class="quick-tool-card" href="./zh/app/spicy-effects/"><span>效果</span><strong>辣味特效</strong><i>↗</i></a>
-        </section>
-        <section class="tool-directory-bar" aria-label="工具筛选">
-          <div class="tool-filter-tabs"><button class="active" type="button" data-tool-home-filter="all">全部</button><button type="button" data-tool-home-filter="hot">热门</button><button type="button" data-tool-home-filter="new">最新</button><button type="button" data-tool-home-filter="image">图像</button><button type="button" data-tool-home-filter="video">视频</button><button type="button" data-tool-home-filter="character">角色</button></div>
-          <label class="tool-search-box"><span>搜索工具</span><input type="search" placeholder="搜索图像或视频工具" data-tool-home-search></label>
-        </section>
-        <section class="tool-section" data-tool-home-section="image hot"><div class="tool-section-head"><h1>热门图像工具</h1><a href="./zh/image-tools/">查看更多</a></div><div class="card-carousel"><a class="tool-poster art-2" href="./zh/app/face-swap/" data-tool-home-card data-tool-tags="image hot"><strong>AI 换脸</strong><span>上传照片一键换脸</span></a><a class="tool-poster art-3" href="./zh/app/image-editor/" data-tool-home-card data-tool-tags="image hot"><strong>图片编辑器</strong><span>重绘、扩图、局部修复</span></a><a class="tool-poster art-11" href="./zh/app/outfit-studio/" data-tool-home-card data-tool-tags="image"><strong>性感礼服</strong><span>服饰与造型选择</span></a><a class="tool-poster art-10" href="./zh/app/pose-generator/" data-tool-home-card data-tool-tags="image"><strong>性爱姿势</strong><span>姿势和镜头参考</span></a></div></section>
-        <section class="tool-section" data-tool-home-section="video hot"><div class="tool-section-head"><h2>视频工具</h2><a href="./zh/video-tools/">查看更多</a></div><div class="card-carousel video-row"><a class="tool-poster art-7" href="./zh/app/image-to-video/" data-tool-home-card data-tool-tags="video hot"><strong>图片转视频</strong><span>单图生成动态视频</span></a><a class="tool-poster art-13" href="./zh/app/undress-video/" data-tool-home-card data-tool-tags="video hot"><strong>Undress Video</strong><span>成人特效视频</span></a><a class="tool-poster art-1" href="./zh/app/image-to-video/?preset=movie-closeup" data-tool-home-card data-tool-tags="video"><strong>电影近景</strong><span>镜头推进与表情动作</span></a></div></section>
-        <p class="empty-tool-state" data-tool-home-empty hidden>没有找到匹配工具。</p>
-      </main>
+      <main class="app-surface home-v2" id="homeRoot"></main>
     </div>
+    <script src="./tools-data.js"></script>
+    <script>
+      (function render() {
+        var d = window.__TOOLS_DATA__;
+        if (!d) return setTimeout(render, 50);
+        var root = document.getElementById('homeRoot');
+        if (!root) return;
+
+        function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+        function h(tag, attrs, children) {
+          var el = document.createElement(tag);
+          if (attrs) for (var k in attrs) { if (k==='className') el.className=attrs[k]; else el.setAttribute(k,attrs[k]); }
+          if (typeof children==='string') el.innerHTML=children;
+          else if (children) for (var i=0;i<children.length;i++) { if (typeof children[i]==='string') el.appendChild(document.createTextNode(children[i])); else el.appendChild(children[i]); }
+          return el;
+        }
+
+        var frag = document.createDocumentFragment();
+
+        // ── Hero ──
+        var hero = d.hero;
+        frag.appendChild(
+          h('section', {className:'home-hero'}, [
+            h('div', {className:'hero-main'}, [
+              h('span', {className:'hero-eyebrow'}, 'NEW'),
+              h('h1', {}, esc(hero.title)),
+              h('p', {}, esc(hero.desc)),
+              h('a', {className:'hero-cta', href:hero.link}, esc(hero.cta) + ' →')
+            ]),
+            h('div', {className:'hero-visual'}, [
+              h('img', {src:hero.image, alt:hero.title, loading:'eager'})
+            ])
+          ])
+        );
+
+        // ── Quick Tools Row ──
+        var qtSection = h('section', {className:'home-section'}, [
+          h('div', {className:'section-head'}, [h('h2', {}, '快捷工具')])
+        ]);
+        var qtRow = h('div', {className:'quick-row'});
+        d.quickTools.forEach(function(t) {
+          qtRow.appendChild(
+            h('a', {className:'qc-card', href:t.link}, [
+              h('img', {src:t.image, alt:t.name, loading:'lazy'}),
+              h('span', {className:'qc-label'}, esc(t.name)),
+              t.tag ? h('span', {className:'qc-hot'}, esc(t.tag)) : '',
+              h('i', {className:'qc-arrow'}, '↗')
+            ])
+          );
+        });
+        qtSection.appendChild(qtRow);
+        frag.appendChild(qtSection);
+
+        // ── Content Sections ──
+        d.sections.forEach(function(sec) {
+          var section = h('section', {className:'home-section'});
+
+          // Section head with title + count + link
+          var countHtml = sec.count ? ' <small>(' + esc(sec.count) + ')</small>' : '';
+          section.appendChild(
+            h('div', {className:'section-head'}, [
+              h('h2', {}, esc(sec.title) + countHtml),
+              h('a', {href:sec.link}, 'View More →')
+            ])
+          );
+
+          // Filter tabs for spicy effects
+          if (sec.filterTags) {
+            var filterRow = h('div', {className:'section-filter-row'});
+            sec.filterTags.forEach(function(tag, i) {
+              filterRow.appendChild(
+                h('button', {className:'section-chip' + (i===0?' active':''), type:'button'}, esc(tag))
+              );
+            });
+            section.appendChild(filterRow);
+          }
+
+          // Card row
+          var row = h('div', {className:'card-row'});
+          sec.items.forEach(function(item) {
+            row.appendChild(
+              h('a', {className:'hc-card', href:item.link}, [
+                h('div', {className:'hc-img'}, [
+                  h('img', {src:item.image, alt:item.name, loading:'lazy'})
+                ]),
+                h('div', {className:'hc-body'}, [
+                  h('strong', {}, esc(item.name)),
+                  h('small', {}, esc(item.desc)),
+                  item.tag ? h('span', {className:'hc-tag'}, esc(item.tag)) : ''
+                ])
+              ])
+            );
+          });
+          section.appendChild(row);
+          frag.appendChild(section);
+        });
+
+        // ── Spicy Chat Banner ──
+        if (d.chatBanner) {
+          var cb = d.chatBanner;
+          frag.appendChild(
+            h('section', {className:'home-section'}, [
+              h('div', {className:'chat-banner'}, [
+                h('div', {className:'chat-banner-text'}, [
+                  h('h2', {}, esc(cb.title)),
+                  h('p', {}, esc(cb.desc)),
+                  h('a', {className:'hero-cta', href:'./zh/app/spicy-effects/'}, esc(cb.cta))
+                ]),
+                h('img', {src:cb.image, alt:cb.title, loading:'lazy'})
+              ])
+            ])
+          );
+        }
+
+        root.appendChild(frag);
+      })();
+    </script>
     <script type="module" src="./app.js"></script>
   </body>
 </html>

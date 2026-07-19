@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Social Accounts | Luravyn</title>
+    <title>发布账号 | Luravyn</title>
     <link rel="icon" type="image/png" href="./favicon.png">
-    <meta name="description" content="Luravyn 登录后产品页面。">
+    <meta name="description" content="管理用于内容排期的社媒账号占位。">
     <link rel="canonical" href="https://luravyn.com/zh/accounts/">
     <link rel="alternate" hreflang="zh-CN" href="https://luravyn.com/zh/accounts/">
     <link rel="alternate" hreflang="en" href="https://luravyn.com/en/accounts/">
@@ -15,13 +15,13 @@
     <meta name="robots" content="noindex,follow">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Luravyn">
-    <meta property="og:title" content="Social Accounts | Luravyn">
-    <meta property="og:description" content="Luravyn 登录后产品页面。">
+    <meta property="og:title" content="发布账号 | Luravyn">
+    <meta property="og:description" content="先保存发布账号占位，后续再接真实 OAuth 和平台发布。">
     <meta property="og:url" content="https://luravyn.com/zh/accounts/">
     <meta property="og:image" content="https://luravyn.com/brand/luravyn-logo-hero.png">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Social Accounts | Luravyn">
-    <meta name="twitter:description" content="Luravyn 登录后产品页面。">
+    <meta name="twitter:title" content="发布账号 | Luravyn">
+    <meta name="twitter:description" content="管理用于内容排期的社媒账号占位。">
     <meta name="theme-color" content="#111111">
     <link rel="stylesheet" href="./styles.css">
   </head>
@@ -33,15 +33,15 @@
     </header>
     <main class="app-surface content-os-page">
       <section class="page-hero compact">
-        <p class="eyebrow">Publishing Accounts</p>
-        <h1>连接内容发布账号</h1>
-        <p class="lead">第一版先保存发布账号占位状态，让 Campaign、Queue 和 Calendar 能关联平台。真实 OAuth 发布适配器后续再接入。</p>
+        <p class="eyebrow">辅助配置</p>
+        <h1>管理发布账号</h1>
+        <p class="lead">这是辅助入口，不再占据主流程。第一版先保存账号占位，让内容计划、日历和分析能关联平台。</p>
       </section>
       <section class="content-os-grid">
         <article class="panel">
           <div class="tool-section-head">
             <div>
-              <p class="eyebrow">新增连接</p>
+              <p class="eyebrow">新增账号</p>
               <h2>连接演示账号</h2>
             </div>
             <span class="credit-pill">Mock OAuth</span>
@@ -49,7 +49,7 @@
           <form class="content-os-form" data-social-account-form>
             <label><span>平台</span><select name="platform"><option>X</option><option>TikTok</option><option>YouTube Shorts</option><option>Instagram</option><option>Pinterest</option><option>Reddit</option><option>Telegram</option><option>Facebook</option></select></label>
             <label><span>账号名称</span><input name="handle" value="@openvideostudio"></label>
-            <label><span>用途</span><input name="purpose" value="Campaign 发布账号"></label>
+            <label><span>用途</span><input name="purpose" value="内容排期账号"></label>
             <button class="btn primary full" type="submit">连接账号</button>
           </form>
         </article>
@@ -57,7 +57,7 @@
           <div class="tool-section-head">
             <div>
               <p class="eyebrow">账号列表</p>
-              <h2>可用发布账号</h2>
+              <h2>可用于排期的平台</h2>
             </div>
             <a href="./zh/calendar/">查看日历</a>
           </div>

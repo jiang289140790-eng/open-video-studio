@@ -887,6 +887,11 @@ injectToolDiscovery();
 injectCarouselControls();
 injectFloatingDock();
 injectGlobalFooter();
+normalizeInternalRoutes();
+if (document.body && typeof MutationObserver !== "undefined") {
+  const routeObserver = new MutationObserver(() => normalizeInternalRoutes());
+  routeObserver.observe(document.body, { childList: true, subtree: true });
+}
 loadHomepageConfig();
 loadPageBuilderConfig();
 loadToolCatalogConfig();
@@ -894,9 +899,52 @@ applyStoredLanguage();
 showAuthUrlMessage();
 renderOAuthReadiness();
 renderToolHomeDirectory();
+normalizeInternalRoutes();
 renderCookieBanner();
 hydrateAuthSession();
 bindSupabaseAuthState();
+
+function normalizeInternalRoutes() {
+  // All product links are rooted at the deployed site, not at the current
+  // nested tool directory. This prevents paths such as /zh/app/foo/zh/app/bar/
+  // when a user navigates between static route aliases.
+  const pathname = window.location.pathname || "";
+  const projectMatch = pathname.match(/^(\/[^/]+\/)(?:.*)$/);
+  const siteBase = projectMatch && projectMatch[1] === "/open-video-studio/"
+    ? projectMatch[1]
+    : "/";
+  const toolRoutes = new Map([
+    ["zh/app/", "app.html"],
+    ["zh/app/spicy-effects/", "spicy-effects.html"],
+    ["zh/app/image-editor/", "tool.html?tool=image-editor"],
+    ["zh/app/face-swap/", "tool.html?tool=face-swap"],
+    ["zh/app/outfit-studio/", "tool.html?tool=outfit-studio"],
+    ["zh/app/pose-generator/", "tool.html?tool=pose-generator"],
+    ["zh/app/image-to-video/", "tool.html?tool=image-to-video"],
+    ["zh/app/undress-video/", "tool.html?tool=undress-video"],
+    ["zh/my-creations/", "my-creations.html"],
+    ["zh/gallery/", "gallery.html"],
+    ["zh/pricing/", "pricing.html"],
+    ["zh/free-coins/", "free-coins.html"],
+    ["zh/referral/", "referral.html"],
+    ["zh/login/", "signin.html"]
+  ]);
+  document.querySelectorAll('a[href^="./zh/"], a[href^="./tool.html"], a[href^="./spicy-effects.html"], a[href="./index.html"], a[href="./app.html"]').forEach((link) => {
+    const href = link.getAttribute("href");
+    if (!href) return;
+    const raw = href.slice(2);
+    const match = raw.match(/^([^?#]+)([?#].*)?$/);
+    const route = match?.[1] || raw;
+    const suffix = match?.[2] || "";
+    const mapped = toolRoutes.get(route) || (route === "index.html" ? "index.html" : route);
+    // Preserve query parameters such as ?preset=movie-closeup when changing
+    // a localized tool alias to the single-page tool route.
+    const mappedWithQuery = mapped.includes("?") && suffix.startsWith("?")
+      ? `${mapped}&${suffix.slice(1)}`
+      : `${mapped}${suffix}`;
+    link.setAttribute("href", `${siteBase}${mappedWithQuery}`);
+  });
+}
 
 function injectTopNavigation() {
   const topnav = document.querySelector(".topnav");
