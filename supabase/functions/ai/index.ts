@@ -186,8 +186,10 @@ async function createGenerationJob(adminClient: any, env: AiEnv, userId: string,
       durationSeconds,
       providerRequested: provider,
       workflowStatus: workflow?.status ?? "default",
-      workflowName: safeObject(workflow?.jsonConfig).workflowName ?? null,
-      workflowOverrides: safeObject(workflow?.jsonConfig).workflowOverrides ?? null,
+      workflowName: body.workflowName ?? safeObject(workflow?.jsonConfig).workflowName ?? null,
+      workflowOverrides: Object.keys(safeObject(body.workflowOverrides)).length
+        ? safeObject(body.workflowOverrides)
+        : safeObject(workflow?.jsonConfig).workflowOverrides ?? {},
     },
     output_assets: [],
     aspect_ratio: body.aspectRatio ?? "16:9",
@@ -546,6 +548,7 @@ async function callZealmanWorkflow(env: AiEnv, job: Record<string, any>) {
   const workflow = await fetchZealmanWorkflow(env, workflowName);
   applyZealmanPrompt(workflow, String(job.prompt || ""), env.zealmanPromptNodeId);
   const inputParams = safeObject(job.input_params);
+  applyZealmanOverrides(workflow, inputParams.workflowOverrides);
   const sourceImageUrl = String(inputParams.sourceImageUrl || inputParams.source_image_url || "").trim();
   if (sourceImageUrl) {
     const uploadedImage = await uploadZealmanSourceImage(env, sourceImageUrl, String(job.id || crypto.randomUUID()));
@@ -714,6 +717,17 @@ function applyZealmanUploadedImage(workflow: Record<string, any>, imageName: str
     if (nodeName.includes("loadimage") || Object.prototype.hasOwnProperty.call(node.inputs, "image")) {
       node.inputs.image = imageName;
       return;
+    }
+  }
+}
+
+function applyZealmanOverrides(workflow: Record<string, any>, overrides: unknown) {
+  if (!overrides || typeof overrides !== "object" || Array.isArray(overrides)) return;
+  for (const [nodeId, values] of Object.entries(overrides as Record<string, unknown>)) {
+    const node = workflow[nodeId];
+    if (!node || typeof node !== "object" || !node.inputs || !values || typeof values !== "object" || Array.isArray(values)) continue;
+    for (const [key, value] of Object.entries(values as Record<string, unknown>)) {
+      if (value === null || ["string", "number", "boolean"].includes(typeof value)) node.inputs[key] = value;
     }
   }
 }
