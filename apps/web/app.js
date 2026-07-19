@@ -4581,7 +4581,7 @@ async function runRemoteGeneration(input) {
     throw new Error("请先登录后使用真实生成。");
   }
   const mediaType = input.mode === "video" ? "video" : "image";
-  const workflowId = workflowIdForGeneration(mediaType, input.model, input.preset, input.workflowFamily);
+  const workflowId = input.workflowId || workflowIdForGeneration(mediaType, input.model, input.preset, input.workflowFamily);
   const createResult = await invokeAi("create-generation-job", {
     mediaType,
     prompt: input.prompt,
@@ -4592,7 +4592,9 @@ async function runRemoteGeneration(input) {
     provider: input.model || undefined,
     sourceAssetId: input.reference?.sourceAssetId || (input.reference?.remote ? input.reference.id : undefined),
     sourceImageUrl: input.reference?.sourceImageUrl || undefined,
-    preset: input.preset || undefined
+    preset: input.preset || undefined,
+    workflowName: input.workflowName || undefined,
+    workflowOverrides: input.workflowOverrides || undefined
   });
   const job = createResult.job;
   input.onJobCreated?.(job);
@@ -4607,6 +4609,48 @@ async function runRemoteGeneration(input) {
   await syncRemoteProductData();
   return processed;
 }
+
+// Shared bridge for the standalone tool.html workbench. It reuses the existing
+// authenticated upload, credit, job, polling, and asset persistence pipeline.
+window.__OVS_WORKFLOW_API__ = {
+  generate: async (toolId, params = {}) => {
+    if (!supabase) throw new Error("Supabase 未配置，暂不能调用真实工作流。");
+    const workflow = params.workflow || {};
+    const file = params.file instanceof File ? params.file : null;
+    let reference = params.reference || null;
+    if (file) {
+      const localReference = {
+        id: `local-${Date.now()}`,
+        title: file.name,
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        type: "image",
+        sourceType: "reference_image",
+        prompt: params.prompt || "",
+        remote: false,
+      };
+      reference = await uploadVideoReferenceToSupabase(file, localReference);
+    }
+    const result = await runRemoteGeneration({
+      mode: workflow.mediaType === "video" ? "video" : "image",
+      prompt: String(params.prompt || "").trim() || "生成一份符合工作流设置的作品",
+      title: workflow.workflowName || toolId,
+      character: "Mira",
+      cost: 0,
+      ratio: params.aspectRatio || "16:9",
+      durationSeconds: params.durationSeconds,
+      model: "zealman_workflow",
+      workflowId: workflow.workflowId,
+      preset: toolId,
+      workflowFamily: toolId === "adult-effects" ? "adult-4in1" : "",
+      workflowName: workflow.workflowName,
+      workflowOverrides: params.workflowOverrides || (params.effect ? { effect: params.effect } : undefined),
+      reference,
+    });
+    return result;
+  },
+};
 
 function workflowIdForGeneration(mediaType, provider, preset, workflowFamily = "") {
   if (provider === "zealman_workflow") {

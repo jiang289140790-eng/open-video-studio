@@ -45,6 +45,7 @@
 
     <script src="./spicy-effects-data.js"></script>
     <script src="./tool-config.js"></script>
+    <script src="./api-service.js"></script>
     <script>
     (function() {
       var cfg = window.__TOOL_CONFIG__;
@@ -62,6 +63,7 @@
       var toolId = params.get('tool') || 'image-editor';
       var tool = cfg[toolId] || cfg['image-editor'];
       var selectedEffect = null;
+      var createBtn = null;
 
       // ── Initialize default effect ──
       if (tool.effectSelector) {
@@ -81,6 +83,33 @@
             image: defaultCards[0].image || defaultCards[0].img || '',
             link: defaultCards[0].link || ''
           };
+        }
+        // The legacy demo listener above is kept for backward compatibility; this
+        // second listener sends the same form to the configured server workflow.
+        if (false && createBtn) {
+          createBtn.addEventListener('click', async function() {
+            var list = document.getElementById('resultList');
+            var fileInput = document.getElementById('fileInput');
+            var promptInput = document.querySelector('.tool-prompt-input');
+            var durationInput = document.querySelector('.tool-param-select');
+            createBtn.disabled = true;
+            if (list) list.innerHTML = '<div class="result-card generating"><span class="result-status">生成中...</span><p>正在提交工作流并等待结果，请稍候。</p></div>';
+            try {
+              var result = await window.__OVS_API_SERVICE__.generate(toolId, {
+                prompt: promptInput ? promptInput.value.trim() : '',
+                file: fileInput && fileInput.files ? fileInput.files[0] : null,
+                durationSeconds: durationInput ? Number.parseInt(durationInput.value, 10) || undefined : undefined,
+                effect: selectedEffect ? { name: selectedEffect.name, link: selectedEffect.link } : null
+              });
+              var asset = result && result.asset ? result.asset : result;
+              var outputUrl = asset && (asset.outputUrl || asset.output_url || asset.downloadUrl || asset.previewUrl || asset.url);
+              if (list) list.innerHTML = '<div class="result-card completed"><span class="result-status">生成完成</span>' + (outputUrl ? '<a class="result-output-link" href="' + esc(outputUrl) + '" target="_blank" rel="noreferrer">打开生成结果</a>' : '<p>任务已完成，但服务端没有返回输出地址。</p>') + '</div>';
+            } catch (error) {
+              if (list) list.innerHTML = '<div class="result-card failed"><span class="result-status">生成失败</span><p>' + esc(error && error.message ? error.message : '工作流服务调用失败。') + '</p></div>';
+            } finally {
+              createBtn.disabled = false;
+            }
+          });
         }
       }
 
@@ -251,6 +280,29 @@
         }
       }
 
+      // Forward the existing tool form to the server-side workflow adapter.
+      document.addEventListener('click', function(event) {
+        if (!event.target || event.target.id !== 'createBtn') return;
+        var button = event.target;
+        var list = document.getElementById('resultList');
+        var fileInput = document.getElementById('fileInput');
+        var promptInput = document.querySelector('.tool-prompt-input');
+        var durationInput = document.querySelector('.tool-param-select');
+        button.disabled = true;
+        if (list) list.innerHTML = '<div class="result-card generating"><span class="result-status">生成中...</span><p>正在提交工作流并等待结果，请稍候。</p></div>';
+        window.__OVS_API_SERVICE__.generate(toolId, {
+          prompt: promptInput ? promptInput.value.trim() : '',
+          file: fileInput && fileInput.files ? fileInput.files[0] : null,
+          durationSeconds: durationInput ? Number.parseInt(durationInput.value, 10) || undefined : undefined,
+          effect: selectedEffect ? { name: selectedEffect.name, link: selectedEffect.link } : null
+        }).then(function(result) {
+          var asset = result && result.asset ? result.asset : result;
+          var outputUrl = asset && (asset.outputUrl || asset.output_url || asset.downloadUrl || asset.previewUrl || asset.url);
+          if (list) list.innerHTML = '<div class="result-card completed"><span class="result-status">生成完成</span>' + (outputUrl ? '<a class="result-output-link" href="' + esc(outputUrl) + '" target="_blank" rel="noreferrer">打开生成结果</a>' : '<p>任务已完成，但服务端没有返回输出地址。</p>') + '</div>';
+        }).catch(function(error) {
+          if (list) list.innerHTML = '<div class="result-card failed"><span class="result-status">生成失败</span><p>' + esc(error && error.message ? error.message : '工作流服务调用失败。') + '</p></div>';
+        }).then(function() { button.disabled = false; });
+      });
       modalClose.addEventListener('click', closeModal);
       modal.addEventListener('click', function(e) { if (e.target === modal) closeModal(); });
 
