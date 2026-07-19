@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AI Studio | Luravyn</title>
+    <title>创建内容 | Luravyn</title>
     <link rel="icon" type="image/png" href="./favicon.png">
-    <meta name="description" content="Luravyn 登录后产品页面。">
+    <meta name="description" content="从目标、平台和主题生成可审核的社媒内容包。">
     <link rel="canonical" href="https://luravyn.com/zh/ai-studio/">
     <link rel="alternate" hreflang="zh-CN" href="https://luravyn.com/zh/ai-studio/">
     <link rel="alternate" hreflang="en" href="https://luravyn.com/en/ai-studio/">
@@ -15,13 +15,13 @@
     <meta name="robots" content="noindex,follow">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Luravyn">
-    <meta property="og:title" content="AI Studio | Luravyn">
-    <meta property="og:description" content="Luravyn 登录后产品页面。">
+    <meta property="og:title" content="创建内容 | Luravyn">
+    <meta property="og:description" content="先做清晰的内容包，后续再接 RunningHub 图片和视频工作流。">
     <meta property="og:url" content="https://luravyn.com/zh/ai-studio/">
     <meta property="og:image" content="https://luravyn.com/brand/luravyn-logo-hero.png">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="AI Studio | Luravyn">
-    <meta name="twitter:description" content="Luravyn 登录后产品页面。">
+    <meta name="twitter:title" content="创建内容 | Luravyn">
+    <meta name="twitter:description" content="从目标、平台和主题生成可审核的社媒内容包。">
     <meta name="theme-color" content="#111111">
     <link rel="stylesheet" href="./styles.css">
   </head>
@@ -33,9 +33,9 @@
     </header>
     <main class="app-surface content-os-page">
       <section class="page-hero compact">
-        <p class="eyebrow">AI Studio</p>
-        <h1>从 Topic 到 Prompt 的内容生产台</h1>
-        <p class="lead">先用 mock AI 跑通产品链路：选题研究、脚本、提示词、图片/视频占位、Caption、Hashtags、Translation、CTA 和质量检查。</p>
+        <p class="eyebrow">创建内容</p>
+        <h1>从一个主题生成一组可发布内容</h1>
+        <p class="lead">像 SocialBee 的 Copilot 一样，先选择目标、受众、平台和频率，再生成文案、素材提示词、平台版本和审核清单。</p>
       </section>
 
       <section class="ai-studio-layout">
@@ -43,15 +43,20 @@
           <div class="tool-section-head">
             <div>
               <p class="eyebrow">输入</p>
-              <h2>生成内容包</h2>
+              <h2>内容创建向导</h2>
             </div>
-            <span class="credit-pill">0 积分演示</span>
+            <span class="credit-pill">演示模式</span>
           </div>
           <form class="content-os-form" data-ai-studio-form>
-            <label><span>选择 Campaign</span><select name="campaignId" data-campaign-select></select></label>
-            <label><span>Topic</span><textarea name="topic" rows="4">把一个提示词变成完整社媒内容包</textarea></label>
+            <label><span>内容计划</span><select name="campaignId" data-campaign-select></select></label>
+            <label><span>目标</span><select name="goal"><option>引流</option><option>涨粉</option><option>销售转化</option><option>品牌认知</option></select></label>
+            <label><span>目标受众</span><input name="audience" value="独立创作者、小团队和内容运营人员"></label>
+            <label><span>发布平台</span><input name="platforms" value="X, TikTok, YouTube Shorts, Pinterest"></label>
+            <label><span>发布频率</span><input name="frequency" value="每天 1 条"></label>
+            <label><span>内容类型</span><select name="contentType"><option>图文帖</option><option>短视频</option><option>轮播图</option><option>产品广告</option><option>批量内容</option></select></label>
+            <label><span>主题</span><textarea name="topic" rows="4">把一个提示词变成完整社媒内容包</textarea></label>
             <label><span>使用角色</span><select name="character"><option>Mira - 工作室主持人</option><option>Atlas - 产品讲解员</option><option>Nova - 创作者形象</option></select></label>
-            <button class="btn primary full" type="submit">生成 AI Studio 草稿</button>
+            <button class="btn primary full" type="submit">生成内容包并进入审核</button>
           </form>
         </article>
 
@@ -59,11 +64,15 @@
           <div class="tool-section-head">
             <div>
               <p class="eyebrow">输出</p>
-              <h2>内容生产结果</h2>
+              <h2>内容包预览</h2>
             </div>
-            <a href="./zh/pipeline/">进入 Pipeline</a>
+            <a href="./zh/pipeline/">进入内容库</a>
           </div>
           <div class="studio-output-grid" data-ai-studio-output></div>
+          <div class="dashboard-action-row">
+            <a class="btn glass" href="./zh/app/generate/">预留：生成图片素材</a>
+            <a class="btn glass" href="./zh/app/image-to-video/">预留：生成视频素材</a>
+          </div>
         </section>
       </section>
     </main>

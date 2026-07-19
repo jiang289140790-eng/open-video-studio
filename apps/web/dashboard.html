@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>控制台 | Luravyn</title>
     <link rel="icon" type="image/png" href="./favicon.png">
-    <meta name="description" content="Luravyn 登录后产品页面。">
+    <meta name="description" content="Luravyn 个人创作者内容工作台。">
     <link rel="canonical" href="https://luravyn.com/zh/dashboard/">
     <link rel="alternate" hreflang="zh-CN" href="https://luravyn.com/zh/dashboard/">
     <link rel="alternate" hreflang="en" href="https://luravyn.com/en/dashboard/">
@@ -16,59 +16,67 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Luravyn">
     <meta property="og:title" content="控制台 | Luravyn">
-    <meta property="og:description" content="Luravyn 登录后产品页面。">
+    <meta property="og:description" content="把创建、审核、排期和复盘放到同一条创作者工作流里。">
     <meta property="og:url" content="https://luravyn.com/zh/dashboard/">
     <meta property="og:image" content="https://luravyn.com/brand/luravyn-logo-hero.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="控制台 | Luravyn">
-    <meta name="twitter:description" content="Luravyn 登录后产品页面。">
+    <meta name="twitter:description" content="Luravyn 个人创作者内容工作台。">
     <meta name="theme-color" content="#111111">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./index.html"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
-      <nav class="topnav" aria-label="Primary navigation">
-        <a href="./zh/app/generate/">图像工具</a>
-        <a href="./zh/app/image-to-video/">视频工具</a>
-        <a href="./zh/assets/">资产库</a>
-        <a href="./zh/history/">生成任务</a>
-        <a href="./zh/pricing/">购买积分</a>
-      </nav>
-      <nav class="accountnav" aria-label="Account navigation">
-        <a class="daily-check" href="./zh/free-coins/">每日奖励</a>
-        <a href="./zh/login/">登录 / 注册</a>
-      </nav>
-      <a class="btn primary" href="./zh/app/image-to-video/">上传图片生成视频</a>
+      <nav class="topnav" aria-label="Primary navigation"></nav>
+      <nav class="accountnav" aria-label="Account navigation"></nav>
     </header>
 
     <main class="app-surface">
       <section class="page-hero compact">
-        <p class="eyebrow">控制台</p>
-        <h1>继续你的 AI 内容生产流程</h1>
-        <p class="lead">欢迎回来，<span data-user-name>创作者</span>。这里汇总积分、生成任务、最近资产、分享链接和下一步动作。</p>
-      </section>
-
-      <section class="metric-grid dashboard-sections">
-        <article><span>积分</span><strong data-dashboard-credits>40</strong><p>可用于生成图片和视频</p></article>
-        <article><span>生成任务</span><strong data-dashboard-jobs>2</strong><p>最近创建的任务</p></article>
-        <article><span>资产</span><strong data-dashboard-assets>2</strong><p>可复用图片、视频和参考素材</p></article>
-        <article><span>分享链接</span><strong data-dashboard-shares>1</strong><p>公开可访问的作品链接</p></article>
+        <p class="eyebrow">创作者控制台</p>
+        <h1>今天只看最该处理的内容</h1>
+        <p class="lead">欢迎回来，<span data-user-name>创作者</span>。这里把待审核内容、日历排期、账号状态和内容表现收在一屏里。</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="./zh/ai-studio/">创建内容</a>
+          <a class="btn glass" href="./zh/calendar/">查看日历</a>
+        </div>
       </section>
 
       <section class="metric-grid dashboard-sections content-ops-summary">
-        <article><span>进行中 Campaign</span><strong data-dashboard-campaigns>1</strong><p>正在运营的内容计划</p></article>
-        <article><span>生产中内容</span><strong data-dashboard-pipeline>1</strong><p>待审核或待发布的内容</p></article>
-        <article><span>已排期发布</span><strong data-dashboard-scheduled>1</strong><p>进入发布日历的内容</p></article>
-        <article><span>失败发布</span><strong data-dashboard-failed>0</strong><p>需要处理的发布任务</p></article>
-        <article><span>内容生产量</span><strong data-dashboard-volume>1</strong><p>当前内容资产总量</p></article>
-        <article><span>社交流量</span><strong data-dashboard-traffic>650</strong><p>来自发布渠道的点击</p></article>
+        <article><span>待审核内容</span><strong data-dashboard-pipeline>1</strong><p>确认文案、平台版本和素材后即可排期</p></article>
+        <article><span>已排期内容</span><strong data-dashboard-scheduled>1</strong><p>已经进入日历的发布计划</p></article>
+        <article><span>账号异常</span><strong data-dashboard-failed>0</strong><p>需要检查连接或发布状态的任务</p></article>
+        <article><span>内容点击</span><strong data-dashboard-traffic>650</strong><p>来自已发布内容的演示点击</p></article>
       </section>
 
       <section class="dashboard-grid">
-        <article class="panel" data-dashboard-next-action>
+        <article class="panel wide" data-dashboard-next-action>
           <h2>下一步建议</h2>
           <div class="dashboard-list" data-dashboard-next-actions></div>
+        </article>
+
+        <article class="panel wide">
+          <h2>内容工作流</h2>
+          <p class="muted">从一个主题开始，生成内容包，审核后排期发布，再根据数据优化下一批。</p>
+          <div class="dashboard-action-row">
+            <a class="btn primary" href="./zh/ai-studio/">创建内容</a>
+            <a class="btn glass" href="./zh/pipeline/">内容库 / 审核</a>
+            <a class="btn glass" href="./zh/calendar/">日历排期</a>
+            <a class="btn glass" href="./zh/analytics/">数据分析</a>
+          </div>
+        </article>
+
+        <article class="panel">
+          <h2>表现最好的内容</h2>
+          <div class="dashboard-list" data-dashboard-top-content></div>
+          <a class="btn glass" href="./zh/analytics/">查看分析</a>
+        </article>
+
+        <article class="panel">
+          <h2>需要处理的账号</h2>
+          <div class="dashboard-list" data-dashboard-account-attention></div>
+          <a class="btn glass" href="./zh/accounts/">管理账号</a>
         </article>
 
         <article class="panel">
@@ -93,39 +101,6 @@
           <h2>分享链接</h2>
           <div class="dashboard-list" data-dashboard-shares-list></div>
           <a class="btn glass" href="./zh/my-creations/">管理作品</a>
-        </article>
-
-        <article class="panel">
-          <h2>表现最好的内容</h2>
-          <div class="dashboard-list" data-dashboard-top-content></div>
-          <a class="btn glass" href="./zh/analytics/">查看分析</a>
-        </article>
-
-        <article class="panel">
-          <h2>需要处理的账号</h2>
-          <div class="dashboard-list" data-dashboard-account-attention></div>
-          <a class="btn glass" href="./zh/accounts/">管理账号</a>
-        </article>
-
-        <article class="panel wide">
-          <h2>内容运营入口</h2>
-          <p class="muted">从 Campaign、AI Studio、Pipeline、Queue 或 Calendar 继续生产。</p>
-          <div class="dashboard-action-row">
-            <a class="btn primary" href="./zh/campaigns/">创建 Campaign</a>
-            <a class="btn glass" href="./zh/ai-studio/">打开 AI Studio</a>
-            <a class="btn glass" href="./zh/pipeline/">查看 Pipeline</a>
-            <a class="btn glass" href="./zh/calendar/">内容日历</a>
-          </div>
-        </article>
-
-        <article class="panel wide">
-          <h2>快速生成</h2>
-          <p class="muted">从角色、最近资产或提示词预设开始，生成结果会自动进入资产库、生成任务和我的作品。</p>
-          <div class="dashboard-action-row">
-            <a class="btn primary" href="./zh/app/image-to-video/">上传图片生成视频</a>
-            <a class="btn glass" href="./zh/app/generate/">打开图片生成器</a>
-            <a class="btn glass" href="./zh/pricing/">购买积分</a>
-          </div>
         </article>
       </section>
     </main>

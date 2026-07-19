@@ -73,7 +73,7 @@ describe("MVP static frontend", () => {
 
   it("contains required conversion CTAs", () => {
     const combined = requiredPages.map(readPage).join("\n");
-    for (const cta of ["开始创作", "生成第一个场景", "创建角色", "快速生成", "立即购买", "生成相似作品"]) {
+    for (const cta of ["开始创作", "生成第一个场景", "创建角色", "创建内容", "立即购买", "生成相似作品"]) {
       assert.ok(combined.includes(cta), `CTA should exist: ${cta}`);
     }
   });
@@ -272,10 +272,10 @@ describe("MVP static frontend", () => {
       "data-campaign-list",
       "data-ai-studio-form",
       "data-ai-studio-output",
-      "Image Placeholder",
-      "Video Placeholder",
-      "Thumbnail",
-      "Platform Versions",
+      "图片素材位",
+      "视频素材位",
+      "封面缩略图",
+      "平台版本",
       "platform-version-card",
       "data-pipeline-board",
       "data-pipeline-move",
@@ -981,7 +981,7 @@ describe("MVP static frontend", () => {
       "applyGenerationModelVisibility",
       "Fake Worker 内部测试",
       "nav-beta",
-      "开发中",
+      "内容库 / 审核",
       "千问视频生成"
     ]) {
       assert.ok(combined.includes(expected), `MVP closed loop guard should include ${expected}`);
@@ -1078,15 +1078,15 @@ describe("MVP static frontend", () => {
       "renderDashboardNextActions",
       "initialHistoryFilter",
       "dashboard-row",
-      "表现最好的内容",
-      "需要处理的账号",
-      "内容生产量",
-      "社交流量",
+      "下一步建议",
+      "内容工作流",
+      "待审核内容",
+      "内容点击",
       "referral-progress"
     ]) {
       assert.ok(`${referral}\n${dashboard}\n${appScript}\n${styles}`.includes(expected), `reward/dashboard center should include ${expected}`);
     }
-    assert.ok(dashboard.includes("继续你的 AI 内容生产流程"));
+    assert.ok(dashboard.includes("今天只看最该处理的内容"));
     assert.ok(dashboard.includes("最近资产"));
     assert.ok(dashboard.includes("下一步建议"));
     assert.ok(readPage("history.html").includes("查看任务状态、失败原因、退款和输出资产"));
@@ -1164,7 +1164,7 @@ describe("MVP static frontend", () => {
     assert.ok(gallery.includes("生成相似"));
     assert.ok(gallery.includes("复制提示词"));
     assert.ok(gallery.includes("分享"));
-    assert.ok(dashboard.includes("积分"));
+    assert.ok(dashboard.includes("创建内容"));
     assert.ok(dashboard.includes("最近生成"));
     assert.ok(dashboard.includes("任务"));
     assert.ok(dashboard.includes("保存角色"));

@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI 工具 | Luravyn</title>
+    <link rel="icon" type="image/png" href="./favicon.png">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
+      <nav class="topnav"><a href="./zh/image-tools/">图像工具</a><a href="./zh/video-tools/">视频工具</a><a href="./zh/pricing/">购买积分</a><a href="./zh/free-coins/">免费硬币</a><a href="./zh/my-creations/">我的创作</a></nav>
+      <nav class="accountnav"><a class="daily-check" href="./zh/free-coins/">Daily Check-in</a><a href="./zh/login/">登录</a></nav>
+    </header>
+    <div class="app-layout">
+      <aside class="side-rail">
+        <nav class="rail-menu">
+          <a class="side-link" href="./app.html">首页</a>
+          <a class="side-link" href="./spicy-effects.html">辛辣效果 <span class="badge-hot">HOT</span></a>
+          <p class="side-label">AI 图像</p>
+          <a class="side-link tn-img" href="./tool.html?tool=image-editor">图片编辑器</a>
+          <a class="side-link tn-img" href="./tool.html?tool=face-swap">AI 换脸</a>
+          <a class="side-link tn-img" href="./tool.html?tool=outfit-studio">性感礼服</a>
+          <a class="side-link tn-img" href="./tool.html?tool=pose-generator">性爱姿势</a>
+          <p class="side-label">AI 视频</p>
+          <a class="side-link tn-vid" href="./tool.html?tool=image-to-video">图片转视频</a>
+          <a class="side-link" href="./zh/my-creations/">我的创作</a>
+        </nav>
+        <div class="rail-actions"><a href="./zh/referral/">推荐好友</a><a class="rail-upgrade" href="./zh/pricing/?from=sidebar">立即升级</a></div>
+      </aside>
+      <main class="app-surface tool-page" id="toolRoot"></main>
+    </div>
+
+    <!-- Effect Selector Modal -->
+    <div class="modal-overlay" id="effectModal" style="display:none">
+      <div class="modal-sheet">
+        <div class="modal-head">
+          <h2 id="modalTitle">选择辣味效果</h2>
+          <button class="modal-close" id="modalClose">✕</button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+      </div>
+    </div>
+
+    <script src="./spicy-effects-data.js"></script>
+    <script src="./tool-config.js"></script>
+    <script>
+    (function() {
+      var cfg = window.__TOOL_CONFIG__;
+      var spicy = window.__SPICY_DATA__;
+      if (!cfg || !spicy) return setTimeout(arguments.callee, 50);
+
+      var root = document.getElementById('toolRoot');
+      var modal = document.getElementById('effectModal');
+      var modalTitle = document.getElementById('modalTitle');
+      var modalBody = document.getElementById('modalBody');
+      var modalClose = document.getElementById('modalClose');
+      if (!root) return;
+
+      var params = new URLSearchParams(location.search);
+      var toolId = params.get('tool') || 'image-editor';
+      var tool = cfg[toolId] || cfg['image-editor'];
+      var selectedEffect = null;
+
+      // ── Initialize default effect ──
+      if (tool.effectSelector) {
+        var source = tool.effectSelector.source;
+        var defaultCards = [];
+        if (source === 'spicy-effects-data.js') { defaultCards = spicy.cards; }
+        else if (source === 'outfit-studio') {
+          var td = window.__TOOLS_DATA__;
+          if (td && td.sections) { var sec = td.sections.find(function(s) { return s.id === 'sexy-outfits'; }); if (sec) defaultCards = sec.items; }
+        } else if (source === 'pose-generator') {
+          var td2 = window.__TOOLS_DATA__;
+          if (td2 && td2.sections) { var sec2 = td2.sections.find(function(s) { return s.id === 'pose-generator'; }); if (sec2) defaultCards = sec2.items; }
+        }
+        if (defaultCards.length > 0) {
+          selectedEffect = {
+            name: defaultCards[0].name,
+            image: defaultCards[0].image || defaultCards[0].img || '',
+            link: defaultCards[0].link || ''
+          };
+        }
+      }
+
+      function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+      document.title = tool.name + ' | Luravyn';
+      var allLinks = document.querySelectorAll('.side-link');
+      allLinks.forEach(function(l) { l.classList.remove('active'); });
+      var nav = document.querySelector('.tn-img[href*="'+toolId+'"], .tn-vid[href*="'+toolId+'"]');
+      if (nav) nav.classList.add('active');
+
+      // ── Render Page ──
+      function render() {
+        root.innerHTML =
+          '<div class="tool-generator">' +
+            '<div class="tool-control">' +
+              '<a class="tool-back" href="./app.html">← 返回</a>' +
+              '<h1 class="tool-title">' + esc(tool.name) + '</h1>' +
+              '<p class="tool-desc">' + esc(tool.desc) + '</p>' +
+              (tool.upload.multiple ?
+                '<div class="tool-mode-tabs"><button class="mode-tab active">单张图片</button><button class="mode-tab">多张图片</button></div>' : '') +
+              '<div class="tool-upload-zone" id="uploadZone">' +
+                '<div class="upload-inner"><span class="upload-icon">📁</span><span class="upload-text">点击或拖拽上传图片</span><span class="upload-hint">' + esc(tool.upload.hint) + '</span></div>' +
+                '<input type="file" accept="' + esc(tool.upload.accept) + '" style="display:none" id="fileInput">' +
+              '</div>' +
+              '<div class="tool-prompt-area">' +
+                '<label class="tool-prompt-label">' + esc(tool.prompt.label) + '</label>' +
+                '<textarea class="tool-prompt-input" placeholder="' + esc(tool.prompt.placeholder) + '" rows="3"></textarea>' +
+                '<span class="tool-prompt-hint">' + esc(tool.prompt.hint) + '</span>' +
+              '</div>' +
+              (tool.effectSelector ? renderEffectSelector() : '') +
+              (tool.extra && tool.extra.duration ?
+                '<div class="tool-extra-params"><label class="tool-param-label">视频时长</label><select class="tool-param-select"><option>2 秒</option><option>4 秒</option><option>6 秒</option></select></div>' : '') +
+              '<div class="tool-credit-row">' +
+                '<span class="tool-credit">消耗 <strong>' + tool.credit + '</strong> 积分</span>' +
+                '<button class="tool-create-btn" id="createBtn">创建</button>' +
+              '</div>' +
+            '</div>' +
+            '<div class="tool-result" id="resultPanel">' +
+              '<div class="tool-result-head"><h2>生成结果</h2></div>' +
+              '<div class="tool-result-empty" id="emptyState"><span class="empty-icon">🖼</span><strong>暂无历史记录</strong><p>上传图片并点击创建，结果将在这里显示</p></div>' +
+              '<div class="tool-result-list" id="resultList" style="display:none"></div>' +
+            '</div>' +
+          '</div>';
+      }
+
+      function renderEffectSelector() {
+        var eff = tool.effectSelector;
+        var display = selectedEffect || { name: '点击选择效果', image: '' };
+        return '<div class="tool-effect-selector">' +
+          '<label class="tool-prompt-label">' + esc(eff.label) + '</label>' +
+          '<button class="effect-pick-btn" id="effectPickBtn">' +
+            '<span class="ep-selected">' +
+              (display.image ? '<img src="' + esc(display.image) + '" alt="">' : '') +
+              '<div class="ep-info"><strong>' + esc(display.name) + '</strong>' +
+              (display.desc ? '<small>' + esc(display.desc) + '</small>' : '') +
+              '</div>' +
+            '</span>' +
+            '<span class="ep-arrow">▸</span>' +
+          '</button>' +
+        '</div>';
+      }
+
+      function openModal() {
+        var source = tool.effectSelector.source;
+        var cards = [];
+        if (source === 'spicy-effects-data.js') { cards = spicy.cards; }
+        else if (source === 'outfit-studio') {
+          // Use the sexy outfits section from tools-data
+          var td = window.__TOOLS_DATA__;
+          if (td && td.sections) {
+            var sec = td.sections.find(function(s) { return s.id === 'sexy-outfits'; });
+            if (sec) cards = sec.items;
+          }
+        } else if (source === 'pose-generator') {
+          var td2 = window.__TOOLS_DATA__;
+          if (td2 && td2.sections) {
+            var sec2 = td2.sections.find(function(s) { return s.id === 'pose-generator'; });
+            if (sec2) cards = sec2.items;
+          }
+        }
+
+        modalTitle.textContent = tool.effectSelector.label;
+        var filterTags = spicy.filterTags || [];
+        var filterHtml = filterTags.length ?
+          '<div class="modal-filter-row">' +
+            filterTags.map(function(t, i) {
+              return '<button class="section-chip' + (i===0?' active':'') + '" type="button">' + esc(t) + '</button>';
+            }).join('') +
+          '</div>' : '';
+
+        modalBody.innerHTML = filterHtml +
+          '<div class="modal-card-grid">' +
+            cards.map(function(c) {
+              return '<button class="modal-card" data-name="' + esc(c.name) + '" data-img="' + esc(c.image || c.img || '') + '" data-link="' + esc(c.link || '') + '">' +
+                (c.image ? '<img src="' + esc(c.image) + '" alt="' + esc(c.name) + '" loading="lazy">' : '<div class="modal-card-img"></div>') +
+                '<div class="modal-card-body"><strong>' + esc(c.name) + '</strong><small>' + esc(c.desc || '') + '</small></div>' +
+              '</button>';
+            }).join('') +
+          '</div>';
+
+        modal.style.display = 'flex';
+
+        // Bind filter clicks
+        var chips = modalBody.querySelectorAll('.section-chip');
+        chips.forEach(function(chip) {
+          chip.addEventListener('click', function() {
+            chips.forEach(function(c) { c.classList.remove('active'); });
+            chip.classList.add('active');
+          });
+        });
+
+        // Bind card selections
+        var mcards = modalBody.querySelectorAll('.modal-card');
+        mcards.forEach(function(mc) {
+          mc.addEventListener('click', function() {
+            mcards.forEach(function(c) { c.classList.remove('selected'); });
+            mc.classList.add('selected');
+            selectedEffect = {
+              name: mc.getAttribute('data-name'),
+              image: mc.getAttribute('data-img'),
+              link: mc.getAttribute('data-link')
+            };
+            closeModal();
+            render();
+            bindEvents();
+          });
+        });
+      }
+
+      function closeModal() { modal.style.display = 'none'; }
+
+      function bindEvents() {
+        var uploadZone = document.getElementById('uploadZone');
+        var fileInput = document.getElementById('fileInput');
+        if (uploadZone && fileInput) {
+          uploadZone.addEventListener('click', function() { fileInput.click(); });
+          uploadZone.addEventListener('dragover', function(e) { e.preventDefault(); uploadZone.classList.add('dragover'); });
+          uploadZone.addEventListener('dragleave', function() { uploadZone.classList.remove('dragover'); });
+          uploadZone.addEventListener('drop', function(e) { e.preventDefault(); uploadZone.classList.remove('dragover'); });
+          fileInput.addEventListener('change', function() {
+            if (fileInput.files.length) {
+              uploadZone.querySelector('.upload-text').textContent = fileInput.files[0].name;
+              uploadZone.classList.add('has-file');
+            }
+          });
+        }
+        var modeTabs = document.querySelectorAll('.mode-tab');
+        modeTabs.forEach(function(tab) {
+          tab.addEventListener('click', function() {
+            modeTabs.forEach(function(t) { t.classList.remove('active'); });
+            tab.classList.add('active');
+          });
+        });
+        var effectBtn = document.getElementById('effectPickBtn');
+        if (effectBtn) effectBtn.addEventListener('click', openModal);
+        var createBtn = document.getElementById('createBtn');
+        if (createBtn) {
+          createBtn.addEventListener('click', function() {
+            var empty = document.getElementById('emptyState');
+            var list = document.getElementById('resultList');
+            if (empty) empty.style.display = 'none';
+            if (list) {
+              list.style.display = 'block';
+              list.innerHTML = '<div class="result-card generating"><span class="result-status">⏳ 生成中...</span><p>正在处理你的请求，请稍候</p></div>';
+            }
+          });
+        }
+      }
+
+      modalClose.addEventListener('click', closeModal);
+      modal.addEventListener('click', function(e) { if (e.target === modal) closeModal(); });
+
+      render();
+      bindEvents();
+    })();
+    </script>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
