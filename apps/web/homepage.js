@@ -4,10 +4,10 @@ import { getSupabaseClient, isSupabaseConfigured } from "./supabase-client.js";
 const catalog = Array.isArray(window.__EFFECT_CATALOG__) ? window.__EFFECT_CATALOG__ : [];
 const cardSystem = window.EffectCardSystem;
 
-// These are presentation records only. Availability is intentionally conservative:
-// IMAGE_GENERATION_E2E_REPORT.md and VIDEO_GENERATION_E2E_REPORT.md are both BLOCKED.
+// Availability follows the server-side tool/workflow registry. Unvalidated tools
+// remain unavailable even when their presentation route already exists.
 const tools = [
-  { id: "ai-image", name: "AI 图片生成", description: "输入描述创建全新图片", kind: "image", icon: "✦", route: "./zh/app/generate/", placement: "featured", availability: "coming_soon" },
+  { id: "ai-image", name: "AI 图片生成", description: "输入描述创建全新图片", kind: "image", icon: "✦", route: "./zh/app/generate/", placement: "featured", availability: "active" },
   { id: "image-editor", name: "图片编辑", description: "重绘、扩图与局部修改", kind: "image", icon: "⌁", route: "./zh/app/image-editor/", placement: "popular", availability: "coming_soon" },
   { id: "image-combiner", name: "多图合成", description: "组合多张参考素材", kind: "image", icon: "▦", route: "./zh/app/image-combiner/", placement: "preview", availability: "coming_soon" },
   { id: "face-swap", name: "AI 换脸", description: "替换已授权角色的人脸", kind: "image", icon: "◎", route: "./zh/app/face-swap/", placement: "popular", availability: "restricted" },
@@ -68,7 +68,8 @@ function setStatus(message, tone = "neutral") {
 
 function updateGenerateState() {
   const effect = selectedEffect();
-  const ready = Boolean(effect && (selectedFile || promptInput?.value.trim()));
+  const promptReady = Boolean(promptInput?.value.trim());
+  const ready = Boolean(effect && (selectedMode === "image" ? promptReady : selectedFile && promptReady));
   if (generateButton) {
     generateButton.disabled = !ready;
     generateButton.textContent = ready ? "开始创建" : effectsForMode().length ? "添加图片或描述后创建" : "真实生成能力验收中";
@@ -106,6 +107,7 @@ function renderEffectOptions() {
     item.textContent = effect.name;
     effectSelect.append(item);
   });
+  if (effects.length === 1) effectSelect.value = effects[0].id;
   updateGenerateState();
 }
 

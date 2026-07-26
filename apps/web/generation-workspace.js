@@ -80,6 +80,7 @@ const TOOL_DEFINITIONS = Object.freeze({
     outputLabel: "生成图片",
     uploadOptional: true,
     e2eVerified: false,
+    productionEnabled: true,
     examples: [
       "清晨海边的现代玻璃屋，柔和自然光，真实摄影质感，细节清晰",
       "雨夜城市街道，霓虹灯倒影，电影感构图，真实摄影风格",
@@ -327,7 +328,7 @@ function getTaskResultUrl(task) {
 }
 
 function hasConfiguredWorkflow() {
-  if (state.tool?.e2eVerified === false) return false;
+  if (state.tool?.e2eVerified === false && state.tool?.productionEnabled !== true) return false;
   if (!state.catalogTool || !state.workflow) return false;
   const status = String(state.workflow.status || "").toLowerCase();
   const inputSchema = state.workflow.input_schema;
@@ -1741,10 +1742,11 @@ async function loadWorkspaceData() {
   }
   const client = getSupabaseClient();
   try {
+    const catalogSlug = state.toolId === "image-generate" ? "generate" : state.toolId;
     const { data: tool } = await client
       .from("tools")
       .select("id,slug,name,status,credits_cost,free_credits,cost_per_run,workflow_id")
-      .eq("slug", state.toolId)
+      .eq("slug", catalogSlug)
       .in("status", ["published", "active"])
       .maybeSingle();
     state.catalogTool = tool || null;
@@ -2557,6 +2559,18 @@ async function init() {
     state.uploaderMessage = "未上传参考图；可直接使用文字描述。";
   }
   bindEvents();
+  if (state.toolId === "image-generate") {
+    try {
+      const intent = JSON.parse(sessionStorage.getItem("ovs_homepage_generation_intent_v1") || "null");
+      const promptInput = root.querySelector("[data-generation-prompt]");
+      if (intent?.mode === "image" && promptInput && typeof intent.prompt === "string") {
+        promptInput.value = intent.prompt;
+        sessionStorage.removeItem("ovs_homepage_generation_intent_v1");
+      }
+    } catch {
+      sessionStorage.removeItem("ovs_homepage_generation_intent_v1");
+    }
+  }
   renderFileList();
   if (state.tool.uploadOptional) {
     setUploaderState("ready", state.uploaderMessage);

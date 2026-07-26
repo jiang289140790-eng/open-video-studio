@@ -17,6 +17,20 @@
   });
 
   const catalog = [
+    preview({
+      id: "tool-ai-image",
+      slug: "generate",
+      name: "AI 图片生成",
+      category: "image-tool",
+      description: "输入描述创建全新图片",
+      route: "./zh/app/generate/",
+      workflow_id: "workflow-zealman-image-a01-v1",
+      workflow_status: "active",
+      status: "active",
+      credits: 8,
+      badge: "ACTIVE",
+      estimated_time: "以实时队列为准"
+    }),
     preview({ id: "tool-image-editor", slug: "image-editor", name: "图片编辑器", category: "image-tool", description: "重绘、扩图与修复", route: "./zh/app/image-editor/", workflow_id: "workflow-hifun-image-editor-v1" }),
     preview({ id: "tool-face-swap", slug: "face-swap", name: "AI 换脸", category: "image-tool", description: "授权虚构角色换脸", route: "./zh/app/face-swap/", workflow_id: "workflow-hifun-face-swap-v1" }),
     preview({ id: "tool-outfit-studio", slug: "outfit-studio", name: "性感礼服", category: "outfit", description: "服饰与造型选择", route: "./zh/app/outfit-studio/", workflow_id: "workflow-hifun-outfit-v1" }),
