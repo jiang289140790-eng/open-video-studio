@@ -5,106 +5,115 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>我的创作 | Luravyn</title>
     <link rel="icon" type="image/png" href="./favicon.png">
-    <meta name="description" content="Luravyn 登录后产品页面。">
-    <link rel="canonical" href="https://luravyn.com/zh/my-creations/">
-    <link rel="alternate" hreflang="zh-CN" href="https://luravyn.com/zh/my-creations/">
-    <link rel="alternate" hreflang="en" href="https://luravyn.com/en/my-creations/">
-    <link rel="alternate" hreflang="ja" href="https://luravyn.com/ja/my-creations/">
-    <link rel="alternate" hreflang="ko" href="https://luravyn.com/ko/my-creations/">
-    <link rel="alternate" hreflang="x-default" href="https://luravyn.com/en/my-creations/">
+    <meta name="description" content="管理你的 Luravyn 图片、视频与生成任务。">
     <meta name="robots" content="noindex,follow">
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Luravyn">
-    <meta property="og:title" content="我的创作 | Luravyn">
-    <meta property="og:description" content="Luravyn 登录后产品页面。">
-    <meta property="og:url" content="https://luravyn.com/zh/my-creations/">
-    <meta property="og:image" content="https://luravyn.com/brand/luravyn-logo-hero.png">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="我的创作 | Luravyn">
-    <meta name="twitter:description" content="Luravyn 登录后产品页面。">
     <meta name="theme-color" content="#111111">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./index.html"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
-      <nav class="topnav" aria-label="Primary navigation"><a href="./zh/app/generate/">图像工具</a><a href="./zh/app/image-to-video/">视频工具</a><a href="./zh/pricing/">购买积分</a><a href="./zh/free-coins/">免费硬币</a><a href="./zh/my-creations/" aria-current="page">我的创作</a></nav>
-      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./zh/free-coins/">每日签到</a><a href="./zh/login/">登录</a></nav>
+      <nav class="topnav" aria-label="主导航">
+        <a href="./zh/app/generate/">图像工具</a>
+        <a href="./zh/app/image-to-video/">视频工具</a>
+        <a href="./zh/pricing/">购买积分</a>
+        <a href="./zh/free-coins/">免费积分</a>
+        <a href="./zh/my-creations/" aria-current="page">我的作品</a>
+      </nav>
+      <nav class="accountnav" aria-label="账户导航">
+        <a class="daily-check" href="./zh/free-coins/">每日奖励</a>
+        <a href="./zh/login/">登录</a>
+      </nav>
     </header>
+
     <div class="app-layout">
-      <aside class="side-rail" aria-label="&#x5DE5;&#x5177;&#x5BFC;&#x822A;">
-        <nav class="rail-menu" aria-label="&#x5DE5;&#x5177;&#x83DC;&#x5355;">
-          <a class="side-link" href="./zh/app/">&#x9996;&#x9875;</a>
-          <a class="side-link" href="./zh/app/spicy-effects/">&#x8F9B;&#x8FA3;&#x6548;&#x679C; <span class="badge-hot">HOT</span></a>
-          <p class="side-label">AI &#x56FE;&#x50CF;</p>
-          <a class="side-link" href="./zh/app/image-editor/">&#x56FE;&#x7247;&#x7F16;&#x8F91;&#x5668;</a>
-          <a class="side-link" href="./zh/app/face-swap/">AI &#x6362;&#x8138;</a>
-          <a class="side-link" href="./zh/app/outfit-studio/">&#x6027;&#x611F;&#x793C;&#x670D;</a>
-          <a class="side-link" href="./zh/app/pose-generator/">&#x6027;&#x7231;&#x59FF;&#x52BF;</a>
-          <p class="side-label">AI &#x89C6;&#x9891;</p>
-          <a class="side-link" href="./zh/app/image-to-video/">&#x56FE;&#x7247;&#x8F6C;&#x89C6;&#x9891;</a>
-          <a class="side-link active" href="./zh/my-creations/" aria-current="page">&#x6211;&#x7684;&#x521B;&#x4F5C;</a>
+      <aside class="side-rail" aria-label="工具导航">
+        <nav class="rail-menu" aria-label="工具菜单">
+          <a class="side-link" href="./zh/app/">首页</a>
+          <a class="side-link" href="./zh/app/spicy-effects/">辣味效果 <span class="badge-hot">HOT</span></a>
+          <p class="side-label">AI 图像</p>
+          <a class="side-link" href="./zh/app/image-editor/">图片编辑器</a>
+          <a class="side-link" href="./zh/app/face-swap/">AI 换脸</a>
+          <a class="side-link" href="./zh/app/outfit-studio/">性感礼服</a>
+          <a class="side-link" href="./zh/app/pose-generator/">性爱姿势</a>
+          <p class="side-label">AI 视频</p>
+          <a class="side-link" href="./zh/app/image-to-video/">图片转视频</a>
+          <a class="side-link active" href="./zh/my-creations/" aria-current="page">我的作品</a>
         </nav>
-        <div class="rail-actions" aria-label="&#x8D26;&#x6237;&#x5FEB;&#x6377;&#x5165;&#x53E3;">
-          <a href="./zh/referral/">&#x63A8;&#x8350;&#x597D;&#x53CB;</a>
-          <a class="rail-upgrade" href="./zh/pricing/?from=sidebar">&#x7ACB;&#x5373;&#x5347;&#x7EA7;</a>
+        <div class="rail-actions" aria-label="账户快捷入口">
+          <a href="./zh/referral/">推荐好友</a>
+          <a class="rail-upgrade" href="./zh/pricing/?from=sidebar">立即升级</a>
         </div>
       </aside>
-      <main class="app-surface creations-page">
-      <section class="creation-hero art-9">
-        <div>
-          <p class="eyebrow">我的创作</p>
-          <h1>管理你的 AI 作品、资产和分享链接</h1>
-          <p class="lead">所有生成结果都会沉淀为可复用资产：图片、视频、提示词、角色引用和后续工作流入口都在这里统一管理。</p>
-          <div class="hero-actions"><a class="btn primary" href="./zh/app/generate/">继续创作</a><a class="btn glass" href="./zh/assets/">打开资产库</a></div>
-        </div>
-        <aside class="creation-hero-panel">
-          <span>当前工作区</span>
-          <strong data-user-name>访客创作者</strong>
-          <p>积分余额 <b data-credit-balance>40</b></p>
-        </aside>
-      </section>
 
-      <section class="creation-stats metric-grid">
-        <article><span>作品</span><strong data-creation-count>0</strong><p>图片与视频资产</p></article>
-        <article><span>公开链接</span><strong data-creation-shares>0</strong><p>可分享页面</p></article>
-        <article><span>收藏</span><strong data-creation-favorites>0</strong><p>重点复用资产</p></article>
-        <article><span>生成任务</span><strong data-creation-jobs>0</strong><p>历史记录</p></article>
-      </section>
+      <main class="app-surface creations-page consumer-creations-page">
+        <section class="consumer-creations-head">
+          <div>
+            <p class="eyebrow">我的作品</p>
+            <h1>创作中心</h1>
+            <p class="muted">查看生成中的任务，管理已完成的图片和视频。</p>
+          </div>
+          <div class="consumer-creations-head-actions">
+            <a class="btn glass" href="./zh/app/">浏览工具</a>
+            <a class="btn primary" href="./zh/app/generate/">开始创作</a>
+          </div>
+        </section>
 
-      <section class="creation-toolbar">
-        <input class="search" data-creation-search placeholder="搜索作品、角色、提示词、模型或状态">
-        <div class="gallery-tabs">
-          <button class="tab active" type="button" data-creation-filter="all">全部</button>
-          <button class="tab" type="button" data-creation-filter="image">图片</button>
-          <button class="tab" type="button" data-creation-filter="video">视频</button>
-          <button class="tab" type="button" data-creation-filter="favorite">收藏</button>
-          <button class="tab" type="button" data-creation-filter="public">公开</button>
-          <button class="tab" type="button" data-creation-filter="private">私密</button>
-        </div>
-      </section>
+        <section class="creation-toolbar consumer-creation-toolbar" aria-label="作品筛选">
+          <label class="creation-search-field">
+            <span class="sr-only">搜索作品</span>
+            <input class="search" data-creation-search placeholder="搜索作品、工具或提示词">
+          </label>
+          <div class="gallery-tabs" role="group" aria-label="类型与状态">
+            <button class="tab active" type="button" data-creation-filter="all">全部</button>
+            <button class="tab" type="button" data-creation-filter="image">图片</button>
+            <button class="tab" type="button" data-creation-filter="video">视频</button>
+            <button class="tab" type="button" data-creation-filter="running">生成中</button>
+            <button class="tab" type="button" data-creation-filter="failed">失败</button>
+            <button class="tab" type="button" data-creation-filter="favorite">已收藏</button>
+          </div>
+          <label class="creation-privacy-filter">
+            <span>可见性</span>
+            <select data-creation-privacy>
+              <option value="all">全部</option>
+              <option value="private">私密</option>
+              <option value="public">公开</option>
+            </select>
+          </label>
+        </section>
 
-      <section class="tool-section">
-        <div class="tool-section-head">
-          <div><h2>作品中心</h2><small>生成结果可以继续分享、复制提示词、重新生成或进入资产库。</small></div>
-          <a href="./zh/app/generate/">生成新作品</a>
-        </div>
-        <div class="creation-grid-dynamic" data-creation-list></div>
-      </section>
+        <section class="consumer-creations-content">
+          <div class="consumer-creations-title">
+            <div>
+              <h2>作品与任务</h2>
+              <p class="muted" data-creation-summary>登录后查看你的创作记录</p>
+            </div>
+            <button class="btn glass compact" type="button" data-refresh-creations>刷新</button>
+          </div>
+          <div class="creation-grid-dynamic consumer-creation-grid" data-creation-list></div>
+        </section>
 
-      <section class="creation-split">
-        <article class="panel">
-          <div class="tool-section-head"><div><h2>最近生成</h2><small>从历史任务快速追踪成本、模型和输出。</small></div><a href="./zh/history/">完整历史</a></div>
-          <div class="creation-history-list" data-creation-history></div>
-        </article>
-        <article class="panel creation-next">
-          <p class="eyebrow">下一步</p>
-          <h2>把作品变成可复用素材</h2>
-          <p class="muted">保存角色、复制提示词、公开分享链接，或者把图片继续转成视频。</p>
-          <div class="section-actions"><a class="btn primary" href="./zh/app/image-to-video/">图片转视频</a><a class="btn glass" href="./zh/app/characters/">管理角色</a></div>
-        </article>
-      </section>
-    </main>\n    </div>
+        <section class="creator-workspace-entry">
+          <div>
+            <p class="eyebrow">高级资产</p>
+            <h2>需要角色、提示词、工作流或发布管理？</h2>
+            <p class="muted">这些专业功能已从消费者作品首屏收起，仍可在独立工作台中使用。</p>
+          </div>
+          <a class="btn glass" href="./zh/dashboard/">进入创作者工作台</a>
+        </section>
+      </main>
+    </div>
+
+    <dialog class="creation-dialog" data-creation-preview-dialog>
+      <button class="creation-dialog-close" type="button" data-close-creation-dialog aria-label="关闭">×</button>
+      <div data-creation-preview-content></div>
+    </dialog>
+
+    <dialog class="creation-dialog creation-share-dialog" data-creation-share-dialog>
+      <button class="creation-dialog-close" type="button" data-close-creation-dialog aria-label="关闭">×</button>
+      <div data-creation-share-content></div>
+    </dialog>
+
     <script type="module" src="./app.js"></script>
   </body>
 </html>

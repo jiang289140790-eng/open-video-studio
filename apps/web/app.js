@@ -1,5 +1,15 @@
 ﻿import { supabase as authSupabase } from "./supabase-client.js";
 import { getSession, loginWithProvider, logout, onAuthStateChange } from "./auth-service.js";
+import { getPerformanceSummary } from "../../src/services/performance-service.js";
+import { ensureGlobalFloatingActions, setupConsumerAppShell } from "./consumer-shell.js";
+import { setupVisualDesignSystem } from "./design-system.js";
+import {
+  DEFAULT_CONSUMER_PRICING,
+  PRICING_SETTING_KEY,
+  normalizeConsumerPricing,
+  offerCredits,
+  packageMetrics
+} from "./pricing-config.js";
 
 const STORE_KEY = "ovs_mvp_state_v1";
 const COOKIE_PREF_KEY = "ovs_cookie_preferences_v1";
@@ -8,6 +18,9 @@ const PRODUCT_EVENT_LIMIT = 250;
 const AUTH_RETURN_KEY = "ovs_auth_return_target_v1";
 const VIDEO_DRAFT_KEY = "ovs_video_generation_draft_v1";
 const GENERATION_RECOVERY_KEY = "ovs_generation_recovery_v1";
+const REFERRAL_DEVICE_KEY = "luravyn_referral_device_v1";
+const REFERRAL_PENDING_KEY = "luravyn_pending_referral_v1";
+let rewardProgramStatus = null;
 const APP_SHELL_PAGES = new Set([
   "app.html",
   "gallery.html",
@@ -95,22 +108,27 @@ const AUTH_ROUTE_ALIASES = new Map([
   ["reset-password", "reset-password.html"],
   ["share", "share.html"]
 ]);
-const PAYMENT_PROVIDERS = [
+const PAYMENT_PROVIDER_DEFINITIONS = [
   {
     id: "stripe",
     label: "Stripe 卡支付",
     shortLabel: "Stripe",
-    configured: import.meta.env.VITE_STRIPE_BILLING_ENABLED === "true" && Boolean(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY),
-    note: "支持银行卡和本地钱包；配置 Stripe Key 后启用真实结账。"
+    configured: false,
+    mode: "unknown",
+    note: "支持银行卡和已启用的钱包。"
   },
   {
     id: "paypal",
     label: "PayPal",
     shortLabel: "PayPal",
     configured: false,
-    note: "支持 PayPal 钱包；配置 PayPal Client ID / Secret 后启用真实结账。"
+    mode: "unknown",
+    note: "支持 PayPal 钱包。"
   }
 ];
+let paymentProviders = structuredClone(PAYMENT_PROVIDER_DEFINITIONS);
+let consumerPricingConfig = normalizeConsumerPricing(DEFAULT_CONSUMER_PRICING);
+let checkoutInFlight = false;
 const I18N_LOCALES = {
   "zh-CN": { label: "简体中文", short: "文A", status: "complete" },
   en: { label: "English", short: "EN", status: "mvp" },
@@ -761,6 +779,8 @@ state.contentItems = Array.isArray(state.contentItems) ? state.contentItems : st
 state.contentQueue = Array.isArray(state.contentQueue) ? state.contentQueue : structuredClone(defaultState.contentQueue);
 state.socialAccounts = Array.isArray(state.socialAccounts) ? state.socialAccounts : structuredClone(defaultState.socialAccounts);
 state.contentAnalytics = Array.isArray(state.contentAnalytics) ? state.contentAnalytics : structuredClone(defaultState.contentAnalytics);
+state.performanceMetricsLoaded = false;
+state.performanceStrategies = [];
 state.automationRules = Array.isArray(state.automationRules) ? state.automationRules : structuredClone(defaultState.automationRules);
 state.contentSettings = state.contentSettings && typeof state.contentSettings === "object" ? { ...defaultState.contentSettings, ...state.contentSettings } : structuredClone(defaultState.contentSettings);
 state.agentTasks = Array.isArray(state.agentTasks) ? state.agentTasks : [];
@@ -903,6 +923,7 @@ renderOAuthReadiness();
 renderToolHomeDirectory();
 normalizeInternalRoutes();
 renderCookieBanner();
+captureReferralVisit();
 hydrateAuthSession();
 bindSupabaseAuthState();
 
@@ -1123,10 +1144,18 @@ function getCurrentAnalyticsPage() {
 }
 
 function sanitizeAnalyticsProperties(properties = {}) {
+  const sensitiveKeyPattern = /(prompt|token|secret|key|authorization|cookie|image|file|blob|card|payment|url)/i;
   return Object.fromEntries(Object.entries(properties)
-    .filter(([, value]) => value === null || ["string", "number", "boolean"].includes(typeof value))
+    .filter(([key, value]) => !sensitiveKeyPattern.test(key)
+      && (value === null || ["string", "number", "boolean"].includes(typeof value)))
     .map(([key, value]) => [key, typeof value === "string" ? value.slice(0, 160) : value]));
 }
+
+const PRODUCT_EVENT_ALIASES = Object.freeze({
+  generation_submitted: "generation_submit",
+  credit_purchase_started: "checkout_start",
+  asset_shared: "creation_share"
+});
 
 function readProductEvents() {
   try {
@@ -1139,9 +1168,12 @@ function readProductEvents() {
 
 function trackProductEvent(name, properties = {}) {
   if (!name || !shouldTrackProductEvent()) return null;
+  const canonicalName = name === "credit_purchase_completed"
+    ? (String(properties.fulfillment || "").includes("demo") ? "checkout_simulated" : "checkout_success")
+    : (PRODUCT_EVENT_ALIASES[name] || name);
   const event = {
     id: `evt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    name,
+    name: canonicalName,
     page: getCurrentAnalyticsPage(),
     path: window.location.pathname,
     createdAt: new Date().toISOString(),
@@ -1151,6 +1183,22 @@ function trackProductEvent(name, properties = {}) {
   localStorage.setItem(PRODUCT_EVENT_KEY, JSON.stringify(events));
   return event;
 }
+
+function trackInitialConsumerPageView() {
+  const page = getCurrentAnalyticsPage();
+  if (page === "app.html" || page === "index.html") {
+    trackProductEvent("homepage_view");
+  }
+  if (page === "pricing.html") {
+    trackProductEvent("pricing_view");
+  }
+  const effectSlug = new URLSearchParams(window.location.search).get("preset");
+  if (effectSlug) {
+    trackProductEvent("effect_view", { effectSlug });
+  }
+}
+
+trackInitialConsumerPageView();
 
 function renderCookieBanner() {
   if (document.body.classList.contains("share-body") || getCookiePreferences() || document.querySelector(".cookie-banner")) return;
@@ -1250,6 +1298,7 @@ function renderAccountNavigation(current) {
   }
   const initial = (current.user.name || "创作者").trim().charAt(0).toUpperCase();
   const avatarUrl = String(current.user.avatarUrl || "");
+  const consumerAccountMenu = document.body.classList.contains("consumer-app-page");
   accountnav.innerHTML = `
     <a class="daily-check" href="./zh/free-coins/">🎁 每日奖励</a>
     <a class="account-credit" href="./zh/pricing/"><span data-credit-balance>${current.credits}</span> 积分</a>
@@ -1257,19 +1306,23 @@ function renderAccountNavigation(current) {
     <div class="account-menu">
       <button class="account-trigger" type="button" aria-expanded="false"><span data-auth-avatar>${escapeHtml(initial)}</span><b data-user-name>${escapeHtml(current.user.name)}</b></button>
       <div class="account-dropdown">
-        <a href="./zh/dashboard/">控制台</a>
-        <a href="./zh/ai-studio/">创建内容</a>
-        <a href="./zh/pipeline/">内容库 / 审核</a>
-        <a href="./zh/calendar/">日历排期</a>
-        <a href="./zh/analytics/">数据分析</a>
-        <a href="./zh/accounts/">发布账号</a>
-        <a href="./zh/campaigns/">内容计划</a>
-        <a href="./zh/automation/">自动化</a>
-        <a href="./zh/settings/">设置</a>
+        ${consumerAccountMenu ? "" : `
+          <a href="./zh/dashboard/">控制台</a>
+          <a href="./zh/ai-studio/">创建内容</a>
+          <a href="./zh/pipeline/">内容库 / 审核</a>
+          <a href="./zh/calendar/">日历排期</a>
+          <a href="./zh/analytics/">数据分析</a>
+          <a href="./zh/accounts/">发布账号</a>
+          <a href="./zh/campaigns/">内容计划</a>
+          <a href="./zh/automation/">自动化</a>
+          <a href="./zh/settings/">设置</a>
+        `}
         <a href="./zh/my-creations/">我的作品</a>
-        <a href="./zh/history/">生成任务</a>
-        <a href="./zh/assets/">资产库</a>
-        ${isAdminActor(current.user) ? `<a href="./zh/admin/" data-admin-nav-link>管理后台</a>` : ""}
+        ${consumerAccountMenu ? "" : `
+          <a href="./zh/history/">生成任务</a>
+          <a href="./zh/assets/">资产库</a>
+          ${isAdminActor(current.user) ? `<a href="./zh/admin/" data-admin-nav-link>管理后台</a>` : ""}
+        `}
         <a href="./zh/free-coins/">免费积分</a>
         <a href="./zh/pricing/">购买积分</a>
         <button type="button" data-logout>退出登录</button>
@@ -1286,6 +1339,7 @@ function renderAccountNavigation(current) {
 }
 
 function injectAppShell() {
+  if (setupConsumerAppShell()) return;
   const page = window.location.pathname.split("/").pop() || "index.html";
   if (!APP_SHELL_PAGES.has(page) || document.querySelector(".side-rail")) return;
   const active = (target) => page === target ? " rail-active" : "";
@@ -1336,7 +1390,47 @@ function injectAppShell() {
 }
 
 function injectGlobalFooter() {
-  if (document.querySelector(".site-footer") || document.body.classList.contains("share-body")) return;
+  if (
+    document.querySelector(".site-footer, .consumer-home-footer") ||
+    document.body.classList.contains("share-body")
+  ) return;
+  if (document.body.classList.contains("consumer-app-page")) {
+    document.body.insertAdjacentHTML("beforeend", `
+      <footer class="site-footer app-footer consumer-footer" aria-label="Footer navigation">
+        <div class="footer-top-links">
+          <a href="./zh/app/">首页</a>
+          <a href="./zh/app/spicy-effects/">辣味效果</a>
+          <a href="./zh/app/image-editor/">图片编辑器</a>
+          <a href="./zh/app/image-to-video/">图片转视频</a>
+          <a href="./zh/my-creations/">我的作品</a>
+        </div>
+        <div>
+          <h3>图像工具</h3>
+          <a href="./zh/app/image-editor/">图片编辑器</a>
+          <a href="./zh/app/face-swap/">AI 换脸</a>
+          <a href="./zh/app/outfit-studio/">性感礼服</a>
+          <a href="./zh/app/pose-generator/">性爱姿势</a>
+        </div>
+        <div>
+          <h3>视频工具</h3>
+          <a href="./zh/app/image-to-video/">图片转视频</a>
+          <a href="./zh/my-creations/">我的作品</a>
+        </div>
+        <div>
+          <h3>账户</h3>
+          <a href="./zh/pricing/">购买积分</a>
+          <a href="./zh/free-coins/">免费积分</a>
+          <a href="./zh/referral/">推荐好友</a>
+        </div>
+        <div>
+          <p>支持：support@openvideostudio.app</p>
+          <p>商务：business@openvideostudio.app</p>
+          <p>版权所有 © 2026</p>
+        </div>
+      </footer>
+    `);
+    return;
+  }
   document.body.insertAdjacentHTML("beforeend", `
     <footer class="site-footer app-footer" aria-label="Footer navigation">
       <div class="footer-top-links">
@@ -1392,6 +1486,7 @@ function injectGlobalFooter() {
 }
 
 function injectFloatingDock() {
+  if (ensureGlobalFloatingActions()) return;
   if (document.querySelector(".floating-dock") || document.body.classList.contains("share-body")) return;
   document.body.insertAdjacentHTML("beforeend", `
     <aside class="floating-dock" aria-label="Quick actions">
@@ -1581,9 +1676,11 @@ async function hydrateAuthSession() {
   if (session?.user && !session.user.is_anonymous) {
     state.user = stateUserFromSupabaseUser(session.user);
     await syncRemoteProductData();
+    await syncRewardProgram();
     localStorage.removeItem(AUTH_RETURN_KEY);
     saveState(state);
     renderState(state);
+    if (document.querySelector("[data-pricing-page]")) renderPricingPage();
   } else {
     state.user = null;
     saveState(state);
@@ -1604,9 +1701,11 @@ function bindSupabaseAuthState() {
     if (session?.user && !session.user.is_anonymous) {
       state.user = stateUserFromSupabaseUser(session.user);
       await syncRemoteProductData();
+      await syncRewardProgram();
       localStorage.removeItem(AUTH_RETURN_KEY);
       saveState(state);
       renderState(state);
+      if (document.querySelector("[data-pricing-page]")) renderPricingPage();
     }
   });
 }
@@ -1662,6 +1761,8 @@ async function syncRemoteProductData() {
       token: String(share.token),
       assetId: String(share.media_asset_id),
       title: state.assets.find((asset) => asset.id === share.media_asset_id)?.title || "分享作品",
+      expiresAt: String(share.expires_at || ""),
+      createdAt: String(share.created_at || ""),
       remote: true
     }));
   }
@@ -1673,6 +1774,18 @@ async function syncRemoteProductData() {
   }
   if (!agentTasksResult.error && Array.isArray(agentTasksResult.data)) {
     state.agentTasks = agentTasksResult.data.map(mapRemoteAgentTask);
+  }
+  try {
+    const performance = await getPerformanceSummary();
+    state.contentAnalytics = performance.rows;
+    state.performanceStrategies = Array.isArray(performance.strategies) ? performance.strategies : [];
+    state.performanceSummary = performance;
+    state.performanceMetricsLoaded = true;
+  } catch (_error) {
+    state.contentAnalytics = [];
+    state.performanceStrategies = [];
+    state.performanceSummary = null;
+    state.performanceMetricsLoaded = true;
   }
 }
 
@@ -1726,30 +1839,23 @@ async function hydrateRemoteShareByToken() {
   if (!supabase) return;
   const token = new URLSearchParams(window.location.search).get("token");
   if (!token) return;
-  const shareResult = await supabase
-    .from("share_links")
-    .select("*")
-    .eq("token", token)
-    .eq("visibility_status", "active")
-    .is("revoked_at", null)
-    .maybeSingle();
-  if (shareResult.error || !shareResult.data?.media_asset_id) return;
-  const assetResult = await supabase
-    .from("media_assets")
-    .select("*")
-    .eq("id", shareResult.data.media_asset_id)
-    .is("deleted_at", null)
-    .maybeSingle();
-  if (assetResult.error || !assetResult.data) return;
-  const asset = mapRemoteAsset(assetResult.data);
-  asset.visibility = "public";
-  await attachRemoteAssetDownloadUrls([asset]);
+  let result;
+  try {
+    result = await invokeAi("get-shared-asset", { token });
+  } catch {
+    return;
+  }
+  if (!result?.share?.media_asset_id || !result?.asset) return;
+  const asset = mapRemoteAsset(result.asset);
+  asset.previewUrl = String(result.previewUrl || asset.previewUrl || "");
+  asset.downloadUrl = String(result.downloadUrl || asset.previewUrl || "");
   upsertById(state.assets, asset);
   upsertById(state.shares, {
-    id: String(shareResult.data.id),
-    token: String(shareResult.data.token),
-    assetId: String(shareResult.data.media_asset_id),
+    id: String(result.share.id),
+    token: String(result.share.token),
+    assetId: String(result.share.media_asset_id),
     title: asset.title,
+    expiresAt: String(result.share.expires_at || ""),
     remote: true
   });
 }
@@ -1775,6 +1881,11 @@ function mapRemoteAsset(asset, index = 0) {
     model: String(metadata.model || ""),
     ratio: String(metadata.aspectRatio || metadata.ratio || ""),
     durationSeconds: Number(metadata.durationSeconds || 0) || undefined,
+    generationJobId: String(asset.generation_job_id || ""),
+    toolSlug: String(metadata.toolSlug || metadata.tool_slug || ""),
+    effectName: String(metadata.effectName || metadata.effect_name || metadata.presetTitle || ""),
+    createdAt: String(asset.created_at || asset.updated_at || ""),
+    updatedAt: String(asset.updated_at || asset.created_at || ""),
     downloadUrl: outputUrl,
     previewUrl: outputUrl,
     remote: true
@@ -1802,6 +1913,10 @@ function mapRemoteJob(job) {
     errorMessage: String(job.error_message || ""),
     refundAmount: Number(job.refund?.amount || 0),
     sourceAssetId: String(job.source_asset_id || inputParams.sourceAssetId || ""),
+    toolSlug: String(job.tool_slug || inputParams.toolSlug || ""),
+    effectName: String(inputParams.effectName || inputParams.effectId || inputParams.presetTitle || inputParams.preset || ""),
+    createdAt: String(job.created_at || ""),
+    completedAt: String(job.completed_at || ""),
     remote: true
   };
 }
@@ -2008,6 +2123,11 @@ function renderState(current) {
 
 function renderProtectedPageGate(current) {
   const page = window.location.pathname.split("/").pop() || "index.html";
+  if (page === "my-creations.html") {
+    document.querySelector(".protected-gate")?.remove();
+    document.body.classList.remove("protected-signed-out");
+    return;
+  }
   if (!PROTECTED_PRODUCT_PAGES.has(page)) return;
   document.querySelector(".protected-gate")?.remove();
   document.body.classList.toggle("protected-signed-out", !isRealAuthenticatedUser(current.user));
@@ -2207,6 +2327,22 @@ document.querySelectorAll("[data-telegram-auth]").forEach((button) => {
 });
 
 document.addEventListener("click", async (event) => {
+  const selectedEffectCard = event.target.closest("[data-tool-home-card], [href*='?preset=']");
+  if (selectedEffectCard) {
+    const href = selectedEffectCard.getAttribute("href") || "";
+    const effectSlug = new URL(href, window.location.href).searchParams.get("preset") || toolSlugFromHref(href);
+    trackProductEvent("effect_select", {
+      effectSlug: effectSlug || "unknown",
+      category: selectedEffectCard.dataset.toolCategory || ""
+    });
+  }
+  const creationDownload = event.target.closest("a[download], [data-generated-download]");
+  if (creationDownload) {
+    trackProductEvent("creation_download", {
+      mediaType: creationDownload.dataset.mediaType || "creation"
+    });
+  }
+
   const executeSuggestion = event.target.closest("[data-growth-execute-suggestion]");
   if (executeSuggestion) {
     event.preventDefault();
@@ -2983,10 +3119,10 @@ function openUnlockModal(nextUrl = "./zh/app/generate/") {
 function openCheckInModal() {
   document.querySelector(".checkin-overlay")?.remove();
   const signedIn = Boolean(state.user);
-  const today = new Date().toISOString().slice(0, 10);
-  const alreadyChecked = state.rewards.lastCheckInDate === today;
-  const day = Math.min(state.rewards.checkInDay || 0, 6);
-  const rewards = [5, 6, 12, 6, 8, 8, 20];
+  const daily = rewardProgramStatus?.daily || {};
+  const alreadyChecked = Boolean(daily.claimedToday);
+  const rewards = rewardProgramStatus?.config?.dailyCheckin || [5, 6, 12, 6, 8, 8, 20];
+  const day = Math.max(0, Math.min(Number(daily.nextDay || 1) - 1, rewards.length - 1));
   const overlay = document.createElement("section");
   overlay.className = "checkin-overlay";
   overlay.setAttribute("role", "dialog");
@@ -3020,31 +3156,34 @@ function openCheckInModal() {
   overlay.addEventListener("click", (event) => {
     if (event.target === overlay) overlay.remove();
   });
-  overlay.querySelector(".checkin-action")?.addEventListener("click", () => {
+  overlay.querySelector(".checkin-action")?.addEventListener("click", async () => {
     if (!state.user) {
       overlay.remove();
       openAuthModal("./zh/free-coins/");
       return;
     }
-    if (state.rewards.lastCheckInDate === today) {
+    if (alreadyChecked) {
       overlay.querySelector(".checkin-action").textContent = "今天已领取";
       return;
     }
-    const currentDay = Math.min(state.rewards.checkInDay || 0, 6);
-    const reward = rewards[currentDay];
-    state.credits += reward;
-    recordCreditLedger({
-      amount: reward,
-      category: "reward",
-      reason: `每日奖励 Day ${currentDay + 1}`,
-      sourceType: "daily_checkin",
-      sourceId: today
-    });
-    state.rewards.checkInDay = currentDay === 6 ? 0 : currentDay + 1;
-    state.rewards.lastCheckInDate = today;
-    saveState(state);
-    renderReferral(state);
-    overlay.querySelector(".checkin-action").textContent = `已领取 ${reward} 积分`;
+    const action = overlay.querySelector(".checkin-action");
+    action.disabled = true;
+    action.textContent = "领取中…";
+    try {
+      const result = await invokeAi("claim-daily-checkin");
+      rewardProgramStatus = { ...(rewardProgramStatus || {}), daily: result.status, balance: result.balance };
+      if (Number.isFinite(Number(result.balance))) state.credits = Number(result.balance);
+      saveState(state);
+      renderReferral(state);
+      action.textContent = result.reward?.granted ? `已领取 ${result.reward.amount} 积分` : "今天已领取";
+      trackProductEvent("daily_reward_claim", {
+        granted: Boolean(result.reward?.granted),
+        amount: Number(result.reward?.amount || 0)
+      });
+    } catch (error) {
+      action.disabled = false;
+      action.textContent = error.message || "领取失败，请重试";
+    }
   });
 }
 
@@ -3171,74 +3310,27 @@ document.querySelectorAll("[data-password-update]").forEach((button) => {
   });
 });
 
-document.querySelectorAll("[data-buy-credits]").forEach((button) => {
-  button.addEventListener("click", (event) => {
-    event.preventDefault();
-    const credits = Number(button.dataset.buyCredits || "0");
-    const planName = button.dataset.planName || button.textContent.trim() || "积分套餐";
-    const price = button.querySelector("strong")?.textContent?.trim() || button.dataset.planPrice || "演示结账";
-    trackProductEvent("pricing_cta_clicked", {
-      credits,
-      planName,
-      price
-    });
-    openCheckoutModal({ credits, planName, price });
-  });
-});
-
-document.querySelectorAll("[data-payment-method]").forEach((button) => {
-  button.dataset.label = button.textContent;
-  button.addEventListener("click", () => {
-    document.querySelectorAll("[data-payment-method]").forEach((item) => {
-      item.classList.remove("active");
-      item.textContent = item.dataset.label || item.textContent.replace("（已选择）", "");
-    });
-    button.classList.add("active");
-    button.textContent = `${button.dataset.label}（已选择）`;
-  });
-});
+if (document.querySelector("[data-pricing-page]")) {
+  initializePricingPage();
+}
 
 document.querySelector("[data-copy-referral]")?.addEventListener("click", async (event) => {
   const button = event.currentTarget;
-  const link = document.querySelector("[data-referral-link]")?.value || "https://openvideostudio.app/?ref=creator-demo";
+  if (!isRealAuthenticatedUser(state.user) || !rewardProgramStatus?.referralCode) {
+    openAuthModal("./zh/free-coins/");
+    return;
+  }
+  const link = document.querySelector("[data-referral-link]")?.value || "";
   try {
     await navigator.clipboard?.writeText(link);
-    state.rewards.referralCopies = (state.rewards.referralCopies || 0) + 1;
-    saveState(state);
     button.textContent = "已复制";
+    trackProductEvent("referral_copy");
   } catch {
     button.textContent = "复制链接";
   }
 });
 
-document.querySelectorAll("[data-claim-task]").forEach((button) => {
-  button.addEventListener("click", () => {
-    ensureUser("email");
-    const task = button.dataset.claimTask || "task";
-    if (state.rewards.taskClaims.includes(task)) {
-      button.textContent = "已领取";
-      return;
-    }
-    const credits = Number(button.dataset.taskCredits || "0");
-    state.credits += credits;
-    recordCreditLedger({
-      amount: credits,
-      category: "reward",
-      reason: "免费积分任务奖励",
-      sourceType: "reward_task",
-      sourceId: task
-    });
-    state.rewards.taskClaims.push(task);
-    saveState(state);
-    button.textContent = `已领取 ${credits} 积分`;
-  });
-});
-
-if (document.body.classList.contains("pricing-page") || document.querySelector(".pricing-page")) {
-  window.setTimeout(openCreditOfferModal, 450);
-}
-
-function openCreditOfferModal() {
+function legacyOpenCreditOfferModal() {
   if (sessionStorage.getItem("ovs-credit-offer-dismissed") === "true") return;
   document.querySelector(".credit-offer-overlay")?.remove();
   const overlay = document.createElement("section");
@@ -3287,7 +3379,7 @@ function openCreditOfferModal() {
   });
 }
 
-function openCheckoutModal({ credits, planName, price, promo = "" }) {
+function legacyOpenCheckoutModal({ credits, planName, price, promo = "" }) {
   document.querySelector(".checkout-overlay")?.remove();
   trackProductEvent("credit_purchase_started", {
     credits,
@@ -3444,7 +3536,7 @@ function openCheckoutModal({ credits, planName, price, promo = "" }) {
   });
 }
 
-async function runRemotePaymentCheckout(input) {
+async function legacyRunRemotePaymentCheckout(input) {
   if (!supabase) return null;
   const { data: sessionData } = await supabase.auth.getSession();
   if (!sessionData.session?.user) return null;
@@ -3489,6 +3581,395 @@ function mapRemoteOrder(order) {
     createdAt: String(order.created_at || new Date().toISOString()).slice(0, 10),
     remote: true
   };
+}
+
+async function initializePricingPage() {
+  await loadConsumerPricingConfig();
+  await loadPaymentProviderStatus();
+  renderPricingPage();
+  await handleCheckoutReturn();
+  scheduleCreditOffer();
+}
+
+async function loadConsumerPricingConfig() {
+  if (!supabase) return;
+  try {
+    const { data } = await supabase
+      .from("site_settings")
+      .select("value_json")
+      .eq("setting_key", PRICING_SETTING_KEY)
+      .eq("status", "published")
+      .maybeSingle();
+    if (data?.value_json) consumerPricingConfig = normalizeConsumerPricing(data.value_json);
+  } catch {
+    // The audited static package fallback remains the single client source.
+  }
+  try {
+    const { data } = await supabase
+      .from("site_settings")
+      .select("value_json")
+      .eq("setting_key", "tool_catalog_config")
+      .eq("status", "published")
+      .maybeSingle();
+    if (data?.value_json) toolCatalogConfig = normalizeToolCatalogConfig(data.value_json);
+  } catch {
+    // Published static tool prices remain available if remote config is unavailable.
+  }
+}
+
+async function loadPaymentProviderStatus() {
+  try {
+    const result = await invokeAi("payment-provider-status", {});
+    const remote = Array.isArray(result?.providers) ? result.providers : [];
+    paymentProviders = PAYMENT_PROVIDER_DEFINITIONS.map((definition) => {
+      const status = remote.find((item) => item.provider === definition.id);
+      return {
+        ...definition,
+        configured: Boolean(status?.configured),
+        mode: String(status?.mode || "unknown"),
+        webhookConfigured: Boolean(status?.webhookConfigured)
+      };
+    });
+  } catch {
+    paymentProviders = structuredClone(PAYMENT_PROVIDER_DEFINITIONS);
+  }
+}
+
+function renderPricingPage() {
+  const plansTarget = document.querySelector("[data-pricing-plans]");
+  const usageTarget = document.querySelector("[data-pricing-usage]");
+  const statusTarget = document.querySelector("[data-pricing-provider-status]");
+  const balanceTarget = document.querySelector("[data-pricing-balance]");
+  if (!plansTarget || !usageTarget) return;
+  const enabledProviders = paymentProviders.filter((provider) => provider.configured);
+  const publishedTools = (toolCatalogConfig.tools || []).filter((tool) => tool.status === "published" && Number(tool.creditCost) > 0);
+  plansTarget.innerHTML = consumerPricingConfig.packages.map((plan) => {
+    const metrics = packageMetrics(plan, consumerPricingConfig.packages, publishedTools);
+    return `
+      <article class="credit-plan-card${plan.featured ? " featured" : ""}">
+        ${plan.featured ? `<i>${escapeHtml(plan.tag || "最受欢迎")}</i>` : `<span class="plan-tag">${escapeHtml(plan.tag)}</span>`}
+        <h3>${escapeHtml(plan.label)}</h3>
+        <strong>${plan.credits.toLocaleString()} 积分</strong>
+        <b>${escapeHtml(formatPricingMoney(plan.amountCents, consumerPricingConfig.currency))}</b>
+        <small>每 100 积分 ${escapeHtml(formatPricingMoney(metrics.unitPriceCentsPer100, consumerPricingConfig.currency))}</small>
+        ${metrics.savingsPercent > 0 ? `<em>比入门包单位价节省 ${metrics.savingsPercent}%</em>` : `<em>适合首次购买</em>`}
+        <ul>
+          <li>${escapeHtml(formatEstimate(metrics.imageEstimate, "张图片"))}</li>
+          <li>${escapeHtml(formatEstimate(metrics.videoEstimate, "个视频"))}</li>
+        </ul>
+        <button class="btn ${plan.featured ? "primary" : "glass"} full" type="button" data-package-id="${escapeHtml(plan.id)}"${enabledProviders.length ? "" : " disabled"}>
+          ${enabledProviders.length ? "选择套餐" : "支付暂未开放"}
+        </button>
+      </article>
+    `;
+  }).join("");
+  plansTarget.querySelectorAll("[data-package-id]").forEach((button) => {
+    button.addEventListener("click", () => openCheckoutModal({
+      packageId: button.dataset.packageId,
+      offerCode: activeClaimedOfferCode()
+    }));
+  });
+
+  const imageCosts = publishedTools.filter((tool) => tool.category === "image").map((tool) => Number(tool.creditCost));
+  const videoCosts = publishedTools.filter((tool) => tool.category === "video").map((tool) => Number(tool.creditCost));
+  usageTarget.innerHTML = [
+    pricingUsageMarkup("图片工具", imageCosts, "图片编辑、换脸、服装、姿势等已发布工具"),
+    pricingUsageMarkup("图片转视频", videoCosts, "费用随工作流、时长和输出设置变化"),
+    pricingUsageMarkup("高成本效果", videoCosts, "提交前显示当前效果的准确费用")
+  ].join("");
+
+  const testProviders = enabledProviders.filter((provider) => provider.mode !== "live");
+  statusTarget.textContent = enabledProviders.length
+    ? `可用支付方式：${enabledProviders.map((provider) => provider.shortLabel).join("、")}`
+    : "当前没有已配置的支付方式，购买按钮暂不开放。";
+  if (testProviders.length && isAdminActor(state.user)) {
+    statusTarget.insertAdjacentHTML("beforeend", ` <strong>管理员提示：${escapeHtml(testProviders.map((provider) => `${provider.shortLabel} ${provider.mode}`).join("、"))}</strong>`);
+  }
+  balanceTarget.textContent = state.user ? `当前余额：${Number(state.credits || 0).toLocaleString()} 积分` : "登录后查看当前余额";
+}
+
+function pricingUsageMarkup(label, costs, description) {
+  const valid = costs.filter((cost) => Number.isFinite(cost) && cost > 0);
+  return `
+    <article>
+      <span>${escapeHtml(label)}</span>
+      <strong>${valid.length ? `${Math.min(...valid)}–${Math.max(...valid)} 积分` : "价格待配置"}</strong>
+      <small>${escapeHtml(description)}</small>
+    </article>
+  `;
+}
+
+function formatEstimate(range, unit) {
+  if (!range) return `${unit}数量待工具价格配置`;
+  return range.min === range.max ? `约 ${range.min} ${unit}` : `约 ${range.min}–${range.max} ${unit}`;
+}
+
+function formatPricingMoney(cents, currency = "USD") {
+  try {
+    return new Intl.NumberFormat("zh-CN", { style: "currency", currency }).format(Number(cents || 0) / 100);
+  } catch {
+    return `${currency} ${(Number(cents || 0) / 100).toFixed(2)}`;
+  }
+}
+
+function scheduleCreditOffer() {
+  const offer = getOfferState();
+  if (["expired", "claimed"].includes(offer.status)) return;
+  window.setTimeout(() => {
+    if (!document.querySelector(".checkout-overlay")) openCreditOfferModal();
+  }, Math.max(0, offer.eligibleAt - Date.now()));
+  const exitIntent = (event) => {
+    if (event.clientY > 8 || Date.now() < offer.eligibleAt) return;
+    document.removeEventListener("mouseout", exitIntent);
+    if (!document.querySelector(".checkout-overlay")) openCreditOfferModal();
+  };
+  document.addEventListener("mouseout", exitIntent);
+}
+
+function getOfferState() {
+  const key = "ovs_credit_offer_v1";
+  const now = Date.now();
+  let stored = {};
+  try {
+    stored = JSON.parse(localStorage.getItem(key) || "{}") || {};
+  } catch {
+    stored = {};
+  }
+  const firstSeenAt = Number(stored.firstSeenAt || now);
+  const eligibleAt = Number(stored.eligibleAt || firstSeenAt + consumerPricingConfig.offer.triggerDelaySeconds * 1000);
+  const expiresAt = Number(stored.expiresAt || eligibleAt + consumerPricingConfig.offer.durationMinutes * 60000);
+  let status = String(stored.status || "eligible");
+  if (expiresAt <= now && status !== "claimed") status = "expired";
+  const next = { ...stored, firstSeenAt, eligibleAt, expiresAt, status };
+  localStorage.setItem(key, JSON.stringify(next));
+  return next;
+}
+
+function saveOfferState(patch) {
+  const key = "ovs_credit_offer_v1";
+  const next = { ...getOfferState(), ...patch };
+  localStorage.setItem(key, JSON.stringify(next));
+  return next;
+}
+
+function activeClaimedOfferCode() {
+  const offer = getOfferState();
+  return offer.status === "claimed" && offer.expiresAt > Date.now() ? consumerPricingConfig.offer.code : "";
+}
+
+function openCreditOfferModal() {
+  const stateValue = getOfferState();
+  if (["expired", "claimed"].includes(stateValue.status) || Date.now() < stateValue.eligibleAt) return;
+  if (stateValue.lastDismissedAt && Date.now() - stateValue.lastDismissedAt < consumerPricingConfig.offer.cooldownHours * 3600000) return;
+  const plan = consumerPricingConfig.packages.find((item) => item.id === consumerPricingConfig.offer.packageId);
+  if (!plan) return;
+  const grantedCredits = offerCredits(consumerPricingConfig, plan);
+  document.querySelector(".credit-offer-overlay")?.remove();
+  const overlay = document.createElement("section");
+  overlay.className = "credit-offer-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", "限时积分优惠");
+  overlay.innerHTML = `
+    <div class="credit-offer-modal">
+      <button class="checkin-close" type="button" aria-label="关闭">×</button>
+      <span class="offer-pill">限时加赠</span>
+      <h2>创作者包额外获得 <strong>${consumerPricingConfig.offer.extraPercent}% 积分</strong></h2>
+      <p>优惠有效期保存在当前设备，刷新页面不会重新计时。</p>
+      <div class="offer-compare">
+        <div><span>原套餐</span><del>${plan.credits} 积分</del><b>${escapeHtml(formatPricingMoney(plan.amountCents, consumerPricingConfig.currency))}</b></div>
+        <div class="active"><span>加赠后</span><strong>${grantedCredits} 积分</strong><b>${escapeHtml(formatPricingMoney(plan.amountCents, consumerPricingConfig.currency))}</b></div>
+      </div>
+      <small>优惠码</small>
+      <button class="promo-code" type="button" data-copy-promo><span>${escapeHtml(consumerPricingConfig.offer.code)}</span><em>复制</em></button>
+      <div class="offer-timer">优惠倒计时 <b data-offer-countdown>--:--</b></div>
+      <button class="btn primary full" type="button" data-offer-claim>领取额外 ${consumerPricingConfig.offer.extraPercent}% 积分</button>
+      <button class="offer-skip" type="button">不用了，暂时跳过</button>
+    </div>
+  `;
+  document.body.append(overlay);
+  const timer = window.setInterval(() => updateOfferCountdown(overlay, stateValue.expiresAt), 1000);
+  updateOfferCountdown(overlay, stateValue.expiresAt);
+  const close = (dismissed = true) => {
+    if (dismissed) saveOfferState({ lastDismissedAt: Date.now(), dismissCount: Number(stateValue.dismissCount || 0) + 1 });
+    window.clearInterval(timer);
+    overlay.remove();
+  };
+  overlay.querySelector(".checkin-close")?.addEventListener("click", () => close(true));
+  overlay.querySelector(".offer-skip")?.addEventListener("click", () => close(true));
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) close(true);
+  });
+  overlay.querySelector("[data-copy-promo]")?.addEventListener("click", async (event) => {
+    try {
+      await navigator.clipboard?.writeText(consumerPricingConfig.offer.code);
+      event.currentTarget.querySelector("em").textContent = "已复制";
+    } catch {
+      event.currentTarget.querySelector("em").textContent = "复制";
+    }
+  });
+  overlay.querySelector("[data-offer-claim]")?.addEventListener("click", () => {
+    saveOfferState({ status: "claimed", claimedAt: Date.now() });
+    close(false);
+    renderPricingPage();
+    openCheckoutModal({ packageId: plan.id, offerCode: consumerPricingConfig.offer.code });
+  });
+}
+
+function updateOfferCountdown(overlay, expiresAt) {
+  const remaining = Math.max(0, expiresAt - Date.now());
+  const target = overlay.querySelector("[data-offer-countdown]");
+  if (target) {
+    const minutes = Math.floor(remaining / 60000);
+    const seconds = Math.floor((remaining % 60000) / 1000);
+    target.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+  if (remaining <= 0) {
+    saveOfferState({ status: "expired" });
+    overlay.remove();
+  }
+}
+
+function openCheckoutModal({ packageId, offerCode = "" }) {
+  const plan = consumerPricingConfig.packages.find((item) => item.id === packageId);
+  if (!plan) return;
+  const validOffer = offerCode === consumerPricingConfig.offer.code &&
+    consumerPricingConfig.offer.packageId === plan.id &&
+    getOfferState().expiresAt > Date.now();
+  const credits = validOffer ? offerCredits(consumerPricingConfig, plan) : plan.credits;
+  const providers = paymentProviders.filter((provider) => provider.configured);
+  const signedIn = Boolean(state.user);
+  document.querySelector(".checkout-overlay")?.remove();
+  const overlay = document.createElement("section");
+  overlay.className = "checkout-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", "积分结账");
+  overlay.innerHTML = `
+    <div class="checkout-modal">
+      <button class="checkin-close" type="button" aria-label="关闭">×</button>
+      <p class="eyebrow">安全结账</p>
+      <h2>确认购买 ${escapeHtml(plan.label)}</h2>
+      <div class="checkout-summary">
+        <div><span>套餐</span><strong>${escapeHtml(plan.label)}</strong></div>
+        <div><span>积分</span><strong>${credits}${validOffer ? `（含额外 ${consumerPricingConfig.offer.extraPercent}%）` : ""}</strong></div>
+        <div><span>价格</span><strong>${escapeHtml(formatPricingMoney(plan.amountCents, consumerPricingConfig.currency))}</strong></div>
+        <div><span>账户</span><strong>${signedIn ? escapeHtml(state.user.name) : "请先登录"}</strong></div>
+      </div>
+      ${validOffer ? `<p class="checkout-offer">已应用 ${escapeHtml(offerCode)}：额外 ${consumerPricingConfig.offer.extraPercent}% 积分</p>` : ""}
+      <div class="checkout-methods" aria-label="支付方式">
+        ${providers.map((provider, index) => `
+          <button class="${index === 0 ? "active" : ""}" type="button" data-checkout-method="${provider.id}">
+            <span>${escapeHtml(provider.label)}</span>
+            <small>${isAdminActor(state.user) && provider.mode !== "live" ? `${escapeHtml(provider.mode)} 环境` : "可用"}</small>
+          </button>
+        `).join("") || `<p class="checkout-unavailable">当前没有已配置的支付方式。</p>`}
+      </div>
+      <p class="checkout-note">${signedIn ? "支付完成后由服务端 Webhook 确认并发放积分，请勿重复提交。" : "登录后才能创建订单并同步积分。"}</p>
+      <div class="checkout-actions">
+        <button class="btn primary full" type="button" data-confirm-checkout${signedIn && providers.length ? "" : " disabled"}>前往安全支付</button>
+        ${signedIn ? "" : `<a class="btn glass full" href="./zh/login/">登录账户</a>`}
+      </div>
+    </div>
+  `;
+  document.body.append(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector(".checkin-close")?.addEventListener("click", close);
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) close();
+  });
+  overlay.querySelectorAll("[data-checkout-method]").forEach((button) => {
+    button.addEventListener("click", () => {
+      overlay.querySelectorAll("[data-checkout-method]").forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+    });
+  });
+  overlay.querySelector("[data-confirm-checkout]")?.addEventListener("click", async () => {
+    const confirmButton = overlay.querySelector("[data-confirm-checkout]");
+    const provider = overlay.querySelector("[data-checkout-method].active")?.dataset.checkoutMethod;
+    if (!provider || checkoutInFlight) return;
+    checkoutInFlight = true;
+    confirmButton.disabled = true;
+    confirmButton.textContent = "正在创建安全结账";
+    try {
+      const checkout = await runRemotePaymentCheckout({
+        provider,
+        packageId: plan.id,
+        offerCode: validOffer ? offerCode : "",
+        idempotencyKey: checkoutIdempotencyKey(plan.id, validOffer ? offerCode : "")
+      });
+      if (!checkout?.checkoutUrl) throw new Error("支付服务未返回结账地址");
+      overlay.querySelector(".checkout-note").textContent = "订单已创建，正在前往支付页面。";
+      window.location.assign(checkout.checkoutUrl);
+    } catch (error) {
+      overlay.querySelector(".checkout-note").textContent = error.message || "暂时无法创建支付订单，请稍后重试。";
+      confirmButton.disabled = false;
+      confirmButton.textContent = "前往安全支付";
+      checkoutInFlight = false;
+    }
+  });
+}
+
+async function runRemotePaymentCheckout(input) {
+  if (!supabase) throw new Error("登录服务暂不可用");
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData.session?.user) throw new Error("请先登录");
+  return invokeAi("create-payment-checkout", {
+    provider: input.provider,
+    packageId: input.packageId,
+    offerCode: input.offerCode,
+    idempotencyKey: input.idempotencyKey,
+    returnUrl: new URL("./pricing.html", window.location.href).href,
+    cancelUrl: new URL("./pricing.html", window.location.href).href
+  });
+}
+
+function checkoutIdempotencyKey(packageId, offerCode) {
+  const key = `ovs_checkout_${packageId}_${offerCode || "standard"}`;
+  const stored = sessionStorage.getItem(key);
+  if (stored) return stored;
+  const value = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  sessionStorage.setItem(key, value);
+  return value;
+}
+
+async function handleCheckoutReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const checkout = params.get("checkout");
+  const orderId = params.get("order_id");
+  if (!checkout) return;
+  const target = document.querySelector("[data-pricing-provider-status]");
+  if (checkout === "cancelled") {
+    if (target) target.textContent = "支付已取消，未发放积分。你可以重新选择套餐。";
+    trackProductEvent("checkout_cancelled");
+    return;
+  }
+  if (checkout !== "success" || !orderId || !state.user || !supabase) return;
+  if (target) target.textContent = "支付页面已返回，正在等待服务端确认到账…";
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const { data, error } = await supabase
+      .from("orders")
+      .select("*")
+      .eq("id", orderId)
+      .eq("user_id", state.user.id)
+      .maybeSingle();
+    if (!error && data?.status === "fulfilled") {
+      await syncRemoteProductData();
+      if (target) target.textContent = `支付已由服务端确认，${Number(data.credits_granted || 0)} 积分已到账。`;
+      trackProductEvent("checkout_success", {
+        credits: Number(data.credits_granted || 0),
+        provider: String(data.provider || "server_confirmed")
+      });
+      renderPricingPage();
+      return;
+    }
+    if (!error && ["failed", "cancelled"].includes(String(data?.status))) {
+      if (target) target.textContent = "订单未完成或已取消，未发放积分。";
+      return;
+    }
+    await new Promise((resolve) => window.setTimeout(resolve, 2000));
+  }
+  if (target) target.textContent = "订单仍在确认中，请稍后刷新页面查看积分与交易记录。";
 }
 
 const modeButtons = document.querySelectorAll("[data-mode]");
@@ -3980,6 +4461,10 @@ function showGenerationRecoveryNotice(recovery) {
 async function handleVideoReferenceUpload(event) {
   const file = event.target?.files?.[0];
   if (!file) return;
+  trackProductEvent("upload_start", {
+    mediaType: "image",
+    sizeBytes: Number(file.size || 0)
+  });
   if (!file.type.startsWith("image/")) {
     showSiteToast("请上传图片文件作为视频参考图。");
     setVideoUploadStatus("请选择图片文件", "error");
@@ -4008,6 +4493,7 @@ async function handleVideoReferenceUpload(event) {
 
   if (!supabase) {
     setVideoUploadStatus("已选择（本地）", "ready");
+    trackProductEvent("upload_success", { mediaType: "image", storage: "local" });
     return;
   }
   const { data: currentSession } = await supabase.auth.getSession();
@@ -4015,6 +4501,7 @@ async function handleVideoReferenceUpload(event) {
     setVideoUploadStatus("已选择（本地）", "ready");
     updateVideoReferenceCard(reference, "图片已保留在当前浏览器；登录后可上传到云端，当前可先验证页面流程。", "local");
     showSiteToast("图片已选择，可先点击生成验证流程；登录后再同步到云端。");
+    trackProductEvent("upload_success", { mediaType: "image", storage: "local" });
     return;
   }
   setVideoUploadStatus("上传中", "uploading");
@@ -4023,6 +4510,7 @@ async function handleVideoReferenceUpload(event) {
     selectVideoReference(remoteReference, { status: "已上传到 Supabase Storage，可用于真实图片转视频。" });
     setVideoUploadStatus("已上传", "ready");
     showSiteToast("参考图已上传到 Supabase Storage，可用于真实图片转视频。");
+    trackProductEvent("upload_success", { mediaType: "image", storage: "supabase" });
   } catch (error) {
     reference.uploadStatus = `${error.message || "参考图上传失败"}，仍可使用本地演示生成。`;
     selectedVideoReference = reference;
@@ -4573,6 +5061,11 @@ if (generateButton && queueTarget) {
           onJobCreated: (job) => {
             const remoteJobId = String(job?.id || "");
             if (remoteJobId) progressRow.dataset.remoteJobId = remoteJobId;
+            trackProductEvent("generation_queued", {
+              mediaType: activeMode === "video" ? "video" : "image",
+              preset: activePreset?.id || "",
+              remote: true
+            });
             updateGenerationProgress(progressRow, "running", remoteJobId
               ? `远端任务 ${remoteJobId} 已创建，正在扣费、调用模型并保存输出。`
               : "远端任务已创建，正在扣费、调用模型并保存输出。", 42, {
@@ -4786,7 +5279,19 @@ async function runRemoteGeneration(input) {
     preset: input.preset || undefined,
     workflowName: input.workflowName || undefined,
     workflowOverrides: input.workflowOverrides || undefined,
-    agentTaskId: input.agentTaskId || undefined
+    agentTaskId: input.agentTaskId || undefined,
+    idempotencyKey: input.idempotencyKey || undefined,
+    toolMode: input.toolMode || undefined,
+    effectId: input.effectId || undefined,
+    videoEffectId: input.videoEffectId || undefined,
+    effectPromptTemplate: input.effectPromptTemplate || undefined,
+    cameraMotion: input.cameraMotion || undefined,
+    motionStrength: input.motionStrength,
+    faceStability: input.faceStability,
+    loop: input.loop,
+    resolution: input.resolution || undefined,
+    outputCount: input.outputCount,
+    priceQuote: input.priceQuote
   });
   const job = createResult.job;
   input.onJobCreated?.(job);
@@ -4805,6 +5310,10 @@ async function runRemoteGeneration(input) {
 // Shared bridge for the standalone tool.html workbench. It reuses the existing
 // authenticated upload, credit, job, polling, and asset persistence pipeline.
 window.__OVS_WORKFLOW_API__ = {
+  cancel: async (taskId) => {
+    if (!supabase) throw new Error("Supabase 未配置，暂不能取消任务。");
+    return invokeAi("cancel-generation-job", { jobId: taskId });
+  },
   generate: async (toolId, params = {}) => {
     if (!supabase) throw new Error("Supabase 未配置，暂不能调用真实工作流。");
     const workflow = params.workflow || {};
@@ -4833,13 +5342,25 @@ window.__OVS_WORKFLOW_API__ = {
       ratio: params.aspectRatio || "16:9",
       durationSeconds: params.durationSeconds,
       model: "zealman_workflow",
-      workflowId: workflow.workflowId,
+      workflowId: params.workflowId || workflow.workflowId,
       preset: toolId,
       workflowFamily: toolId === "adult-effects" ? "adult-4in1" : "",
       toolSlug: toolId,
       workflowName: workflow.workflowName,
       workflowOverrides: params.workflowOverrides || (params.effect ? { effect: params.effect } : undefined),
       reference,
+      idempotencyKey: params.idempotencyKey,
+      toolMode: params.toolMode,
+      effectId: params.effectId,
+      videoEffectId: params.videoEffectId,
+      effectPromptTemplate: params.effectPromptTemplate,
+      cameraMotion: params.cameraMotion,
+      motionStrength: params.motionStrength,
+      faceStability: params.faceStability,
+      loop: params.loop,
+      resolution: params.resolution,
+      outputCount: params.outputCount,
+      priceQuote: params.priceQuote,
     });
     return result;
   },
@@ -4864,6 +5385,57 @@ async function invokeAi(action, body = {}) {
   if (error) throw new Error(error.message || "AI 服务调用失败。");
   if (data?.error) throw new Error(data.error.message || data.error.code || "AI 服务调用失败。");
   return data;
+}
+
+function referralDeviceId() {
+  let value = localStorage.getItem(REFERRAL_DEVICE_KEY);
+  if (!value) {
+    value = crypto.randomUUID();
+    localStorage.setItem(REFERRAL_DEVICE_KEY, value);
+  }
+  return value;
+}
+
+async function captureReferralVisit() {
+  const params = new URLSearchParams(window.location.search);
+  const code = String(params.get("ref") || "").trim();
+  if (!code || !supabase) return;
+  const pending = { code, source: String(params.get("utm_source") || "direct").slice(0, 80) };
+  localStorage.setItem(REFERRAL_PENDING_KEY, JSON.stringify(pending));
+  try {
+    await invokeAi("record-referral-click", { ...pending, deviceId: referralDeviceId() });
+  } catch {
+    // Attribution remains pending and is retried after authentication.
+  }
+}
+
+async function syncRewardProgram() {
+  if (!supabase || !isRealAuthenticatedUser(state.user)) return null;
+  const pending = parseMaybeJson(localStorage.getItem(REFERRAL_PENDING_KEY));
+  if (pending?.code) {
+    try {
+      const attribution = await invokeAi("attribute-referral", {
+        code: pending.code,
+        source: pending.source || "direct",
+        deviceId: referralDeviceId()
+      });
+      if (attribution?.attributed || ["already_attributed", "self_referral", "invalid_code"].includes(attribution?.reason)) {
+        localStorage.removeItem(REFERRAL_PENDING_KEY);
+      }
+    } catch {
+      // Keep pending attribution for a later authenticated page load.
+    }
+  }
+  try {
+    rewardProgramStatus = await invokeAi("reward-program-status", { source: "consumer-web" });
+    if (Number.isFinite(Number(rewardProgramStatus?.balance))) state.credits = Number(rewardProgramStatus.balance);
+    renderReferral(state);
+    saveState(state);
+    return rewardProgramStatus;
+  } catch {
+    rewardProgramStatus = null;
+    return null;
+  }
 }
 
 function mergeRemoteGenerationResult(job, asset, input = {}) {
@@ -5586,126 +6158,325 @@ function downloadFileName(asset) {
 
 let creationFilter = "all";
 let creationSearch = "";
+let creationPrivacy = "all";
 const initialHistoryFilter = new URLSearchParams(window.location.search).get("status") || new URLSearchParams(window.location.search).get("filter") || "all";
 let historyFilter = ["all", "running", "completed", "failed", "video", "image"].includes(initialHistoryFilter) ? initialHistoryFilter : "all";
 let historySearch = "";
 
+function creationStatusGroup(status = "") {
+  const normalized = String(status).toLowerCase();
+  if (["queued", "pending", "retrying", "cancelling", "processing", "running", "model_loading", "post_processing", "uploading_result"].includes(normalized)) return "running";
+  if (["failed", "error", "cancelled", "timed_out"].includes(normalized)) return "failed";
+  return "completed";
+}
+
+function creationStatusLabel(status = "") {
+  const normalized = String(status).toLowerCase();
+  return {
+    queued: "排队中",
+    pending: "等待中",
+    retrying: "重试中",
+    cancelling: "取消中",
+    processing: "生成中",
+    running: "生成中",
+    model_loading: "模型准备",
+    post_processing: "后处理中",
+    uploading_result: "上传结果",
+    failed: "生成失败",
+    error: "生成失败",
+    cancelled: "已取消",
+    timed_out: "已超时",
+    completed: "已完成",
+    ready: "已完成"
+  }[normalized] || status || "已完成";
+}
+
+function creationDateLabel(value) {
+  if (!value) return "时间待同步";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "时间待同步";
+  return new Intl.DateTimeFormat("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(date);
+}
+
+function creationToolLabel(item) {
+  return item.effectName || item.toolSlug || (item.type === "video" ? "图片转视频" : "图片工具");
+}
+
+function creationMediaMarkup(asset) {
+  const previewUrl = String(asset.previewUrl || asset.downloadUrl || asset.outputUrl || "");
+  if (!previewUrl) {
+    return `<div class="creation-media-fallback" role="img" aria-label="${escapeHtml(asset.title)} 暂无预览"><span>◇</span><strong>预览准备中</strong></div>`;
+  }
+  if (asset.type === "video") {
+    return `<video src="${escapeHtml(previewUrl)}" muted playsinline preload="metadata" aria-label="${escapeHtml(asset.title)}"></video>`;
+  }
+  return `<img src="${escapeHtml(previewUrl)}" alt="${escapeHtml(asset.title)}" loading="lazy">`;
+}
+
+function buildConsumerCreationItems(current) {
+  const assetById = new Map(current.assets.map((asset) => [String(asset.id), asset]));
+  const assetJobIds = new Set(current.assets.map((asset) => String(asset.generationJobId || "")).filter(Boolean));
+  const items = [];
+  current.history.forEach((job) => {
+    const linkedAsset = assetById.get(String(job.assetId || ""));
+    const statusGroup = creationStatusGroup(job.status);
+    if (statusGroup === "completed" && (linkedAsset || assetJobIds.has(String(job.id)))) return;
+    items.push({ kind: "job", statusGroup, ...job });
+  });
+  current.assets.forEach((asset) => items.push({ kind: "asset", statusGroup: creationStatusGroup(asset.status), ...asset }));
+  return items.sort((a, b) => {
+    const priority = (item) => item.statusGroup === "running" ? 0 : item.statusGroup === "failed" ? 1 : 2;
+    const difference = priority(a) - priority(b);
+    if (difference) return difference;
+    return new Date(b.createdAt || b.updatedAt || 0).getTime() - new Date(a.createdAt || a.updatedAt || 0).getTime();
+  });
+}
+
+function consumerCreationEmptyMarkup(signedIn, hasAnyItems) {
+  if (!signedIn) {
+    return `
+      <article class="consumer-creations-empty">
+        <div class="creation-empty-icon">◇</div>
+        <div><h2>登录后管理你的作品</h2><p>生成任务、图片、视频、收藏和分享链接会安全地保存在你的账户中。</p></div>
+        <div class="section-actions"><a class="btn primary" href="./zh/login/?next=../my-creations/">登录</a><a class="btn glass" href="./zh/app/">浏览工具</a></div>
+      </article>
+    `;
+  }
+  if (hasAnyItems) {
+    return `
+      <article class="consumer-creations-empty">
+        <div class="creation-empty-icon">⌕</div>
+        <div><h2>没有匹配的作品</h2><p>请更换搜索词或筛选条件。</p></div>
+        <button class="btn glass" type="button" data-clear-creation-filters>清除筛选</button>
+      </article>
+    `;
+  }
+  return `
+    <article class="consumer-creations-empty creations-starter-empty">
+      <div class="creation-empty-icon">＋</div>
+      <div><h2>上传图片，开始第一份创作</h2><p>选择一个常用工具，生成结果会自动出现在这里。</p></div>
+      <div class="creation-starter-tools">
+        <a href="./zh/app/image-editor/"><strong>图片编辑器</strong><span>编辑与修复图片</span></a>
+        <a href="./zh/app/face-swap/"><strong>AI 换脸</strong><span>两图角色替换</span></a>
+        <a href="./zh/app/image-to-video/"><strong>图片转视频</strong><span>让静态图片动起来</span></a>
+      </div>
+    </article>
+  `;
+}
+
 function renderCreations(current) {
   const list = document.querySelector("[data-creation-list]");
-  const historyList = document.querySelector("[data-creation-history]");
-  const stats = {
-    count: document.querySelector("[data-creation-count]"),
-    shares: document.querySelector("[data-creation-shares]"),
-    favorites: document.querySelector("[data-creation-favorites]"),
-    jobs: document.querySelector("[data-creation-jobs]")
-  };
+  if (!list) return;
   const signedIn = isRealAuthenticatedUser(current.user);
-  if (stats.count) stats.count.textContent = signedIn ? String(current.assets.length) : "登录后";
-  if (stats.shares) stats.shares.textContent = signedIn ? String(current.shares.length) : "登录后";
-  if (stats.favorites) stats.favorites.textContent = signedIn ? String(current.assets.filter((asset) => asset.favorite).length) : "登录后";
-  if (stats.jobs) stats.jobs.textContent = signedIn ? String(current.history.length) : "登录后";
-
   document.querySelectorAll("[data-creation-filter]").forEach((button) => {
     button.classList.toggle("active", button.dataset.creationFilter === creationFilter);
   });
-
-  if (list) {
-    if (!signedIn) {
-      list.innerHTML = signedOutPreviewMarkup("creations");
-    } else {
-    const filteredAssets = current.assets.filter((asset) => {
-      const matchesFilter =
-        creationFilter === "all" ||
-        asset.type === creationFilter ||
-        (creationFilter === "favorite" && asset.favorite) ||
-        asset.visibility === creationFilter;
-      const haystack = `${asset.title} ${asset.prompt} ${asset.character} ${asset.type} ${asset.status} ${asset.visibility}`.toLowerCase();
-      return matchesFilter && (!creationSearch || haystack.includes(creationSearch));
-    });
-    list.innerHTML = filteredAssets.length ? filteredAssets.map((asset, index) => `
-      <article class="creation-work-card" data-asset>
-        <span class="creation-work-thumb ${asset.type === "video" ? "art-7" : ["art-3", "art-8", "art-10", "art-12"][index % 4]}"></span>
-        <div class="creation-work-body">
-          <div class="creation-work-meta"><span>${asset.type === "video" ? "视频" : "图片"}</span><span>${asset.visibility === "public" ? "公开" : "私密"}</span>${asset.favorite ? "<span>收藏</span>" : ""}</div>
-          <h3>${escapeHtml(asset.title)}</h3>
-          <p>${escapeHtml(asset.prompt)}</p>
-          <small>角色 ${escapeHtml(asset.character)} · ${asset.credits} 积分 · ${asset.status === "completed" ? "已完成" : escapeHtml(asset.status)}</small>
-          <div class="row-actions">
-            <button data-share-asset="${asset.id}">分享</button>
-            <button data-copy-asset-prompt="${asset.id}">复制提示词</button>
-            <button data-retry-asset="${asset.id}">重新生成</button>
+  const allItems = signedIn ? buildConsumerCreationItems(current) : [];
+  const filteredItems = allItems.filter((item) => {
+    const filterMatches =
+      creationFilter === "all" ||
+      item.type === creationFilter ||
+      item.statusGroup === creationFilter ||
+      (creationFilter === "favorite" && item.kind === "asset" && item.favorite);
+    const privacyMatches = creationPrivacy === "all" || (item.kind === "asset" && item.visibility === creationPrivacy);
+    const haystack = `${item.title} ${item.prompt} ${item.toolSlug} ${item.effectName} ${item.type} ${item.status}`.toLowerCase();
+    return filterMatches && privacyMatches && (!creationSearch || haystack.includes(creationSearch));
+  });
+  const summary = document.querySelector("[data-creation-summary]");
+  if (summary) {
+    const runningCount = allItems.filter((item) => item.statusGroup === "running").length;
+    summary.textContent = signedIn ? `${allItems.length} 项记录${runningCount ? ` · ${runningCount} 项生成中` : ""}` : "登录后查看你的创作记录";
+  }
+  list.innerHTML = filteredItems.length ? filteredItems.map((item) => {
+    const isAsset = item.kind === "asset";
+    const activeShare = isAsset ? current.shares.find((share) => share.assetId === item.id) : null;
+    const refundText = item.statusGroup === "failed"
+      ? Number(item.refundAmount || 0) > 0 ? `已退回 ${Number(item.refundAmount)} 积分` : "退款状态待同步"
+      : "";
+    return `
+      <article class="consumer-creation-card ${item.statusGroup}" data-creation-item="${escapeHtml(item.id)}">
+        <button class="consumer-creation-media" type="button" ${isAsset ? `data-preview-asset="${escapeHtml(item.id)}"` : "disabled"} aria-label="${isAsset ? "预览" : "任务状态"}：${escapeHtml(item.title)}">
+          ${isAsset ? creationMediaMarkup(item) : `<div class="creation-job-visual"><span class="creation-job-spinner" aria-hidden="true"></span><strong>${creationStatusLabel(item.status)}</strong><small>${item.statusGroup === "failed" ? escapeHtml(item.errorMessage || item.errorCode || "生成未完成") : "任务会在此自动更新"}</small></div>`}
+        </button>
+        <div class="consumer-creation-card-body">
+          <div class="creation-work-meta">
+            <span>${item.type === "video" ? "视频" : "图片"}</span>
+            <span class="creation-status-pill ${item.statusGroup}">${creationStatusLabel(item.status)}</span>
+            ${isAsset ? `<span>${item.visibility === "public" ? "公开" : "私密"}</span>` : ""}
+          </div>
+          <h3>${escapeHtml(item.title)}</h3>
+          <p>${escapeHtml(creationToolLabel(item))} · ${creationDateLabel(item.createdAt || item.updatedAt)}</p>
+          ${refundText ? `<small class="creation-refund-note">${escapeHtml(refundText)}</small>` : ""}
+          <div class="consumer-creation-actions">
+            ${isAsset ? `
+              <button type="button" data-preview-asset="${escapeHtml(item.id)}">预览</button>
+              ${item.downloadUrl || item.previewUrl ? `<a href="${escapeHtml(item.downloadUrl || item.previewUrl)}" download="${escapeHtml(safeDownloadName(item))}">下载</a>` : ""}
+              <button type="button" data-retry-asset="${escapeHtml(item.id)}">再次生成</button>
+              ${item.type === "image" ? `<button type="button" data-creation-to-video="${escapeHtml(item.id)}">转成视频</button>` : ""}
+              <button type="button" data-toggle-asset-favorite="${escapeHtml(item.id)}">${item.favorite ? "取消收藏" : "收藏"}</button>
+              <button type="button" data-manage-asset-share="${escapeHtml(item.id)}">${activeShare ? "管理分享" : "分享"}</button>
+              <button type="button" data-toggle-asset-visibility="${escapeHtml(item.id)}">${item.visibility === "public" ? "设为私密" : "设为公开"}</button>
+              <button class="danger" type="button" data-delete-asset="${escapeHtml(item.id)}">删除</button>
+            ` : `
+              ${item.statusGroup === "failed" ? `<button type="button" data-retry-job="${escapeHtml(item.id)}">修改并重试</button>` : ""}
+              ${item.statusGroup === "running" && item.remote ? `<button type="button" data-refresh-job="${escapeHtml(item.id)}">刷新</button>` : ""}
+            `}
           </div>
         </div>
       </article>
-    `).join("") : `
-      <article class="empty-state creation-empty">
-        <div><p class="eyebrow">没有匹配作品</p><h2>换个关键词，或生成一个新作品</h2><p class="muted">生成结果会自动进入这里，方便继续复用、分享和转视频。</p></div>
-        <a class="btn primary" href="./zh/app/generate/">开始生成</a>
-      </article>
     `;
-    }
-  }
-
-  if (historyList) {
-    if (!signedIn) {
-      historyList.innerHTML = signedOutPreviewMarkup("history");
-    } else {
-    historyList.innerHTML = current.history.slice(0, 5).map((job) => `
-      <article class="creation-job-row">
-        <span class="thumb ${job.type === "video" ? "art-7" : "art-3"}"></span>
-        <div>
-          <strong>${escapeHtml(job.title)}</strong>
-          <p>${escapeHtml(job.prompt)}</p>
-          <small>${escapeHtml(publicProviderLabel(job.provider, current))} · ${escapeHtml(publicModelLabel(job.model, job.provider, current))} · ${job.credits} 积分 · ${escapeHtml(job.duration)}</small>
-        </div>
-        <button data-retry-job="${job.id}">重试</button>
-      </article>
-    `).join("");
-    }
-  }
+  }).join("") : consumerCreationEmptyMarkup(signedIn, allItems.length > 0);
+  list.querySelectorAll(".consumer-creation-media img, .consumer-creation-media video").forEach((media) => {
+    media.addEventListener("error", () => {
+      media.parentElement.innerHTML = `<div class="creation-media-fallback" role="img" aria-label="预览加载失败"><span>◇</span><strong>预览准备中</strong></div>`;
+    }, { once: true });
+  });
 }
 
 async function createShare(assetId) {
   const asset = state.assets.find((item) => item.id === assetId);
   if (!asset) return;
   if (!requireRealLoginForAction("asset-share", "./zh/login/")) return;
+  if (asset.visibility !== "public" && !window.confirm("该作品当前为私密。继续将创建一个可访问的分享链接，持有链接的人可查看作品。是否继续？")) return;
   if (supabase && asset.remote) {
     try {
-      const result = await invokeAi("create-share-link", { assetId });
+      const result = await invokeAi("create-share-link", { assetId, expiresInDays: 7, confirmPublicShare: true });
       const remoteShare = result.share;
       if (remoteShare?.token) {
-        asset.visibility = "public";
         const share = {
           id: String(remoteShare.id),
           token: String(remoteShare.token),
           assetId: String(remoteShare.media_asset_id || asset.id),
           title: asset.title,
+          expiresAt: String(remoteShare.expires_at || ""),
           remote: true
         };
         upsertById(state.shares, share);
         saveState(state);
+        if (result.reward?.granted) {
+          state.credits += Number(result.reward.amount || 0);
+          showSiteToast(`分享奖励 +${result.reward.amount} 积分`);
+          await syncRewardProgram();
+        }
         trackProductEvent("asset_shared", {
           mediaType: asset.type || "asset",
           remote: true,
-          visibility: asset.visibility || "public"
+          visibility: asset.visibility || "private"
         });
-        window.location.href = `./zh/share/?token=${encodeURIComponent(share.token)}`;
+        renderCreations(state);
+        if (document.querySelector("[data-creation-share-dialog]")) openCreationShareDialog(asset.id);
+        else window.location.href = `./zh/share/?token=${encodeURIComponent(share.token)}`;
         return;
       }
     } catch (error) {
-      showSiteToast(`${error.message || "分享链接创建失败"}，已切回本地演示分享。`);
+      showSiteToast(error.message || "分享链接创建失败");
+      return;
     }
   }
-  asset.visibility = "public";
-  const share = { id: `share_${Date.now()}`, token: `share-${Date.now()}`, assetId: asset.id, title: asset.title };
+  const share = { id: `share_${Date.now()}`, token: `share-${Date.now()}`, assetId: asset.id, title: asset.title, expiresAt: new Date(Date.now() + 7 * 86400000).toISOString() };
   state.shares.unshift(share);
   saveState(state);
   trackProductEvent("asset_shared", {
     mediaType: asset.type || "asset",
     remote: false,
-    visibility: asset.visibility || "public"
+    visibility: asset.visibility || "private"
   });
-  window.location.href = `./zh/share/?token=${share.token}`;
+  renderCreations(state);
+  if (document.querySelector("[data-creation-share-dialog]")) openCreationShareDialog(asset.id);
+  else window.location.href = `./zh/share/?token=${encodeURIComponent(share.token)}`;
+}
+
+async function updateConsumerAsset(assetId, patch) {
+  const asset = state.assets.find((item) => item.id === assetId);
+  if (!asset || !requireRealLoginForAction("asset-update", "./zh/login/")) return null;
+  if (supabase && asset.remote) {
+    const result = await invokeAi("update-media-asset", { assetId, ...patch });
+    const updated = mapRemoteAsset(result.asset);
+    await attachRemoteAssetDownloadUrls([updated]);
+    upsertById(state.assets, updated);
+  } else {
+    if (typeof patch.favorite === "boolean") asset.favorite = patch.favorite;
+    if (patch.visibility) asset.visibility = patch.visibility;
+  }
+  saveState(state);
+  renderCreations(state);
+  return state.assets.find((item) => item.id === assetId) || null;
+}
+
+async function deleteConsumerAsset(assetId) {
+  const asset = state.assets.find((item) => item.id === assetId);
+  if (!asset || !requireRealLoginForAction("asset-delete", "./zh/login/")) return;
+  if (!window.confirm(`确定删除“${asset.title}”吗？相关分享链接会同时失效。`)) return;
+  if (supabase && asset.remote) await invokeAi("delete-media-asset", { assetId });
+  state.assets = state.assets.filter((item) => item.id !== assetId);
+  state.shares = state.shares.filter((item) => item.assetId !== assetId);
+  saveState(state);
+  renderCreations(state);
+  showSiteToast("作品已删除，相关分享链接已失效。", "success");
+}
+
+async function revokeConsumerShare(shareId) {
+  const share = state.shares.find((item) => item.id === shareId);
+  if (!share || !requireRealLoginForAction("share-revoke", "./zh/login/")) return;
+  if (supabase && share.remote) await invokeAi("revoke-share-link", { shareId });
+  state.shares = state.shares.filter((item) => item.id !== shareId);
+  saveState(state);
+  document.querySelector("[data-creation-share-dialog]")?.close();
+  renderCreations(state);
+  showSiteToast("分享链接已撤销。", "success");
+}
+
+function openCreationPreview(assetId) {
+  const asset = state.assets.find((item) => item.id === assetId);
+  const dialog = document.querySelector("[data-creation-preview-dialog]");
+  const content = dialog?.querySelector("[data-creation-preview-content]");
+  if (!asset || !dialog || !content) return;
+  const previewUrl = String(asset.previewUrl || asset.downloadUrl || asset.outputUrl || "");
+  const previewMarkup = asset.type === "video" && previewUrl
+    ? `<video src="${escapeHtml(previewUrl)}" controls playsinline preload="metadata" aria-label="${escapeHtml(asset.title)}"></video>`
+    : creationMediaMarkup(asset);
+  content.innerHTML = `
+    <div class="creation-preview-media">${previewMarkup}</div>
+    <div class="creation-dialog-copy">
+      <p class="eyebrow">${asset.type === "video" ? "视频作品" : "图片作品"}</p>
+      <h2>${escapeHtml(asset.title)}</h2>
+      <p>${escapeHtml(asset.prompt || "没有保存提示词")}</p>
+      <small>${escapeHtml(creationToolLabel(asset))} · ${creationDateLabel(asset.createdAt || asset.updatedAt)}</small>
+    </div>
+  `;
+  dialog.showModal();
+}
+
+function creationShareUrl(token) {
+  return new URL(`./zh/share/?token=${encodeURIComponent(token)}`, window.location.href).href;
+}
+
+function openCreationShareDialog(assetId) {
+  const asset = state.assets.find((item) => item.id === assetId);
+  const share = state.shares.find((item) => item.assetId === assetId);
+  const dialog = document.querySelector("[data-creation-share-dialog]");
+  const content = dialog?.querySelector("[data-creation-share-content]");
+  if (!asset || !dialog || !content) return;
+  content.innerHTML = share ? `
+    <div class="creation-dialog-copy">
+      <p class="eyebrow">分享链接</p>
+      <h2>${escapeHtml(asset.title)}</h2>
+      <p>只有持有此链接的人可以查看。链接${share.expiresAt ? `将在 ${creationDateLabel(share.expiresAt)} 过期` : "有效期由服务端管理"}。</p>
+      <label class="creation-share-url"><span>只读链接</span><input value="${escapeHtml(creationShareUrl(share.token))}" readonly></label>
+      <div class="section-actions">
+        <button class="btn primary" type="button" data-copy-share-token="${escapeHtml(share.token)}">复制链接</button>
+        <button class="btn glass" type="button" data-revoke-share="${escapeHtml(share.id)}">撤销链接</button>
+      </div>
+    </div>
+  ` : `
+    <div class="creation-dialog-copy">
+      <p class="eyebrow">创建分享</p>
+      <h2>${escapeHtml(asset.title)}</h2>
+      <p>作品默认保持私密。创建后会获得一个有效期为 7 天、可随时撤销的只读链接。</p>
+      <button class="btn primary" type="button" data-create-share="${escapeHtml(asset.id)}">创建分享链接</button>
+    </div>
+  `;
+  dialog.showModal();
 }
 
 function renderDashboard(current) {
@@ -5854,16 +6625,18 @@ function renderGrowthDashboard(current) {
   const completed = todayJobs.filter((job) => ["completed", "success", "succeeded"].includes(normalizeJobStatus(job.status))).length;
   const failed = todayJobs.filter((job) => ["failed", "cancelled", "canceled"].includes(normalizeJobStatus(job.status))).length;
   const successRate = todayJobs.length ? Math.round((completed / todayJobs.length) * 100) : 0;
-  const cost = todayJobs.reduce((sum, job) => sum + growthMetricNumber(job, "credits", "creditsUsed", "cost"), 0) + todayAssets.reduce((sum, asset) => sum + growthMetricNumber(asset, "credits", "creditsUsed", "cost"), 0);
+  const generationCost = todayJobs.reduce((sum, job) => sum + growthMetricNumber(job, "credits", "creditsUsed", "cost"), 0) + todayAssets.reduce((sum, asset) => sum + growthMetricNumber(asset, "credits", "creditsUsed", "cost"), 0);
   const queue = Array.isArray(current.contentQueue) ? current.contentQueue : [];
   const publishedToday = queue.filter((item) => ["published", "completed", "sent"].includes(String(item.status || "").toLowerCase()) && growthToday(growthTimestamp(item))).length;
-  const analytics = Array.isArray(current.contentAnalytics) ? current.contentAnalytics : [];
+  const analytics = current.performanceMetricsLoaded && Array.isArray(current.contentAnalytics) ? current.contentAnalytics : [];
   const clicks = analytics.reduce((sum, row) => sum + growthMetricNumber(row, "clicks", "click_count"), 0);
   const signups = analytics.reduce((sum, row) => sum + growthMetricNumber(row, "signups", "registrations"), 0);
   const conversion = clicks ? `${((signups / clicks) * 100).toFixed(1)}%` : "暂无数据";
   const roiRows = analytics.map((row) => ({ ...row, roi: growthMetricNumber(row, "roi", "roiScore") || (growthMetricNumber(row, "revenue") - growthMetricNumber(row, "cost")) }));
   const topContent = roiRows.slice().sort((a, b) => growthMetricNumber(b, "views", "clicks") - growthMetricNumber(a, "views", "clicks"))[0];
   const topRoi = roiRows.slice().sort((a, b) => b.roi - a.roi)[0];
+  const performanceCost = Number(current.performanceSummary?.totals?.cost || 0);
+  const cost = performanceCost || generationCost;
   const text = (selector, value) => root.querySelectorAll(selector).forEach((node) => { node.textContent = String(value); });
   text("[data-growth-account-total]", accounts.length);
   text("[data-growth-account-active]", activeAccounts.length);
@@ -5879,7 +6652,7 @@ function renderGrowthDashboard(current) {
   text("[data-growth-signups]", signups);
   text("[data-growth-conversion]", conversion);
   text("[data-growth-top-content]", topContent ? (current.contentItems.find((item) => item.id === topContent.contentItemId)?.title || "内容表现") : "暂无数据");
-  text("[data-growth-top-roi]", topRoi ? `${topRoi.platform || "渠道"} · ROI ${topRoi.roi.toFixed(1)}` : "暂无数据");
+  text("[data-growth-top-roi]", topRoi ? `${topRoi.platform || "渠道"} · ROI ${topRoi.roi.toFixed(1)} · 收入 ${Number(topRoi.revenue || 0).toFixed(2)}` : "暂无数据");
   const recent = root.querySelector("[data-growth-account-recent]");
   if (recent) recent.innerHTML = accountHealth.slice().sort((a, b) => b.score - a.score).slice(0, 4).map(({ account, score }) => `<li><strong>${escapeHtml(account.platform || "账号")} · ${score}/100</strong><span>${escapeHtml(account.handle || "未命名")} · ${escapeHtml(account.status || "未知")}</span></li>`).join("") || "<li>暂无账号数据</li>";
   const tasks = root.querySelector("[data-growth-tasks]");
@@ -5893,9 +6666,10 @@ function renderGrowthDashboard(current) {
   }
   const bestCharacter = (current.characters || []).slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0))[0];
   const recommendedTool = (toolCatalogConfig.tools || []).find((tool) => tool.status === "published" && tool.featured) || toolCatalogConfig.tools?.[0];
+  const strategy = Array.isArray(current.performanceStrategies) ? current.performanceStrategies[0] : null;
   const recommendations = [
     { id: "character-content", title: bestCharacter ? `增加 ${bestCharacter.name} 的内容` : "增加角色内容", detail: bestCharacter ? `${bestCharacter.role} · 一致性评分 ${bestCharacter.score}` : "先选择一个可复用角色", action: "创建内容任务", payload: { type: "content", characterId: bestCharacter?.id || "", character: bestCharacter?.name || "" } },
-    { id: "prompt-variant", title: "复用最高表现 Prompt", detail: topContent ? (current.contentItems.find((item) => item.id === topContent.contentItemId)?.prompt || "根据最高表现内容创建变体") : "积累内容表现后推荐 Prompt", action: "创建内容任务", payload: { type: "prompt", prompt: current.contentItems.find((item) => item.id === topContent?.contentItemId)?.prompt || "创建一个适合今日渠道的内容变体" } },
+    { id: "prompt-variant", title: strategy?.name || "复用最高表现 Prompt", detail: strategy?.description || (topContent ? (current.contentItems.find((item) => item.id === topContent.contentItemId)?.prompt || "根据最高表现内容创建变体") : "暂无 Supabase 优化策略"), action: "创建内容任务", payload: { type: "prompt", prompt: strategy?.description || current.contentItems.find((item) => item.id === topContent?.contentItemId)?.prompt || "创建一个适合今日渠道的内容变体" } },
     { id: "workflow-run", title: recommendedTool ? `运行 ${recommendedTool.name} Workflow` : "运行推荐 Workflow", detail: recommendedTool?.workflowId || "暂无已发布 Workflow", action: "创建内容任务", payload: { type: "workflow", workflowId: recommendedTool?.workflowId || "", toolSlug: recommendedTool?.slug || "" } }
   ];
   const suggestion = root.querySelector("[data-growth-suggestions]");
@@ -6284,28 +7058,33 @@ function renderContentAnalytics(current) {
   const summary = document.querySelector("[data-content-analytics-summary]");
   const list = document.querySelector("[data-content-analytics-list]");
   if (!summary && !list) return;
-  const totals = current.contentAnalytics.reduce((acc, row) => {
+  const analytics = current.performanceMetricsLoaded && Array.isArray(current.contentAnalytics) ? current.contentAnalytics : [];
+  const totals = analytics.reduce((acc, row) => {
     acc.views += Number(row.views || 0);
     acc.likes += Number(row.likes || 0);
     acc.shares += Number(row.shares || 0);
     acc.clicks += Number(row.clicks || 0);
     acc.signups += Number(row.signups || 0);
+    acc.revenue += Number(row.revenue || 0);
+    acc.cost += Number(row.cost || 0);
     return acc;
-  }, { views: 0, likes: 0, shares: 0, clicks: 0, signups: 0 });
+  }, { views: 0, likes: 0, shares: 0, clicks: 0, signups: 0, revenue: 0, cost: 0 });
   if (summary) {
     summary.innerHTML = [
       ["总曝光", totals.views],
       ["总互动", totals.likes + totals.shares],
       ["链接点击", totals.clicks],
-      ["注册转化", totals.signups]
-    ].map(([label, value]) => `<article><span>${label}</span><strong>${value}</strong><p>演示指标</p></article>`).join("");
+      ["注册转化", totals.signups],
+      ["收入", totals.revenue.toFixed(2)],
+      ["成本", totals.cost.toFixed(2)]
+    ].map(([label, value]) => `<article><span>${label}</span><strong>${value}</strong><p>Supabase 指标</p></article>`).join("");
   }
   if (list) {
-    if (!current.contentAnalytics.length) {
+    if (!analytics.length) {
       list.innerHTML = `<article class="content-os-card"><strong>还没有足够数据</strong><p>发布至少 3 条内容后，这里会生成平台表现、最佳内容和 AI 优化建议。</p></article>`;
       return;
     }
-    list.innerHTML = current.contentAnalytics.map((row) => {
+    list.innerHTML = analytics.map((row) => {
       const item = current.contentItems.find((entry) => entry.id === row.contentItemId);
       return `
         <article class="content-os-card">
@@ -7887,13 +8666,23 @@ function setText(selector, value) {
 }
 
 function renderReferral(current) {
+  const program = rewardProgramStatus;
+  const claims = Array.isArray(program?.claims) ? program.claims : [];
+  const claimTypes = new Set(claims.map((claim) => claim.reward_type));
+  const stats = program?.referralStats || { clicks: 0, registrations: 0, valid: 0, rewarded: 0 };
+  const referralInput = document.querySelector("[data-referral-link]");
+  if (referralInput) {
+    referralInput.value = program?.referralCode
+      ? `${new URL("./app.html", window.location.href).href}?ref=${encodeURIComponent(program.referralCode)}`
+      : "登录后生成专属推荐链接";
+  }
   const stateCard = document.querySelector("[data-referral-state]");
   if (stateCard) {
     stateCard.innerHTML = current.user ? `
       <span>已登录</span>
       <h2>${escapeHtml(current.user.name)} 的奖励中心</h2>
-      <p>当前可用积分：<strong data-credit-balance>${current.credits}</strong>。继续签到、复制推荐链接或完成创作任务来获得更多积分。</p>
-      <a class="btn primary full" href="./zh/dashboard/">打开控制台</a>
+      <p>当前可用积分：<strong data-credit-balance>${current.credits}</strong>。奖励由服务端核验并写入积分账本。</p>
+      <a class="btn primary full" href="./zh/my-creations/">查看我的作品</a>
     ` : `
       <span>需要登录</span>
       <h2>登录后查看你的推荐仪表板</h2>
@@ -7904,30 +8693,30 @@ function renderReferral(current) {
 
   const progress = document.querySelector("[data-referral-progress]");
   if (progress) {
-    const checkDay = state.rewards.lastCheckInDate ? state.rewards.checkInDay || 1 : 0;
     progress.innerHTML = `
-      <span>签到进度 <b>${checkDay}/7</b></span>
-      <span>推荐链接复制 <b>${current.rewards.referralCopies || 0}</b></span>
-      <span>已领任务 <b>${current.rewards.taskClaims.length}</b></span>
+      <span>点击 <b>${stats.clicks}</b></span>
+      <span>注册 <b>${stats.registrations}</b></span>
+      <span>有效推荐 <b>${stats.valid}</b></span>
+      <span>已发奖励 <b>${stats.rewarded}</b></span>
     `;
   }
 
   document.querySelectorAll("[data-reward-task]").forEach((card) => {
     const task = card.dataset.rewardTask;
     const claimed =
-      (task === "checkin" && Boolean(current.rewards.lastCheckInDate)) ||
-      (task === "first-generation" && current.history.length > 0) ||
-      (task === "share" && current.shares.length > 0) ||
-      current.rewards.taskClaims.includes(task);
+      (task === "checkin" && Boolean(program?.daily?.claimedToday)) ||
+      (task === "first-generation" && claimTypes.has("first_generation")) ||
+      (task === "share" && claimTypes.has("share")) ||
+      (task === "referral" && stats.rewarded > 0);
     card.classList.toggle("claimed", claimed);
+    card.dataset.rewardState = claimed ? "claimed" : current.user ? "available" : "locked";
   });
-
-  document.querySelectorAll("[data-claim-task]").forEach((button) => {
-    const task = button.dataset.claimTask || "";
-    if (current.rewards.taskClaims.includes(task)) {
-      button.textContent = "已领取";
-    }
-  });
+  const status = document.querySelector("[data-checkin-status]");
+  if (status) status.textContent = !current.user
+    ? "登录后可签到"
+    : program?.daily?.claimedToday
+      ? `今日已领取 · 连续 ${program.daily.streak} 天`
+      : `连续 ${program?.daily?.streak || 0} 天 · 下一奖励 +${program?.daily?.nextReward || 0}`;
 }
 
 function renderShare(current) {
@@ -8001,6 +8790,28 @@ document.querySelectorAll("[data-creation-filter]").forEach((button) => {
   });
 });
 
+document.querySelector("[data-creation-privacy]")?.addEventListener("change", (event) => {
+  creationPrivacy = event.currentTarget.value || "all";
+  renderCreations(state);
+});
+
+document.querySelector("[data-refresh-creations]")?.addEventListener("click", async (event) => {
+  const button = event.currentTarget;
+  button.disabled = true;
+  button.textContent = "刷新中…";
+  try {
+    await syncRemoteProductData();
+    saveState(state);
+    renderState(state);
+    showSiteToast("作品与任务已更新。", "success");
+  } catch (error) {
+    showSiteToast(error.message || "刷新失败，请稍后重试。");
+  } finally {
+    button.disabled = false;
+    button.textContent = "刷新";
+  }
+});
+
 document.querySelector("[data-history-search]")?.addEventListener("input", (event) => {
   historySearch = event.currentTarget.value.trim().toLowerCase();
   renderHistory(state);
@@ -8030,6 +8841,134 @@ document.querySelector("[data-tool-home-search]")?.addEventListener("input", (ev
 });
 
 document.addEventListener("click", async (event) => {
+  const closeCreationDialog = event.target.closest("[data-close-creation-dialog]");
+  if (closeCreationDialog) {
+    closeCreationDialog.closest("dialog")?.close();
+    return;
+  }
+
+  const clearCreationFilters = event.target.closest("[data-clear-creation-filters]");
+  if (clearCreationFilters) {
+    creationFilter = "all";
+    creationSearch = "";
+    creationPrivacy = "all";
+    const search = document.querySelector("[data-creation-search]");
+    const privacy = document.querySelector("[data-creation-privacy]");
+    if (search) search.value = "";
+    if (privacy) privacy.value = "all";
+    renderCreations(state);
+    return;
+  }
+
+  const previewAssetButton = event.target.closest("[data-preview-asset]");
+  if (previewAssetButton) {
+    event.preventDefault();
+    openCreationPreview(previewAssetButton.dataset.previewAsset);
+    return;
+  }
+
+  const manageShareButton = event.target.closest("[data-manage-asset-share]");
+  if (manageShareButton) {
+    event.preventDefault();
+    openCreationShareDialog(manageShareButton.dataset.manageAssetShare);
+    return;
+  }
+
+  const createShareButton = event.target.closest("[data-create-share]");
+  if (createShareButton) {
+    event.preventDefault();
+    createShareButton.disabled = true;
+    try {
+      await createShare(createShareButton.dataset.createShare);
+    } finally {
+      createShareButton.disabled = false;
+    }
+    return;
+  }
+
+  const copyShareButton = event.target.closest("[data-copy-share-token]");
+  if (copyShareButton) {
+    event.preventDefault();
+    try {
+      await navigator.clipboard.writeText(creationShareUrl(copyShareButton.dataset.copyShareToken));
+      copyShareButton.textContent = "已复制";
+    } catch {
+      showSiteToast("浏览器未允许复制，请手动复制链接。");
+    }
+    return;
+  }
+
+  const revokeShareButton = event.target.closest("[data-revoke-share]");
+  if (revokeShareButton) {
+    event.preventDefault();
+    revokeShareButton.disabled = true;
+    try {
+      await revokeConsumerShare(revokeShareButton.dataset.revokeShare);
+    } catch (error) {
+      showSiteToast(error.message || "撤销分享失败。");
+    } finally {
+      revokeShareButton.disabled = false;
+    }
+    return;
+  }
+
+  const toggleFavoriteButton = event.target.closest("[data-toggle-asset-favorite]");
+  if (toggleFavoriteButton) {
+    event.preventDefault();
+    const asset = state.assets.find((item) => item.id === toggleFavoriteButton.dataset.toggleAssetFavorite);
+    if (!asset) return;
+    toggleFavoriteButton.disabled = true;
+    try {
+      await updateConsumerAsset(asset.id, { favorite: !asset.favorite });
+    } catch (error) {
+      showSiteToast(error.message || "收藏状态更新失败。");
+    } finally {
+      toggleFavoriteButton.disabled = false;
+    }
+    return;
+  }
+
+  const toggleVisibilityButton = event.target.closest("[data-toggle-asset-visibility]");
+  if (toggleVisibilityButton) {
+    event.preventDefault();
+    const asset = state.assets.find((item) => item.id === toggleVisibilityButton.dataset.toggleAssetVisibility);
+    if (!asset) return;
+    toggleVisibilityButton.disabled = true;
+    try {
+      await updateConsumerAsset(asset.id, { visibility: asset.visibility === "public" ? "private" : "public" });
+    } catch (error) {
+      showSiteToast(error.message || "可见性更新失败。");
+    } finally {
+      toggleVisibilityButton.disabled = false;
+    }
+    return;
+  }
+
+  const deleteAssetButton = event.target.closest("[data-delete-asset]");
+  if (deleteAssetButton) {
+    event.preventDefault();
+    deleteAssetButton.disabled = true;
+    try {
+      await deleteConsumerAsset(deleteAssetButton.dataset.deleteAsset);
+    } catch (error) {
+      showSiteToast(error.message || "删除作品失败。");
+    } finally {
+      deleteAssetButton.disabled = false;
+    }
+    return;
+  }
+
+  const toVideoButton = event.target.closest("[data-creation-to-video]");
+  if (toVideoButton) {
+    event.preventDefault();
+    const asset = state.assets.find((item) => item.id === toVideoButton.dataset.creationToVideo);
+    if (!asset) return;
+    localStorage.setItem("ovs_video_reference_asset", asset.id);
+    persistGenerationRecovery({ kind: "image-to-video", sourceAssetId: asset.id, prompt: asset.prompt || "", preset: "image-video" });
+    window.location.href = "./zh/app/image-to-video/";
+    return;
+  }
+
   const shareGenerateButton = event.target.closest("[data-share-generate]");
   if (shareGenerateButton) {
     const asset = getCurrentShareAsset();
@@ -8589,3 +9528,4 @@ syncPublicCatalog();
 syncDynamicToolPage();
 
 renderState(state);
+setupVisualDesignSystem();

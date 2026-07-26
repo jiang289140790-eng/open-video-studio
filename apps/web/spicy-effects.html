@@ -41,12 +41,15 @@
       </aside>
       <main class="app-surface spicy-page" id="spicyRoot"></main>
     </div>
+    <script src="./effect-catalog.js"></script>
+    <script src="./effect-card-system.js"></script>
     <script src="./spicy-effects-data.js"></script>
     <script>
       (function render() {
         var d = window.__SPICY_DATA__;
         if (!d) return setTimeout(render, 50);
         var root = document.getElementById('spicyRoot');
+        var cards = window.EffectCardSystem;
         if (!root) return;
 
         function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -85,15 +88,12 @@
 
         // ── Card Grid ──
         var grid = h('section', {className:'spicy-card-grid', 'aria-label':'辣味特效卡片'});
-        d.cards.forEach(function(card, i) {
-          var lockBadge = card.locked ? h('span', {className:'spicy-card-lock'}, '解锁') : '';
-          grid.appendChild(
-            h('a', {className:'spicy-card art-' + ((i%10)+1), href:card.link, 'data-spicy-card':'', 'data-spicy-tags':card.tags.join(' ')}, [
-              lockBadge,
-              h('strong', {}, esc(card.name)),
-              h('small', {}, esc(card.desc))
-            ])
-          );
+        d.cards.forEach(function(card) {
+          var effectCard = cards.EffectCard(card, {tags:(card.tags || []).join(' ')});
+          if (effectCard) {
+            effectCard.dataset.spicyCard = '';
+            grid.appendChild(effectCard);
+          }
         });
         frag.appendChild(grid);
 

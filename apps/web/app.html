@@ -3,28 +3,32 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AI 工具 | Luravyn</title>
-    <meta name="description" content="AI 图像与视频工具">
+    <title>AI 图片与视频生成 | Luravyn</title>
+    <meta name="description" content="上传图片、选择已验证效果并创建 AI 图片或视频。">
     <link rel="icon" type="image/png" href="./favicon.png">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="./index.html"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
+      <a class="brand" href="./zh/app/"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
       <nav class="topnav" aria-label="主导航">
         <a href="./zh/image-tools/">图像工具</a>
         <a href="./zh/video-tools/">视频工具</a>
         <a href="./zh/pricing/">购买积分</a>
-        <a href="./zh/free-coins/">免费硬币</a>
-        <a href="./zh/my-creations/">我的创作</a>
+        <a href="./zh/free-coins/">免费积分</a>
+        <a href="./zh/my-creations/">我的作品</a>
       </nav>
-      <nav class="accountnav" aria-label="账户导航"><a class="daily-check" href="./zh/free-coins/">Daily Check-in</a><a href="./zh/login/">登录</a></nav>
+      <nav class="accountnav" aria-label="账户导航">
+        <a class="daily-check" href="./zh/free-coins/">每日奖励</a>
+        <a href="./zh/login/" data-auth-modal>登录</a>
+      </nav>
     </header>
+
     <div class="app-layout">
       <aside class="side-rail" aria-label="工具导航">
-        <nav class="rail-menu" aria-label="工具菜单">
+        <nav class="rail-menu" aria-label="消费者工具">
           <a class="side-link active" href="./zh/app/">首页</a>
-          <a class="side-link" href="./zh/app/spicy-effects/">辛辣效果 <span class="badge-hot">HOT</span></a>
+          <a class="side-link" href="./zh/app/spicy-effects/">辣味效果 <span class="badge-hot">HOT</span></a>
           <p class="side-label">AI 图像</p>
           <a class="side-link" href="./zh/app/image-editor/">图片编辑器</a>
           <a class="side-link" href="./zh/app/face-swap/">AI 换脸</a>
@@ -32,152 +36,179 @@
           <a class="side-link" href="./zh/app/pose-generator/">性爱姿势</a>
           <p class="side-label">AI 视频</p>
           <a class="side-link" href="./zh/app/image-to-video/">图片转视频</a>
-          <a class="side-link" href="./zh/my-creations/">我的创作</a>
+          <a class="side-link" href="./zh/my-creations/">我的作品</a>
         </nav>
         <div class="rail-actions" aria-label="账户快捷入口">
           <a href="./zh/referral/">推荐好友</a>
           <a class="rail-upgrade" href="./zh/pricing/?from=sidebar">立即升级</a>
         </div>
       </aside>
-      <main class="app-surface home-v2" id="homeRoot"></main>
+
+      <main class="app-surface consumer-home" id="homeRoot">
+        <section class="consumer-home-hero" aria-labelledby="homeHeroTitle">
+          <div class="consumer-home-generator">
+            <p class="consumer-home-kicker">AI 图片与视频生成</p>
+            <h1 id="homeHeroTitle">上传一张图片，选择效果，开始创作</h1>
+            <p class="consumer-home-lead">无需理解模型或工作流。选择图片效果或视频效果，确认积分后再创建任务。</p>
+
+            <div class="consumer-home-mode-tabs" role="tablist" aria-label="生成类型">
+              <button class="active" type="button" role="tab" aria-selected="true" data-home-mode="image">图片效果</button>
+              <button type="button" role="tab" aria-selected="false" data-home-mode="video">视频效果</button>
+            </div>
+
+            <label class="consumer-home-upload" data-home-upload-zone>
+              <input type="file" accept="image/jpeg,image/png,image/webp" data-home-upload hidden>
+              <span class="consumer-home-upload-icon" aria-hidden="true">＋</span>
+              <strong data-home-upload-title>上传参考图片</strong>
+              <small data-home-upload-detail>拖放或点击上传 JPG、PNG、WebP，最大 20MB</small>
+            </label>
+
+            <label class="consumer-home-effect-field">
+              <span>热门效果</span>
+              <select data-home-effect aria-label="选择已验证效果">
+                <option value="">正在检查可用效果…</option>
+              </select>
+            </label>
+
+            <div class="consumer-home-cost" data-home-cost>
+              <span>本次预计</span>
+              <strong>登录后查看积分</strong>
+              <small>选择可用效果后显示</small>
+            </div>
+
+            <button class="consumer-home-generate" type="button" data-home-generate disabled>可用效果接入中</button>
+            <p class="consumer-home-status" data-home-status role="status">你可以先上传图片；只有已验证的效果才会开放生成。</p>
+            <p class="consumer-home-file-note">上传内容默认保持私有。请仅使用你拥有或已获授权的素材。</p>
+          </div>
+
+          <div class="consumer-home-showcase" aria-label="效果预览">
+            <div class="consumer-home-preview" data-home-preview>
+              <span class="consumer-home-preview-icon" aria-hidden="true">▧</span>
+              <strong>已验证效果预览</strong>
+              <p>真实预览媒体接入后会显示在这里，不使用无关图片代替生成效果。</p>
+            </div>
+            <div class="consumer-home-preview-dots" data-home-preview-dots aria-label="预览切换"></div>
+          </div>
+        </section>
+
+        <section class="consumer-home-section" aria-labelledby="popularEffectsTitle">
+          <div class="consumer-home-section-head">
+            <div><span>热门</span><h2 id="popularEffectsTitle">热门效果</h2></div>
+            <a href="./zh/app/spicy-effects/">查看全部</a>
+          </div>
+          <div class="consumer-home-card-grid" data-home-popular></div>
+          <div class="consumer-home-inline-empty" data-home-popular-empty hidden>
+            <strong>热门效果正在完成验证</strong>
+            <p>需要同时具备真实预览和 active workflow 后才会在这里开放。</p>
+          </div>
+        </section>
+
+        <section class="consumer-home-section" aria-labelledby="imageToolsTitle">
+          <div class="consumer-home-section-head">
+            <div><span>图片</span><h2 id="imageToolsTitle">图片工具</h2></div>
+            <a href="./zh/image-tools/">全部图片工具</a>
+          </div>
+          <div class="consumer-home-tool-grid" data-home-image-tools></div>
+        </section>
+
+        <section class="consumer-home-section" aria-labelledby="videoEffectsTitle">
+          <div class="consumer-home-section-head">
+            <div><span>视频</span><h2 id="videoEffectsTitle">视频效果</h2></div>
+            <a href="./zh/video-tools/">查看全部</a>
+          </div>
+          <div class="consumer-home-card-grid" data-home-video-effects></div>
+          <div class="consumer-home-inline-empty" data-home-video-empty hidden>
+            <strong>视频效果正在完成验证</strong>
+            <p>通过真实预览、耗时和积分验证后再开放，避免误导生成。</p>
+          </div>
+        </section>
+
+        <section class="consumer-home-section consumer-home-how" aria-labelledby="howItWorksTitle">
+          <div class="consumer-home-section-head">
+            <div><span>简单三步</span><h2 id="howItWorksTitle">如何使用</h2></div>
+          </div>
+          <div class="consumer-home-steps">
+            <article><b>1</b><span aria-hidden="true">⇧</span><h3>上传图片</h3><p>选择 JPG、PNG 或 WebP 素材。</p></article>
+            <article><b>2</b><span aria-hidden="true">◫</span><h3>选择效果</h3><p>只显示已验证可用的效果。</p></article>
+            <article><b>3</b><span aria-hidden="true">↓</span><h3>下载结果</h3><p>在任务历史中查看和下载。</p></article>
+          </div>
+        </section>
+
+        <section class="consumer-home-section" aria-labelledby="worksTitle">
+          <div class="consumer-home-section-head">
+            <div><span>真实结果</span><h2 id="worksTitle">作品展示</h2></div>
+            <a href="./zh/my-creations/">我的作品</a>
+          </div>
+          <div class="consumer-home-inline-empty consumer-home-works-empty">
+            <strong>暂无可公开展示的真实作品</strong>
+            <p>只有取得公开授权并完成审核的生成结果才会出现在这里。</p>
+          </div>
+        </section>
+
+        <section class="consumer-home-section consumer-home-trust" aria-labelledby="trustTitle">
+          <div class="consumer-home-section-head">
+            <div><span>透明可靠</span><h2 id="trustTitle">隐私与可靠性</h2></div>
+          </div>
+          <div class="consumer-home-trust-grid">
+            <a href="./zh/pricing/"><strong>一次性购买</strong><span>按需购买积分</span></a>
+            <a href="./zh/history/"><strong>失败任务处理</strong><span>查看退款与错误记录</span></a>
+            <a href="./zh/privacy/"><strong>文件与隐私</strong><span>查看保存和删除规则</span></a>
+            <a href="./zh/my-creations/"><strong>任务历史</strong><span>集中查看自己的作品</span></a>
+          </div>
+        </section>
+
+        <section class="consumer-home-section consumer-home-pricing" aria-labelledby="pricingTitle">
+          <div>
+            <span>积分</span>
+            <h2 id="pricingTitle">按需要购买，不绑定订阅</h2>
+            <p>生成前显示预计积分；套餐和最终价格以结账页为准。</p>
+          </div>
+          <a class="consumer-home-secondary-cta" href="./zh/pricing/">查看积分套餐</a>
+        </section>
+
+        <section class="consumer-home-section consumer-home-faq" aria-labelledby="faqTitle">
+          <div class="consumer-home-section-head">
+            <div><span>帮助</span><h2 id="faqTitle">常见问题</h2></div>
+          </div>
+          <div class="consumer-home-faq-list">
+            <details><summary>支持哪些图片格式？</summary><p>首页上传入口支持 JPG、PNG 和 WebP，单个文件最大 20MB。</p></details>
+            <details><summary>需要先登录才能选择效果吗？</summary><p>不需要。可以先上传图片和选择效果，点击生成时再检查登录与积分。</p></details>
+            <details><summary>为什么有些效果显示即将上线？</summary><p>没有真实预览或没有通过 active workflow 验证的效果不会开放生成。</p></details>
+            <details><summary>生成失败会怎样？</summary><p>失败任务的错误原因和退款结果会记录在任务历史中。</p></details>
+            <details><summary>上传的文件会公开吗？</summary><p>上传内容默认保持私有；具体保存和删除规则请查看隐私说明。</p></details>
+          </div>
+        </section>
+
+        <footer class="consumer-home-footer" aria-label="消费者页脚">
+          <div>
+            <strong>产品</strong>
+            <a href="./zh/app/">首页</a>
+            <a href="./zh/app/spicy-effects/">全部效果</a>
+            <a href="./zh/image-tools/">图片工具</a>
+            <a href="./zh/video-tools/">视频工具</a>
+            <a href="./zh/my-creations/">我的作品</a>
+          </div>
+          <div>
+            <strong>帮助</strong>
+            <a href="./zh/blog/">Blog</a>
+            <a href="./zh/pricing/">价格</a>
+            <a href="./zh/referral/">推荐好友</a>
+            <a href="./zh/terms/">Terms</a>
+            <a href="./zh/privacy/">Privacy</a>
+            <a href="./zh/cookie/">Cookie</a>
+          </div>
+          <div>
+            <strong>联系</strong>
+            <a href="mailto:support@luravyn.com">support@luravyn.com</a>
+            <a href="mailto:business@luravyn.com">business@luravyn.com</a>
+          </div>
+        </footer>
+      </main>
     </div>
-    <script src="./tools-data.js"></script>
-    <script>
-      (function render() {
-        var d = window.__TOOLS_DATA__;
-        if (!d) return setTimeout(render, 50);
-        var root = document.getElementById('homeRoot');
-        if (!root) return;
 
-        function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-        function h(tag, attrs, children) {
-          var el = document.createElement(tag);
-          if (attrs) for (var k in attrs) { if (k==='className') el.className=attrs[k]; else el.setAttribute(k,attrs[k]); }
-          if (typeof children==='string') el.innerHTML=children;
-          else if (children) for (var i=0;i<children.length;i++) { if (typeof children[i]==='string') el.appendChild(document.createTextNode(children[i])); else el.appendChild(children[i]); }
-          return el;
-        }
-
-        var frag = document.createDocumentFragment();
-
-        // ── Hero ──
-        var hero = d.hero;
-        frag.appendChild(
-          h('section', {className:'home-hero', 'data-home-section-type':'hero'}, [
-            h('div', {className:'hero-main'}, [
-              h('span', {className:'hero-eyebrow'}, 'NEW'),
-              h('h1', {}, esc(hero.title)),
-              h('p', {}, esc(hero.desc)),
-              h('a', {className:'hero-cta', href:hero.link}, esc(hero.cta) + ' →')
-            ]),
-            h('div', {className:'hero-visual'}, [
-              h('img', {src:hero.image, alt:hero.title, loading:'eager'})
-            ])
-          ])
-        );
-
-        // ── Quick Tools Row ──
-        var qtSection = h('section', {className:'home-section', 'data-home-section-type':'quick_tools'}, [
-          h('div', {className:'section-head'}, [h('h2', {}, '快捷工具')])
-        ]);
-        var qtRow = h('div', {className:'quick-row'});
-        d.quickTools.forEach(function(t) {
-          qtRow.appendChild(
-            h('a', {className:'qc-card', href:t.link}, [
-              h('img', {src:t.image, alt:t.name, loading:'lazy'}),
-              h('span', {className:'qc-label'}, esc(t.name)),
-              t.tag ? h('span', {className:'qc-hot'}, esc(t.tag)) : '',
-              h('i', {className:'qc-arrow'}, '↗')
-            ])
-          );
-        });
-        qtSection.appendChild(qtRow);
-        frag.appendChild(qtSection);
-
-        // Target-site style directory filters and search.
-        // Contract: data-tool-home-filter="hot", data-tool-home-filter="new",
-        // data-tool-home-filter="image", data-tool-home-filter="video",
-        // data-tool-home-filter="character", data-tool-home-search,
-        // data-tool-home-card, data-tool-home-empty.
-        frag.appendChild(h('section', {className:'tool-directory-bar'}, [
-          h('div', {className:'tool-filter-tabs'}, [
-            h('button', {type:'button', 'data-tool-home-filter':'all', className:'active'}, '全部'),
-            h('button', {type:'button', 'data-tool-home-filter':'hot'}, '热门'),
-            h('button', {type:'button', 'data-tool-home-filter':'new'}, '最新'),
-            h('button', {type:'button', 'data-tool-home-filter':'image'}, '图像'),
-            h('button', {type:'button', 'data-tool-home-filter':'video'}, '视频'),
-            h('button', {type:'button', 'data-tool-home-filter':'character'}, '角色')
-          ]),
-          h('input', {type:'search', 'data-tool-home-search':'', placeholder:'搜索图像或视频工具', 'aria-label':'搜索图像或视频工具'})
-        ]));
-
-        // ── Content Sections ──
-        d.sections.forEach(function(sec) {
-          var category = sec.id === 'spicy-effects' ? 'video' : 'image';
-          var sectionType = /popular|hot/i.test(sec.id + ' ' + (sec.title || '')) ? 'popular_tools' : 'showcase';
-          var section = h('section', {className:'home-section', 'data-home-section-type':sectionType, 'data-tool-home-section':'', 'data-tool-tags':category + ' ' + sec.id + ' ' + (sec.title || '')});
-
-          // Section head with title + count + link
-          var countHtml = sec.count ? ' <small>(' + esc(sec.count) + ')</small>' : '';
-          section.appendChild(
-            h('div', {className:'section-head'}, [
-              h('h2', {}, esc(sec.title) + countHtml),
-              h('a', {href:sec.link}, 'View More →')
-            ])
-          );
-
-          // Filter tabs for spicy effects
-          if (sec.filterTags) {
-            var filterRow = h('div', {className:'section-filter-row'});
-            sec.filterTags.forEach(function(tag, i) {
-              filterRow.appendChild(
-                h('button', {className:'section-chip' + (i===0?' active':''), type:'button'}, esc(tag))
-              );
-            });
-            section.appendChild(filterRow);
-          }
-
-          // Card row
-          var row = h('div', {className:'card-row'});
-          sec.items.forEach(function(item) {
-            row.appendChild(
-              h('a', {className:'hc-card', href:item.link, 'data-tool-home-card':'', 'data-tool-tags':category + ' ' + sec.id + ' ' + (item.tag || '') + ' ' + item.name}, [
-                h('div', {className:'hc-img'}, [
-                  h('img', {src:item.image, alt:item.name, loading:'lazy'})
-                ]),
-                h('div', {className:'hc-body'}, [
-                  h('strong', {}, esc(item.name)),
-                  h('small', {}, esc(item.desc)),
-                  item.tag ? h('span', {className:'hc-tag'}, esc(item.tag)) : ''
-                ])
-              ])
-            );
-          });
-          section.appendChild(row);
-          frag.appendChild(section);
-        });
-        frag.appendChild(h('p', {className:'tool-directory-empty', 'data-tool-home-empty':'', hidden:'true'}, '没有匹配的工具'));
-
-        // ── Spicy Chat Banner ──
-        if (d.chatBanner) {
-          var cb = d.chatBanner;
-          frag.appendChild(
-            h('section', {className:'home-section'}, [
-              h('div', {className:'chat-banner'}, [
-                h('div', {className:'chat-banner-text'}, [
-                  h('h2', {}, esc(cb.title)),
-                  h('p', {}, esc(cb.desc)),
-                  h('a', {className:'hero-cta', href:'./zh/app/spicy-effects/'}, esc(cb.cta))
-                ]),
-                h('img', {src:cb.image, alt:cb.title, loading:'lazy'})
-              ])
-            ])
-          );
-        }
-
-        root.appendChild(frag);
-      })();
-    </script>
+    <script src="./effect-catalog.js"></script>
+    <script src="./effect-card-system.js"></script>
+    <script type="module" src="./homepage.js"></script>
     <script type="module" src="./app.js"></script>
   </body>
 </html>
