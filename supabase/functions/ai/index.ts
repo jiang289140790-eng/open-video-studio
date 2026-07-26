@@ -143,8 +143,18 @@ Deno.serve(async (req) => {
       return json(result);
     }
 
+    if (action === "start-generation-job") {
+      const result = await startA01GenerationJob(adminClient, env, user.id, body);
+      return json(result);
+    }
+
     if (action === "check-generation-status") {
-      const job = await getOwnedJob(adminClient, user.id, requireText(body.jobId, "JOB_ID_REQUIRED"));
+      const jobId = requireText(body.jobId, "JOB_ID_REQUIRED");
+      const existing = await getOwnedJob(adminClient, user.id, jobId);
+      const job = String(existing.workflow_id || "") === A01_WORKFLOW_ID &&
+          ["running", "processing", "uploading"].includes(String(existing.status || "").toLowerCase())
+        ? await syncA01GenerationJob(adminClient, env, user.id, existing, Boolean(user.is_anonymous))
+        : existing;
       return json({ job });
     }
 
@@ -545,6 +555,182 @@ async function enforceToolCommercialRules(adminClient: any, userId: string, tool
 async function recordToolUsage(adminClient: any, usage: Record<string, unknown>) {
   const { error } = await adminClient.from("tool_usage").insert({ id: crypto.randomUUID(), ...usage, created_at: new Date().toISOString() });
   if (error) throw new AiFunctionError("TOOL_USAGE_WRITE_FAILED", error.message, 502);
+}
+
+async function startA01GenerationJob(
+  adminClient: any,
+  env: AiEnv,
+  userId: string,
+  body: Record<string, unknown>,
+) {
+  const jobId = requireText(body.jobId, "JOB_ID_REQUIRED");
+  const job = await getOwnedJob(adminClient, userId, jobId);
+  if (String(job.workflow_id || "") !== A01_WORKFLOW_ID) {
+    throw new AiFunctionError("ASYNC_WORKFLOW_NOT_SUPPORTED", "This workflow is not enabled for asynchronous processing.", 400);
+  }
+  if (!["queued", "pending", "retrying"].includes(String(job.status || "").toLowerCase())) {
+    return { job, submitted: Boolean(safeObject(job.input_params).providerPromptId), skipped: true };
+  }
+
+  const { data: claimed, error: claimError } = await adminClient
+    .from("generation_jobs")
+    .update({ status: "processing", progress: 15, updated_at: new Date().toISOString() })
+    .eq("id", jobId)
+    .eq("user_id", userId)
+    .in("status", ["queued", "pending", "retrying"])
+    .select("*")
+    .maybeSingle();
+  if (claimError) throw new AiFunctionError("GENERATION_JOB_CLAIM_FAILED", claimError.message, 502);
+  if (!claimed) return { job: await getOwnedJob(adminClient, userId, jobId), submitted: false, skipped: true };
+
+  try {
+    const workflowName = resolveZealmanWorkflowName(env, claimed);
+    const workflow = await fetchZealmanWorkflow(env, workflowName);
+    const inputParams = safeObject(claimed.input_params);
+    applyA01Parameters(workflow, String(claimed.prompt || ""), inputParams);
+    const submit = await submitZealmanWorkflow(env, workflow);
+    const providerPromptId = String(submit.prompt_id || submit.promptId || submit.data?.prompt_id || "").trim();
+    if (!providerPromptId) {
+      throw new AiFunctionError("ZEALMAN_SUBMIT_FAILED", "Zealman did not return a prompt id.", 502);
+    }
+    const submittedAt = new Date().toISOString();
+    const updated = await updateOwnedJob(adminClient, userId, jobId, {
+      status: "running",
+      progress: 25,
+      input_params: {
+        ...inputParams,
+        providerPromptId,
+        providerSubmittedAt: submittedAt,
+        retryCount: 0,
+      },
+      updated_at: submittedAt,
+    });
+    await updateAgentTaskFromJob(adminClient, userId, updated, "running", { jobId, providerPromptId });
+    return { job: updated, submitted: true };
+  } catch (error) {
+    const message = friendlyA01Error(error);
+    const failed = await updateOwnedJob(adminClient, userId, jobId, {
+      status: "failed",
+      progress: 0,
+      error_code: error instanceof AiFunctionError ? error.code : "AI_PROVIDER_FAILED",
+      error_message: message,
+      completed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+    const refund = await refundGenerationCredits(adminClient, userId, claimed, message);
+    return { job: failed, submitted: false, refund, error: { code: failed.error_code, message } };
+  }
+}
+
+async function syncA01GenerationJob(
+  adminClient: any,
+  env: AiEnv,
+  userId: string,
+  job: Record<string, any>,
+  isAnonymous = false,
+) {
+  const inputParams = safeObject(job.input_params);
+  const providerPromptId = String(inputParams.providerPromptId || "").trim();
+  if (!providerPromptId) {
+    const staleMs = Date.now() - new Date(job.updated_at || job.created_at || 0).getTime();
+    if (Number.isFinite(staleMs) && staleMs < 30_000) return job;
+    return failA01GenerationJob(
+      adminClient,
+      userId,
+      job,
+      new AiFunctionError("A01_PROVIDER_TASK_MISSING", "The generation task was interrupted before submission completed.", 502),
+    );
+  }
+
+  const submittedAtMs = new Date(String(inputParams.providerSubmittedAt || job.updated_at || job.created_at)).getTime();
+  if (Number.isFinite(submittedAtMs) && Date.now() - submittedAtMs > A01_TASK_TIMEOUT_MS) {
+    return failA01GenerationJob(
+      adminClient,
+      userId,
+      job,
+      new AiFunctionError("A01_TASK_TIMEOUT", "The image generation task exceeded the allowed processing time.", 504),
+    );
+  }
+
+  try {
+    const snapshot = await getZealmanHistorySnapshot(env, providerPromptId);
+    if (snapshot.pending) return job;
+    const result = snapshot.result;
+    const outputs = extractZealmanOutputs(env, result, providerPromptId);
+    if (!outputs.length) {
+      throw new AiFunctionError("ZEALMAN_OUTPUT_MISSING", "Zealman workflow completed without an output file.", 502);
+    }
+
+    const { data: locked, error: lockError } = await adminClient
+      .from("generation_jobs")
+      .update({ status: "uploading", progress: 90, updated_at: new Date().toISOString() })
+      .eq("id", job.id)
+      .eq("user_id", userId)
+      .in("status", ["running", "processing"])
+      .select("*")
+      .maybeSingle();
+    if (lockError) throw new AiFunctionError("GENERATION_JOB_UPDATE_FAILED", lockError.message, 502);
+    if (!locked) return await getOwnedJob(adminClient, userId, job.id);
+
+    const durationMs = Math.max(0, Date.now() - new Date(locked.created_at).getTime());
+    const providerResult = {
+      providerJobId: providerPromptId,
+      outputUrl: outputs[0].url,
+      raw: { outputs, status: result?.status ?? null },
+    };
+    const asset = await saveGeneratedAsset(adminClient, env, userId, locked, providerResult, durationMs);
+    const completed = await updateOwnedJob(adminClient, userId, job.id, {
+      status: "succeeded",
+      progress: 100,
+      result_asset_id: asset.id,
+      result_url: asset.storage_key,
+      output_assets: [asset.id],
+      input_params: { ...inputParams, providerPromptId, retryCount: Number(inputParams.retryCount || 0) },
+      latency: durationMs,
+      completed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+    if (!isAnonymous) {
+      await grantFirstGenerationReward(adminClient, userId, job.id);
+      await qualifyPendingReferral(adminClient, userId);
+    }
+    await updateAgentTaskFromJob(adminClient, userId, completed, "completed", { jobId: job.id, assetId: asset.id, durationMs });
+    return completed;
+  } catch (error) {
+    return failA01GenerationJob(adminClient, userId, job, error);
+  }
+}
+
+async function failA01GenerationJob(
+  adminClient: any,
+  userId: string,
+  job: Record<string, any>,
+  error: unknown,
+) {
+  const message = friendlyA01Error(error);
+  const code = error instanceof AiFunctionError ? error.code : "AI_PROVIDER_FAILED";
+  const failed = await updateOwnedJob(adminClient, userId, job.id, {
+    status: code === "A01_TASK_TIMEOUT" ? "timed_out" : "failed",
+    progress: 0,
+    error_code: code,
+    error_message: message,
+    completed_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
+  await refundGenerationCredits(adminClient, userId, job, message);
+  await updateAgentTaskFromJob(adminClient, userId, job, "failed", { jobId: job.id, error: message });
+  return failed;
+}
+
+function friendlyA01Error(error: unknown) {
+  const code = error instanceof AiFunctionError ? error.code : "";
+  if (["A01_TASK_TIMEOUT", "ZEALMAN_GENERATION_TIMEOUT"].includes(code)) {
+    return "图片生成等待超时，任务积分已自动退回，请降低分辨率后重试。";
+  }
+  if (code === "A01_PROVIDER_TASK_MISSING") {
+    return "图片任务提交被中断，积分已自动退回，请重新提交。";
+  }
+  return "图片生成服务暂时不可用，积分已自动退回，请稍后重试。";
 }
 
 async function processGenerationJob(
@@ -1529,28 +1715,33 @@ async function submitZealmanWorkflow(env: AiEnv, workflow: Record<string, any>) 
 async function pollZealmanHistory(env: AiEnv, promptId: string) {
   const maxPolls = clampNumber(env.zealmanMaxPolls, 180, 1, 720);
   const pollIntervalMs = clampNumber(env.zealmanPollIntervalMs, 5000, 1000, 30000);
-  let latest: any = null;
   for (let index = 0; index < maxPolls; index += 1) {
     if (index > 0) await sleep(pollIntervalMs);
-    const response = await fetchWithTimeout(`${env.zealmanPanelBaseUrl.replace(/\/$/, "")}/api/workflow/result?prompt_id=${encodeURIComponent(promptId)}`, {
-      method: "GET",
-      headers: zealmanHeaders(env, false),
-    }, env.providerTimeoutMs);
-    const data = await parseProviderResponse(response, "ZEALMAN_HISTORY_FAILED");
-    if (data?.success === false) {
-      throw new AiFunctionError("ZEALMAN_HISTORY_FAILED", data?.message || "Zealman workflow result failed.", 502);
-    }
-    if (data?.pending === true) continue;
-    latest = data?.[promptId] || data?.data?.[promptId] || data;
-    if (!latest || !Object.keys(latest).length) continue;
-    const status = String(latest?.status?.status_str || latest?.status || "").toLowerCase();
-    if (["error", "failed", "failure"].includes(status)) {
-      throw new AiFunctionError("ZEALMAN_GENERATION_FAILED", zealmanHistoryMessage(latest), 502);
-    }
-    const outputs = extractZealmanOutputs(env, latest, promptId);
-    if (outputs.length || status === "success" || latest.outputs) return latest;
+    const snapshot = await getZealmanHistorySnapshot(env, promptId);
+    if (!snapshot.pending) return snapshot.result;
   }
   throw new AiFunctionError("ZEALMAN_GENERATION_TIMEOUT", `Zealman workflow ${promptId} did not finish before the polling limit.`, 504);
+}
+
+async function getZealmanHistorySnapshot(env: AiEnv, promptId: string): Promise<{ pending: boolean; result: any }> {
+  const response = await fetchWithTimeout(`${env.zealmanPanelBaseUrl.replace(/\/$/, "")}/api/workflow/result?prompt_id=${encodeURIComponent(promptId)}`, {
+    method: "GET",
+    headers: zealmanHeaders(env, false),
+  }, env.providerTimeoutMs);
+  const data = await parseProviderResponse(response, "ZEALMAN_HISTORY_FAILED");
+  if (data?.success === false) {
+    throw new AiFunctionError("ZEALMAN_HISTORY_FAILED", data?.message || "Zealman workflow result failed.", 502);
+  }
+  if (data?.pending === true) return { pending: true, result: null };
+  const latest = data?.[promptId] || data?.data?.[promptId] || data;
+  if (!latest || !Object.keys(latest).length) return { pending: true, result: null };
+  const status = String(latest?.status?.status_str || latest?.status || "").toLowerCase();
+  if (["error", "failed", "failure"].includes(status)) {
+    throw new AiFunctionError("ZEALMAN_GENERATION_FAILED", zealmanHistoryMessage(latest), 502);
+  }
+  const outputs = extractZealmanOutputs(env, latest, promptId);
+  if (outputs.length || status === "success" || latest.outputs) return { pending: false, result: latest };
+  return { pending: true, result: latest };
 }
 
 function extractZealmanOutputs(env: AiEnv, history: any, promptId: string): Array<Record<string, string>> {

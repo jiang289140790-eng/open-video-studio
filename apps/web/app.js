@@ -5255,21 +5255,55 @@ async function runRemoteGeneration(input) {
   });
   const job = createResult.job;
   input.onJobCreated?.(job);
-  const processed = await invokeAi("process-generation-job", { jobId: job.id });
+  const usesAsyncA01 = workflowId === "workflow-zealman-image-a01-v1";
+  const processed = usesAsyncA01
+    ? await invokeAi("start-generation-job", { jobId: job.id })
+    : await invokeAi("process-generation-job", { jobId: job.id });
   if (processed.error) {
     const error = new Error(processed.error.message || "AI 生成失败，积分已自动退回。");
     error.refund = processed.refund || null;
     error.job = processed.job || null;
     throw error;
   }
-  mergeRemoteGenerationResult(processed.job, processed.asset, input);
+  if (usesAsyncA01 && input.deferCompletion) {
+    return processed;
+  }
+  const finalResult = usesAsyncA01
+    ? await waitForRemoteGeneration(job.id)
+    : processed;
+  mergeRemoteGenerationResult(finalResult.job, finalResult.asset, input);
   await syncRemoteProductData();
-  return processed;
+  return finalResult;
+}
+
+async function waitForRemoteGeneration(jobId) {
+  const terminal = new Set(["succeeded", "completed", "failed", "timed_out", "cancelled"]);
+  const deadline = Date.now() + 330_000;
+  while (Date.now() < deadline) {
+    const result = await invokeAi("check-generation-status", { jobId });
+    const status = String(result?.job?.status || "").toLowerCase();
+    if (terminal.has(status)) {
+      if (["failed", "timed_out", "cancelled"].includes(status)) {
+        const error = new Error(result.job.error_message || "图片生成失败，请稍后重试。");
+        error.job = result.job;
+        throw error;
+      }
+      return result;
+    }
+    await new Promise((resolve) => window.setTimeout(resolve, 5000));
+  }
+  const error = new Error("图片生成等待超时，请在“我的创作”中查看最终状态。");
+  error.job = { id: jobId, status: "running" };
+  throw error;
 }
 
 // Shared bridge for the standalone tool.html workbench. It reuses the existing
 // authenticated upload, credit, job, polling, and asset persistence pipeline.
 window.__OVS_WORKFLOW_API__ = {
+  status: async (taskId) => {
+    if (!supabase) throw new Error("Supabase 未配置，暂不能查询任务。");
+    return invokeAi("check-generation-status", { jobId: taskId });
+  },
   cancel: async (taskId) => {
     if (!supabase) throw new Error("Supabase 未配置，暂不能取消任务。");
     return invokeAi("cancel-generation-job", { jobId: taskId });
@@ -5354,6 +5388,7 @@ window.__OVS_WORKFLOW_API__ = {
       seed: params.seed,
       outputCount: params.outputCount,
       priceQuote: params.priceQuote,
+      deferCompletion: true,
     });
     return result;
   },

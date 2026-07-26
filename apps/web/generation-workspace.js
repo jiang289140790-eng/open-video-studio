@@ -2141,7 +2141,15 @@ function updatePolling() {
   if (state.pollTimer) window.clearInterval(state.pollTimer);
   const active = state.currentTask && ACTIVE_TASK_STATUSES.has(String(state.currentTask.status || "").toLowerCase());
   if (!active || !state.session) return;
-  state.pollTimer = window.setInterval(() => {
+  state.pollTimer = window.setInterval(async () => {
+    try {
+      const taskId = state.currentTask?.id;
+      if (taskId && window.__OVS_WORKFLOW_API__?.status) {
+        await window.__OVS_WORKFLOW_API__.status(taskId);
+      }
+    } catch {
+      // The database remains the source of truth; the next poll can recover.
+    }
     loadWorkspaceData().catch(() => {});
   }, 5000);
 }
