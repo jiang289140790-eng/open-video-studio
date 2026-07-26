@@ -70,21 +70,22 @@ const VIDEO_EFFECTS = Object.freeze([
 const TOOL_DEFINITIONS = Object.freeze({
   "image-generate": {
     name: "AI 图片生成",
-    description: "输入画面描述，可选上传一张参考图。仅在图片生成工作流完成真实验证后开放创建。",
+    description: "使用 A01 文生图工作流按文字描述创建图片。当前工作流不接收参考图，上传图片不会影响结果。",
     mediaType: "image",
     promptLabel: "画面描述",
-    promptPlaceholder: "例如：清晨海边的现代玻璃屋，柔和自然光，真实摄影质感",
+    promptPlaceholder: "例如：虚构成年女性，明确 25 岁以上，私房时尚摄影，柔和暖光，写实质感",
     minFiles: 0,
-    maxFiles: 1,
+    maxFiles: 0,
     requireFace: false,
     outputLabel: "生成图片",
-    uploadOptional: true,
+    acceptsUpload: false,
     e2eVerified: false,
     productionEnabled: true,
+    examplesLabel: "成人主题示例（非露骨）",
     examples: [
-      "清晨海边的现代玻璃屋，柔和自然光，真实摄影质感，细节清晰",
-      "雨夜城市街道，霓虹灯倒影，电影感构图，真实摄影风格",
-      "极简产品静物摄影，柔和棚拍光线，干净背景，高级商业质感",
+      "虚构成年女性，明确 25 岁以上，奢华卧室私房时尚摄影，丝质睡袍，暖色电影光，写实皮肤质感",
+      "虚构成年情侣，双方明确 25 岁以上，亲密拥抱，情绪化电影镜头，非露骨，写实摄影",
+      "虚构成年模特，明确 25 岁以上，高级内衣时尚大片，摄影棚柔光，全身构图，写实质感",
     ],
   },
   "image-editor": {
@@ -535,13 +536,62 @@ function renderPromptExamples() {
   if (!examples.length) return "";
   return `
     <div class="workspace-prompt-examples">
-      <strong>示例参数</strong>
+      <strong>${escapeHtml(state.tool.examplesLabel || "示例参数")}</strong>
       <div>
         ${examples.map((example) => `
           <button type="button" data-prompt-example="${escapeHtml(example)}">${escapeHtml(example)}</button>
         `).join("")}
       </div>
     </div>
+  `;
+}
+
+function renderAssetUploader() {
+  if (state.tool?.acceptsUpload === false) {
+    return `
+      <section class="workspace-panel generation-capability-notice" aria-label="当前工作流输入能力">
+        <div class="workspace-panel-heading">
+          <div>
+            <span class="workspace-step">说明</span>
+            <h2>当前为纯文生图</h2>
+          </div>
+          <span class="upload-state-pill">A01</span>
+        </div>
+        <p>当前 A01 工作流只接收画面描述、尺寸和 Seed，不包含参考图片输入节点。</p>
+        <p class="workspace-field-message">需要保留人物、服装、姿势或场景时，请等待已通过端到端验证的图片编辑或多图工作流开放；本页不会接收或忽略上传图片。</p>
+      </section>
+    `;
+  }
+  return `
+    <section class="workspace-panel asset-uploader" data-uploader data-upload-state="idle">
+      <div class="workspace-panel-heading">
+        <div>
+          <span class="workspace-step">1</span>
+          <h2>上传素材</h2>
+        </div>
+        <span class="upload-state-pill" data-upload-state-label>等待上传</span>
+      </div>
+      <label class="asset-dropzone" data-asset-dropzone ${state.toolId === "face-swap" ? "hidden" : ""}>
+        <input
+          type="file"
+          data-asset-input
+          accept="image/jpeg,image/png,image/webp"
+          hidden
+        >
+        <span class="asset-dropzone-icon">＋</span>
+        <strong>点击或拖放图片到这里</strong>
+        <small>JPG、PNG、WebP · 单张最大 ${["image-to-video", "image-combiner"].includes(state.toolId) ? "10" : "20"} MB · ${MIN_IMAGE_EDGE}—${["image-to-video", "image-combiner"].includes(state.toolId) ? "4096" : MAX_IMAGE_EDGE}px</small>
+        <small>${state.tool.uploadOptional ? "参考图可选；不上传也可填写描述" : state.tool.minFiles === state.tool.maxFiles ? `需要 ${state.tool.minFiles} 张图片` : `支持 ${state.tool.minFiles}—${state.tool.maxFiles} 张图片`}</small>
+      </label>
+      ${renderFaceSwapUploader()}
+      <div class="asset-file-list" data-asset-file-list hidden></div>
+      <div class="asset-uploader-actions" data-uploader-actions hidden>
+        <button type="button" class="workspace-button secondary" data-replace-assets>替换素材</button>
+        <button type="button" class="workspace-button ghost" data-clear-assets>全部删除</button>
+      </div>
+      <p class="workspace-field-message" data-upload-message>尚未选择文件。</p>
+      ${state.toolId === "image-editor" ? `<div class="image-editor-slot-grid" data-editor-slot-grid hidden></div>` : ""}
+    </section>
   `;
 }
 
@@ -700,6 +750,8 @@ function renderEffectPickerModal() {
 function renderShell() {
   if (!root) return;
   const tool = state.tool;
+  const parameterStep = tool.acceptsUpload === false ? 1 : 2;
+  const creditStep = tool.acceptsUpload === false ? 2 : 3;
   document.title = `${tool.name} | Luravyn`;
   root.className = "generation-tool-page";
   root.innerHTML = `
@@ -715,39 +767,11 @@ function renderShell() {
     <div class="generation-tool-grid">
       <section class="generation-input-panel" aria-label="生成参数">
         ${renderImageEditorMode()}
-        <section class="workspace-panel asset-uploader" data-uploader data-upload-state="idle">
-          <div class="workspace-panel-heading">
-            <div>
-              <span class="workspace-step">1</span>
-              <h2>上传素材</h2>
-            </div>
-            <span class="upload-state-pill" data-upload-state-label>等待上传</span>
-          </div>
-          <label class="asset-dropzone" data-asset-dropzone ${state.toolId === "face-swap" ? "hidden" : ""}>
-            <input
-              type="file"
-              data-asset-input
-              accept="image/jpeg,image/png,image/webp"
-              hidden
-            >
-            <span class="asset-dropzone-icon">＋</span>
-            <strong>点击或拖放图片到这里</strong>
-            <small>JPG、PNG、WebP · 单张最大 ${["image-to-video", "image-combiner"].includes(state.toolId) ? "10" : "20"} MB · ${MIN_IMAGE_EDGE}—${["image-to-video", "image-combiner"].includes(state.toolId) ? "4096" : MAX_IMAGE_EDGE}px</small>
-            <small>${tool.uploadOptional ? "参考图可选；不上传也可填写描述" : tool.minFiles === tool.maxFiles ? `需要 ${tool.minFiles} 张图片` : `支持 ${tool.minFiles}—${tool.maxFiles} 张图片`}</small>
-          </label>
-          ${renderFaceSwapUploader()}
-          <div class="asset-file-list" data-asset-file-list hidden></div>
-          <div class="asset-uploader-actions" data-uploader-actions hidden>
-            <button type="button" class="workspace-button secondary" data-replace-assets>替换素材</button>
-            <button type="button" class="workspace-button ghost" data-clear-assets>全部删除</button>
-          </div>
-          <p class="workspace-field-message" data-upload-message>尚未选择文件。</p>
-          ${state.toolId === "image-editor" ? `<div class="image-editor-slot-grid" data-editor-slot-grid hidden></div>` : ""}
-        </section>
+        ${renderAssetUploader()}
 
         <section class="workspace-panel generation-parameter-panel">
           <div class="workspace-panel-heading">
-            <div><span class="workspace-step">2</span><h2>设置参数</h2></div>
+            <div><span class="workspace-step">${parameterStep}</span><h2>设置参数</h2></div>
           </div>
           ${renderImageEditorPromptControls()}
           <div data-special-tool-controls>${renderToolModeControls()}</div>
@@ -769,7 +793,7 @@ function renderShell() {
 
         <section class="workspace-panel generation-credit-summary" data-credit-summary>
           <div class="workspace-panel-heading">
-            <div><span class="workspace-step">3</span><h2>积分确认</h2></div>
+            <div><span class="workspace-step">${creditStep}</span><h2>积分确认</h2></div>
           </div>
           <dl>
             <div><dt>${state.toolId === "image-to-video" ? "预计积分" : "当前操作消耗"}</dt><dd data-operation-cost>正在读取</dd></div>
@@ -1683,8 +1707,7 @@ function getSubmitBlocker() {
     if (state.uploaderStatus !== "ready" || !hasMain) return "请先上传并通过素材校验";
     if (state.editorMode === "multi" && !hasReference) return "多图模式至少需要主图片和一个参考图片";
   } else if (state.toolId === "image-generate") {
-    if (state.files.length > state.tool.maxFiles) return "参考图最多只能上传 1 张";
-    if (state.files.length && state.uploaderStatus !== "ready") return "参考图尚未通过素材校验";
+    if (state.files.length) return "A01 是纯文生图工作流，不接收参考图片";
   } else if (
     state.uploaderStatus !== "ready" ||
     state.files.length < state.tool.minFiles ||
