@@ -1,4 +1,4 @@
-import { getSession } from "./auth-service.js";
+import { ensureGuestSession, getSession } from "./auth-service.js";
 import { getSupabaseClient, isSupabaseConfigured } from "./supabase-client.js";
 import { saveUserCreation } from "./user-account-service.js";
 
@@ -1647,6 +1647,13 @@ function renderAccountSummary() {
   const freeNode = root?.querySelector("[data-free-credit]");
   const buyLink = root?.querySelector("[data-buy-credits]");
   const cost = getConfiguredCost();
+  if (state.session?.user?.is_anonymous) {
+    if (costNode) costNode.textContent = "访客测试：本次免费";
+    if (balanceNode) balanceNode.textContent = "访客模式";
+    if (freeNode) freeNode.textContent = "登录后可跨设备保存作品";
+    if (buyLink) buyLink.hidden = true;
+    return;
+  }
   if (costNode) costNode.textContent = cost ? `${cost} 积分` : "价格配置中";
   if (!state.session) {
     if (balanceNode) balanceNode.textContent = "登录后查看";
@@ -1708,7 +1715,11 @@ function getSubmitBlocker() {
   } else if (!state.tool.promptOptional && prompt.length < 3) {
     return "请填写至少 3 个字符的生成描述";
   }
-  if (!state.session) return "登录后才能提交任务";
+  if (!state.session) return "正在准备访客生成会话";
+  if (state.session.user?.is_anonymous) {
+    if (state.submitLocked) return "任务正在提交，请勿重复创建";
+    return "";
+  }
   const cost = getConfiguredCost();
   if (!cost) return "该工具尚未配置明确积分价格";
   if (!Number.isFinite(state.balance)) return "积分余额读取失败";
@@ -1739,6 +1750,13 @@ async function loadWorkspaceData() {
     renderHistory();
     updateSubmitState();
     return;
+  }
+  if (!state.session) {
+    try {
+      state.session = await ensureGuestSession();
+    } catch {
+      state.session = null;
+    }
   }
   const client = getSupabaseClient();
   try {
@@ -1933,6 +1951,13 @@ function getFriendlyGenerationError(error) {
 async function submitGeneration() {
   const blocker = getSubmitBlocker();
   if (blocker) {
+    if (!state.session && isSupabaseConfigured) {
+      try {
+        state.session = await ensureGuestSession();
+      } catch {
+        state.session = null;
+      }
+    }
     if (!state.session) triggerLogin();
     updateSubmitState();
     return;
@@ -1975,7 +2000,7 @@ async function submitGeneration() {
       status: task.status || (task.result_url || task.outputUrl ? "completed" : "queued"),
       result_url: task.result_url || task.outputUrl || task.output_url || "",
       media_type: state.tool.mediaType,
-      cost_credits: getConfiguredCost(),
+      cost_credits: state.session?.user?.is_anonymous ? 0 : getConfiguredCost(),
       created_at: task.created_at || new Date().toISOString(),
     };
     state.localTask = normalized;
@@ -1988,7 +2013,7 @@ async function submitGeneration() {
       status: "failed",
       error_message: getFriendlyGenerationError(error),
       created_at: new Date().toISOString(),
-      cost_credits: getConfiguredCost(),
+      cost_credits: state.session?.user?.is_anonymous ? 0 : getConfiguredCost(),
     };
     renderResult(state.localTask);
   } finally {

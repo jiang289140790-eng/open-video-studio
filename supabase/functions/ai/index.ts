@@ -139,7 +139,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "process-generation-job") {
-      const result = await processGenerationJob(adminClient, env, user.id, body);
+      const result = await processGenerationJob(adminClient, env, user.id, body, Boolean(user.is_anonymous));
       return json(result);
     }
 
@@ -547,7 +547,13 @@ async function recordToolUsage(adminClient: any, usage: Record<string, unknown>)
   if (error) throw new AiFunctionError("TOOL_USAGE_WRITE_FAILED", error.message, 502);
 }
 
-async function processGenerationJob(adminClient: any, env: AiEnv, userId: string, body: Record<string, unknown>) {
+async function processGenerationJob(
+  adminClient: any,
+  env: AiEnv,
+  userId: string,
+  body: Record<string, unknown>,
+  isAnonymous = false,
+) {
   const jobId = requireText(body.jobId, "JOB_ID_REQUIRED");
   const job = await getOwnedJob(adminClient, userId, jobId);
   if (!["queued", "pending", "retrying"].includes(String(job.status))) {
@@ -638,8 +644,10 @@ async function processGenerationJob(adminClient: any, env: AiEnv, userId: string
       completed_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });
-    await grantFirstGenerationReward(adminClient, userId, jobId);
-    await qualifyPendingReferral(adminClient, userId);
+    if (!isAnonymous) {
+      await grantFirstGenerationReward(adminClient, userId, jobId);
+      await qualifyPendingReferral(adminClient, userId);
+    }
     await updateAgentTaskFromJob(adminClient, userId, claimedJob, "completed", { jobId, assetId: asset.id, durationMs });
     return { job: completed, asset, provider, mediaType };
   } catch (error) {

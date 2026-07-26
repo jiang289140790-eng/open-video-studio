@@ -1,5 +1,5 @@
 ﻿import { supabase as authSupabase } from "./supabase-client.js";
-import { getSession, loginWithProvider, logout, onAuthStateChange } from "./auth-service.js";
+import { ensureGuestSession, getSession, loginWithProvider, logout, onAuthStateChange } from "./auth-service.js";
 import { getPerformanceSummary } from "../../src/services/performance-service.js";
 import { ensureGlobalFloatingActions, setupConsumerAppShell } from "./consumer-shell.js";
 import { setupVisualDesignSystem } from "./design-system.js";
@@ -5216,12 +5216,12 @@ if (generateVideoButton && generateButton) {
 
 async function runRemoteGeneration(input) {
   if (!supabase) return null;
-  const { data: sessionData } = await supabase.auth.getSession();
+  let { data: sessionData } = await supabase.auth.getSession();
   if (!sessionData.session?.user) {
-    captureVideoGenerationDraft("generation-auth-required");
-    openUnlockModal(getCurrentAuthReturnTarget());
-    throw new Error("请先登录后使用真实生成。");
+    const guestSession = await ensureGuestSession();
+    sessionData = { session: guestSession };
   }
+  if (!sessionData.session?.user) throw new Error("访客生成会话创建失败，请刷新页面后重试。");
   const mediaType = input.mode === "video" ? "video" : "image";
   const workflowId = input.workflowId || workflowIdForGeneration(mediaType, input.model, input.preset, input.workflowFamily);
   const createResult = await invokeAi("create-generation-job", {

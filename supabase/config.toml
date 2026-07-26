@@ -9,6 +9,7 @@ max_rows = 1000
 
 [auth]
 enabled = true
+enable_anonymous_sign_ins = true
 site_url = "https://jiang289140790-eng.github.io/open-video-studio/"
 additional_redirect_urls = [
   "https://jiang289140790-eng.github.io/open-video-studio/",

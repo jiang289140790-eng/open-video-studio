@@ -62,6 +62,15 @@ export async function getSession() {
   return data.session || null;
 }
 
+export async function ensureGuestSession() {
+  const client = getSupabaseClient();
+  const current = await getSession();
+  if (current?.user) return current;
+  const { data, error } = await client.auth.signInAnonymously();
+  if (error) throw error;
+  return data.session || null;
+}
+
 export function onAuthStateChange(callback) {
   if (!supabase) return { data: { subscription: null } };
   return supabase.auth.onAuthStateChange(callback);
@@ -76,6 +85,7 @@ if (typeof window !== "undefined") {
     loginTwitter,
     logout,
     getCurrentUser,
-    getSession
+    getSession,
+    ensureGuestSession
   });
 }
