@@ -1,8 +1,12 @@
 const CONSUMER_PAGE_NAMES = new Set([
   "app.html",
+  "image-tools.html",
+  "video-tools.html",
   "spicy-effects.html",
   "tool.html",
   "image-editor.html",
+  "generate.html",
+  "image-combiner.html",
   "face-swap.html",
   "outfit-studio.html",
   "pose-generator.html",
@@ -35,6 +39,7 @@ function getActiveConsumerRoute(pageName = getPageName()) {
   if (pageName === "spicy-effects.html") return "spicy-effects";
   if (pageName === "my-creations.html") return "my-creations";
   if (pageName === "image-editor.html") return "image-editor";
+  if (pageName === "generate.html" || pageName === "image-combiner.html") return "image-editor";
   if (pageName === "face-swap.html") return "face-swap";
   if (pageName === "outfit-studio.html") return "outfit-studio";
   if (pageName === "pose-generator.html") return "pose-generator";

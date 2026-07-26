@@ -126,6 +126,16 @@ test("AI Edge Function contains server-only provider actions and no browser-secr
   assert.ok(edgeFunction.includes("fetchZealmanWorkflow"));
   assert.ok(edgeFunction.includes("applyZealmanPrompt"));
   assert.ok(edgeFunction.includes("uploadZealmanSourceImage"));
+  assert.ok(edgeFunction.includes('const D18_WORKFLOW_ID = "workflow-zealman-image-d18-v1"'));
+  assert.ok(edgeFunction.includes('const D18_WORKFLOW_NAME = "D18-klein9b真人剧制造机-多图编辑"'));
+  assert.ok(edgeFunction.includes("normalizeD18Parameters"));
+  assert.ok(edgeFunction.includes("resolveOwnedD18SourceImageUrls"));
+  assert.ok(edgeFunction.includes("applyD18Parameters"));
+  assert.ok(edgeFunction.includes('workflow["1072"]?.inputs'));
+  assert.ok(edgeFunction.includes('workflow["1103"]?.inputs'));
+  assert.ok(edgeFunction.includes('workflow["1104"]?.inputs'));
+  assert.ok(edgeFunction.includes('const disabledImageNodeIds = ["1105", "1106", "1112", "1117"]'));
+  assert.ok(edgeFunction.includes("validateD18Image"));
   assert.ok(edgeFunction.includes("pollZealmanHistory"));
   assert.ok(edgeFunction.includes("/api/workflow/generate"));
   assert.ok(edgeFunction.includes("/api/comfy/upload/file"));
@@ -210,7 +220,7 @@ test("frontend routes generation through AI Edge Function before local fallback"
   assert.ok(appScript.includes("liblib_generation"));
   assert.ok(appScript.includes("zealman_workflow"));
   assert.ok(appScript.includes("workflowIdForGeneration"));
-  assert.ok(appScript.includes("workflow-zealman-video-g01-v1"));
+  assert.ok(appScript.includes("workflow-zealman-video-g20-v1"));
   assert.ok(appScript.includes("qwen_vision"));
   assert.ok(appScript.includes("deepseek_text"));
 });

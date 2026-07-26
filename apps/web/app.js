@@ -20,7 +20,22 @@ const VIDEO_DRAFT_KEY = "ovs_video_generation_draft_v1";
 const GENERATION_RECOVERY_KEY = "ovs_generation_recovery_v1";
 const REFERRAL_DEVICE_KEY = "luravyn_referral_device_v1";
 const REFERRAL_PENDING_KEY = "luravyn_pending_referral_v1";
+const G20_WORKFLOW_ID = "workflow-zealman-video-g20-v1";
+const G20_WORKFLOW_NAME = "G20-图生视频-Wan2.2Remix-v1";
+const D18_WORKFLOW_ID = "workflow-zealman-image-d18-v1";
+const D18_WORKFLOW_NAME = "D18-klein9b真人剧制造机-多图编辑";
+const VIDEO_SOURCE_STORAGE_BUCKET = "source-assets";
+const VIDEO_SOURCE_MAX_BYTES = 10 * 1024 * 1024;
+const VIDEO_SOURCE_MIN_EDGE = 256;
+const VIDEO_SOURCE_MAX_EDGE = 4096;
+const VIDEO_SOURCE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 let rewardProgramStatus = null;
+let creationFilter = "all";
+let creationSearch = "";
+let creationPrivacy = "all";
+const initialHistoryFilter = new URLSearchParams(window.location.search).get("status") || new URLSearchParams(window.location.search).get("filter") || "all";
+let historyFilter = ["all", "running", "completed", "failed", "video", "image"].includes(initialHistoryFilter) ? initialHistoryFilter : "all";
+let historySearch = "";
 const APP_SHELL_PAGES = new Set([
   "app.html",
   "gallery.html",
@@ -853,7 +868,7 @@ const defaultToolCatalogConfig = {
     { slug: "outfit-studio", name: "造型工作室", category: "image", status: "published", provider: "zealman_workflow", model: "zealman_workflow", workflowId: "workflow-hifun-outfit-v1", creditCost: 12, route: "./zh/app/outfit-studio/", featured: true, versions: [{ version: "v1", changelog: "绑定 Zealman 虚构成人角色换装 API", modelVersion: "zealman_workflow", workflowVersion: "workflow-hifun-outfit-v1", promptVersion: "prompt-outfit-v1", status: "published" }] },
     { slug: "pose-generator", name: "姿势生成器", category: "image", status: "published", provider: "zealman_workflow", model: "zealman_workflow", workflowId: "workflow-hifun-pose-v1", creditCost: 8, route: "./zh/app/pose-generator/", featured: true, versions: [{ version: "v1", changelog: "绑定 Zealman 姿势重构 API", modelVersion: "zealman_workflow", workflowVersion: "workflow-hifun-pose-v1", promptVersion: "prompt-pose-v1", status: "published" }] },
     { slug: "nano-banana", name: "自然语言图片编辑", category: "image", status: "published", provider: "zealman_workflow", model: "zealman_workflow", workflowId: "workflow-hifun-nano-v1", creditCost: 8, route: "./zh/app/nano-banana/", featured: true, versions: [{ version: "v1", changelog: "绑定 Zealman 自然语言图片编辑 API", modelVersion: "zealman_workflow", workflowVersion: "workflow-hifun-nano-v1", promptVersion: "prompt-nano-v1", status: "published" }] },
-    { slug: "image-combiner", name: "多图智能合成", category: "image", status: "published", provider: "zealman_workflow", model: "zealman_workflow", workflowId: "workflow-hifun-combiner-v1", creditCost: 16, route: "./zh/app/image-combiner/", featured: true, versions: [{ version: "v1", changelog: "绑定 Zealman 多图合成 API", modelVersion: "zealman_workflow", workflowVersion: "workflow-hifun-combiner-v1", promptVersion: "prompt-combiner-v1", status: "published" }] },
+    { slug: "image-combiner", name: "多图智能合成", category: "image", status: "published", provider: "zealman_workflow", model: "zealman_workflow", workflowId: D18_WORKFLOW_ID, creditCost: 16, route: "./zh/app/image-combiner/", featured: false, versions: [{ version: "v1", changelog: "绑定 D18 双图编辑灰度 API", modelVersion: "zealman_workflow", workflowVersion: D18_WORKFLOW_ID, promptVersion: "prompt-d18-v1", status: "published" }] },
     { slug: "image-to-video", name: "图片转视频", category: "video", status: "published", provider: "zealman_workflow", model: "zealman_workflow", workflowId: "workflow-hifun-image-to-video-v1", creditCost: 24, route: "./zh/app/image-to-video/", featured: true, versions: [{ version: "v1", changelog: "绑定 Zealman WAN 2.2 图生视频 API", modelVersion: "zealman_workflow", workflowVersion: "workflow-hifun-image-to-video-v1", promptVersion: "prompt-wan22-i2v-v1", status: "published" }] },
     { slug: "adult-effects", name: "成人特效（已满18岁）", category: "video", status: "published", provider: "zealman_workflow", model: "zealman_workflow", workflowId: "workflow-hifun-adult-effects-v1", creditCost: 32, route: "./zh/app/undress-video/", featured: false, versions: [{ version: "v1", changelog: "绑定 Zealman Wan 2.2 4in1 API；仅限成年且合规内容", modelVersion: "zealman_workflow", workflowVersion: "workflow-hifun-adult-effects-v1", promptVersion: "prompt-adult-effects-v1", status: "published" }] },
     { slug: "movie-closeup", name: "电影近景特效", category: "video", status: "published", provider: "zealman_workflow", model: "zealman_workflow", workflowId: "workflow-hifun-movie-closeup-v1", creditCost: 28, route: "./zh/app/image-to-video/?preset=movie-closeup", featured: false, versions: [{ version: "v1", changelog: "绑定 Zealman 电影近景 API", modelVersion: "zealman_workflow", workflowVersion: "workflow-hifun-movie-closeup-v1", promptVersion: "prompt-movie-closeup-v1", status: "published" }] },
@@ -4465,9 +4480,12 @@ async function handleVideoReferenceUpload(event) {
     mediaType: "image",
     sizeBytes: Number(file.size || 0)
   });
-  if (!file.type.startsWith("image/")) {
-    showSiteToast("请上传图片文件作为视频参考图。");
-    setVideoUploadStatus("请选择图片文件", "error");
+  let dimensions;
+  try {
+    dimensions = await validateVideoSourceFile(file);
+  } catch (error) {
+    showSiteToast(error.message || "图片不符合视频输入要求。");
+    setVideoUploadStatus(error.message || "图片校验失败", "error");
     return;
   }
   const localPreviewUrl = URL.createObjectURL(file);
@@ -4486,6 +4504,8 @@ async function handleVideoReferenceUpload(event) {
     fileName: file.name,
     fileSize: file.size,
     fileType: file.type,
+    width: dimensions.width,
+    height: dimensions.height,
     uploadStatus: supabase ? "本地已选择，正在上传到 Supabase。" : "本地演示可用，登录并配置 Supabase 后可远端保存。"
   };
   selectVideoReference(reference, { status: reference.uploadStatus });
@@ -4524,14 +4544,15 @@ async function uploadVideoReferenceToSupabase(file, reference) {
   const { data: sessionData } = await supabase.auth.getSession();
   const user = sessionData.session?.user;
   if (!user) throw new Error("请先登录后上传参考图。");
+  const dimensions = await validateVideoSourceFile(file);
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_") || "reference.png";
   const storageKey = `${user.id}/references/${Date.now()}-${safeName}`;
-  const upload = await supabase.storage.from(supabaseStorageBucket).upload(storageKey, file, {
+  const upload = await supabase.storage.from(VIDEO_SOURCE_STORAGE_BUCKET).upload(storageKey, file, {
     contentType: file.type || "image/png",
     upsert: false
   });
   if (upload.error) throw new Error(upload.error.message || "Storage 上传失败。");
-  const signed = await supabase.storage.from(supabaseStorageBucket).createSignedUrl(storageKey, 3600);
+  const signed = await supabase.storage.from(VIDEO_SOURCE_STORAGE_BUCKET).createSignedUrl(storageKey, 3600);
   const assetId = `ref_${Date.now()}`;
   const assetRecord = {
     id: assetId,
@@ -4549,7 +4570,10 @@ async function uploadVideoReferenceToSupabase(file, reference) {
       prompt: reference.prompt,
       source: "video_reference_upload",
       originalFileName: file.name,
-      fileSize: file.size
+      fileSize: file.size,
+      width: dimensions.width,
+      height: dimensions.height,
+      storageBucket: VIDEO_SOURCE_STORAGE_BUCKET
     },
     processing_status: "ready",
     rights_status: "user_uploaded",
@@ -4568,6 +4592,40 @@ async function uploadVideoReferenceToSupabase(file, reference) {
     title: String(inserted.data.display_name || reference.title),
     uploadStatus: "已上传到 Supabase Storage，可用于真实图片转视频。"
   };
+}
+
+function validateVideoSourceFile(file) {
+  if (!(file instanceof File)) return Promise.reject(new Error("请选择一张图片。"));
+  if (!VIDEO_SOURCE_TYPES.has(file.type)) {
+    return Promise.reject(new Error("仅支持 JPG、PNG 或 WebP 图片。"));
+  }
+  if (!file.size || file.size > VIDEO_SOURCE_MAX_BYTES) {
+    return Promise.reject(new Error("图片大小必须不超过 10 MB。"));
+  }
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      const width = Number(image.naturalWidth || 0);
+      const height = Number(image.naturalHeight || 0);
+      URL.revokeObjectURL(url);
+      if (
+        width < VIDEO_SOURCE_MIN_EDGE ||
+        height < VIDEO_SOURCE_MIN_EDGE ||
+        width > VIDEO_SOURCE_MAX_EDGE ||
+        height > VIDEO_SOURCE_MAX_EDGE
+      ) {
+        reject(new Error("图片宽高必须在 256–4096 px 范围内。"));
+        return;
+      }
+      resolve({ width, height });
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("图片无法解码，请更换文件。"));
+    };
+    image.src = url;
+  });
 }
 
 function selectVideoReference(reference, options = {}) {
@@ -4985,13 +5043,10 @@ if (enhanceButton && promptBox) {
 
 if (generateButton && queueTarget) {
   generateButton.addEventListener("click", async () => {
-    // In staging, an unsigned-in visitor can still verify the complete form flow.
-    // A real provider job remains gated behind a real/anonymous Supabase session.
-    const demoGeneration = !isRealAuthenticatedUser(state.user) && (consumeDemoGenerationIntent() || ENABLE_ANONYMOUS_TEST_MODE);
-    if (!demoGeneration && !requireRealLoginForAction("generation-submit", window.location.pathname.split("/").pop() || "./zh/app/image-to-video/")) {
+    if (!requireRealLoginForAction("generation-submit", window.location.pathname.split("/").pop() || "./zh/app/image-to-video/")) {
       return;
     }
-    if (!demoGeneration && !supabase) {
+    if (!supabase) {
       showSiteToast("Supabase 未配置，无法提交真实账户生成任务。");
       return;
     }
@@ -5003,6 +5058,8 @@ if (generateButton && queueTarget) {
     const character = document.querySelector(".selector-grid select")?.value?.split(" - ")[0] || "Mira";
     const ratio = document.querySelector("[data-video-ratio]")?.value || "";
     const durationSeconds = Number(document.querySelector("[data-video-duration]")?.value || 0) || undefined;
+    const resolution = document.querySelector("[data-a01-resolution]")?.value || undefined;
+    const seedInput = document.querySelector("[data-a01-seed]")?.value?.trim() || "random";
     const requestedModel = document.querySelector("[data-video-model]")?.value || "";
     const model = isAdminActor(state.user) ? requestedModel : normalizePublicGenerationProvider(requestedModel);
     const reference = selectedVideoReference;
@@ -5037,12 +5094,7 @@ if (generateButton && queueTarget) {
     generateButton.disabled = true;
     generateButton.textContent = "生成中";
     try {
-      if (demoGeneration) {
-        updateGenerationProgress(progressRow, "running", "正在生成本地演示预览，不扣积分，也不会保存到真实账户。", 38, {
-          historyHref: "./zh/history/"
-        });
-      } else {
-        updateGenerationProgress(progressRow, "queued", "任务已进入队列，正在准备参考图和积分扣费。", 18, {
+      updateGenerationProgress(progressRow, "queued", "任务已进入队列，正在准备参数和积分扣费。", 18, {
           historyHref: "./zh/history/"
         });
         const remoteResult = await runRemoteGeneration({
@@ -5054,10 +5106,12 @@ if (generateButton && queueTarget) {
           ratio,
           durationSeconds,
           model,
-          toolSlug: activePreset?.id || (activeMode === "video" ? "image-to-video" : "image-editor"),
+          toolSlug: activePreset?.id || (activeMode === "video" ? "image-to-video" : "generate"),
           preset: activePreset?.id || "",
           workflowFamily: document.querySelector("[data-video-generator]")?.dataset.workflowFamily || "",
           reference,
+          resolution,
+          seed: seedInput,
           onJobCreated: (job) => {
             const remoteJobId = String(job?.id || "");
             if (remoteJobId) progressRow.dataset.remoteJobId = remoteJobId;
@@ -5099,7 +5153,6 @@ if (generateButton && queueTarget) {
           });
           return;
         }
-      }
     } catch (error) {
       const refundText = error.refund?.amount ? `远端已退回 ${error.refund.amount} 积分。` : "未重复扣除远端积分。";
       const failedJobId = String(error.job?.id || progressRow.dataset.remoteJobId || "");
@@ -5134,112 +5187,17 @@ if (generateButton && queueTarget) {
         refunded: Boolean(error.refund?.amount)
       });
       persistGenerationRecovery(buildGenerationRecoveryFromJob(failedJob));
-      if (!isAdminActor(state.user)) {
-        updateGenerationProgress(progressRow, "failed", `${error.message || "生成暂不可用"}，${refundText} 请稍后重试或联系支持。`, 0, {
-          historyHref: "./zh/history/",
-          refreshJobId: failedJobId,
-          retryJobId: failedJobId
-        });
-        generateButton.disabled = false;
-        generateButton.textContent = activeMode === "video" ? "生成视频" : "生成";
-        return;
-      }
-      updateGenerationProgress(progressRow, "retrying", `${error.message || "真实生成暂不可用"}，${refundText} 管理员测试模式正在切换到 Fake Worker。`, 38, {
+      updateGenerationProgress(progressRow, "failed", `${error.message || "生成暂不可用"}，${refundText} 请稍后重试或联系支持。`, 0, {
         historyHref: "./zh/history/",
         refreshJobId: failedJobId,
         retryJobId: failedJobId
       });
+      return;
     } finally {
       generateButton.disabled = false;
       generateButton.textContent = activeMode === "video" ? "生成视频" : "生成";
     }
 
-    if (!demoGeneration && state.credits < cost) {
-      trackProductEvent("generation_failed", {
-        mediaType: activeMode === "video" ? "video" : "image",
-        preset: activePreset?.id || "",
-        cost,
-        reason: "insufficient_credits",
-        remote: false
-      });
-      updateGenerationProgress(progressRow, "failed", "积分不足，请先购买积分再生成这个作品。", 0, {
-        assetHref: "./zh/pricing/",
-        assetLabel: "购买积分",
-        historyHref: "./zh/history/"
-      });
-      return;
-    }
-    if (!demoGeneration) state.credits -= cost;
-    const id = `asset_${Date.now()}`;
-    const jobId = `job_${Date.now()}`;
-    const asset = {
-      id,
-      type: activeMode === "video" ? "video" : "image",
-      title,
-      prompt,
-      character,
-      credits: demoGeneration ? 0 : cost,
-      status: "completed",
-      visibility: "private",
-      favorite: false,
-      ratio,
-      duration: durationSeconds,
-      preset: activePreset?.id || "",
-      referenceId: reference?.id || "",
-      demo: demoGeneration,
-      downloadUrl: createGeneratedDownloadUrl({ title, prompt, cost: demoGeneration ? 0 : cost, ratio, durationSeconds, model, reference, type: activeMode === "video" ? "video" : "image" })
-    };
-    const job = {
-      id: jobId,
-      type: asset.type,
-      title,
-      prompt,
-      provider: demoGeneration ? "demo_preview" : model || "local_api",
-      model: demoGeneration ? "browser-demo-preview" : activeMode === "video" ? model || "local-video-v0" : "local-image-v0",
-      status: "completed",
-      credits: demoGeneration ? 0 : cost,
-      duration: activeMode === "video" ? `${durationSeconds || 8}s` : "12s",
-      assetId: id,
-      ratio,
-      preset: activePreset?.id || "",
-      progress: 100,
-      remote: false,
-      demo: demoGeneration
-    };
-    if (!demoGeneration) {
-      recordCreditLedger({
-        amount: -cost,
-        category: "generation",
-        reason: `${title} 本地演示生成扣费`,
-        sourceType: "generation_job",
-        sourceId: jobId
-      });
-    }
-    updateGenerationProgress(progressRow, "running", demoGeneration ? "正在完成浏览器演示预览。真实保存和分享需要登录。" : "Fake Worker 正在生成预览和输出元数据。", 64);
-    await wait(180);
-    state.assets.unshift(asset);
-    state.history.unshift(job);
-    saveState(state);
-    renderState(state);
-    renderGeneratedPreview(asset, job);
-    trackProductEvent("generation_completed", {
-      mediaType: asset.type,
-      preset: activePreset?.id || "",
-      cost: demoGeneration ? 0 : cost,
-      provider: job.provider,
-      remote: false,
-      hasAsset: true
-    });
-    clearVideoGenerationDraft();
-    clearGenerationRecovery();
-    updateGenerationProgress(progressRow, "completed", demoGeneration ? "演示生成完成：未扣积分，结果只保存在当前浏览器。登录后可真实保存、下载和分享。" : "已保存到资产库、生成任务和我的作品，可下载或继续分享。", 100, {
-      assetHref: "./zh/assets/",
-      historyHref: "./zh/history/",
-      downloadHref: asset.downloadUrl,
-      downloadName: `${asset.title}.json`,
-      shareAssetId: demoGeneration ? "" : asset.id,
-      retryAssetId: asset.id
-    });
   });
 }
 
@@ -5275,6 +5233,7 @@ async function runRemoteGeneration(input) {
     aspectRatio: input.ratio || undefined,
     provider: input.model || undefined,
     sourceAssetId: input.reference?.sourceAssetId || (input.reference?.remote ? input.reference.id : undefined),
+    sourceAssetIds: Array.isArray(input.sourceAssetIds) ? input.sourceAssetIds : undefined,
     sourceImageUrl: input.reference?.sourceImageUrl || undefined,
     preset: input.preset || undefined,
     workflowName: input.workflowName || undefined,
@@ -5290,6 +5249,7 @@ async function runRemoteGeneration(input) {
     faceStability: input.faceStability,
     loop: input.loop,
     resolution: input.resolution || undefined,
+    seed: input.seed,
     outputCount: input.outputCount,
     priceQuote: input.priceQuote
   });
@@ -5318,8 +5278,29 @@ window.__OVS_WORKFLOW_API__ = {
     if (!supabase) throw new Error("Supabase 未配置，暂不能调用真实工作流。");
     const workflow = params.workflow || {};
     const file = params.file instanceof File ? params.file : null;
+    const files = Array.isArray(params.files) ? params.files.filter((item) => item instanceof File) : [];
     let reference = params.reference || null;
-    if (file) {
+    let sourceAssetIds = [];
+    if (toolId === "image-combiner") {
+      if (files.length !== 2) throw new Error("D18 多图编辑需要正好上传两张图片。");
+      const uploaded = [];
+      for (const [index, sourceFile] of files.entries()) {
+        const localReference = {
+          id: `local-${Date.now()}-${index + 1}`,
+          title: sourceFile.name,
+          fileName: sourceFile.name,
+          fileSize: sourceFile.size,
+          fileType: sourceFile.type,
+          type: "image",
+          sourceType: "reference_image",
+          prompt: params.prompt || "",
+          remote: false,
+        };
+        uploaded.push(await uploadVideoReferenceToSupabase(sourceFile, localReference));
+      }
+      sourceAssetIds = uploaded.map((item) => item.sourceAssetId || item.id).filter(Boolean);
+      reference = uploaded[0] || null;
+    } else if (file) {
       const localReference = {
         id: `local-${Date.now()}`,
         title: file.name,
@@ -5342,13 +5323,24 @@ window.__OVS_WORKFLOW_API__ = {
       ratio: params.aspectRatio || "16:9",
       durationSeconds: params.durationSeconds,
       model: "zealman_workflow",
-      workflowId: params.workflowId || workflow.workflowId,
+      workflowId: toolId === "image-to-video"
+        ? G20_WORKFLOW_ID
+        : toolId === "image-combiner"
+          ? D18_WORKFLOW_ID
+          : params.workflowId || workflow.workflowId,
       preset: toolId,
       workflowFamily: toolId === "adult-effects" ? "adult-4in1" : "",
       toolSlug: toolId,
-      workflowName: workflow.workflowName,
-      workflowOverrides: params.workflowOverrides || (params.effect ? { effect: params.effect } : undefined),
+      workflowName: toolId === "image-to-video"
+        ? G20_WORKFLOW_NAME
+        : toolId === "image-combiner"
+          ? D18_WORKFLOW_NAME
+          : workflow.workflowName,
+      workflowOverrides: toolId === "image-to-video" || toolId === "image-combiner"
+        ? undefined
+        : params.workflowOverrides || (params.effect ? { effect: params.effect } : undefined),
       reference,
+      sourceAssetIds,
       idempotencyKey: params.idempotencyKey,
       toolMode: params.toolMode,
       effectId: params.effectId,
@@ -5358,7 +5350,8 @@ window.__OVS_WORKFLOW_API__ = {
       motionStrength: params.motionStrength,
       faceStability: params.faceStability,
       loop: params.loop,
-      resolution: params.resolution,
+      resolution: toolId === "image-combiner" ? "512x512" : params.resolution,
+      seed: params.seed,
       outputCount: params.outputCount,
       priceQuote: params.priceQuote,
     });
@@ -5368,13 +5361,13 @@ window.__OVS_WORKFLOW_API__ = {
 
 function workflowIdForGeneration(mediaType, provider, preset, workflowFamily = "") {
   if (provider === "zealman_workflow") {
-    if (mediaType === "image") return "workflow-hifun-image-editor-v1";
+    if (mediaType === "image") return "workflow-zealman-image-a01-v1";
     if (workflowFamily === "adult-4in1") return "workflow-hifun-adult-effects-v1";
     if (preset === "adult-effects") return "workflow-hifun-adult-effects-v1";
     if (preset === "movie-closeup") return "workflow-hifun-movie-closeup-v1";
     if (preset === "social-reel") return "workflow-zealman-video-g03-v1";
     if (preset === "product-teaser") return "workflow-zealman-digital-human-j11-v1";
-    return "workflow-zealman-video-g01-v1";
+    return G20_WORKFLOW_ID;
   }
   if (provider === "liblib_generation" && mediaType === "image") return "workflow-liblib-image-v1";
   return mediaType === "video" ? "workflow-qianwen-video-v1" : "workflow-qianwen-image-v1";
@@ -6156,13 +6149,6 @@ function downloadFileName(asset) {
   return `${safeTitle}.json`;
 }
 
-let creationFilter = "all";
-let creationSearch = "";
-let creationPrivacy = "all";
-const initialHistoryFilter = new URLSearchParams(window.location.search).get("status") || new URLSearchParams(window.location.search).get("filter") || "all";
-let historyFilter = ["all", "running", "completed", "failed", "video", "image"].includes(initialHistoryFilter) ? initialHistoryFilter : "all";
-let historySearch = "";
-
 function creationStatusGroup(status = "") {
   const normalized = String(status).toLowerCase();
   if (["queued", "pending", "retrying", "cancelling", "processing", "running", "model_loading", "post_processing", "uploading_result"].includes(normalized)) return "running";
@@ -6435,13 +6421,30 @@ function openCreationPreview(assetId) {
   const previewMarkup = asset.type === "video" && previewUrl
     ? `<video src="${escapeHtml(previewUrl)}" controls playsinline preload="metadata" aria-label="${escapeHtml(asset.title)}"></video>`
     : creationMediaMarkup(asset);
+  const dimensions = asset.width && asset.height ? `${asset.width} × ${asset.height}` : "尺寸待同步";
+  const fileSize = Number(asset.sizeBytes || asset.fileSize || 0) > 0
+    ? formatFileSize(Number(asset.sizeBytes || asset.fileSize))
+    : "大小待同步";
+  const downloadUrl = asset.downloadUrl || asset.previewUrl || asset.outputUrl || "";
   content.innerHTML = `
     <div class="creation-preview-media">${previewMarkup}</div>
     <div class="creation-dialog-copy">
       <p class="eyebrow">${asset.type === "video" ? "视频作品" : "图片作品"}</p>
       <h2>${escapeHtml(asset.title)}</h2>
       <p>${escapeHtml(asset.prompt || "没有保存提示词")}</p>
-      <small>${escapeHtml(creationToolLabel(asset))} · ${creationDateLabel(asset.createdAt || asset.updatedAt)}</small>
+      <dl class="creation-detail-list">
+        <div><dt>工具</dt><dd>${escapeHtml(creationToolLabel(asset))}</dd></div>
+        <div><dt>创建时间</dt><dd>${creationDateLabel(asset.createdAt || asset.updatedAt)}</dd></div>
+        <div><dt>文件</dt><dd>${escapeHtml(dimensions)} · ${escapeHtml(fileSize)}</dd></div>
+        <div><dt>可见性</dt><dd>${asset.visibility === "public" ? "公开" : "私密"}</dd></div>
+      </dl>
+      <div class="creation-detail-actions">
+        ${downloadUrl ? `<a class="btn primary" href="${escapeHtml(downloadUrl)}" download="${escapeHtml(safeDownloadName(asset))}">下载</a>` : ""}
+        <button class="btn glass" type="button" data-retry-asset="${escapeHtml(asset.id)}">再次生成</button>
+        ${asset.type === "image" ? `<button class="btn glass" type="button" data-creation-to-video="${escapeHtml(asset.id)}">转成视频</button>` : ""}
+        <button class="btn glass" type="button" data-manage-asset-share="${escapeHtml(asset.id)}">分享</button>
+        <button class="btn glass danger" type="button" data-delete-asset="${escapeHtml(asset.id)}">删除</button>
+      </div>
     </div>
   `;
   dialog.showModal();
@@ -7626,7 +7629,7 @@ function normalizeToolCatalogConfig(config) {
     "outfit-studio": "workflow-hifun-outfit-v1",
     "pose-generator": "workflow-hifun-pose-v1",
     "nano-banana": "workflow-hifun-nano-v1",
-    "image-combiner": "workflow-hifun-combiner-v1",
+    "image-combiner": D18_WORKFLOW_ID,
     "image-to-video": "workflow-hifun-image-to-video-v1",
     "adult-effects": "workflow-hifun-adult-effects-v1",
     "movie-closeup": "workflow-hifun-movie-closeup-v1",

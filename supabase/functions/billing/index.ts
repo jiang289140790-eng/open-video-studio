@@ -74,9 +74,13 @@ async function handleStripeEvent(admin: any, event: Record<string, any>) {
     return { ignoredEvent: type };
   }
   if (type === "checkout.session.completed") {
+    const metadata = object.metadata || {};
+    const creditOrderId = String(metadata.order_id || "");
+    if (creditOrderId && String(object.payment_status || "") === "paid") {
+      return { creditOrder: await fulfillCreditOrder(admin, creditOrderId, String(object.id || "")) };
+    }
     const subscriptionId = String(object.subscription || "");
     if (!subscriptionId) return { ignoredEvent: type, reason: "missing_subscription" };
-    const metadata = object.metadata || {};
     return { subscription: await syncSubscription(admin, { stripeSubscriptionId: subscriptionId, stripeCustomerId: object.customer, externalId: object.id, userId: metadata.user_id, planId: metadata.plan_id, status: "active" }) };
   }
   const item = object.items?.data?.[0] || {};
@@ -84,6 +88,82 @@ async function handleStripeEvent(admin: any, event: Record<string, any>) {
   const metadata = object.metadata || {};
   const mappedStatus = type.endsWith(".deleted") ? "cancelled" : mapStripeStatus(object.status);
   return { subscription: await syncSubscription(admin, { stripeSubscriptionId: object.id, stripeCustomerId: object.customer, stripePriceId: priceId, userId: metadata.user_id, planId: metadata.plan_id, status: mappedStatus, startedAt: toIso(item.current_period_start || object.start_date), endedAt: toIso(item.current_period_end) }) };
+}
+
+async function fulfillCreditOrder(admin: any, orderId: string, stripeSessionId: string) {
+  const existing = await admin.from("orders").select("*").eq("id", orderId).eq("order_type", "credit_purchase").maybeSingle();
+  if (existing.error || !existing.data) throw existing.error || new Error("Credit order not found.");
+  if (existing.data.status === "fulfilled") return existing.data;
+  if (!["pending", "processing"].includes(String(existing.data.status))) {
+    throw new Error(`Credit order cannot be fulfilled from status ${existing.data.status}.`);
+  }
+  const claimed = await admin
+    .from("orders")
+    .update({ status: "processing", provider_reference: `stripe:${stripeSessionId}`, updated_at: new Date().toISOString() })
+    .eq("id", orderId)
+    .eq("status", "pending")
+    .select("*")
+    .maybeSingle();
+  let order = claimed.data || existing.data;
+  if (!claimed.data) {
+    const refreshed = await admin.from("orders").select("*").eq("id", orderId).maybeSingle();
+    if (refreshed.error || !refreshed.data) throw refreshed.error || new Error("Credit order disappeared.");
+    if (refreshed.data.status === "fulfilled") return refreshed.data;
+    order = refreshed.data;
+  }
+  const priorCredit = await admin
+    .from("credit_transactions")
+    .select("id")
+    .eq("source_type", "order")
+    .eq("source_id", orderId)
+    .eq("operation_category", "grant")
+    .eq("status", "posted")
+    .limit(1);
+  if (priorCredit.error) throw priorCredit.error;
+  let transactionId = priorCredit.data?.[0]?.id || "";
+  if (!transactionId) {
+    transactionId = `ctx_${crypto.randomUUID()}`;
+    const credit = await admin.from("credit_transactions").insert({
+      id: transactionId,
+      account_id: order.account_id,
+      user_id: order.user_id,
+      source_type: "order",
+      source_id: orderId,
+      amount: Number(order.credits_granted || 0),
+      balance_impact: Number(order.credits_granted || 0),
+      operation_category: "grant",
+      status: "posted",
+      reason: `Verified Stripe credit purchase ${order.package_id || ""}`.trim(),
+      created_at: new Date().toISOString(),
+    });
+    if (credit.error) {
+      if (credit.error.code !== "23505") throw credit.error;
+      const duplicate = await admin
+        .from("credit_transactions")
+        .select("id")
+        .eq("source_type", "order")
+        .eq("source_id", orderId)
+        .eq("operation_category", "grant")
+        .eq("status", "posted")
+        .maybeSingle();
+      if (duplicate.error || !duplicate.data) throw duplicate.error || credit.error;
+      transactionId = duplicate.data.id;
+    }
+  }
+  const fulfilled = await admin
+    .from("orders")
+    .update({
+      status: "fulfilled",
+      credit_transaction_id: transactionId,
+      provider_reference: `stripe:${stripeSessionId}`,
+      completed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", orderId)
+    .select("*")
+    .single();
+  if (fulfilled.error) throw fulfilled.error;
+  return fulfilled.data;
 }
 
 async function syncSubscription(admin: any, input: Record<string, any>) {

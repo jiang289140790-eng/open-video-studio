@@ -3,10 +3,13 @@ import { getSupabaseClient, isSupabaseConfigured } from "./supabase-client.js";
 import { saveUserCreation } from "./user-account-service.js";
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
+const VIDEO_MAX_FILE_SIZE = 10 * 1024 * 1024;
+const G20_WORKFLOW_ID = "workflow-zealman-video-g20-v1";
+const G20_BASE_CREDIT_COST = 24;
 const MIN_IMAGE_EDGE = 256;
 const MAX_IMAGE_EDGE = 8192;
 const ACTIVE_TASK_STATUSES = new Set(["uploading", "queued", "pending", "processing", "running", "model_preparing", "generating", "post_processing", "uploading_result", "cancelling"]);
-const TERMINAL_TASK_STATUSES = new Set(["completed", "failed", "cancelled", "canceled", "restricted", "timed_out", "timeout"]);
+const TERMINAL_TASK_STATUSES = new Set(["completed", "succeeded", "failed", "cancelled", "canceled", "restricted", "timed_out", "timeout"]);
 const SUPPORTED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const IMAGE_EDITOR_SLOT_DEFINITIONS = Object.freeze([
   { key: "main", label: "主图片", description: "需要编辑的原始图片", aliases: ["image", "main_image", "mainImage", "source_image", "sourceImage", "sourceImageUrl"] },
@@ -47,17 +50,45 @@ const POSE_PRESETS = Object.freeze([
 ]);
 
 const VIDEO_EFFECTS = Object.freeze([
-  { effect_id: "video-generic", name: "通用图片转视频", category: "通用", poster: "", preview_video_url: "", prompt_template: "", workflow_id: "workflow-hifun-image-to-video-v1", credit_cost: null, status: "preview_only", featured: true, created_at: "2026-07-01", durations: [], estimated_time: null },
-  { effect_id: "video-movie-closeup", name: "电影近景", category: "热门", poster: "", preview_video_url: "", prompt_template: "电影感近景镜头，主体自然微动，镜头平稳推进。", workflow_id: "workflow-hifun-movie-closeup-v1", credit_cost: null, status: "preview_only", featured: true, created_at: "2026-07-02", durations: [], estimated_time: null },
-  { effect_id: "video-smooth", name: "SmoothMix 图生视频", category: "最新", poster: "", preview_video_url: "", prompt_template: "平滑自然的动作与镜头过渡，保持主体身份和画面风格。", workflow_id: "workflow-zealman-video-g03-v1", credit_cost: null, status: "preview_only", featured: false, created_at: "2026-07-03", durations: [], estimated_time: null },
-  { effect_id: "video-pov", name: "第一人称镜头", category: "第一人称", poster: "", preview_video_url: "", prompt_template: "第一人称镜头视角，动作连续，保持画面稳定。", workflow_id: "workflow-hifun-adult-effects-v1", credit_cost: null, status: "preview_only", featured: false, created_at: "2026-07-04", durations: [], estimated_time: null },
-  { effect_id: "video-pose", name: "姿势动作", category: "姿势", poster: "", preview_video_url: "", prompt_template: "主体以自然姿势完成连续动作，镜头稳定，运动连贯。", workflow_id: "workflow-hifun-adult-effects-v1", credit_cost: null, status: "preview_only", featured: false, created_at: "2026-07-05", durations: [], estimated_time: null },
+  {
+    effect_id: "video-g20",
+    name: "AI 图片转视频",
+    category: "图片转视频",
+    poster: "",
+    preview_video_url: "",
+    prompt_template: "",
+    workflow_id: G20_WORKFLOW_ID,
+    credit_cost: G20_BASE_CREDIT_COST,
+    status: "preview_only",
+    featured: true,
+    created_at: "2026-07-26",
+    durations: [2, 3, 4, 5, 6, 8, 10],
+    estimated_time: "以实时队列为准",
+  },
 ]);
 
 const TOOL_DEFINITIONS = Object.freeze({
+  "image-generate": {
+    name: "AI 图片生成",
+    description: "输入画面描述，可选上传一张参考图。仅在图片生成工作流完成真实验证后开放创建。",
+    mediaType: "image",
+    promptLabel: "画面描述",
+    promptPlaceholder: "例如：清晨海边的现代玻璃屋，柔和自然光，真实摄影质感",
+    minFiles: 0,
+    maxFiles: 1,
+    requireFace: false,
+    outputLabel: "生成图片",
+    uploadOptional: true,
+    e2eVerified: false,
+    examples: [
+      "清晨海边的现代玻璃屋，柔和自然光，真实摄影质感，细节清晰",
+      "雨夜城市街道，霓虹灯倒影，电影感构图，真实摄影风格",
+      "极简产品静物摄影，柔和棚拍光线，干净背景，高级商业质感",
+    ],
+  },
   "image-editor": {
-    name: "图片编辑器",
-    description: "上传图片并描述需要修改的区域或效果。",
+    name: "自然语言图片编辑",
+    description: "上传一张图片，用自然语言说明需要修改的内容。",
     mediaType: "image",
     promptLabel: "编辑描述",
     promptPlaceholder: "例如：移除背景中的路人，并保持主体细节清晰",
@@ -65,6 +96,47 @@ const TOOL_DEFINITIONS = Object.freeze({
     maxFiles: 1,
     requireFace: false,
     outputLabel: "图片结果",
+    e2eVerified: false,
+    examples: [
+      "移除背景中的路人，保持主体、光线和构图不变",
+      "把背景改成干净的摄影棚，保留人物面部和服装细节",
+      "改善曝光和肤色，恢复阴影细节，保持真实质感",
+    ],
+  },
+  "image-combiner": {
+    name: "多图编辑",
+    description: "上传主图和至少一张参考图，用自然语言说明组合关系。",
+    mediaType: "image",
+    promptLabel: "编辑描述",
+    promptPlaceholder: "例如：保留主图人物，把参考图中的服装和场景自然融合到主图",
+    minFiles: 2,
+    maxFiles: 2,
+    requireFace: false,
+    outputLabel: "多图编辑结果",
+    e2eVerified: true,
+    examples: [
+      "保留第一张图的人物，把第二张图的服装自然应用到人物身上",
+      "以第一张图为主体，参考第二张图的场景和第三张图的光线",
+      "将多张产品参考图组合为统一光线和透视的商业画面",
+    ],
+  },
+  "image-upscale": {
+    name: "图片高清修复",
+    description: "上传一张图片进行清晰度与细节修复。仅在高清修复工作流真实验证后开放创建。",
+    mediaType: "image",
+    promptLabel: "修复要求（可选）",
+    promptPlaceholder: "例如：增强细节和清晰度，减少噪点，保持原图构图与人物身份",
+    minFiles: 1,
+    maxFiles: 1,
+    requireFace: false,
+    outputLabel: "高清修复结果",
+    promptOptional: true,
+    e2eVerified: false,
+    examples: [
+      "增强细节和清晰度，减少噪点，保持原图构图不变",
+      "修复面部与发丝细节，保持人物身份和自然皮肤纹理",
+      "改善低光画面的清晰度和色彩，避免过度锐化",
+    ],
   },
   "face-swap": {
     name: "AI 换脸",
@@ -76,6 +148,7 @@ const TOOL_DEFINITIONS = Object.freeze({
     maxFiles: 2,
     requireFace: true,
     outputLabel: "换脸结果",
+    e2eVerified: false,
   },
   "outfit-studio": {
     name: "性感礼服",
@@ -87,6 +160,7 @@ const TOOL_DEFINITIONS = Object.freeze({
     maxFiles: 1,
     requireFace: false,
     outputLabel: "服装结果",
+    e2eVerified: false,
   },
   "pose-generator": {
     name: "性爱姿势",
@@ -98,10 +172,11 @@ const TOOL_DEFINITIONS = Object.freeze({
     maxFiles: 1,
     requireFace: false,
     outputLabel: "姿势结果",
+    e2eVerified: false,
   },
   "image-to-video": {
     name: "图片转视频",
-    description: "上传首帧图片并描述动作与镜头，生成短视频。",
+    description: "上传一张首帧图片并描述动作，使用 G20 图片转视频生成短视频。",
     mediaType: "video",
     promptLabel: "视频描述",
     promptPlaceholder: "例如：镜头缓慢推进，主体自然转身，动作连续",
@@ -110,6 +185,7 @@ const TOOL_DEFINITIONS = Object.freeze({
     requireFace: false,
     outputLabel: "视频结果",
     videoOptions: true,
+    e2eVerified: false,
   },
 });
 
@@ -123,6 +199,7 @@ const STATUS_COPY = Object.freeze({
   post_processing: "后处理",
   uploading_result: "上传结果",
   completed: "已完成",
+  succeeded: "已完成",
   failed: "失败",
   timed_out: "任务超时",
   timeout: "任务超时",
@@ -181,7 +258,9 @@ function escapeHtml(value) {
 
 function getToolId() {
   const declared = root?.dataset.toolId || document.body.dataset.toolId;
-  const query = new URLSearchParams(window.location.search).get("tool");
+  const params = new URLSearchParams(window.location.search);
+  const query = params.get("tool");
+  if (declared === "image-editor" && params.get("operation") === "upscale") return "image-upscale";
   return TOOL_DEFINITIONS[declared] ? declared : TOOL_DEFINITIONS[query] ? query : "image-editor";
 }
 
@@ -207,6 +286,7 @@ function formatDate(value) {
 function normalizeStatus(value) {
   const status = String(value || "").toLowerCase();
   if (["uploading", "running", "model_preparing", "generating", "post_processing", "uploading_result", "cancelling"].includes(status)) return "processing";
+  if (status === "succeeded") return "completed";
   if (["timed_out", "timeout"].includes(status)) return "failed";
   if (status === "canceled") return "cancelled";
   return status || "queued";
@@ -247,12 +327,13 @@ function getTaskResultUrl(task) {
 }
 
 function hasConfiguredWorkflow() {
+  if (state.tool?.e2eVerified === false) return false;
   if (!state.catalogTool || !state.workflow) return false;
   const status = String(state.workflow.status || "").toLowerCase();
   const inputSchema = state.workflow.input_schema;
   const outputSchema = state.workflow.output_schema;
   return (
-    status === "active" &&
+    ["active", "published"].includes(status) &&
     Boolean(state.workflow.workflow_id) &&
     inputSchema &&
     Object.keys(inputSchema).length > 0 &&
@@ -300,15 +381,24 @@ function getSchemaOptions(definition, fallback = []) {
 
 function getVideoParameterSupport() {
   if (state.toolId !== "image-to-video") return {};
+  const fallback = {
+    duration: { key: "durationSeconds", schema: { type: "integer", enum: [2, 3, 4, 5, 6, 8, 10], default: 5 } },
+    resolution: { key: "resolution", schema: { type: "integer", enum: [512, 768, 1024], default: 1024 } },
+    seed: { key: "seed", schema: { type: "integer", minimum: 0, maximum: 4294967295, default: "random" } },
+    fps: { key: "fps", schema: { type: "integer", enum: [24], default: 24, readOnly: true } },
+  };
   return {
-    duration: getWorkflowInputProperty(["durationSeconds", "duration_seconds", "duration"]),
+    duration: getWorkflowInputProperty(["durationSeconds", "duration_seconds", "duration"]) || fallback.duration,
     aspectRatio: getWorkflowInputProperty(["aspectRatio", "aspect_ratio", "output_ratio"]),
     cameraMotion: getWorkflowInputProperty(["cameraMotion", "camera_motion"]),
     motionStrength: getWorkflowInputProperty(["motionStrength", "motion_strength"]),
     faceStability: getWorkflowInputProperty(["faceStability", "face_stability", "stabilize_face"]),
     loop: getWorkflowInputProperty(["loop", "is_loop", "seamless_loop"]),
-    resolution: getWorkflowInputProperty(["resolution", "quality"]),
+    resolution: getWorkflowInputProperty(["resolution", "quality"]) || fallback.resolution,
     outputCount: getWorkflowInputProperty(["outputCount", "output_count", "video_count"]),
+    seed: getWorkflowInputProperty(["seed", "random_seed"]) || fallback.seed,
+    fps: getWorkflowInputProperty(["fps", "frameRate", "frame_rate"]) || fallback.fps,
+    negativePrompt: getWorkflowInputProperty(["negativePrompt", "negative_prompt"]),
   };
 }
 
@@ -328,7 +418,10 @@ function calculateVideoCost() {
   const configuredBase = [effect?.credit_cost, state.catalogTool?.credits_cost, state.catalogTool?.cost_per_run, state.workflow?.cost]
     .map(Number)
     .find((value) => Number.isFinite(value) && value > 0);
-  if (!configuredBase) return null;
+  const baseCost = configuredBase || (
+    effect?.workflow_id === G20_WORKFLOW_ID ? G20_BASE_CREDIT_COST : null
+  );
+  if (!baseCost) return null;
   const pricing = getVideoPricingConfig();
   const duration = String(root?.querySelector("[data-video-duration]")?.value || "");
   const resolution = String(root?.querySelector("[data-video-resolution]")?.value || "");
@@ -339,7 +432,7 @@ function calculateVideoCost() {
   const durationCost = Number(durationCosts[duration]);
   const resolutionMultiplier = Number(resolutionMultipliers[resolution]);
   const outputMultiplier = Number(outputMultipliers[outputCount]);
-  const cost = (Number.isFinite(durationCost) && durationCost > 0 ? durationCost : configuredBase)
+  const cost = (Number.isFinite(durationCost) && durationCost > 0 ? durationCost : baseCost)
     * (Number.isFinite(resolutionMultiplier) && resolutionMultiplier > 0 ? resolutionMultiplier : 1)
     * (Number.isFinite(outputMultiplier) && outputMultiplier > 0 ? outputMultiplier : 1);
   return Math.max(1, Math.ceil(cost));
@@ -393,13 +486,10 @@ function renderImageEditorMode() {
   return `
     <section class="workspace-panel image-editor-mode-panel">
       <div class="workspace-panel-heading">
-        <div><span class="workspace-step">模式</span><h2>选择编辑方式</h2></div>
+        <div><span class="workspace-step">模式</span><h2>单图自然语言编辑</h2></div>
       </div>
-      <div class="image-editor-mode-tabs" role="tablist" aria-label="图片编辑模式">
-        <button type="button" role="tab" class="is-active" aria-selected="true" data-editor-mode="single">单张图片</button>
-        <button type="button" role="tab" aria-selected="false" data-editor-mode="multi">多张图片</button>
-      </div>
-      <p class="workspace-field-message" data-editor-mode-message>当前工作流支持一张主图片。</p>
+      <p class="workspace-field-message" data-editor-mode-message>本页使用一张主图片。需要组合多张参考图时，请使用“多图编辑”。</p>
+      <a class="workspace-inline-link" href="./image-combiner.html">前往多图编辑</a>
     </section>
   `;
 }
@@ -436,6 +526,21 @@ function renderImageEditorPromptFooter() {
       <span data-prompt-count>0 / 1200</span>
     </div>
     <p class="workspace-field-message">支持中文输入；提交时会按标准 operation 与 prompt 字段发送。不会向页面展示内部 system prompt。</p>
+  `;
+}
+
+function renderPromptExamples() {
+  const examples = Array.isArray(state.tool?.examples) ? state.tool.examples : [];
+  if (!examples.length) return "";
+  return `
+    <div class="workspace-prompt-examples">
+      <strong>示例参数</strong>
+      <div>
+        ${examples.map((example) => `
+          <button type="button" data-prompt-example="${escapeHtml(example)}">${escapeHtml(example)}</button>
+        `).join("")}
+      </div>
+    </div>
   `;
 }
 
@@ -531,39 +636,44 @@ function renderToolModeControls() {
   }
   if (state.toolId === "image-to-video") {
     const support = getVideoParameterSupport();
-    const optionalCount = Object.values(support).filter(Boolean).length;
     const durationOptions = getSchemaOptions(support.duration);
     const ratioOptions = getSchemaOptions(support.aspectRatio);
     const cameraOptions = getSchemaOptions(support.cameraMotion);
     const resolutionOptions = getSchemaOptions(support.resolution);
     const countOptions = getSchemaOptions(support.outputCount);
     return `
-      <button type="button" class="effect-selection-summary" data-open-effect-picker>
-        <span data-selected-effect-copy>选择视频效果</span><span>›</span>
-      </button>
-      ${optionalCount ? `
+      <div class="video-workflow-summary">
+        <span>当前视频能力</span>
+        <strong>G20 图片转视频</strong>
+        <small>仅显示已登记的 Wan2.2Remix 工作流；LTX、WanAnimate 与其他未接入工作流不会作为可用选项展示。</small>
+      </div>
+      <div class="video-parameter-grid">
+        <label class="workspace-field"><span>视频时长</span><select data-video-duration>${durationOptions.map((value) => `<option value="${escapeHtml(value)}" ${String(value) === String(support.duration.schema.default ?? 5) ? "selected" : ""}>${escapeHtml(value)} 秒</option>`).join("")}</select></label>
+        <label class="workspace-field"><span>尺寸（长边）</span><select data-video-resolution>${resolutionOptions.map((value) => `<option value="${escapeHtml(value)}" ${String(value) === String(support.resolution.schema.default ?? 1024) ? "selected" : ""}>${escapeHtml(value)} px</option>`).join("")}</select></label>
+        ${support.aspectRatio ? `<label class="workspace-field"><span>输出比例</span><select data-video-ratio>${ratioOptions.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("")}</select></label>` : ""}
+      </div>
+      ${support.negativePrompt ? `<label class="workspace-field"><span>负面提示词</span><textarea rows="3" maxlength="1000" data-video-negative-prompt placeholder="描述不希望出现在视频中的内容"></textarea></label>` : `<p class="workspace-capability-note">当前 G20 工作流未公开负面提示词输入，因此页面不会伪造该参数。</p>`}
+      <details class="video-advanced-settings">
+        <summary>高级参数</summary>
         <div class="video-parameter-grid">
-          ${support.duration ? `<label class="workspace-field"><span>视频时长</span>${durationOptions.length
-            ? `<select data-video-duration>${durationOptions.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)} 秒</option>`).join("")}</select>`
-            : `<input type="number" data-video-duration min="${Number(support.duration.schema.minimum) || 1}" max="${Number(support.duration.schema.maximum) || 60}" value="${Number(support.duration.schema.default) || 5}">`}</label>` : ""}
-          ${support.aspectRatio ? `<label class="workspace-field"><span>输出比例</span><select data-video-ratio>${ratioOptions.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("")}</select></label>` : ""}
+          <label class="workspace-field"><span>Seed</span><input type="text" data-video-seed value="${escapeHtml(support.seed.schema.default ?? "random")}" maxlength="10" inputmode="numeric"><small>输入 0—4294967295 的整数；填写 random 使用随机种子。</small></label>
+          <label class="workspace-field"><span>帧率</span><input type="text" value="${escapeHtml(support.fps.schema.default ?? 24)} fps" disabled><small>G20 固定为 24 fps。</small></label>
           ${support.cameraMotion ? `<label class="workspace-field"><span>镜头运动</span><select data-video-camera-motion>${cameraOptions.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("")}</select></label>` : ""}
           ${support.motionStrength ? `<label class="workspace-field"><span>运动强度</span><input type="range" data-video-motion-strength min="${Number(support.motionStrength.schema.minimum) || 0}" max="${Number(support.motionStrength.schema.maximum) || 100}" value="${Number(support.motionStrength.schema.default) || 50}"><small data-video-motion-value>${Number(support.motionStrength.schema.default) || 50}</small></label>` : ""}
-          ${support.resolution ? `<label class="workspace-field"><span>分辨率</span><select data-video-resolution>${resolutionOptions.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("")}</select></label>` : ""}
           ${support.outputCount ? `<label class="workspace-field"><span>输出数量</span><select data-video-output-count>${countOptions.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("")}</select></label>` : ""}
         </div>
         <div class="video-toggle-row">
           ${support.faceStability ? `<label><input type="checkbox" data-video-face-stability ${support.faceStability.schema.default === true ? "checked" : ""}> 人脸稳定</label>` : ""}
           ${support.loop ? `<label><input type="checkbox" data-video-loop ${support.loop.schema.default === true ? "checked" : ""}> 循环视频</label>` : ""}
         </div>
-      ` : `<p class="workspace-capability-note">当前生产工作流尚未发布时长、比例、镜头运动、运动强度、人脸稳定或循环参数；这些选项不会在前端伪造。</p>`}
+      </details>
     `;
   }
   return "";
 }
 
 function renderEffectPickerModal() {
-  if (!["outfit-studio", "pose-generator", "image-to-video"].includes(state.toolId)) return "";
+  if (!["outfit-studio", "pose-generator"].includes(state.toolId)) return "";
   return `
     <div class="effect-picker-backdrop" data-effect-picker hidden>
       <section class="effect-picker-modal" role="dialog" aria-modal="true" aria-labelledby="effect-picker-title">
@@ -621,8 +731,8 @@ function renderShell() {
             >
             <span class="asset-dropzone-icon">＋</span>
             <strong>点击或拖放图片到这里</strong>
-            <small>JPG、PNG、WebP · 单张最大 20 MB · ${MIN_IMAGE_EDGE}—${MAX_IMAGE_EDGE}px</small>
-            <small>${tool.minFiles === tool.maxFiles ? `需要 ${tool.minFiles} 张图片` : `支持 ${tool.minFiles}—${tool.maxFiles} 张图片`}</small>
+            <small>JPG、PNG、WebP · 单张最大 ${["image-to-video", "image-combiner"].includes(state.toolId) ? "10" : "20"} MB · ${MIN_IMAGE_EDGE}—${["image-to-video", "image-combiner"].includes(state.toolId) ? "4096" : MAX_IMAGE_EDGE}px</small>
+            <small>${tool.uploadOptional ? "参考图可选；不上传也可填写描述" : tool.minFiles === tool.maxFiles ? `需要 ${tool.minFiles} 张图片` : `支持 ${tool.minFiles}—${tool.maxFiles} 张图片`}</small>
           </label>
           ${renderFaceSwapUploader()}
           <div class="asset-file-list" data-asset-file-list hidden></div>
@@ -645,6 +755,7 @@ function renderShell() {
             <textarea data-generation-prompt rows="5" maxlength="1200" placeholder="${escapeHtml(tool.promptPlaceholder)}"></textarea>
             <small>最多 1200 个字符。请勿输入违法、未成年人或未经同意的真人亲密内容。</small>
           </label>
+          ${renderPromptExamples()}
           ${renderImageEditorPromptFooter()}
           ${state.toolId === "image-editor" ? `<div class="image-editor-output-settings" data-editor-output-settings hidden></div>` : ""}
           <fieldset class="workspace-privacy">
@@ -660,7 +771,7 @@ function renderShell() {
             <div><span class="workspace-step">3</span><h2>积分确认</h2></div>
           </div>
           <dl>
-            <div><dt>当前操作消耗</dt><dd data-operation-cost>正在读取</dd></div>
+            <div><dt>${state.toolId === "image-to-video" ? "预计积分" : "当前操作消耗"}</dt><dd data-operation-cost>正在读取</dd></div>
             <div><dt>当前积分余额</dt><dd data-workspace-credit-balance>登录后查看</dd></div>
             <div><dt>免费积分</dt><dd data-free-credit>登录后查看</dd></div>
           </dl>
@@ -1246,9 +1357,10 @@ async function handleFiles(fileList) {
     setUploaderState("invalid", `${invalidType.name} 格式不支持，请使用 JPG、PNG 或 WebP。`);
     return;
   }
-  const oversized = incoming.find((file) => file.size > MAX_FILE_SIZE);
+  const maxFileSize = ["image-to-video", "image-combiner"].includes(state.toolId) ? VIDEO_MAX_FILE_SIZE : MAX_FILE_SIZE;
+  const oversized = incoming.find((file) => file.size > maxFileSize);
   if (oversized) {
-    setUploaderState("invalid", `${oversized.name} 超过 20 MB。`);
+    setUploaderState("invalid", `${oversized.name} 超过 ${["image-to-video", "image-combiner"].includes(state.toolId) ? "10" : "20"} MB。`);
     return;
   }
 
@@ -1261,8 +1373,8 @@ async function handleFiles(fileList) {
     const badDimensions = state.files.find((entry) =>
       entry.width < MIN_IMAGE_EDGE ||
       entry.height < MIN_IMAGE_EDGE ||
-      entry.width > MAX_IMAGE_EDGE ||
-      entry.height > MAX_IMAGE_EDGE
+      entry.width > (["image-to-video", "image-combiner"].includes(state.toolId) ? 4096 : MAX_IMAGE_EDGE) ||
+      entry.height > (["image-to-video", "image-combiner"].includes(state.toolId) ? 4096 : MAX_IMAGE_EDGE)
     );
     if (badDimensions) {
       badDimensions.valid = false;
@@ -1454,6 +1566,7 @@ function renderResult(task = state.currentTask || state.localTask) {
           <button type="button" class="workspace-button secondary" ${state.toolId === "image-editor" ? "data-copy-prompt" : "data-copy-params"}>${state.toolId === "image-editor" ? "复制提示词" : "复制参数"}</button>
           ${resultUrl ? `<button type="button" class="workspace-button secondary" data-share-result="${taskId}">分享</button>` : ""}
           ${resultUrl && !isVideo ? `<button type="button" class="workspace-button secondary" data-result-to-video="${taskId}">转视频</button>` : ""}
+          <a class="workspace-button secondary" href="./my-creations.html">我的创作</a>
         </div>
       </div>
     `;
@@ -1547,6 +1660,7 @@ function renderAccountSummary() {
 }
 
 function getSubmitBlocker() {
+  if (!hasConfiguredWorkflow()) return "即将上线：工作流尚未完成真实验证";
   if (state.toolId === "face-swap") {
     if (!schemaSupportsAny(["source_face", "sourceFace", "face_image"]) || !schemaSupportsAny(["target_image", "targetImage"])) {
       return "当前工作流尚未公开源人脸与目标图片两个独立输入";
@@ -1560,6 +1674,9 @@ function getSubmitBlocker() {
     const hasReference = supported.some((slot) => slot.key !== "main" && state.editorSlots[slot.key]);
     if (state.uploaderStatus !== "ready" || !hasMain) return "请先上传并通过素材校验";
     if (state.editorMode === "multi" && !hasReference) return "多图模式至少需要主图片和一个参考图片";
+  } else if (state.toolId === "image-generate") {
+    if (state.files.length > state.tool.maxFiles) return "参考图最多只能上传 1 张";
+    if (state.files.length && state.uploaderStatus !== "ready") return "参考图尚未通过素材校验";
   } else if (
     state.uploaderStatus !== "ready" ||
     state.files.length < state.tool.minFiles ||
@@ -1568,8 +1685,12 @@ function getSubmitBlocker() {
   const prompt = root?.querySelector("[data-generation-prompt]")?.value.trim() || "";
   if (state.toolId === "image-to-video") {
     const effect = getSelectedEffect();
-    if (!effect) return "请先选择视频效果";
+    if (!effect) return "图片转视频工作流尚未登记";
     if (!isEffectSelectable(effect)) return "所选视频效果尚无 active workflow";
+    const seed = root?.querySelector("[data-video-seed]")?.value?.trim() || "random";
+    if (seed !== "random" && (!/^\d+$/.test(seed) || Number(seed) > 4294967295)) {
+      return "Seed 必须为 random 或 0—4294967295 的整数";
+    }
   } else if (state.toolId === "outfit-studio" && state.outfitMode === "preset") {
     if (!schemaSupportsAny(["effect", "effect_id", "outfit_preset"])) return "当前工作流尚未公开服装预设输入";
     const effect = getSelectedEffect();
@@ -1583,13 +1704,12 @@ function getSubmitBlocker() {
     const effect = getSelectedEffect();
     if (!effect) return "请先选择姿势";
     if (!isEffectSelectable(effect)) return "所选姿势尚无可用工作流";
-  } else if (prompt.length < 3) {
+  } else if (!state.tool.promptOptional && prompt.length < 3) {
     return "请填写至少 3 个字符的生成描述";
   }
   if (!state.session) return "登录后才能提交任务";
   const cost = getConfiguredCost();
   if (!cost) return "该工具尚未配置明确积分价格";
-  if (!hasConfiguredWorkflow()) return "工作流尚未完成 active 验证";
   if (!Number.isFinite(state.balance)) return "积分余额读取失败";
   if (state.balance < cost) return "积分不足，请先购买积分";
   if (state.submitLocked) return "任务正在提交，请勿重复创建";
@@ -1606,7 +1726,7 @@ function updateSubmitState() {
   button.textContent = blocker || `创建${state.tool.mediaType === "video" ? "视频" : "图片"}任务`;
   reason.textContent = blocker || "提交后将使用服务端返回的真实排队和生成状态。";
   if (availability) {
-    availability.textContent = hasConfiguredWorkflow() ? "工作流可用" : "工作流配置中";
+    availability.textContent = hasConfiguredWorkflow() ? "工作流可用" : "即将上线";
     availability.classList.toggle("is-active", hasConfiguredWorkflow());
   }
 }
@@ -1778,6 +1898,8 @@ function collectSpecialToolParams() {
       loop: Boolean(root.querySelector("[data-video-loop]")?.checked),
       resolution: root.querySelector("[data-video-resolution]")?.value || null,
       outputCount: root.querySelector("[data-video-output-count]") ? Number(root.querySelector("[data-video-output-count]").value) : 1,
+      seed: root.querySelector("[data-video-seed]")?.value?.trim() || "random",
+      negativePrompt: root.querySelector("[data-video-negative-prompt]")?.value?.trim() || null,
       priceQuote: calculateVideoCost(),
     };
   }
@@ -2073,6 +2195,16 @@ function bindEvents() {
     }
     const target = event.target.closest("button, a");
     if (!target) return;
+    if (target.matches("[data-prompt-example]")) {
+      const prompt = root.querySelector("[data-generation-prompt]");
+      if (prompt) {
+        prompt.value = target.dataset.promptExample || "";
+        prompt.focus();
+        updatePromptCount();
+        updateSubmitState();
+      }
+      return;
+    }
     if (target.matches("[data-editor-mode]")) {
       if (target.disabled) return;
       const nextMode = target.dataset.editorMode;
@@ -2417,10 +2549,18 @@ async function init() {
   if (!root) return;
   state.toolId = getToolId();
   state.tool = TOOL_DEFINITIONS[state.toolId];
+  if (state.toolId === "image-to-video") state.selectedEffect = "video-g20";
   loadPromptHistory();
   renderShell();
+  if (state.tool.uploadOptional) {
+    state.uploaderStatus = "ready";
+    state.uploaderMessage = "未上传参考图；可直接使用文字描述。";
+  }
   bindEvents();
   renderFileList();
+  if (state.tool.uploadOptional) {
+    setUploaderState("ready", state.uploaderMessage);
+  }
   renderEmptyResult();
   renderHistory();
   renderAccountSummary();

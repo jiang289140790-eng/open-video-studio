@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AI 图片与视频生成 | Luravyn</title>
-    <meta name="description" content="上传图片、选择已验证效果并创建 AI 图片或视频。">
+    <title>AI 图片与视频创作 | Luravyn</title>
+    <meta name="description" content="上传素材、描述创意并选择图片或视频能力。只有完成真实验收的工作流才开放创建。">
     <link rel="icon" type="image/png" href="./favicon.png">
     <link rel="stylesheet" href="./styles.css">
   </head>
@@ -47,13 +47,13 @@
       <main class="app-surface consumer-home" id="homeRoot">
         <section class="consumer-home-hero" aria-labelledby="homeHeroTitle">
           <div class="consumer-home-generator">
-            <p class="consumer-home-kicker">AI 图片与视频生成</p>
-            <h1 id="homeHeroTitle">上传一张图片，选择效果，开始创作</h1>
-            <p class="consumer-home-lead">无需理解模型或工作流。选择图片效果或视频效果，确认积分后再创建任务。</p>
+            <p class="consumer-home-kicker">从一个想法开始</p>
+            <h1 id="homeHeroTitle">把你的图片变成新的作品</h1>
+            <p class="consumer-home-lead">上传素材、描述想要的效果，再选择创建图片或视频。无需了解模型或工作流。</p>
 
-            <div class="consumer-home-mode-tabs" role="tablist" aria-label="生成类型">
-              <button class="active" type="button" role="tab" aria-selected="true" data-home-mode="image">图片效果</button>
-              <button type="button" role="tab" aria-selected="false" data-home-mode="video">视频效果</button>
+            <div class="consumer-home-mode-tabs" role="tablist" aria-label="创建类型">
+              <button class="active" type="button" role="tab" aria-selected="true" data-home-mode="image">创建图片</button>
+              <button type="button" role="tab" aria-selected="false" data-home-mode="video">创建视频</button>
             </div>
 
             <label class="consumer-home-upload" data-home-upload-zone>
@@ -63,29 +63,34 @@
               <small data-home-upload-detail>拖放或点击上传 JPG、PNG、WebP，最大 20MB</small>
             </label>
 
+            <label class="consumer-home-prompt-field">
+              <span>描述你的创意</span>
+              <textarea rows="3" maxlength="800" data-home-prompt placeholder="例如：柔和电影光线，轻微镜头推进，保持人物外观一致"></textarea>
+            </label>
+
             <label class="consumer-home-effect-field">
-              <span>热门效果</span>
-              <select data-home-effect aria-label="选择已验证效果">
-                <option value="">正在检查可用效果…</option>
+              <span>选择能力</span>
+              <select data-home-effect aria-label="选择已验证的生成能力">
+                <option value="">正在核对可用能力…</option>
               </select>
             </label>
 
             <div class="consumer-home-cost" data-home-cost>
               <span>本次预计</span>
-              <strong>登录后查看积分</strong>
-              <small>选择可用效果后显示</small>
+              <strong>选择可用能力后显示</strong>
+              <small>提交前会确认积分</small>
             </div>
 
-            <button class="consumer-home-generate" type="button" data-home-generate disabled>可用效果接入中</button>
-            <p class="consumer-home-status" data-home-status role="status">你可以先上传图片；只有已验证的效果才会开放生成。</p>
-            <p class="consumer-home-file-note">上传内容默认保持私有。请仅使用你拥有或已获授权的素材。</p>
+            <button class="consumer-home-generate" type="button" data-home-generate disabled>真实生成能力验收中</button>
+            <p class="consumer-home-status" data-home-status role="status">可以先准备图片和创意；只有完成真实 E2E 验收的能力才会开放创建。</p>
+            <p class="consumer-home-file-note">素材默认私密。请仅上传你拥有或已获授权的内容。</p>
           </div>
 
-          <div class="consumer-home-showcase" aria-label="效果预览">
+          <div class="consumer-home-showcase" aria-label="产品能力预览">
             <div class="consumer-home-preview" data-home-preview>
-              <span class="consumer-home-preview-icon" aria-hidden="true">▧</span>
-              <strong>已验证效果预览</strong>
-              <p>真实预览媒体接入后会显示在这里，不使用无关图片代替生成效果。</p>
+              <span class="consumer-home-preview-icon" aria-hidden="true">◇</span>
+              <strong>你的素材预览</strong>
+              <p>上传图片后会在这里预览。我们不会使用无关图片冒充真实生成结果。</p>
             </div>
             <div class="consumer-home-preview-dots" data-home-preview-dots aria-label="预览切换"></div>
           </div>
@@ -93,90 +98,55 @@
 
         <section class="consumer-home-section" aria-labelledby="popularEffectsTitle">
           <div class="consumer-home-section-head">
-            <div><span>热门</span><h2 id="popularEffectsTitle">热门效果</h2></div>
+            <div><span>发现灵感</span><h2 id="popularEffectsTitle">热门效果</h2></div>
             <a href="./zh/app/spicy-effects/">查看全部</a>
           </div>
           <div class="consumer-home-card-grid" data-home-popular></div>
-          <div class="consumer-home-inline-empty" data-home-popular-empty hidden>
-            <strong>热门效果正在完成验证</strong>
-            <p>需要同时具备真实预览和 active workflow 后才会在这里开放。</p>
+        </section>
+
+        <section class="consumer-home-section" aria-labelledby="recommendedToolsTitle">
+          <div class="consumer-home-section-head">
+            <div><span>快速开始</span><h2 id="recommendedToolsTitle">推荐工具</h2></div>
           </div>
+          <div class="consumer-home-tool-grid" data-home-recommended-tools></div>
         </section>
 
         <section class="consumer-home-section" aria-labelledby="imageToolsTitle">
           <div class="consumer-home-section-head">
-            <div><span>图片</span><h2 id="imageToolsTitle">图片工具</h2></div>
+            <div><span>图片创作</span><h2 id="imageToolsTitle">从生成到编辑，一站完成</h2></div>
             <a href="./zh/image-tools/">全部图片工具</a>
           </div>
-          <div class="consumer-home-tool-grid" data-home-image-tools></div>
+          <div class="consumer-home-capability-grid" data-home-image-tools></div>
         </section>
 
         <section class="consumer-home-section" aria-labelledby="videoEffectsTitle">
           <div class="consumer-home-section-head">
-            <div><span>视频</span><h2 id="videoEffectsTitle">视频效果</h2></div>
-            <a href="./zh/video-tools/">查看全部</a>
+            <div><span>视频创作</span><h2 id="videoEffectsTitle">让静态画面动起来</h2></div>
+            <a href="./zh/video-tools/">全部视频工具</a>
           </div>
-          <div class="consumer-home-card-grid" data-home-video-effects></div>
-          <div class="consumer-home-inline-empty" data-home-video-empty hidden>
-            <strong>视频效果正在完成验证</strong>
-            <p>通过真实预览、耗时和积分验证后再开放，避免误导生成。</p>
-          </div>
+          <div class="consumer-home-capability-grid" data-home-video-tools></div>
         </section>
 
-        <section class="consumer-home-section consumer-home-how" aria-labelledby="howItWorksTitle">
+        <section class="consumer-home-section" aria-labelledby="recentCreationsTitle">
           <div class="consumer-home-section-head">
-            <div><span>简单三步</span><h2 id="howItWorksTitle">如何使用</h2></div>
+            <div><span>继续创作</span><h2 id="recentCreationsTitle">最近创作</h2></div>
+            <a href="./zh/my-creations/">查看我的作品</a>
           </div>
-          <div class="consumer-home-steps">
-            <article><b>1</b><span aria-hidden="true">⇧</span><h3>上传图片</h3><p>选择 JPG、PNG 或 WebP 素材。</p></article>
-            <article><b>2</b><span aria-hidden="true">◫</span><h3>选择效果</h3><p>只显示已验证可用的效果。</p></article>
-            <article><b>3</b><span aria-hidden="true">↓</span><h3>下载结果</h3><p>在任务历史中查看和下载。</p></article>
-          </div>
-        </section>
-
-        <section class="consumer-home-section" aria-labelledby="worksTitle">
-          <div class="consumer-home-section-head">
-            <div><span>真实结果</span><h2 id="worksTitle">作品展示</h2></div>
-            <a href="./zh/my-creations/">我的作品</a>
-          </div>
-          <div class="consumer-home-inline-empty consumer-home-works-empty">
-            <strong>暂无可公开展示的真实作品</strong>
-            <p>只有取得公开授权并完成审核的生成结果才会出现在这里。</p>
-          </div>
-        </section>
-
-        <section class="consumer-home-section consumer-home-trust" aria-labelledby="trustTitle">
-          <div class="consumer-home-section-head">
-            <div><span>透明可靠</span><h2 id="trustTitle">隐私与可靠性</h2></div>
-          </div>
-          <div class="consumer-home-trust-grid">
-            <a href="./zh/pricing/"><strong>一次性购买</strong><span>按需购买积分</span></a>
-            <a href="./zh/history/"><strong>失败任务处理</strong><span>查看退款与错误记录</span></a>
-            <a href="./zh/privacy/"><strong>文件与隐私</strong><span>查看保存和删除规则</span></a>
-            <a href="./zh/my-creations/"><strong>任务历史</strong><span>集中查看自己的作品</span></a>
+          <div class="consumer-home-recent" data-home-recent>
+            <span aria-hidden="true">▧</span>
+            <strong>登录后查看最近创作</strong>
+            <p>生成中的任务和已完成作品会显示在这里。</p>
+            <button type="button" data-auth-modal>登录</button>
           </div>
         </section>
 
         <section class="consumer-home-section consumer-home-pricing" aria-labelledby="pricingTitle">
           <div>
-            <span>积分</span>
-            <h2 id="pricingTitle">按需要购买，不绑定订阅</h2>
-            <p>生成前显示预计积分；套餐和最终价格以结账页为准。</p>
+            <span>按需使用</span>
+            <h2 id="pricingTitle">购买积分，继续你的创作</h2>
+            <p>一次性购买，不自动续费。每次创建前都会显示预计消耗。</p>
           </div>
           <a class="consumer-home-secondary-cta" href="./zh/pricing/">查看积分套餐</a>
-        </section>
-
-        <section class="consumer-home-section consumer-home-faq" aria-labelledby="faqTitle">
-          <div class="consumer-home-section-head">
-            <div><span>帮助</span><h2 id="faqTitle">常见问题</h2></div>
-          </div>
-          <div class="consumer-home-faq-list">
-            <details><summary>支持哪些图片格式？</summary><p>首页上传入口支持 JPG、PNG 和 WebP，单个文件最大 20MB。</p></details>
-            <details><summary>需要先登录才能选择效果吗？</summary><p>不需要。可以先上传图片和选择效果，点击生成时再检查登录与积分。</p></details>
-            <details><summary>为什么有些效果显示即将上线？</summary><p>没有真实预览或没有通过 active workflow 验证的效果不会开放生成。</p></details>
-            <details><summary>生成失败会怎样？</summary><p>失败任务的错误原因和退款结果会记录在任务历史中。</p></details>
-            <details><summary>上传的文件会公开吗？</summary><p>上传内容默认保持私有；具体保存和删除规则请查看隐私说明。</p></details>
-          </div>
         </section>
 
         <footer class="consumer-home-footer" aria-label="消费者页脚">

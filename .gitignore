@@ -32,6 +32,7 @@ out/
 tmp/
 temp/
 .cache/
+artifacts/
 
 # Secrets and private exports
 *.pem
