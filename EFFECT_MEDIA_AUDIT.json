@@ -1,0 +1,917 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-07-26T04:14:11.431Z",
+  "scope": "Phase 2 — Effect Media and Card System",
+  "summary": {
+    "catalog_effects": 25,
+    "active_effects": 0,
+    "preview_only_effects": 25,
+    "effects_with_preview_media": 0,
+    "local_media_files": 12,
+    "external_media_references": 66,
+    "unsafe_path_references": 0,
+    "supabase_storage_objects": 0
+  },
+  "data_sources": [
+    {
+      "type": "frontend_catalog",
+      "path": "apps/web/effect-catalog.js",
+      "role": "canonical normalized effect metadata"
+    },
+    {
+      "type": "frontend_derived_data",
+      "paths": [
+        "apps/web/tools-data.js",
+        "apps/web/spicy-effects-data.js"
+      ],
+      "role": "page-specific views derived from the canonical catalog"
+    },
+    {
+      "type": "workflow_registry",
+      "path": "apps/web/workflow-map.json",
+      "role": "workflow identifiers and server configuration status"
+    },
+    {
+      "type": "static_media",
+      "path": "apps/web/public/home-assets",
+      "role": "legacy local illustrations; no longer assigned to realistic effects"
+    },
+    {
+      "type": "supabase_tables",
+      "project_id": "wyvswkxogkmywduhrhkw",
+      "tables": {
+        "tools": 3,
+        "workflows": 3,
+        "homepage_sections": 0
+      },
+      "access": "read-only audit"
+    },
+    {
+      "type": "supabase_storage",
+      "project_id": "wyvswkxogkmywduhrhkw",
+      "buckets": [
+        {
+          "id": "open-video-studio-assets",
+          "public": false,
+          "objects": 0
+        },
+        {
+          "id": "source-assets",
+          "public": false,
+          "objects": 0
+        }
+      ],
+      "access": "read-only audit"
+    }
+  ],
+  "path_findings": [
+    {
+      "issue": "legacy_absolute_or_local_media_path",
+      "count": 0,
+      "action": "blocked by resolveMediaUrl in production"
+    },
+    {
+      "issue": "legacy_external_hotlink",
+      "count": 66,
+      "action": "effect cards now render the non-misleading preview fallback unless an approved URL is supplied"
+    },
+    {
+      "issue": "github_pages_base_path",
+      "action": "relative media URLs resolve against the repository base path instead of the origin root"
+    },
+    {
+      "issue": "supabase_private_bucket",
+      "action": "only existing public or signed URLs are accepted; no write endpoint is exposed"
+    }
+  ],
+  "duplicate_cover_audit": [
+    {
+      "url": "./home-assets/ovs-home-01.png",
+      "reference_count": 5,
+      "finding": "duplicate_reference"
+    },
+    {
+      "url": "./home-assets/ovs-home-03.png",
+      "reference_count": 5,
+      "finding": "duplicate_reference"
+    },
+    {
+      "url": "./home-assets/ovs-home-05.png",
+      "reference_count": 5,
+      "finding": "duplicate_reference"
+    },
+    {
+      "url": "./home-assets/ovs-home-07.png",
+      "reference_count": 5,
+      "finding": "duplicate_reference"
+    },
+    {
+      "url": "./home-assets/ovs-home-09.png",
+      "reference_count": 5,
+      "finding": "duplicate_reference"
+    },
+    {
+      "url": "./home-assets/ovs-home-02.png",
+      "reference_count": 4,
+      "finding": "duplicate_reference"
+    },
+    {
+      "url": "./home-assets/ovs-home-04.png",
+      "reference_count": 4,
+      "finding": "duplicate_reference"
+    },
+    {
+      "url": "./home-assets/ovs-home-06.png",
+      "reference_count": 4,
+      "finding": "duplicate_reference"
+    },
+    {
+      "url": "./home-assets/ovs-home-08.png",
+      "reference_count": 4,
+      "finding": "duplicate_reference"
+    },
+    {
+      "url": "./home-assets/ovs-home-10.png",
+      "reference_count": 4,
+      "finding": "duplicate_reference"
+    },
+    {
+      "url": "./home-assets/ovs-home-11.png",
+      "reference_count": 4,
+      "finding": "duplicate_reference"
+    },
+    {
+      "url": "./home-assets/ovs-home-12.png",
+      "reference_count": 3,
+      "finding": "duplicate_reference"
+    }
+  ],
+  "local_media": [
+    {
+      "path": "apps/web/public/home-assets/ovs-home-01.png",
+      "bytes": 576767,
+      "sha256": "b1002a798a594d70f70e5921375534d2daaf0de3c990b5a419493aba10b88a8c",
+      "width": 566,
+      "height": 788
+    },
+    {
+      "path": "apps/web/public/home-assets/ovs-home-02.png",
+      "bytes": 472257,
+      "sha256": "81b295f14d6250ddcd0ca454f58b51b7be90d1049a193db408dd4727a6fe9ae3",
+      "width": 521,
+      "height": 783
+    },
+    {
+      "path": "apps/web/public/home-assets/ovs-home-03.png",
+      "bytes": 505553,
+      "sha256": "d9802a8607cace54a07c16af33520e73127e83702b5496958c568ddecf20fb7c",
+      "width": 520,
+      "height": 788
+    },
+    {
+      "path": "apps/web/public/home-assets/ovs-home-04.png",
+      "bytes": 359393,
+      "sha256": "5795edcf0eb192cedb74a1a4132c2f842ba4f5cbf0754dafec56e02bbdd1d153",
+      "width": 520,
+      "height": 786
+    },
+    {
+      "path": "apps/web/public/home-assets/ovs-home-05.png",
+      "bytes": 559761,
+      "sha256": "c4f6d371037bc98ecb3123a78150d0ad2d988ebc762166ffcf14477a88f40576",
+      "width": 518,
+      "height": 786
+    },
+    {
+      "path": "apps/web/public/home-assets/ovs-home-06.png",
+      "bytes": 568928,
+      "sha256": "60823c3a4e5ac533916df4c68aa02c62c4ab7d70c7bab642ab08ed267894a754",
+      "width": 518,
+      "height": 789
+    },
+    {
+      "path": "apps/web/public/home-assets/ovs-home-07.png",
+      "bytes": 735457,
+      "sha256": "759c3289cced8399723537f493d3db853550a4a0bf51df777da8ba8a515c1267",
+      "width": 627,
+      "height": 838
+    },
+    {
+      "path": "apps/web/public/home-assets/ovs-home-08.png",
+      "bytes": 429723,
+      "sha256": "509a00150e832e1045311b809f0211751a8257a48d19e92035e769decd7df220",
+      "width": 559,
+      "height": 838
+    },
+    {
+      "path": "apps/web/public/home-assets/ovs-home-09.png",
+      "bytes": 629982,
+      "sha256": "bfdb459c49ce24cf634701c9573d15259f6d6cd03d0ace35753f9cf09eb6a86d",
+      "width": 559,
+      "height": 840
+    },
+    {
+      "path": "apps/web/public/home-assets/ovs-home-10.png",
+      "bytes": 721597,
+      "sha256": "7946575c7d579eebd13cb1a7a237b025ba94441b18640fa5c5d15488736270fe",
+      "width": 654,
+      "height": 840
+    },
+    {
+      "path": "apps/web/public/home-assets/ovs-home-11.png",
+      "bytes": 572801,
+      "sha256": "c7d1abf90736f0cf703117ecc77494d070cb37a243fb51f7c542335933fd7cb8",
+      "width": 652,
+      "height": 837
+    },
+    {
+      "path": "apps/web/public/home-assets/ovs-home-12.png",
+      "bytes": 678993,
+      "sha256": "3a58b8a546e35562bbdee2091d7e6b2d5c0b3f51ede4d8cb0f8f5ea1ea3a20ab",
+      "width": 553,
+      "height": 837
+    }
+  ],
+  "external_media_references": [
+    {
+      "file": "apps/web/accounts.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/admin.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/ai-studio.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/analytics.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/assets.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/automation.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/blog.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/calendar.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/campaigns.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/characters.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/cookie.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/dashboard.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/free-coins.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/gallery.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/generate.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/history.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/image-to-video.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/index.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/my-creations.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/pipeline.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/pricing.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/privacy.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/publishing.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/queue.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/settings.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/share.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/signin.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/terms.html",
+      "url": "https://luravyn.com/brand/luravyn-logo-hero.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/img/h-img_to_video.webp"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/img/h-undress_v2.webp"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/img/h-cumshot_v2.webp"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/img/h-cumshothuge.webp"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-posingnude.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/img/h-deep-throat-cumshot-pov.webp"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-squirting.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/img/h-deep-throat-pov.webp"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-missionary.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/img/h-doggy-undress.webp"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/img/frenchkiss.webp"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-breastbondage.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-cowgirl.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-deepthroat_v2.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-cumhatercumshot.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-cumshotreal.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-legaside.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-ultimatedeepthroatregularswallow.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-bbcdeepthroat.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-povinsertion.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-analinsertion.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-feetup.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-zoomoutfeetup.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-dogeza.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-armpitlicking.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-force_armpitlicking.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-zoomoutpussy.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-pawpose.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/img/dentalgaghumiliation.webp"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-cuminmouth.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-cumshotgirlstroke.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-manpussylicking.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-pregnancy.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-ahegao.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-footjob.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-footjobcumshot.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-cowgirlpov.png"
+    },
+    {
+      "file": "apps/web/video-tools.html",
+      "url": "https://img.hifun.ai/demo/h-blowjobtiny.png"
+    }
+  ],
+  "unsafe_path_references": [],
+  "effects": [
+    {
+      "id": "tool-image-editor",
+      "slug": "image-editor",
+      "name": "图片编辑器",
+      "category": "image-tool",
+      "media_type": "image",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-image-editor-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "tool-face-swap",
+      "slug": "face-swap",
+      "name": "AI 换脸",
+      "category": "image-tool",
+      "media_type": "image",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-face-swap-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "tool-outfit-studio",
+      "slug": "outfit-studio",
+      "name": "性感礼服",
+      "category": "outfit",
+      "media_type": "image",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-outfit-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "tool-pose-generator",
+      "slug": "pose-generator",
+      "name": "性爱姿势",
+      "category": "pose",
+      "media_type": "image",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-pose-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "tool-image-to-video",
+      "slug": "image-to-video",
+      "name": "图片转视频",
+      "category": "video-tool",
+      "media_type": "video",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-image-to-video-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "tool-spicy-effects",
+      "slug": "spicy-effects",
+      "name": "辣味效果",
+      "category": "spicy",
+      "media_type": "video",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": null,
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "effect-undress-video",
+      "slug": "undress-video",
+      "name": "Undress Video",
+      "category": "spicy",
+      "media_type": "video",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-adult-effects-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "effect-cumshot",
+      "slug": "cumshot",
+      "name": "Cumshot",
+      "category": "spicy",
+      "media_type": "video",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-adult-effects-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "effect-cumshot-huge",
+      "slug": "cumshot-huge",
+      "name": "Cumshot Huge",
+      "category": "spicy",
+      "media_type": "video",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-adult-effects-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "effect-posing-nude",
+      "slug": "posing-nude",
+      "name": "Posing Nude",
+      "category": "pose",
+      "media_type": "image",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-pose-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "effect-pov-cumshot",
+      "slug": "blowjob-pov-cumshot",
+      "name": "BlowJob POV & Cumshot",
+      "category": "spicy",
+      "media_type": "video",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-adult-effects-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "effect-squirting",
+      "slug": "squirting",
+      "name": "Squirting",
+      "category": "spicy",
+      "media_type": "video",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-adult-effects-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "effect-blowjob-pov",
+      "slug": "blowjob-pov",
+      "name": "BlowJob POV",
+      "category": "pose",
+      "media_type": "image",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-pose-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "effect-missionary",
+      "slug": "missionary",
+      "name": "Missionary",
+      "category": "pose",
+      "media_type": "image",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-pose-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "effect-doggystyle",
+      "slug": "doggystyle-undressed",
+      "name": "Doggystyle Undressed",
+      "category": "pose",
+      "media_type": "image",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-pose-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "outfit-business",
+      "slug": "business",
+      "name": "职业装 / 正装",
+      "category": "outfit",
+      "media_type": "image",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-outfit-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "outfit-street",
+      "slug": "street",
+      "name": "街拍风格",
+      "category": "outfit",
+      "media_type": "image",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-outfit-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "outfit-evening",
+      "slug": "evening",
+      "name": "晚装礼服",
+      "category": "outfit",
+      "media_type": "image",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-outfit-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "outfit-social",
+      "slug": "social",
+      "name": "社媒时尚",
+      "category": "outfit",
+      "media_type": "image",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-outfit-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "outfit-lace-lingerie",
+      "slug": "lace-lingerie",
+      "name": "Lace Lingerie",
+      "category": "outfit",
+      "media_type": "image",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-outfit-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "outfit-custom",
+      "slug": "custom-outfit",
+      "name": "Custom",
+      "category": "outfit",
+      "media_type": "image",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-outfit-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "pose-custom",
+      "slug": "custom-pose",
+      "name": "Custom Prompt",
+      "category": "pose",
+      "media_type": "image",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-pose-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "pose-standing",
+      "slug": "standing",
+      "name": "站立展示",
+      "category": "pose",
+      "media_type": "image",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-pose-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "pose-action",
+      "slug": "action",
+      "name": "动作姿势",
+      "category": "pose",
+      "media_type": "image",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-pose-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    },
+    {
+      "id": "pose-camera",
+      "slug": "camera",
+      "name": "镜头角度",
+      "category": "pose",
+      "media_type": "image",
+      "thumbnail_url": null,
+      "poster_url": null,
+      "preview_video_url": null,
+      "workflow_id": "workflow-hifun-pose-v1",
+      "workflow_status": "unconfigured",
+      "status": "preview_only",
+      "visual_style": "realistic",
+      "media_audit": "missing_independent_preview",
+      "availability_reason": "workflow_not_confirmed_active"
+    }
+  ],
+  "storage_audit": {
+    "project_id": "wyvswkxogkmywduhrhkw",
+    "bucket_count": 2,
+    "public_bucket_count": 0,
+    "object_count": 0,
+    "conclusion": "No Supabase Storage preview asset is currently available for effect cards."
+  },
+  "constraints": [
+    "No generated result or user review was fabricated.",
+    "No missing media was substituted with an unrelated anime or realistic image.",
+    "No effect without a confirmed active workflow is marked as immediately generatable.",
+    "Real hover-video playback cannot be end-to-end validated until a preview_video_url is supplied."
+  ]
+}
