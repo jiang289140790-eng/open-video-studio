@@ -10411,12 +10411,12 @@ body.consumer-app-page .site-footer {
 /* AI image generator: focused consumer workspace */
 .generation-workspace-page .generation-tool-page {
   width: min(1440px, calc(100% - 40px));
-  padding: 26px 0 34px;
+  padding: 18px 0 30px;
 }
 
 .generation-workspace-page .image-generator-header {
   align-items: center;
-  padding: 0 2px 22px;
+  padding: 0 2px 15px;
 }
 
 .generation-workspace-page .image-generator-header h1 {
@@ -10427,15 +10427,37 @@ body.consumer-app-page .site-footer {
 
 .generation-workspace-page .image-generator-header p {
   max-width: 620px;
+  margin-bottom: 6px;
   color: #aaa5ae;
   line-height: 1.55;
+}
+
+.generation-workspace-page .image-generator-input-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #9e98a2;
+  font-size: 12px;
+}
+
+.generation-workspace-page .image-generator-input-note::before {
+  content: "i";
+  display: inline-grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 50%;
+  color: #c8c0ca;
+  font-size: 10px;
+  font-weight: 800;
 }
 
 .generation-workspace-page .image-generator-badges {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
-  margin-top: 18px;
+  margin-top: 10px;
 }
 
 .generation-workspace-page .image-generator-badges span {
@@ -10472,11 +10494,18 @@ body.consumer-app-page .site-footer {
 }
 
 .generation-workspace-page .image-generator-parameter-panel {
-  padding: 22px;
+  padding: 18px;
+}
+
+.generation-workspace-page .image-generator-panel-title {
+  margin: 0 0 16px;
+  color: #f8f4f8;
+  font-size: 20px;
+  letter-spacing: -.015em;
 }
 
 .generation-workspace-page .image-generator-prompt textarea {
-  min-height: 160px;
+  min-height: 145px;
   max-height: 180px;
   padding: 15px;
   border-color: rgba(255, 255, 255, .12);
@@ -10514,9 +10543,104 @@ body.consumer-app-page .site-footer {
 
 .generation-workspace-page .image-generator-primary-settings {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) 132px;
   gap: 12px;
-  margin-top: 22px;
+  margin-top: 16px;
+}
+
+.generation-workspace-page .image-generator-ratio-field,
+.generation-workspace-page .image-generator-seed-field {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.generation-workspace-page .image-generator-ratio-field legend,
+.generation-workspace-page .image-generator-seed-field legend {
+  margin-bottom: 8px;
+  color: #f2edf3;
+  font-size: 13px;
+  font-weight: 760;
+}
+
+.generation-workspace-page .image-generator-ratio-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.generation-workspace-page .image-generator-ratio-options button {
+  display: grid;
+  min-width: 0;
+  min-height: 64px;
+  place-items: center;
+  align-content: center;
+  gap: 3px;
+  padding: 8px 6px;
+  border: 1px solid rgba(255, 255, 255, .11);
+  border-radius: 11px;
+  color: #d8d1da;
+  background: #131214;
+  cursor: pointer;
+  transition: border-color .18s ease, background-color .18s ease, transform .18s ease;
+}
+
+.generation-workspace-page .image-generator-ratio-options button:hover {
+  border-color: rgba(244, 91, 182, .42);
+  transform: translateY(-1px);
+}
+
+.generation-workspace-page .image-generator-ratio-options button:focus-visible {
+  border-color: #f45bb6;
+  outline: 3px solid rgba(244, 91, 182, .16);
+}
+
+.generation-workspace-page .image-generator-ratio-options button.is-selected {
+  border-color: rgba(244, 91, 182, .68);
+  color: #fff;
+  background: rgba(244, 91, 182, .12);
+}
+
+.generation-workspace-page .image-generator-ratio-options small {
+  color: #8f8992;
+  font-size: 10px;
+}
+
+.generation-workspace-page .ratio-shape {
+  display: block;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  color: #b9b1bc;
+}
+
+.generation-workspace-page .ratio-shape.is-square {
+  width: 15px;
+  height: 15px;
+}
+
+.generation-workspace-page .ratio-shape.is-wide {
+  width: 22px;
+  height: 13px;
+}
+
+.generation-workspace-page .ratio-shape.is-tall {
+  width: 11px;
+  height: 18px;
+}
+
+.generation-workspace-page .image-generator-count-field select {
+  min-height: 64px;
+  border-radius: 11px;
+  color: #dad3dc;
+  background: #131214;
+}
+
+.generation-workspace-page .image-generator-count-field small {
+  margin-top: 5px;
+  color: #8f8992;
+  font-size: 10px;
+  line-height: 1.35;
 }
 
 .generation-workspace-page .image-generator-advanced {
@@ -10526,7 +10650,7 @@ body.consumer-app-page .site-footer {
 }
 
 .generation-workspace-page .image-generator-advanced summary {
-  padding: 15px 2px;
+  padding: 12px 2px;
   color: #d9d2da;
   font-size: 14px;
   font-weight: 760;
@@ -10554,6 +10678,37 @@ body.consumer-app-page .site-footer {
 .generation-workspace-page .image-generator-advanced input[type="text"]:focus {
   border-color: #f45bb6;
   outline: 2px solid rgba(244, 91, 182, .15);
+}
+
+.generation-workspace-page .image-generator-advanced input[type="text"]:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.generation-workspace-page .image-generator-seed-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+
+.generation-workspace-page .image-generator-seed-modes label {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 999px;
+  color: #d4cdd6;
+  background: rgba(255, 255, 255, .025);
+  cursor: pointer;
+}
+
+.generation-workspace-page .image-generator-seed-modes label:has(input:checked) {
+  border-color: rgba(244, 91, 182, .52);
+  color: #fff;
+  background: rgba(244, 91, 182, .12);
 }
 
 .generation-workspace-page .image-generator-advanced .workspace-privacy {
@@ -10647,6 +10802,22 @@ body.consumer-app-page .site-footer {
   object-fit: contain;
 }
 
+.generation-workspace-page .result-preview-link {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #111012;
+}
+
+.generation-workspace-page .result-completed.is-validating .result-actions {
+  visibility: hidden;
+}
+
+.generation-workspace-page .image-generator-result[data-result-state="output_failed"] {
+  border-color: rgba(235, 103, 115, .28);
+}
+
 .generation-workspace-page .image-generator-result-actions {
   align-items: center;
 }
@@ -10682,7 +10853,8 @@ body.consumer-app-page .site-footer {
 }
 
 .generation-workspace-page .result-more-menu button,
-.generation-workspace-page .result-more-menu a {
+.generation-workspace-page .result-more-menu a,
+.generation-workspace-page .result-more-menu .result-saved-copy {
   padding: 10px 11px;
   border: 0;
   border-radius: 8px;
@@ -10691,6 +10863,11 @@ body.consumer-app-page .site-footer {
   text-align: left;
   text-decoration: none;
   cursor: pointer;
+}
+
+.generation-workspace-page .result-more-menu .result-saved-copy {
+  color: #9f98a2;
+  cursor: default;
 }
 
 .generation-workspace-page .result-more-menu button:hover,
@@ -10728,6 +10905,11 @@ body.consumer-app-page .site-footer {
   justify-self: stretch;
   padding: 5px;
   text-align: center;
+}
+
+.generation-workspace-page .recent-task-tile.is-failed .recent-task-thumb {
+  color: #f09a9f;
+  background: rgba(190, 68, 78, .12);
 }
 
 .generation-workspace-page .media-load-fallback {
@@ -10894,6 +11076,67 @@ body.consumer-app-page .generate-tool-footer.site-footer {
   color: #fff;
 }
 
+@media (min-width: 961px) and (max-height: 820px) {
+  .generation-workspace-page .generation-tool-page {
+    padding-top: 5px;
+  }
+
+  .generation-workspace-page .image-generator-header {
+    padding-bottom: 9px;
+  }
+
+  .generation-workspace-page .image-generator-header h1 {
+    margin: 4px 0 3px;
+    font-size: 34px;
+  }
+
+  .generation-workspace-page .image-generator-badges {
+    margin-top: 5px;
+  }
+
+  .generation-workspace-page .image-generator-parameter-panel {
+    padding: 12px;
+  }
+
+  .generation-workspace-page .image-generator-panel-title {
+    margin-bottom: 10px;
+    font-size: 18px;
+  }
+
+  .generation-workspace-page .image-generator-prompt textarea {
+    min-height: 140px;
+  }
+
+  .generation-workspace-page .image-generator-prompt-toolbar {
+    margin-top: 7px;
+  }
+
+  .generation-workspace-page .image-generator-prompt-toolbar .workspace-button {
+    min-height: 30px;
+  }
+
+  .generation-workspace-page .image-generator-primary-settings {
+    margin-top: 12px;
+  }
+
+  .generation-workspace-page .image-generator-ratio-options button,
+  .generation-workspace-page .image-generator-count-field select {
+    min-height: 50px;
+  }
+
+  .generation-workspace-page .image-generator-advanced {
+    margin-top: 10px;
+  }
+
+  .generation-workspace-page .image-generator-advanced summary {
+    padding: 9px 2px;
+  }
+
+  .generation-workspace-page .image-generator-credit-row {
+    margin-top: 12px;
+  }
+}
+
 @media (max-width: 1180px) {
   .generation-workspace-page .image-generator-grid {
     grid-template-columns: minmax(320px, .9fr) minmax(430px, 1.1fr);
@@ -10953,6 +11196,10 @@ body.consumer-app-page .generate-tool-footer.site-footer {
 
   .generation-workspace-page .image-generator-primary-settings {
     grid-template-columns: 1fr;
+  }
+
+  .generation-workspace-page .image-generator-ratio-options {
+    grid-template-columns: repeat(3, minmax(86px, 1fr));
   }
 
   .generation-workspace-page .image-generator-parameter-panel .generation-submit-area {
@@ -11022,5 +11269,24 @@ body.consumer-app-page .generate-tool-footer.site-footer {
     width: 100% !important;
     margin-left: 0;
     padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 390px) {
+  .generation-workspace-page .image-generator-ratio-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .generation-workspace-page .image-generator-prompt-toolbar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+  }
+
+  .generation-workspace-page .image-generator-prompt-toolbar > div {
+    min-width: 0;
+  }
+
+  .generation-workspace-page .image-generator-prompt-toolbar .workspace-button {
+    padding-inline: 10px;
   }
 }
