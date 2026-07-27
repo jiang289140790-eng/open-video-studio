@@ -28,6 +28,34 @@ const IMAGE_EDITOR_OPERATIONS = Object.freeze([
   { id: "custom", label: "自定义编辑", prompt: "" },
 ]);
 
+const IMAGE_INSPIRATION_TEMPLATES = Object.freeze([
+  {
+    category: "写真人像",
+    title: "自然光人像",
+    prompt: "成年人物自然光写真人像，真实肤质，柔和景深，简洁背景，细节清晰",
+  },
+  {
+    category: "时尚摄影",
+    title: "杂志大片",
+    prompt: "成年时尚模特杂志摄影，精致造型，摄影棚柔光，高级配色，全身构图",
+  },
+  {
+    category: "电影氛围",
+    title: "夜景电影感",
+    prompt: "电影感夜景画面，情绪化光影，真实摄影质感，浅景深，细腻色彩层次",
+  },
+  {
+    category: "动漫角色",
+    title: "精致角色设定",
+    prompt: "原创成年动漫角色，精致角色设计，动态构图，细腻光影，高质量插画",
+  },
+  {
+    category: "产品摄影",
+    title: "高级静物",
+    prompt: "高端产品静物摄影，干净背景，柔和棚拍光线，真实材质，商业广告质感",
+  },
+]);
+
 const FACE_SWAP_SLOT_DEFINITIONS = Object.freeze([
   { key: "source", label: "源人脸", description: "只上传一张正面、清晰、已获授权的人脸图片" },
   { key: "target", label: "目标图片", description: "上传需要替换人脸的目标图片；支持服务端多人脸选择" },
@@ -243,6 +271,7 @@ const state = {
   effectPickerCategory: "全部",
   effectPickerSort: "热门",
   qaActivePresets: false,
+  inspirationCategory: "全部",
   uploadPurpose: "primary",
   referenceOutfit: null,
   videoPrice: null,
@@ -546,6 +575,164 @@ function renderPromptExamples() {
   `;
 }
 
+function renderImageInspirationModal() {
+  if (state.toolId !== "image-generate") return "";
+  const categories = ["全部", ...new Set(IMAGE_INSPIRATION_TEMPLATES.map((item) => item.category))];
+  return `
+    <div class="image-inspiration-modal" data-inspiration-modal hidden>
+      <section class="image-inspiration-dialog" role="dialog" aria-modal="true" aria-labelledby="image-inspiration-title">
+        <header>
+          <div>
+            <span>创作灵感</span>
+            <h2 id="image-inspiration-title">选择一个灵感示例</h2>
+          </div>
+          <button type="button" data-close-inspiration aria-label="关闭灵感示例">×</button>
+        </header>
+        <div class="image-inspiration-categories" aria-label="灵感分类">
+          ${categories.map((category) => `
+            <button type="button" data-inspiration-category="${escapeHtml(category)}" class="${category === "全部" ? "is-active" : ""}">
+              ${escapeHtml(category)}
+            </button>
+          `).join("")}
+        </div>
+        <div class="image-inspiration-grid" data-inspiration-grid></div>
+      </section>
+    </div>
+  `;
+}
+
+function renderImageInspirationGrid() {
+  if (state.toolId !== "image-generate") return;
+  const grid = root?.querySelector("[data-inspiration-grid]");
+  if (!grid) return;
+  const templates = IMAGE_INSPIRATION_TEMPLATES.filter((item) =>
+    state.inspirationCategory === "全部" || item.category === state.inspirationCategory
+  );
+  grid.innerHTML = templates.map((item) => `
+    <button type="button" data-prompt-example="${escapeHtml(item.prompt)}">
+      <span>${escapeHtml(item.category)}</span>
+      <strong>${escapeHtml(item.title)}</strong>
+      <small>${escapeHtml(item.prompt)}</small>
+    </button>
+  `).join("");
+  root.querySelectorAll("[data-inspiration-category]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.inspirationCategory === state.inspirationCategory);
+  });
+}
+
+function openImageInspiration() {
+  const modal = root?.querySelector("[data-inspiration-modal]");
+  if (!modal) return;
+  state.inspirationCategory = "全部";
+  renderImageInspirationGrid();
+  modal.hidden = false;
+  root.querySelector("[data-close-inspiration]")?.focus();
+}
+
+function closeImageInspiration() {
+  const modal = root?.querySelector("[data-inspiration-modal]");
+  if (!modal) return;
+  modal.hidden = true;
+  root.querySelector("[data-open-inspiration]")?.focus();
+}
+
+function renderImageGeneratorShell() {
+  return `
+    <header class="generation-tool-header image-generator-header">
+      <div>
+        <a href="./app.html" class="generation-tool-back">← 返回工具首页</a>
+        <div class="image-generator-badges" aria-label="生成模式">
+          <span>Qwen Image</span>
+          <span>文生图</span>
+        </div>
+        <h1>AI 图片生成</h1>
+        <p>描述你想看到的画面，几步即可生成一张高质量图片。</p>
+      </div>
+      <span class="generation-tool-availability" data-workflow-availability>正在核对服务</span>
+    </header>
+    <div class="generation-tool-grid image-generator-grid">
+      <section class="generation-input-panel image-generator-input" aria-label="图片生成参数">
+        <section class="generation-parameter-panel image-generator-parameter-panel">
+          <label class="workspace-field image-generator-prompt" data-tool-prompt-field>
+            <span>图片描述</span>
+            <textarea data-generation-prompt rows="6" maxlength="1200" placeholder="描述主体、场景、光线和画面风格"></textarea>
+          </label>
+          <div class="image-generator-prompt-toolbar">
+            <div>
+              <button type="button" class="workspace-button secondary" data-optimize-prompt disabled>优化描述</button>
+              <button type="button" class="workspace-button secondary" data-open-inspiration>灵感示例</button>
+              <button type="button" class="workspace-button ghost" data-clear-prompt>清空</button>
+            </div>
+            <span data-prompt-count>0 / 1200</span>
+          </div>
+
+          <div class="image-generator-primary-settings">
+            <label class="workspace-field">
+              <span>图片比例</span>
+              <select data-generation-resolution>
+                <option value="1024x1024" data-aspect-ratio="1:1">1:1 正方形</option>
+                <option value="1280x720" data-aspect-ratio="16:9" selected>16:9 横图</option>
+                <option value="720x1280" data-aspect-ratio="9:16">9:16 竖图</option>
+              </select>
+            </label>
+            <label class="workspace-field">
+              <span>生成数量</span>
+              <select data-generation-count disabled>
+                <option value="1">1 张</option>
+              </select>
+            </label>
+          </div>
+
+          <details class="image-generator-advanced">
+            <summary>高级设置</summary>
+            <div>
+              <label class="workspace-field">
+                <span>随机种子</span>
+                <input type="text" data-generation-seed value="random" maxlength="10" inputmode="numeric" placeholder="random">
+                <small>使用 random 获得不同结果，或输入 0—4294967295 的整数。</small>
+              </label>
+              <fieldset class="workspace-privacy">
+                <legend>结果隐私</legend>
+                <label><input type="radio" name="generation-privacy" value="private" checked> 私密（默认）</label>
+                <label class="is-disabled"><input type="radio" name="generation-privacy" value="public" disabled> 公开（暂未开放）</label>
+              </fieldset>
+            </div>
+          </details>
+
+          <div class="image-generator-credit-row">
+            <span data-inline-credit-summary>正在读取本次消耗</span>
+            <a href="./pricing.html" data-buy-credits hidden>购买积分</a>
+          </div>
+          <div class="generation-submit-area">
+            <button type="button" class="workspace-button primary generation-submit" data-generation-submit disabled>开始生成</button>
+            <p data-submit-reason>填写图片描述后即可开始。</p>
+          </div>
+        </section>
+      </section>
+
+      <section class="generation-result-column image-generator-results" aria-label="生成结果与最近作品">
+        <section class="result-workspace image-generator-result" data-result-workspace data-result-state="empty">
+          <div class="workspace-panel-heading result-heading">
+            <div><h2>生成结果</h2></div>
+            <span data-result-status>等待开始</span>
+          </div>
+          <div data-result-content></div>
+        </section>
+
+        <section class="recent-task-panel image-generator-recent">
+          <div class="workspace-panel-heading">
+            <div><h2>最近生成</h2></div>
+            <a href="./my-creations.html">查看全部</a>
+          </div>
+          <div class="recent-task-list" data-recent-task-list></div>
+        </section>
+      </section>
+    </div>
+    ${renderImageInspirationModal()}
+    <div class="workspace-live-region" data-workspace-live aria-live="polite"></div>
+  `;
+}
+
 function renderAssetUploader() {
   if (state.tool?.acceptsUpload === false) {
     return `
@@ -754,6 +941,11 @@ function renderShell() {
   const creditStep = tool.acceptsUpload === false ? 2 : 3;
   document.title = `${tool.name} | Luravyn`;
   root.className = "generation-tool-page";
+  if (state.toolId === "image-generate") {
+    root.innerHTML = renderImageGeneratorShell();
+    renderImageInspirationGrid();
+    return;
+  }
   root.innerHTML = `
     <header class="generation-tool-header">
       <div>
@@ -1066,13 +1258,13 @@ function restoreEditorTaskInputs(task) {
 }
 
 async function optimizeEditorPrompt() {
-  if (state.toolId !== "image-editor") return;
+  if (!["image-editor", "image-generate"].includes(state.toolId)) return;
   const prompt = root?.querySelector("[data-generation-prompt]");
   const button = root?.querySelector("[data-optimize-prompt]");
   const live = root?.querySelector("[data-workspace-live]");
   const value = prompt?.value.trim() || "";
   if (!value) {
-    if (live) live.textContent = "请先填写需要优化的编辑描述。";
+    if (live) live.textContent = `请先填写需要优化的${state.toolId === "image-generate" ? "图片" : "编辑"}描述。`;
     return;
   }
   if (!state.session || !isSupabaseConfigured) {
@@ -1089,7 +1281,7 @@ async function optimizeEditorPrompt() {
       body: {
         action: "enhance-prompt",
         prompt: value,
-        context: { tool: "image-editor", operation: state.editorOperation, language: "zh-CN" },
+        context: { tool: state.toolId, operation: state.toolId === "image-editor" ? state.editorOperation : "text_to_image", language: "zh-CN" },
       },
     });
     if (error || !data?.enhancedPrompt) throw error || new Error("未返回优化结果");
@@ -1465,8 +1657,14 @@ function renderEmptyResult() {
   const workspace = root?.querySelector("[data-result-workspace]");
   if (!content || !status || !workspace) return;
   workspace.dataset.resultState = "empty";
-  status.textContent = "尚未提交";
-  content.innerHTML = `
+  status.textContent = state.toolId === "image-generate" ? "等待开始" : "尚未提交";
+  content.innerHTML = state.toolId === "image-generate" ? `
+    <div class="result-empty-guidance image-generator-empty">
+      <span aria-hidden="true">✦</span>
+      <strong>生成的图片会显示在这里</strong>
+      <p>输入画面描述并开始生成，完成后可下载或继续创作。</p>
+    </div>
+  ` : `
     <div class="result-empty-guidance">
       <span>□</span>
       <strong>从左侧开始创建</strong>
@@ -1539,9 +1737,9 @@ function renderResult(task = state.currentTask || state.localTask) {
   if (status === "queued") {
     content.innerHTML = `
       <div class="result-task-state">
-        <span class="task-state-icon">⌛</span>
+        <span class="task-state-icon task-state-spinner" aria-hidden="true"></span>
         <h3>任务正在排队</h3>
-        <p>任务编号：${taskId}</p>
+        <p>预计等待时间以实时队列和 GPU 状态为准。</p>
         <dl><div><dt>创建时间</dt><dd>${formatDate(task.created_at)}</dd></div><div><dt>积分</dt><dd>${Number(task.cost_credits || 0) || "以账单为准"}</dd></div></dl>
         ${task.id && !String(task.id).startsWith("qa-") ? `<button type="button" class="workspace-button secondary" data-cancel-task="${taskId}">取消排队任务</button>` : ""}
       </div>
@@ -1552,10 +1750,11 @@ function renderResult(task = state.currentTask || state.localTask) {
     const stage = getTaskStage(task);
     content.innerHTML = `
       <div class="result-task-state">
-        <span class="task-state-icon">◌</span>
+        <span class="task-state-icon task-state-spinner" aria-hidden="true"></span>
         <h3>正在生成</h3>
         <p>${escapeHtml(stage)}</p>
         ${renderProgress(task)}
+        <small class="result-wait-copy">预计等待时间以实时队列和 GPU 状态为准。</small>
         <dl><div><dt>开始时间</dt><dd>${formatDate(task.created_at)}</dd></div><div><dt>任务编号</dt><dd>${taskId}</dd></div></dl>
       </div>
     `;
@@ -1566,6 +1765,34 @@ function renderResult(task = state.currentTask || state.localTask) {
     const isVideo = String(task.media_type || state.tool.mediaType) === "video";
     const sourcePreviewUrl = state.files[0]?.previewUrl || "";
     const videoMetadata = getVideoResultMetadata(task);
+    const imageGeneratorActions = state.toolId === "image-generate" ? `
+      <div class="result-actions image-generator-result-actions">
+        ${resultUrl ? `<a class="workspace-button primary" href="${escapeHtml(resultUrl)}" target="_blank" rel="noreferrer" download>下载</a>` : ""}
+        <button type="button" class="workspace-button secondary" data-regenerate>再次生成</button>
+        ${resultUrl && !isVideo ? `<button type="button" class="workspace-button secondary" data-result-to-video="${taskId}">转视频</button>` : ""}
+        <details class="result-more-menu">
+          <summary class="workspace-button secondary">更多</summary>
+          <div>
+            ${resultUrl ? `<button type="button" data-save-result="${taskId}">保存到作品</button>` : ""}
+            <button type="button" data-copy-params>复制参数</button>
+            ${resultUrl ? `<button type="button" data-share-result="${taskId}">分享</button>` : ""}
+            <a href="./my-creations.html">我的创作</a>
+          </div>
+        </details>
+      </div>
+    ` : `
+      <div class="result-actions">
+        ${resultUrl ? `<a class="workspace-button primary" href="${escapeHtml(resultUrl)}" target="_blank" rel="noreferrer" download>下载</a>` : ""}
+        ${resultUrl && !isVideo && sourcePreviewUrl ? `<button type="button" class="workspace-button secondary" data-compare-result>对比原图</button>` : ""}
+        ${resultUrl ? `<button type="button" class="workspace-button secondary" data-save-result="${taskId}">保存</button>` : ""}
+        <button type="button" class="workspace-button secondary" data-regenerate>${state.toolId === "image-editor" ? "再次编辑" : "再次生成"}</button>
+        ${isVideo ? `<button type="button" class="workspace-button secondary" data-retry-new-prompt>使用新描述重试</button>` : ""}
+        <button type="button" class="workspace-button secondary" ${state.toolId === "image-editor" ? "data-copy-prompt" : "data-copy-params"}>${state.toolId === "image-editor" ? "复制提示词" : "复制参数"}</button>
+        ${resultUrl ? `<button type="button" class="workspace-button secondary" data-share-result="${taskId}">分享</button>` : ""}
+        ${resultUrl && !isVideo ? `<button type="button" class="workspace-button secondary" data-result-to-video="${taskId}">转视频</button>` : ""}
+        <a class="workspace-button secondary" href="./my-creations.html">我的创作</a>
+      </div>
+    `;
     content.innerHTML = `
       <div class="result-completed">
         ${resultUrl ? (
@@ -1582,19 +1809,10 @@ function renderResult(task = state.currentTask || state.localTask) {
             ${videoMetadata.effect ? `<div><dt>使用效果</dt><dd>${escapeHtml(videoMetadata.effect)}</dd></div>` : ""}
           </dl>
         ` : ""}
-        <div class="result-actions">
-          ${resultUrl ? `<a class="workspace-button primary" href="${escapeHtml(resultUrl)}" target="_blank" rel="noreferrer" download>下载</a>` : ""}
-          ${resultUrl && !isVideo && sourcePreviewUrl ? `<button type="button" class="workspace-button secondary" data-compare-result>对比原图</button>` : ""}
-          ${resultUrl ? `<button type="button" class="workspace-button secondary" data-save-result="${taskId}">保存</button>` : ""}
-          <button type="button" class="workspace-button secondary" data-regenerate>${state.toolId === "image-editor" ? "再次编辑" : "再次生成"}</button>
-          ${isVideo ? `<button type="button" class="workspace-button secondary" data-retry-new-prompt>使用新描述重试</button>` : ""}
-          <button type="button" class="workspace-button secondary" ${state.toolId === "image-editor" ? "data-copy-prompt" : "data-copy-params"}>${state.toolId === "image-editor" ? "复制提示词" : "复制参数"}</button>
-          ${resultUrl ? `<button type="button" class="workspace-button secondary" data-share-result="${taskId}">分享</button>` : ""}
-          ${resultUrl && !isVideo ? `<button type="button" class="workspace-button secondary" data-result-to-video="${taskId}">转视频</button>` : ""}
-          <a class="workspace-button secondary" href="./my-creations.html">我的创作</a>
-        </div>
+        ${imageGeneratorActions}
       </div>
     `;
+    installMediaFallbacks(content);
     return;
   }
   if (status === "failed" || status === "restricted") {
@@ -1630,7 +1848,7 @@ function renderHistory() {
     list.innerHTML = `
       <div class="task-history-empty">
         <strong>登录后查看任务记录</strong>
-        <p>登录后可恢复排队、生成中、成功和失败任务。</p>
+        <p>登录后可在不同设备查看最近生成和完整作品记录。</p>
         <button type="button" class="workspace-button secondary" data-login-required>登录</button>
       </div>
     `;
@@ -1639,20 +1857,21 @@ function renderHistory() {
   if (!state.jobs.length) {
     list.innerHTML = `
       <div class="task-history-empty">
-        <strong>还没有任务记录</strong>
-        <p>先上传素材并完成左侧检查。提交后，这里会显示缩略图、状态、时间和积分。</p>
-        <button type="button" class="workspace-button secondary" data-focus-input>开始准备素材</button>
+        <strong>还没有生成记录</strong>
+        <p>完成第一张图片后，最近作品会显示在这里。</p>
+        <button type="button" class="workspace-button secondary" data-focus-input>填写图片描述</button>
       </div>
     `;
     return;
   }
-  list.innerHTML = state.jobs.slice(0, 6).map((task) => {
+  const limit = state.toolId === "image-generate" ? 3 : 6;
+  list.innerHTML = state.jobs.slice(0, limit).map((task) => {
     const status = normalizeStatus(task.status);
     const url = getTaskResultUrl(task);
     return `
-      <article class="recent-task-card" data-task-id="${escapeHtml(task.id)}">
+      <article class="recent-task-card ${state.toolId === "image-generate" ? "recent-task-tile" : ""}" data-task-id="${escapeHtml(task.id)}">
         <div class="recent-task-thumb">
-          ${url && String(task.media_type) !== "video" ? `<img src="${escapeHtml(url)}" alt="">` : `<span>${String(task.media_type) === "video" ? "▶" : "□"}</span>`}
+          ${url && String(task.media_type) !== "video" ? `<img src="${escapeHtml(url)}" alt="最近生成的图片" data-media-fallback>` : `<span>${String(task.media_type) === "video" ? "▶" : "✦"}</span>`}
         </div>
         <div>
           <strong>${escapeHtml(state.tool.name)}</strong>
@@ -1663,6 +1882,18 @@ function renderHistory() {
       </article>
     `;
   }).join("");
+  installMediaFallbacks(list);
+}
+
+function installMediaFallbacks(container) {
+  container?.querySelectorAll("img[data-media-fallback], img[data-result-preview]").forEach((image) => {
+    image.addEventListener("error", () => {
+      const fallback = document.createElement("div");
+      fallback.className = "media-load-fallback";
+      fallback.innerHTML = "<span>✦</span><small>预览暂不可用</small>";
+      image.replaceWith(fallback);
+    }, { once: true });
+  });
 }
 
 function renderAccountSummary() {
@@ -1670,11 +1901,13 @@ function renderAccountSummary() {
   const balanceNode = root?.querySelector("[data-workspace-credit-balance]");
   const freeNode = root?.querySelector("[data-free-credit]");
   const buyLink = root?.querySelector("[data-buy-credits]");
+  const inlineSummary = root?.querySelector("[data-inline-credit-summary]");
   const cost = getConfiguredCost();
   if (state.session?.user?.is_anonymous) {
     if (costNode) costNode.textContent = "访客测试：本次免费";
     if (balanceNode) balanceNode.textContent = "访客模式";
     if (freeNode) freeNode.textContent = "登录后可跨设备保存作品";
+    if (inlineSummary) inlineSummary.textContent = "本次免费体验 · 登录后可保存作品";
     if (buyLink) buyLink.hidden = true;
     return;
   }
@@ -1682,12 +1915,16 @@ function renderAccountSummary() {
   if (!state.session) {
     if (balanceNode) balanceNode.textContent = "登录后查看";
     if (freeNode) freeNode.textContent = "登录后查看";
+    if (inlineSummary) inlineSummary.textContent = "正在准备免费体验";
     if (buyLink) buyLink.hidden = true;
     return;
   }
   if (balanceNode) balanceNode.textContent = Number.isFinite(state.balance) ? `${state.balance} 积分` : "读取失败";
   const freeCredits = Number(state.catalogTool?.free_credits || 0);
   if (freeNode) freeNode.textContent = freeCredits > 0 ? `本工具可用 ${freeCredits} 免费积分` : "当前无可用免费积分";
+  if (inlineSummary) {
+    inlineSummary.textContent = `预计消耗：${cost ? `${cost} 积分` : "价格配置中"} · 当前余额：${Number.isFinite(state.balance) ? state.balance : "读取失败"}`;
+  }
   if (buyLink) buyLink.hidden = !(cost && Number.isFinite(state.balance) && state.balance < cost);
 }
 
@@ -1708,6 +1945,12 @@ function getSubmitBlocker() {
     if (state.editorMode === "multi" && !hasReference) return "多图模式至少需要主图片和一个参考图片";
   } else if (state.toolId === "image-generate") {
     if (state.files.length) return "A01 是纯文生图工作流，不接收参考图片";
+    const resolution = root?.querySelector("[data-generation-resolution]")?.value || "";
+    if (!["1024x1024", "1280x720", "720x1280"].includes(resolution)) return "请选择有效的图片比例";
+    const seed = root?.querySelector("[data-generation-seed]")?.value?.trim() || "random";
+    if (seed !== "random" && (!/^\d+$/.test(seed) || Number(seed) > 4294967295)) {
+      return "随机种子必须为 random 或 0—4294967295 的整数";
+    }
   } else if (
     state.uploaderStatus !== "ready" ||
     state.files.length < state.tool.minFiles ||
@@ -1757,9 +2000,25 @@ function updateSubmitState() {
   const availability = root?.querySelector("[data-workflow-availability]");
   if (!button || !reason) return;
   const blocker = getSubmitBlocker();
-  button.disabled = Boolean(blocker);
-  button.textContent = blocker || `创建${state.tool.mediaType === "video" ? "视频" : "图片"}任务`;
-  reason.textContent = blocker || "提交后将使用服务端返回的真实排队和生成状态。";
+  const activeTask = state.currentTask && ACTIVE_TASK_STATUSES.has(String(state.currentTask.status || "").toLowerCase());
+  const prompt = root?.querySelector("[data-generation-prompt]")?.value.trim() || "";
+  const optimizeButton = root?.querySelector("[data-optimize-prompt]");
+  if (optimizeButton && optimizeButton.textContent !== "正在优化") optimizeButton.disabled = !prompt;
+  button.disabled = Boolean(blocker) || Boolean(activeTask);
+  if (state.submitLocked) {
+    button.textContent = "正在提交";
+  } else if (activeTask) {
+    button.textContent = "生成中";
+  } else if (state.toolId === "image-generate" && state.session?.user?.is_anonymous) {
+    button.textContent = "免费生成";
+  } else if (state.toolId === "image-generate" && state.session && getConfiguredCost()) {
+    button.textContent = `生成图片 · ${getConfiguredCost()}积分`;
+  } else if (state.toolId === "image-generate") {
+    button.textContent = "开始生成";
+  } else {
+    button.textContent = blocker || `创建${state.tool.mediaType === "video" ? "视频" : "图片"}任务`;
+  }
+  reason.textContent = activeTask ? "当前任务完成后可再次生成。" : blocker || "提交后将使用服务端返回的真实排队和生成状态。";
   if (availability) {
     availability.textContent = hasConfiguredWorkflow() ? "工作流可用" : "即将上线";
     availability.classList.toggle("is-active", hasConfiguredWorkflow());
@@ -2003,7 +2262,12 @@ async function submitGeneration() {
     files: state.files.map((entry) => entry.file),
     privacy,
     idempotencyKey,
-    aspectRatio: root.querySelector("[data-video-ratio]")?.value || root.querySelector("[data-generation-ratio]")?.value,
+    aspectRatio: root.querySelector("[data-video-ratio]")?.value
+      || root.querySelector("[data-generation-resolution] option:checked")?.dataset.aspectRatio
+      || root.querySelector("[data-generation-ratio]")?.value,
+    resolution: root.querySelector("[data-generation-resolution]")?.value || undefined,
+    outputCount: Number(root.querySelector("[data-generation-count]")?.value || 1),
+    seed: root.querySelector("[data-generation-seed]")?.value?.trim() || undefined,
     durationSeconds: Number(root.querySelector("[data-video-duration]")?.value || root.querySelector("[data-generation-duration]")?.value || 0) || undefined,
     ...collectSpecialToolParams(),
   };
@@ -2230,6 +2494,10 @@ function bindEvents() {
       renderAccountSummary();
       updateSubmitState();
     }
+    if (event.target.matches("[data-generation-resolution], [data-generation-count], [data-generation-seed]")) {
+      renderAccountSummary();
+      updateSubmitState();
+    }
   });
   root.addEventListener("mouseover", (event) => {
     const card = event.target.closest?.(".effect-picker-card");
@@ -2246,6 +2514,10 @@ function bindEvents() {
     }
   });
   root.addEventListener("click", (event) => {
+    if (event.target.matches("[data-inspiration-modal]")) {
+      closeImageInspiration();
+      return;
+    }
     if (event.target.matches("[data-effect-picker]")) {
       state.effectPickerOpen = false;
       renderEffectPicker();
@@ -2261,6 +2533,20 @@ function bindEvents() {
         updatePromptCount();
         updateSubmitState();
       }
+      closeImageInspiration();
+      return;
+    }
+    if (target.matches("[data-open-inspiration]")) {
+      openImageInspiration();
+      return;
+    }
+    if (target.matches("[data-close-inspiration]")) {
+      closeImageInspiration();
+      return;
+    }
+    if (target.matches("[data-inspiration-category]")) {
+      state.inspirationCategory = target.dataset.inspirationCategory || "全部";
+      renderImageInspirationGrid();
       return;
     }
     if (target.matches("[data-editor-mode]")) {
@@ -2460,9 +2746,16 @@ function bindEvents() {
     event.returnValue = "";
   });
   window.addEventListener("keydown", (event) => {
-    if (event.key !== "Escape" || !state.effectPickerOpen) return;
-    state.effectPickerOpen = false;
-    renderEffectPicker();
+    if (event.key !== "Escape") return;
+    const inspirationModal = root?.querySelector("[data-inspiration-modal]");
+    if (inspirationModal && !inspirationModal.hidden) {
+      closeImageInspiration();
+      return;
+    }
+    if (state.effectPickerOpen) {
+      state.effectPickerOpen = false;
+      renderEffectPicker();
+    }
   });
 }
 
