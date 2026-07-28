@@ -135,7 +135,7 @@ select is((
   )
 ), 3, 'admin reads all test jobs');
 select is((select count(*)::integer from public.generation_assets), 2, 'admin reads all assets');
-select is((select count(*)::integer from public.provider_configs), 2, 'admin reads Mock and testing RunPod provider configurations');
+select is((select count(*)::integer from public.provider_configs), 3, 'admin reads Mock, disabled RunPod and testing AutoDL provider configurations');
 reset role;
 
 set local role authenticated;
@@ -149,7 +149,7 @@ select is((
   )
 ), 3, 'operator reads all test jobs');
 select is((select count(*)::integer from public.generation_assets), 2, 'operator reads all assets');
-select is((select count(*)::integer from public.provider_configs), 2, 'operator reads Mock and testing RunPod provider configurations');
+select is((select count(*)::integer from public.provider_configs), 3, 'operator reads Mock, disabled RunPod and testing AutoDL provider configurations');
 reset role;
 
 set local role service_role;
@@ -243,14 +243,14 @@ select ok((
     )
 ), 'all exposed Generation Engine tables have RLS enabled');
 select is(
-  (select count(*)::integer from public.provider_configs where id not in ('mock', 'runpod')),
+  (select count(*)::integer from public.provider_configs where id not in ('mock', 'runpod', 'autodl')),
   0,
-  'only the approved Mock and RunPod provider records are configured'
+  'only the approved Mock, RunPod and AutoDL provider records are configured'
 );
 select is(
   (select status from public.provider_configs where id = 'runpod'),
-  'testing',
-  'RunPod provider remains testing-only'
+  'disabled',
+  'RunPod provider remains registered but disabled'
 );
 select ok(
   (select secret_reference = 'RUNPOD_API_KEY' and not (public_config ? 'endpoint_id')

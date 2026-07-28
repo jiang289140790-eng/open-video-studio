@@ -118,9 +118,9 @@ function validOutput() {
   };
 }
 
-test("workflow manifest is a testing-only RunPod workflow without LoRA or mock fallback", () => {
+test("workflow manifest is a testing-only provider-neutral workflow without LoRA or mock fallback", () => {
   assert.equal(singlePersonTextToImageManifest.status, "testing");
-  assert.deepEqual(singlePersonTextToImageManifest.provider_ids, ["runpod"]);
+  assert.deepEqual(singlePersonTextToImageManifest.provider_ids, ["autodl", "runpod"]);
   assert.deepEqual(singlePersonTextToImageManifest.lora_binding_ids, []);
   assert.equal(singlePersonTextToImageManifest.capability.max_output_count, 4);
   assert.deepEqual(singlePersonTextToImageManifest.capability.supported_aspect_ratios, ["1:1", "4:5"]);
@@ -128,8 +128,8 @@ test("workflow manifest is a testing-only RunPod workflow without LoRA or mock f
 
 test("mock fallback helper is explicit and test-only", () => {
   const fixture = withMockFallbackForContractTest(singlePersonTextToImageManifest);
-  assert.deepEqual(fixture.provider_ids, ["runpod", "mock"]);
-  assert.deepEqual(singlePersonTextToImageManifest.provider_ids, ["runpod"]);
+  assert.deepEqual(fixture.provider_ids, ["autodl", "runpod", "mock"]);
+  assert.deepEqual(singlePersonTextToImageManifest.provider_ids, ["autodl", "runpod"]);
 });
 
 test("worker input contains config references and an owner-isolated storage prefix", () => {

@@ -7,6 +7,7 @@ import { GenerationEngine } from "./engine.js";
 import { errorBody, GatewayError, newId, normalizeError } from "./errors.js";
 import { MockProvider, RunPodProviderPlaceholder, type GenerationProvider, type WebhookVerifyingProvider } from "./provider.js";
 import { RunPodProvider } from "./providers/runpod/index.js";
+import { AutoDLProvider } from "./providers/autodl/index.js";
 import { MemoryGenerationRepository, SupabaseGenerationRepository } from "./repository.js";
 import { MemoryRegistryStore, SupabaseRegistryStore } from "./registry.js";
 
@@ -40,13 +41,26 @@ const providers = new Map<string, GenerationProvider>([
     modelManifestRef: config.RUNPOD_MODEL_MANIFEST_REF ?? "",
     storageBucket: config.GENERATION_STORAGE_BUCKET,
   })],
+  ["autodl", new AutoDLProvider({
+    baseUrl: config.AUTODL_BASE_URL,
+    apiToken: config.AUTODL_API_TOKEN,
+    healthPath: config.AUTODL_HEALTH_PATH,
+    requestTimeoutMs: config.AUTODL_REQUEST_TIMEOUT_MS,
+    maxPollDurationMs: config.AUTODL_MAX_POLL_DURATION_MS,
+    enabled: config.AUTODL_PROVIDER_ENABLED,
+    workflowAllowlist: config.REAL_PROVIDER_ALLOWLIST.split(",").map((value) => value.trim()).filter(Boolean),
+    publicWebhookBaseUrl: config.PUBLIC_BASE_URL,
+    comfyuiWorkflowRef: "registry://workflows/single-person-text-to-image-v1/1.0.0",
+    modelManifestRef: "registry://models/single-person-photorealistic-model-v1/1.0.0",
+    storageBucket: config.GENERATION_STORAGE_BUCKET,
+  })],
 ]);
 const engine = new GenerationEngine(repository, providers, {
   pollIntervalMs: config.REAL_PROVIDER_ENABLED
-    ? config.RUNPOD_POLL_INTERVAL_MS
+    ? (config.AUTODL_PROVIDER_ENABLED ? config.AUTODL_POLL_INTERVAL_MS : config.RUNPOD_POLL_INTERVAL_MS)
     : Math.max(10, Math.min(1000, Math.ceil(config.MOCK_PROVIDER_LATENCY_MS / 4))),
   maxExecutionMs: config.REAL_PROVIDER_ENABLED
-    ? config.RUNPOD_MAX_POLL_DURATION_MS
+    ? (config.AUTODL_PROVIDER_ENABLED ? config.AUTODL_MAX_POLL_DURATION_MS : config.RUNPOD_MAX_POLL_DURATION_MS)
     : Math.max(5000, config.MOCK_PROVIDER_LATENCY_MS * 10),
   testingWorkflowsEnabled: config.REAL_PROVIDER_ENABLED,
   testingWorkflowId: config.REAL_PROVIDER_ALLOWLIST.split(",").map((value) => value.trim()).filter(Boolean)[0],

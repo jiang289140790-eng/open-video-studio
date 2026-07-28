@@ -1,0 +1,15 @@
+[Unit]
+Description=Internal ComfyUI for Generation Engine staging
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/ComfyUI
+ExecStart=/root/miniconda3/bin/python main.py --port 18188 --listen 127.0.0.1 --disable-auto-launch
+Restart=always
+RestartSec=5
+User=root
+
+[Install]
+WantedBy=multi-user.target
+

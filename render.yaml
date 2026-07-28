@@ -54,6 +54,20 @@ services:
         sync: false
       - key: RUNPOD_MODEL_MANIFEST_REF
         sync: false
+      - key: AUTODL_BASE_URL
+        sync: false
+      - key: AUTODL_API_TOKEN
+        sync: false
+      - key: AUTODL_HEALTH_PATH
+        sync: false
+      - key: AUTODL_REQUEST_TIMEOUT_MS
+        sync: false
+      - key: AUTODL_POLL_INTERVAL_MS
+        sync: false
+      - key: AUTODL_MAX_POLL_DURATION_MS
+        sync: false
+      - key: AUTODL_PROVIDER_ENABLED
+        sync: false
       - key: GENERATION_STORAGE_BUCKET
         sync: false
       - key: REAL_PROVIDER_ENABLED

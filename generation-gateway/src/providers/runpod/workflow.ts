@@ -20,7 +20,7 @@ export const singlePersonTextToImageManifest: WorkflowManifest = {
     supported_aspect_ratios: ["1:1", "4:5"],
     max_output_count: 4,
   },
-  provider_ids: ["runpod"],
+  provider_ids: ["autodl", "runpod"],
   model_binding_ids: [REAL_IMAGE_MODEL_BINDING_ID],
   lora_binding_ids: [],
   priority: 1,
@@ -98,10 +98,9 @@ export function mapPlanToWorkerInput(plan: GenerationPlan, config: RunPodWorkflo
 }
 
 export function withMockFallbackForContractTest(manifest: WorkflowManifest): WorkflowManifest {
-  return { ...structuredClone(manifest), provider_ids: ["runpod", "mock"] };
+  return { ...structuredClone(manifest), provider_ids: [...manifest.provider_ids, "mock"] };
 }
 
 function integerOrNull(value: unknown): number | null {
   return typeof value === "number" && Number.isSafeInteger(value) ? value : null;
 }
-

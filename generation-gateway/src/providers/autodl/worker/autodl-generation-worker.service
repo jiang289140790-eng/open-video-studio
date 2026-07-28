@@ -1,0 +1,18 @@
+[Unit]
+Description=Generation Engine AutoDL staging worker
+After=network.target autodl-comfyui-internal.service
+Requires=autodl-comfyui-internal.service
+
+[Service]
+Type=simple
+WorkingDirectory=/root/autodl-generation-worker
+EnvironmentFile=/root/autodl-generation-worker/.env
+ExecStart=/root/autodl-generation-worker/.venv/bin/uvicorn app:app --host 0.0.0.0 --port 6006 --proxy-headers
+Restart=always
+RestartSec=3
+User=root
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target
+

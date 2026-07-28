@@ -38,7 +38,7 @@ test("router retains candidates, reasons, fallbacks and version", () => {
 test("phase-2 real image workflow remains isolated in testing status", () => {
   const manifest = listWorkflowManifests().find((item) => item.id === "single-person-text-to-image-v1");
   assert.equal(manifest?.status, "testing");
-  assert.deepEqual(manifest?.provider_ids, ["runpod"]);
+  assert.deepEqual(manifest?.provider_ids, ["autodl", "runpod"]);
 });
 
 test("migration enables RLS and contains owner predicates", async () => {
@@ -57,7 +57,7 @@ test("frontend gateway clients do not contain secret keys or concrete GPU endpoi
     resolve(process.cwd(), "../../ai-marketing-studio/src/services/generation-gateway-service.js"),
   ];
   const source = (await Promise.all(files.map((file) => readFile(file, "utf8")))).join("\n");
-  assert.doesNotMatch(source, /SERVICE_ROLE|RUNPOD_API_KEY|COMFYUI_API_KEY|ZEALMAN_API_TOKEN/);
+  assert.doesNotMatch(source, /SERVICE_ROLE|RUNPOD_API_KEY|AUTODL_API_TOKEN|COMFYUI_API_KEY|ZEALMAN_API_TOKEN/);
   assert.doesNotMatch(source, /\/prompt|\/history|api\.runpod/);
 });
 
@@ -67,7 +67,7 @@ test("open-video real test toggle sends only generic execution intent", async ()
   assert.match(page, /data-real-provider-mode/);
   assert.match(source, /execution_mode:\s*"real_test"/);
   assert.match(source, /visual_style:\s*"photorealistic"/);
-  assert.doesNotMatch(source, /api\.runpod|RUNPOD_|COMFYUI_GATEWAY_URL|seetacloud/);
+  assert.doesNotMatch(source, /api\.runpod|RUNPOD_|AUTODL_|COMFYUI_GATEWAY_URL|seetacloud/);
 });
 
 test("stored real assets are re-signed by the gateway after page refresh", async () => {

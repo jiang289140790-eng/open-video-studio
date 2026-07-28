@@ -25,6 +25,13 @@ const ConfigSchema = z.object({
   RUNPOD_MAX_POLL_DURATION_MS: z.coerce.number().int().min(10_000).max(3_600_000).default(600_000),
   RUNPOD_COMFYUI_WORKFLOW_REF: z.string().min(1).optional(),
   RUNPOD_MODEL_MANIFEST_REF: z.string().min(1).optional(),
+  AUTODL_BASE_URL: z.string().url().optional(),
+  AUTODL_API_TOKEN: z.string().min(16).optional(),
+  AUTODL_HEALTH_PATH: z.string().regex(/^\/[a-zA-Z0-9/_-]*$/).default("/health"),
+  AUTODL_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1000).max(120_000).default(15_000),
+  AUTODL_POLL_INTERVAL_MS: z.coerce.number().int().min(250).max(60_000).default(2_000),
+  AUTODL_MAX_POLL_DURATION_MS: z.coerce.number().int().min(10_000).max(3_600_000).default(600_000),
+  AUTODL_PROVIDER_ENABLED: z.string().default("false").transform((value) => value === "true"),
   GENERATION_STORAGE_BUCKET: z.string().min(1).default("generation-results"),
   REAL_PROVIDER_ENABLED: z.string().default("false").transform((value) => value === "true"),
   REAL_PROVIDER_ALLOWLIST: z.string().default(""),
@@ -44,17 +51,27 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     }
   }
   if (parsed.REAL_PROVIDER_ENABLED) {
-    if (!parsed.RUNPOD_API_KEY ||
-        !parsed.RUNPOD_ENDPOINT_ID ||
-        !parsed.RUNPOD_WEBHOOK_SECRET ||
-        !parsed.RUNPOD_COMFYUI_WORKFLOW_REF ||
-        !parsed.RUNPOD_MODEL_MANIFEST_REF ||
-        !parsed.PUBLIC_BASE_URL) {
-      throw new Error("Enabled real provider requires complete RunPod, workflow, model, storage and public webhook configuration.");
+    const runpodConfigured = Boolean(
+      parsed.RUNPOD_API_KEY &&
+      parsed.RUNPOD_ENDPOINT_ID &&
+      parsed.RUNPOD_WEBHOOK_SECRET &&
+      parsed.RUNPOD_COMFYUI_WORKFLOW_REF &&
+      parsed.RUNPOD_MODEL_MANIFEST_REF,
+    );
+    const autoDLConfigured = Boolean(
+      parsed.AUTODL_PROVIDER_ENABLED &&
+      parsed.AUTODL_BASE_URL &&
+      parsed.AUTODL_API_TOKEN,
+    );
+    if ((!runpodConfigured && !autoDLConfigured) || !parsed.PUBLIC_BASE_URL) {
+      throw new Error("Enabled real provider requires a complete RunPod or AutoDL staging configuration and a public webhook URL.");
     }
     if (!parsed.REAL_PROVIDER_ALLOWLIST.split(",").map((value) => value.trim()).includes("single-person-text-to-image-v1")) {
       throw new Error("Enabled real provider requires single-person-text-to-image-v1 in REAL_PROVIDER_ALLOWLIST.");
     }
+  }
+  if (parsed.AUTODL_PROVIDER_ENABLED && !parsed.REAL_PROVIDER_ENABLED) {
+    throw new Error("AUTODL_PROVIDER_ENABLED requires REAL_PROVIDER_ENABLED.");
   }
   return parsed;
 }

@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "workflows": {
+    "registry://workflows/single-person-text-to-image-v1/1.0.0": {
+      "id": "single-person-text-to-image-v1",
+      "version": "1.0.0",
+      "workflow_file": "single-person-text-to-image-v1.json",
+      "model_manifest_ref": "registry://models/single-person-photorealistic-model-v1/1.0.0",
+      "node_mapping": {
+        "checkpoint_loader": "4",
+        "latent_image": "5",
+        "positive_prompt": "6",
+        "negative_prompt": "7",
+        "sampler": "3",
+        "save_image": "9"
+      },
+      "defaults": {
+        "negative_prompt": "minor, age ambiguous, child, low quality, blurry, deformed anatomy, extra fingers, missing fingers, watermark, text",
+        "steps": 25,
+        "cfg": 6.0,
+        "sampler_name": "dpmpp_2m",
+        "scheduler": "karras"
+      },
+      "limits": {
+        "max_outputs": 4,
+        "aspect_ratios": {
+          "1:1": [1024, 1024],
+          "4:5": [1024, 1280]
+        }
+      }
+    }
+  },
+  "models": {
+    "registry://models/single-person-photorealistic-model-v1/1.0.0": {
+      "id": "single-person-photorealistic-model-v1",
+      "version": "1.0.0",
+      "checkpoint": "juggernautXL_v8Rundiffusion_V8.safetensors",
+      "architecture": "SDXL",
+      "minimum_vram_gb": 16,
+      "staging_only": true
+    }
+  }
+}
+
