@@ -10,6 +10,7 @@ import {
   MOCK_REFERENCE_LORA_ID,
   MOCK_REFERENCE_MODEL_ID,
 } from "./mock-reference-workflow.js";
+import { assertLoraRegistryPromotionReady } from "./phase3b-resource-integration.js";
 
 const SemverSchema = z.string().regex(/^\d+\.\d+\.\d+$/);
 export const LoraRegistryPatchSchema = z.object({
@@ -21,6 +22,17 @@ export const LoraRegistryPatchSchema = z.object({
   default_weight: z.number().min(-2).max(2).optional(),
   min_weight: z.number().min(-2).max(2).optional(),
   max_weight: z.number().min(-2).max(2).optional(),
+  filename: z.string().trim().min(1).max(500).nullable().optional(),
+  storage_path: z.string().trim().min(1).max(1000).nullable().optional(),
+  sha256: z.string().regex(/^[a-f0-9]{64}$/).nullable().optional(),
+  file_size_bytes: z.number().int().positive().max(100 * 1024 * 1024 * 1024).nullable().optional(),
+  file_exists: z.boolean().optional(),
+  observed_sha256: z.string().regex(/^[a-f0-9]{64}$/).nullable().optional(),
+  observed_size_bytes: z.number().int().positive().max(100 * 1024 * 1024 * 1024).nullable().optional(),
+  validation_status: z.enum(["missing", "validating", "invalid", "ready"]).optional(),
+  validation_verifier: z.enum(["storage", "worker"]).nullable().optional(),
+  validation_errors: z.array(z.string().trim().min(1).max(500)).max(50).optional(),
+  validated_at: z.string().datetime().nullable().optional(),
   license: z.string().trim().min(1).max(500).nullable().optional(),
   source: z.string().trim().min(1).max(1000).nullable().optional(),
   preview_assets: z.array(z.string().trim().min(1).max(500)).max(20).optional(),
@@ -41,6 +53,7 @@ export interface ReferenceAnalysisRecord {
 
 export interface RegistryStore {
   listWorkflows(): Promise<WorkflowManifest[]>;
+  getWorkflowResource(id: string): Promise<Record<string, unknown> | null>;
   createWorkflow(manifest: WorkflowManifest, actorId: string): Promise<WorkflowManifest>;
   patchWorkflow(id: string, patch: Partial<WorkflowManifest>, actorId?: string): Promise<WorkflowManifest>;
   listWorkflowVersions(id: string): Promise<Record<string, unknown>[]>;
@@ -107,6 +120,16 @@ export class MemoryRegistryStore implements RegistryStore {
   private readonly analyses = new Map<string, ReferenceAnalysisRecord>();
 
   async listWorkflows(): Promise<WorkflowManifest[]> { return [...this.workflows.values()].map((item) => structuredClone(item)); }
+  async getWorkflowResource(id: string) {
+    const manifest = this.workflows.get(id);
+    return manifest ? {
+      ...structuredClone(manifest),
+      workflow_import_status: "missing",
+      workflow_json_sha256: null,
+      node_mapping: null,
+      node_mapping_sha256: null,
+    } : null;
+  }
   async createWorkflow(manifest: WorkflowManifest): Promise<WorkflowManifest> {
     if (this.workflows.has(manifest.id)) throw new GatewayError("WORKFLOW_ALREADY_EXISTS", "Workflow already exists.", 409);
     this.workflows.set(manifest.id, structuredClone(manifest));
@@ -197,6 +220,11 @@ export class SupabaseRegistryStore implements RegistryStore {
     const { data, error } = await this.client.from("workflow_registry").select("manifest").order("priority");
     if (error) throw databaseError("list workflows");
     return (data ?? []).map((row) => WorkflowManifestSchema.parse(row.manifest));
+  }
+  async getWorkflowResource(id: string) {
+    const { data, error } = await this.client.from("workflow_registry").select("*").eq("id", id).maybeSingle();
+    if (error) throw databaseError("read workflow resource");
+    return data as Record<string, unknown> | null;
   }
   async createWorkflow(manifest: WorkflowManifest, actorId: string): Promise<WorkflowManifest> {
     const { error } = await this.client.from("workflow_registry").insert(toWorkflowRow(manifest, actorId));
@@ -422,6 +450,7 @@ function validateLoraPatch(current: Record<string, unknown>, patch: LoraRegistry
   if (patch.status && !allowedStatusTransition(String(current.status), patch.status)) {
     throw new GatewayError("REGISTRY_STATUS_TRANSITION_INVALID", "The requested registry status transition is not allowed.", 409);
   }
+  assertLoraRegistryPromotionReady(next);
   return next;
 }
 

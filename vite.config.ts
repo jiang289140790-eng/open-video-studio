@@ -19,6 +19,7 @@ export default defineConfig({
         generate: resolve(webRoot, "generate.html"),
         characters: resolve(webRoot, "characters.html"),
         referenceStudio: resolve(webRoot, "reference-studio.html"),
+        phase3bResources: resolve(webRoot, "phase3b-resources.html"),
         assets: resolve(webRoot, "assets.html"),
         campaigns: resolve(webRoot, "campaigns.html"),
         aiStudio: resolve(webRoot, "ai-studio.html"),

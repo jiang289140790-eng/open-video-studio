@@ -45,7 +45,7 @@ insert into public.generation_assets (
 
 insert into public.lora_registry (
   id, name, category, base_architecture, version, status
-) values ('rls-lora-draft', 'RLS draft LoRA', 'test', 'provider-neutral', '1.0.0', 'testing');
+) values ('rls-lora-draft', 'RLS draft LoRA', 'test', 'provider-neutral', '1.0.0', 'draft');
 
 select has_table('public', 'generation_jobs', 'generation_jobs exists');
 select has_table('public', 'generation_assets', 'generation_assets exists');

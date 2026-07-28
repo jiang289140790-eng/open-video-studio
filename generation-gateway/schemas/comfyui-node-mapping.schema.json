@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://open-video-studio.local/schemas/comfyui-node-mapping.schema.json",
+  "title": "ComfyUI API Node Mapping",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "workflow_id",
+    "workflow_version",
+    "nodes"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "workflow_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,199}$"
+    },
+    "workflow_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "nodes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model",
+        "lora_model",
+        "lora_strength",
+        "reference_image",
+        "positive_prompt",
+        "negative_prompt",
+        "seed",
+        "width",
+        "height",
+        "output"
+      ],
+      "properties": {
+        "model": { "$ref": "#/$defs/target" },
+        "lora_model": { "$ref": "#/$defs/target" },
+        "lora_strength": { "$ref": "#/$defs/target" },
+        "reference_image": { "$ref": "#/$defs/target" },
+        "positive_prompt": { "$ref": "#/$defs/target" },
+        "negative_prompt": { "$ref": "#/$defs/target" },
+        "seed": { "$ref": "#/$defs/target" },
+        "width": { "$ref": "#/$defs/target" },
+        "height": { "$ref": "#/$defs/target" },
+        "output": { "$ref": "#/$defs/target" }
+      }
+    }
+  },
+  "$defs": {
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_id",
+        "input_name",
+        "expected_class_type"
+      ],
+      "properties": {
+        "node_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        },
+        "input_name": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_.-]+$"
+        },
+        "expected_class_type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      }
+    }
+  }
+}

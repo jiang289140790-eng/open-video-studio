@@ -35,6 +35,8 @@ const ConfigSchema = z.object({
   GENERATION_STORAGE_BUCKET: z.string().min(1).default("generation-results"),
   REAL_PROVIDER_ENABLED: z.string().default("false").transform((value) => value === "true"),
   REAL_PROVIDER_ALLOWLIST: z.string().default(""),
+  PHASE3B_RESOURCES_READY: z.string().default("false").transform((value) => value === "true"),
+  PHASE3B_STORAGE_UPLOAD_VERIFIED: z.string().default("false").transform((value) => value === "true"),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
@@ -72,6 +74,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   }
   if (parsed.AUTODL_PROVIDER_ENABLED && !parsed.REAL_PROVIDER_ENABLED) {
     throw new Error("AUTODL_PROVIDER_ENABLED requires REAL_PROVIDER_ENABLED.");
+  }
+  if (
+    parsed.REAL_PROVIDER_ALLOWLIST.split(",").map((value) => value.trim())
+      .includes("single-character-reference-remake-v1")
+    && !parsed.PHASE3B_RESOURCES_READY
+  ) {
+    throw new Error("The Phase 3B reference workflow cannot be allowlisted until PHASE3B_RESOURCES_READY is true after a successful resource checklist and dry run.");
   }
   return parsed;
 }

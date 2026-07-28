@@ -19,6 +19,17 @@ import {
   ReferenceAnalysisConfirmationSchema,
   ReferenceAnalysisRequestSchema,
 } from "./reference-analysis.js";
+import {
+  buildPhase3BChecklist,
+  createPhase3BDryRun,
+  validateLoraImport,
+  validateWorkflowImport,
+} from "./phase3b-resource-integration.js";
+import {
+  REFERENCE_REMAKE_LORA_ID,
+  REFERENCE_REMAKE_MODEL_ID,
+  REFERENCE_REMAKE_WORKFLOW_ID,
+} from "./reference-remake-workflow.js";
 
 const config = loadConfig();
 const repository = config.SUPABASE_URL && config.SUPABASE_SERVICE_ROLE_KEY
@@ -169,6 +180,21 @@ const server = createServer(async (request, response) => {
     }
     if (request.method === "POST" && path === "/v1/generations") {
       const input = GenerationInputSchema.parse(parseJson(await readBody(request)));
+      if (
+        input.structured_options.execution_mode === "real_test"
+        && input.structured_options.workflow_id === REFERENCE_REMAKE_WORKFLOW_ID
+      ) {
+        const checklist = await currentPhase3BChecklist();
+        if (!checklist.provider_allowlist_eligible || !config.PHASE3B_RESOURCES_READY) {
+          throw new GatewayError(
+            "PHASE3B_RESOURCES_NOT_READY",
+            "The real reference workflow is locked until every resource and the redacted dry run are verified.",
+            503,
+            false,
+            { blocking_reasons: checklist.blocking_reasons },
+          );
+        }
+      }
       const result = await engine.create(actor.id, input);
       jobId = result.job.id;
       return send(response, result.duplicate ? 200 : 202, {
@@ -255,6 +281,42 @@ const server = createServer(async (request, response) => {
       ]);
       return send(response, 200, { providers: configs, health, request_id: requestId });
     }
+    if (request.method === "GET" && path === "/v1/admin/phase3b/resources") {
+      const checklist = await currentPhase3BChecklist();
+      return send(response, 200, {
+        checklist,
+        target: {
+          workflow_id: REFERENCE_REMAKE_WORKFLOW_ID,
+          model_id: REFERENCE_REMAKE_MODEL_ID,
+          lora_id: REFERENCE_REMAKE_LORA_ID,
+        },
+        allowlist: {
+          contains_target: realWorkflowAllowlist.includes(REFERENCE_REMAKE_WORKFLOW_ID),
+          resources_ready_flag: config.PHASE3B_RESOURCES_READY,
+          eligible: checklist.provider_allowlist_eligible && config.PHASE3B_RESOURCES_READY,
+        },
+        request_id: requestId,
+      });
+    }
+    if (request.method === "POST" && path === "/v1/admin/phase3b/validate-lora") {
+      const body = parseJson(await readBody(request)) as Record<string, unknown>;
+      const models = await registry.listModels();
+      const availableModels = (models as Record<string, unknown>[]).map((model) => ({
+        id: String(model.id),
+        base_architecture: String(model.base_architecture ?? ""),
+        ready: registryModelReady(model),
+      }));
+      const validation = validateLoraImport(body.manifest, body.observation, availableModels);
+      return send(response, validation.valid ? 200 : 422, { validation, request_id: requestId });
+    }
+    if (request.method === "POST" && path === "/v1/admin/phase3b/validate-workflow") {
+      const validation = validateWorkflowImport(parseJson(await readBody(request)));
+      return send(response, validation.valid ? 200 : 422, { validation, request_id: requestId });
+    }
+    if (request.method === "POST" && path === "/v1/admin/phase3b/dry-run") {
+      const result = createPhase3BDryRun(parseJson(await readBody(request)));
+      return send(response, 200, { ...result, request_id: requestId });
+    }
     const eventMatch = path.match(/^\/v1\/admin\/jobs\/([^/]+)\/events$/);
     if (request.method === "GET" && eventMatch) {
       const events = await engine.adminEvents(decodeURIComponent(eventMatch[1]!));
@@ -294,6 +356,25 @@ for (const signal of ["SIGTERM", "SIGINT"] as const) {
     log("info", "server.shutdown", { signal });
     server.close(() => process.exit(0));
     setTimeout(() => process.exit(1), 10_000).unref();
+  });
+}
+
+async function currentPhase3BChecklist() {
+  const [models, loras, workflow, workerHealth] = await Promise.all([
+    registry.listModels(),
+    registry.listLoras(),
+    registry.getWorkflowResource(REFERENCE_REMAKE_WORKFLOW_ID),
+    providers.get("autodl")!.healthCheck(),
+  ]);
+  return buildPhase3BChecklist({
+    models,
+    loras,
+    workflows: workflow ? [workflow] : [],
+    workerHealth,
+    storageVerified: config.PHASE3B_STORAGE_UPLOAD_VERIFIED,
+    targetModelId: REFERENCE_REMAKE_MODEL_ID,
+    targetLoraId: REFERENCE_REMAKE_LORA_ID,
+    targetWorkflowId: REFERENCE_REMAKE_WORKFLOW_ID,
   });
 }
 
@@ -497,6 +578,16 @@ function boundedInt(value: string | null, fallback: number, min: number, max: nu
 function requiredString(value: unknown, field: string): string {
   if (typeof value !== "string" || !value.trim()) throw new GatewayError("INPUT_SCHEMA_INVALID", `${field} is required.`, 422);
   return value.trim();
+}
+
+function registryModelReady(model: Record<string, unknown>): boolean {
+  const license = model.license_metadata as Record<string, unknown> | undefined;
+  return ["testing", "production"].includes(String(model.status))
+    && typeof model.checksum === "string"
+    && /^[a-f0-9]{64}$/.test(model.checksum)
+    && typeof model.storage_path === "string"
+    && /^(registry|storage):\/\//.test(model.storage_path)
+    && license?.license_status === "ready";
 }
 function safeRequestId(value: string | string[] | undefined): string | undefined {
   const text = Array.isArray(value) ? value[0] : value;

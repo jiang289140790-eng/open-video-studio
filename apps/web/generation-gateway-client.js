@@ -30,6 +30,19 @@ export const patchGatewayLora = (loraId, patch) => gatewayRequest(
 export const listGatewayLoraVersions = (loraId) => gatewayRequest(
   `/v1/admin/loras/${encodeURIComponent(loraId)}/versions`
 );
+export const getPhase3BResourceChecklist = () => gatewayRequest("/v1/admin/phase3b/resources");
+export const validatePhase3BLora = (input) => gatewayRequest(
+  "/v1/admin/phase3b/validate-lora",
+  { method: "POST", body: input }
+);
+export const validatePhase3BWorkflow = (input) => gatewayRequest(
+  "/v1/admin/phase3b/validate-workflow",
+  { method: "POST", body: input }
+);
+export const runPhase3BDryRun = (input) => gatewayRequest(
+  "/v1/admin/phase3b/dry-run",
+  { method: "POST", body: input }
+);
 
 export async function waitForGatewayGeneration(jobId, options = {}) {
   const deadline = Date.now() + Number(options.timeoutMs || 180_000);

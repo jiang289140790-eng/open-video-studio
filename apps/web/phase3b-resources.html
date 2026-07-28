@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phase 3B 资源接入检查</title>
+  <link rel="stylesheet" href="./phase3b-resources.css">
+</head>
+<body>
+  <header class="topbar"><a href="./reference-studio.html">← 参考图工作台</a><span>STAGING · PREPARATION ONLY</span></header>
+  <main>
+    <section class="hero">
+      <p class="eyebrow">PHASE 3B RESOURCE INTEGRATION</p>
+      <h1>真实角色资源接入检查</h1>
+      <p>这里只验证资源与映射，不会启动 AutoDL、提交 GPU 或生成图片。全部检查通过前，真实参考图工作流不能进入 allowlist。</p>
+      <div class="hero-state" data-overall-state><strong>正在检查</strong><small>读取 staging Registry 与 Worker 状态</small></div>
+    </section>
+    <section class="panel">
+      <div class="section-head"><div><p class="eyebrow">RESOURCE CHECKLIST</p><h2>接入条件</h2></div><button type="button" data-refresh>刷新状态</button></div>
+      <div class="checklist" data-checklist>
+        <article data-resource="base_model"><span>基础模型</span><strong>checking</strong><small>等待 Registry</small></article>
+        <article data-resource="character_lora"><span>人物 LoRA</span><strong>checking</strong><small>等待文件校验</small></article>
+        <article data-resource="workflow_json"><span>Workflow JSON</span><strong>checking</strong><small>等待 API 工作流</small></article>
+        <article data-resource="node_mapping"><span>Node Mapping</span><strong>checking</strong><small>等待节点映射</small></article>
+        <article data-resource="autodl_worker"><span>AutoDL Worker</span><strong>checking</strong><small>本阶段允许离线</small></article>
+        <article data-resource="storage_upload"><span>Storage Upload</span><strong>checking</strong><small>等待上传验证</small></article>
+      </div>
+      <div class="gate" data-allowlist-gate><strong>真实 Provider allowlist：锁定</strong><p>只有六项全部 ready 且 Dry Run 通过后才能解除。</p></div>
+    </section>
+    <section class="validator-grid">
+      <article class="validator">
+        <div class="section-head"><div><p class="eyebrow">LORA VALIDATOR</p><h2>LoRA 资源清单</h2></div><span>不上传文件</span></div>
+        <p>粘贴 Manifest 与 Worker/Storage 实际观测结果。SHA-256、文件大小或兼容架构不一致会立即拒绝。</p>
+        <label>LoRA Manifest JSON<textarea data-lora-manifest spellcheck="false" placeholder='{"id":"...","status":"draft",...}'></textarea></label>
+        <label>实际文件观测 JSON<textarea data-lora-observation spellcheck="false" placeholder='{"exists":true,"sha256":"...","size_bytes":0,...}'></textarea></label>
+        <button type="button" data-validate-lora>验证 LoRA</button><pre data-lora-result>尚未验证</pre>
+      </article>
+      <article class="validator">
+        <div class="section-head"><div><p class="eyebrow">WORKFLOW VALIDATOR</p><h2>ComfyUI API 工作流</h2></div><span>严格节点映射</span></div>
+        <p>校验模型、LoRA、参考图、Prompt、Seed、尺寸和输出节点，并拒绝本地路径、Endpoint 与秘密值。</p>
+        <label>Workflow Import JSON<textarea data-workflow-import spellcheck="false" placeholder='{"workflow_id":"...","workflow":{...},"node_mapping":{...}}'></textarea></label>
+        <button type="button" data-validate-workflow>验证 Workflow</button><pre data-workflow-result>尚未验证</pre>
+      </article>
+    </section>
+    <section class="dry-run">
+      <div class="section-head"><div><p class="eyebrow">REDACTED DRY RUN</p><h2>最终 Worker Payload 预演</h2></div><span>submitted_to_provider = false</span></div>
+      <p>输入完整 GenerationPlan 与已验证资源包。结果只显示 Registry ID、节点目标、哈希和长度，不显示签名 URL、密钥、本地路径或完整 Prompt。</p>
+      <label>Dry Run JSON<textarea data-dry-run spellcheck="false" placeholder='{"plan":{...},"base_model":{...},"lora":{...},"workflow_import":{...},...}'></textarea></label>
+      <button type="button" data-run-dry-run>运行脱敏 Dry Run</button><pre data-dry-run-result>真实资源尚未提供，Dry Run 未执行。</pre>
+    </section>
+  </main>
+  <div class="toast" data-toast hidden></div>
+  <script type="module" src="./phase3b-resources.js"></script>
+</body>
+</html>

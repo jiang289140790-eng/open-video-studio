@@ -74,3 +74,7 @@ services:
         sync: false
       - key: REAL_PROVIDER_ALLOWLIST
         sync: false
+      - key: PHASE3B_RESOURCES_READY
+        sync: false
+      - key: PHASE3B_STORAGE_UPLOAD_VERIFIED
+        sync: false
