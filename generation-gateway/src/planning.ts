@@ -7,6 +7,11 @@ import type {
 } from "./domain.js";
 import { GatewayError } from "./errors.js";
 import { singlePersonTextToImageManifest } from "./providers/runpod/workflow.js";
+import { ReferenceAnalysisSchema, assertConfirmedSinglePersonReference } from "./reference-analysis.js";
+import {
+  REFERENCE_REMAKE_WORKFLOW_ID,
+  singleCharacterReferenceRemakeManifest,
+} from "./reference-remake-workflow.js";
 
 const unsafePatterns = [
   /\b(child|minor|underage|schoolgirl|schoolboy)\b/i,
@@ -92,6 +97,31 @@ export function validatePolicy(context: PolicyContext): void {
   if (input.output_count > 4) {
     throw new GatewayError("OUTPUT_COUNT_EXCEEDED", "A job may request at most four outputs.", 422);
   }
+  if (input.creation_mode === "image_to_image" && input.structured_options.reference_analysis_confirmed === true) {
+    if (input.reference_assets.length !== 1) {
+      throw new GatewayError(
+        "REFERENCE_ASSET_COUNT_UNSUPPORTED",
+        "The reference-remake workflow requires exactly one reference image.",
+        422,
+      );
+    }
+    const analysis = ReferenceAnalysisSchema.safeParse(input.structured_options.reference_analysis);
+    if (!analysis.success) {
+      throw new GatewayError(
+        "REFERENCE_ANALYSIS_INVALID",
+        "A schema-valid reference analysis must be confirmed before generation.",
+        422,
+      );
+    }
+    assertConfirmedSinglePersonReference(analysis.data);
+    if (!input.subject_age_confirmed_adult) {
+      throw new GatewayError(
+        "ADULT_AGE_CONFIRMATION_REQUIRED",
+        "The reference-remake workflow requires explicit adult-age confirmation.",
+        422,
+      );
+    }
+  }
 }
 
 const commonRatios = ["1:1", "4:5", "3:4", "16:9", "9:16", "21:9"];
@@ -104,6 +134,7 @@ const manifests: WorkflowManifest[] = [
   videoManifest("mock-video-image-to-video-v1", ["image_to_video"], true, 5),
   manifest("mock-effect-preset-v1", ["effect_preset"], true, false, 5, ["image", "video"]),
   singlePersonTextToImageManifest,
+  singleCharacterReferenceRemakeManifest,
 ];
 
 function manifest(
@@ -171,6 +202,7 @@ export function routeWorkflow(
   if (!selected) {
     throw new GatewayError("NO_MATCHING_WORKFLOW", "No active workflow satisfies the requested capabilities.", 422, true);
   }
+  const isReferenceRemake = selected.workflow.id === REFERENCE_REMAKE_WORKFLOW_ID;
   return {
     job_id: jobId,
     user_id: userId,
@@ -197,7 +229,24 @@ export function routeWorkflow(
     fallback_workflow_ids: candidates.slice(1).map((item) => item.workflow.id),
     router_version: "capability-router/1.1.0",
     selected_model_id: selected.workflow.model_binding_ids[0],
-    selected_lora_ids: [],
+    selected_lora_ids: selected.workflow.lora_binding_ids,
+    ...(isReferenceRemake ? {
+      reference_asset_id: input.reference_assets[0]?.asset_id,
+      character_id: input.character_id,
+      workflow_id: selected.workflow.id,
+      model_id: selected.workflow.model_binding_ids[0],
+      lora_bindings: Array.isArray(input.structured_options.lora_bindings)
+        ? input.structured_options.lora_bindings
+        : [],
+      preserve_pose: brief.preserve_pose,
+      preserve_composition: brief.preserve_composition,
+      replace_scene: stringOrNull(input.structured_options.replace_scene),
+      outfit_override: stringOrNull(input.structured_options.outfit_override),
+      expression_override: stringOrNull(input.structured_options.expression_override),
+      aspect_ratio: input.aspect_ratio,
+      output_count: input.output_count,
+      timeout_ms: 600_000,
+    } : {}),
   };
 }
 
@@ -272,4 +321,8 @@ export function buildPromptPackage(plan: GenerationPlan): PromptPackage {
     templateVersions,
     adapterId: "mock-model-adapter-v1",
   };
+}
+
+function stringOrNull(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
 }

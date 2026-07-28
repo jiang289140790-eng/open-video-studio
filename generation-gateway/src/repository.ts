@@ -41,6 +41,7 @@ export interface GenerationRepository {
   saveReview(userId: string, review: GenerationReview): Promise<void>;
   recordBilling(userId: string, jobId: string, operation: "estimate" | "reserve" | "capture" | "release" | "refund", amount: number, idempotencyKey: string, provider?: string, metrics?: ProviderCostMetrics): Promise<boolean>;
   ownedAssetIds(userId: string, ids: string[]): Promise<ReadonlySet<string>>;
+  createReferenceSignedUrl(userId: string, assetId: string, expiresInSeconds: number): Promise<string>;
   listEvents(jobId: string): Promise<GenerationEvent[]>;
   ready(): Promise<boolean>;
 }
@@ -155,6 +156,11 @@ export class MemoryGenerationRepository implements GenerationRepository {
   async ownedAssetIds(userId: string, ids: string[]): Promise<ReadonlySet<string>> {
     const values = this.ownedAssets.get(userId) ?? new Set<string>();
     return new Set(ids.filter((id) => values.has(id)));
+  }
+  async createReferenceSignedUrl(userId: string, assetId: string): Promise<string> {
+    const owned = this.ownedAssets.get(userId);
+    if (!owned?.has(assetId)) throw new GatewayError("INPUT_ASSET_NOT_OWNED", "The reference asset is not owned by the authenticated user.", 403);
+    return `https://storage.invalid/signed/${encodeURIComponent(userId)}/${encodeURIComponent(assetId)}`;
   }
   async listEvents(jobId: string): Promise<GenerationEvent[]> {
     return this.events.filter((event) => event.job_id === jobId).map((event) => structuredClone(event));
@@ -362,6 +368,43 @@ export class SupabaseGenerationRepository implements GenerationRepository {
     ]);
     if (generation.error || media.error) throw new GatewayError("DATABASE_READ_FAILED", "Could not validate reference asset ownership.", 503, true);
     return new Set([...(generation.data ?? []), ...(media.data ?? [])].map((row) => String(row.id)));
+  }
+
+  async createReferenceSignedUrl(userId: string, assetId: string, expiresInSeconds: number): Promise<string> {
+    const [generation, media] = await Promise.all([
+      this.client.from("generation_assets")
+        .select("storage_bucket,storage_path")
+        .eq("id", assetId)
+        .eq("user_id", userId)
+        .maybeSingle(),
+      this.client.from("media_assets")
+        .select("storage_key,metadata_json")
+        .eq("id", assetId)
+        .eq("owner_user_id", userId)
+        .maybeSingle(),
+    ]);
+    if (generation.error || media.error) {
+      throw new GatewayError("DATABASE_READ_FAILED", "Could not resolve the reference asset.", 503, true);
+    }
+    const generationBucket = generation.data?.storage_bucket ? String(generation.data.storage_bucket) : "";
+    const generationPath = generation.data?.storage_path ? String(generation.data.storage_path) : "";
+    const metadata = media.data?.metadata_json && typeof media.data.metadata_json === "object"
+      ? media.data.metadata_json as Record<string, unknown>
+      : {};
+    const mediaBucket = typeof metadata.storage_bucket === "string" ? metadata.storage_bucket : "generation-inputs";
+    const mediaPath = media.data?.storage_key ? String(media.data.storage_key) : "";
+    const bucket = generationBucket || mediaBucket;
+    const rawPath = generationPath || mediaPath;
+    if (!bucket || !rawPath) throw new GatewayError("REFERENCE_ASSET_STORAGE_MISSING", "The reference asset has no private storage object.", 422);
+    const objectPath = rawPath.startsWith(`${bucket}/`) ? rawPath.slice(bucket.length + 1) : rawPath;
+    if (!objectPath.startsWith(`${userId}/`)) {
+      throw new GatewayError("REFERENCE_ASSET_PATH_INVALID", "The reference asset path is outside the authenticated user's storage prefix.", 403);
+    }
+    const { data, error } = await this.client.storage.from(bucket).createSignedUrl(objectPath, expiresInSeconds);
+    if (error || !data?.signedUrl) {
+      throw new GatewayError("ASSET_SIGNING_FAILED", "Could not create a signed reference URL.", 503, true);
+    }
+    return data.signedUrl;
   }
 
   async listEvents(jobId: string): Promise<GenerationEvent[]> {

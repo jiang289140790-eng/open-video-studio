@@ -144,6 +144,25 @@ export const GenerationPlanSchema = z.object({
   selected_model_id: z.string().optional(),
   selected_lora_ids: z.array(z.string()).default([]),
   prompt_package: PromptPackageSchema.optional(),
+  reference_asset_id: z.string().optional(),
+  character_id: z.string().optional(),
+  workflow_id: z.string().optional(),
+  model_id: z.string().optional(),
+  lora_bindings: z.array(z.object({
+    lora_id: z.string(),
+    version: z.string(),
+    weight: z.number().min(-2).max(2),
+    trigger_words: z.array(z.string()),
+  })).optional(),
+  preserve_pose: z.boolean().optional(),
+  preserve_composition: z.boolean().optional(),
+  replace_scene: z.string().max(1000).nullable().optional(),
+  outfit_override: z.string().max(500).nullable().optional(),
+  expression_override: z.string().max(500).nullable().optional(),
+  aspect_ratio: z.string().optional(),
+  output_count: z.number().int().min(1).max(4).optional(),
+  provider: z.string().optional(),
+  timeout_ms: z.number().int().positive().optional(),
 });
 
 export const ProviderSubmitResultSchema = z.object({

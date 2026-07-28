@@ -3,14 +3,17 @@ import { GatewayError, newId } from "./errors.js";
 import { buildPromptPackage, listWorkflowManifests, parseCreativeBrief, routeWorkflow, validatePolicy } from "./planning.js";
 import type { GenerationProvider } from "./provider.js";
 import type { GenerationRepository, ProviderCostMetrics } from "./repository.js";
-import type { RegistryStore } from "./registry.js";
+import type { CharacterBinding, RegistryStore } from "./registry.js";
 import { isTerminal } from "./state-machine.js";
+import { REFERENCE_REMAKE_LORA_ID, REFERENCE_REMAKE_WORKFLOW_ID } from "./reference-remake-workflow.js";
+import { analyzeReference, type ReferenceAnalysisRequest } from "./reference-analysis.js";
 
 export interface EngineOptions {
   pollIntervalMs: number;
   maxExecutionMs: number;
   testingWorkflowsEnabled?: boolean;
   testingWorkflowId?: string;
+  testingWorkflowIds?: readonly string[];
 }
 
 export class GenerationEngine {
@@ -37,12 +40,17 @@ export class GenerationEngine {
       const requestedIds = input.reference_assets.map((asset) => asset.asset_id);
       const ownedAssetIds = await this.repository.ownedAssetIds(userId, requestedIds);
       validatePolicy({ input, brief, userId, ownedAssetIds });
+      const character = input.character_id
+        ? await this.validateCharacter(userId, input.character_id, input, brief.people_count)
+        : null;
       job = await this.repository.transition(job.id, "planning");
       job = await this.repository.transition(job.id, "routing");
       const availableManifests = await this.availableManifests();
       const plan = this.route(job.id, userId, input, brief, availableManifests);
+      this.bindCharacter(plan, character, input);
       plan.prompt_package = buildPromptPackage(plan);
       const providerId = await this.selectProvider(plan.selected_workflow_id!, availableManifests);
+      plan.provider = providerId;
       const estimate = input.media_type === "image" ? input.output_count : input.output_count * 3;
       await this.repository.recordBilling(userId, job.id, "estimate", estimate, `billing:${job.id}:estimate`);
       await this.repository.recordBilling(userId, job.id, "reserve", estimate, `billing:${job.id}:reserve`);
@@ -78,6 +86,14 @@ export class GenerationEngine {
 
   async list(userId: string, options: Parameters<GenerationRepository["listJobs"]>[1]): Promise<GenerationJob[]> {
     return this.repository.listJobs(userId, options);
+  }
+
+  async analyzeReference(userId: string, request: ReferenceAnalysisRequest) {
+    const owned = await this.repository.ownedAssetIds(userId, [request.reference_asset_id]);
+    if (!owned.has(request.reference_asset_id)) {
+      throw new GatewayError("INPUT_ASSET_NOT_OWNED", "The reference asset is not owned by the authenticated user.", 403);
+    }
+    return analyzeReference(request);
   }
 
   async cancel(userId: string, jobId: string): Promise<GenerationJob> {
@@ -158,12 +174,17 @@ export class GenerationEngine {
     current = await this.repository.transition(job.id, "validating", { parsed_brief: brief });
     const owned = await this.repository.ownedAssetIds(userId, input.reference_assets.map((item) => item.asset_id));
     validatePolicy({ input, brief, userId, ownedAssetIds: owned });
+    const character = input.character_id
+      ? await this.validateCharacter(userId, input.character_id, input, brief.people_count)
+      : null;
     current = await this.repository.transition(job.id, "planning");
     current = await this.repository.transition(job.id, "routing");
     const availableManifests = await this.availableManifests();
     const plan = this.route(job.id, userId, input, brief, availableManifests);
+    this.bindCharacter(plan, character, input);
     plan.prompt_package = buildPromptPackage(plan);
     const providerId = await this.selectProvider(plan.selected_workflow_id!, availableManifests);
+    plan.provider = providerId;
     const estimate = input.media_type === "image" ? input.output_count : input.output_count * 3;
     await this.repository.recordBilling(userId, retryOf, "reserve", estimate, `billing:${retryOf}:reserve`);
     current = await this.repository.transition(job.id, "queued", {
@@ -212,7 +233,19 @@ export class GenerationEngine {
     }
     try {
       if (!job.provider_job_id) {
-        const submitted = await provider.submit(job.generation_plan);
+        let submissionPlan = job.generation_plan;
+        if (submissionPlan.selected_workflow_id === REFERENCE_REMAKE_WORKFLOW_ID && submissionPlan.reference_asset_id) {
+          const referenceInputSignedUrl = await this.repository.createReferenceSignedUrl(
+            job.user_id,
+            submissionPlan.reference_asset_id,
+            900,
+          );
+          submissionPlan = {
+            ...submissionPlan,
+            runtime: { reference_input_signed_url: referenceInputSignedUrl },
+          } as typeof submissionPlan;
+        }
+        const submitted = await provider.submit(submissionPlan);
         await this.repository.addAttempt(job.id, job.user_id, provider.id, submitted.provider_job_id, submitted.estimated_cost);
         job = await this.repository.transition(job.id, "submitted", {
           provider: provider.id,
@@ -315,13 +348,73 @@ export class GenerationEngine {
     manifests: Awaited<ReturnType<RegistryStore["listWorkflows"]>>,
   ) {
     const realTestRequested = input.structured_options.execution_mode === "real_test";
-    if (realTestRequested && (!this.options.testingWorkflowsEnabled || !this.options.testingWorkflowId)) {
+    const enabledIds = this.options.testingWorkflowIds?.length
+      ? [...this.options.testingWorkflowIds]
+      : this.options.testingWorkflowId
+        ? [this.options.testingWorkflowId]
+        : [];
+    const requestedWorkflowId = typeof input.structured_options.workflow_id === "string"
+      ? input.structured_options.workflow_id
+      : enabledIds[0];
+    if (realTestRequested && (!this.options.testingWorkflowsEnabled || !requestedWorkflowId || !enabledIds.includes(requestedWorkflowId))) {
       throw new GatewayError("REAL_PROVIDER_NOT_ENABLED", "Real image testing is not enabled in this environment.", 503, false);
     }
     return routeWorkflow(jobId, userId, input, brief, manifests, realTestRequested ? {
       allowedStatuses: ["testing"],
-      requiredWorkflowId: this.options.testingWorkflowId,
+      requiredWorkflowId: requestedWorkflowId,
     } : undefined);
+  }
+
+  private async validateCharacter(
+    userId: string,
+    characterId: string,
+    input: GenerationInput,
+    peopleCount: number,
+  ) {
+    if (!this.registry) {
+      throw new GatewayError("CHARACTER_REGISTRY_UNAVAILABLE", "Character validation is unavailable.", 503, true);
+    }
+    const character = await this.registry.getCharacterForUser(characterId, userId);
+    if (!character) throw new GatewayError("CHARACTER_NOT_FOUND", "The selected character was not found.", 404);
+    if (!character.is_adult || character.declared_age < 18 || !input.subject_age_confirmed_adult || peopleCount !== 1) {
+      throw new GatewayError(
+        "CHARACTER_ADULT_VALIDATION_FAILED",
+        "Only a verified adult single-person character can enter this workflow.",
+        422,
+        false,
+      );
+    }
+    if (!["testing", "production"].includes(character.status)) {
+      throw new GatewayError("CHARACTER_NOT_ACTIVE", "The selected character is not enabled for generation.", 409);
+    }
+    return character;
+  }
+
+  private bindCharacter(
+    plan: ReturnType<typeof routeWorkflow>,
+    character: CharacterBinding | null,
+    input: GenerationInput,
+  ): void {
+    if (plan.selected_workflow_id !== REFERENCE_REMAKE_WORKFLOW_ID) return;
+    if (!character) {
+      throw new GatewayError("CHARACTER_REQUIRED", "The reference-remake workflow requires a verified character.", 422);
+    }
+    const requestedWeight = Number(input.structured_options.lora_weight ?? character.default_lora_weight);
+    if (!Number.isFinite(requestedWeight) ||
+        requestedWeight < character.min_lora_weight ||
+        requestedWeight > character.max_lora_weight) {
+      throw new GatewayError("CHARACTER_LORA_WEIGHT_INVALID", "The requested character LoRA weight is outside its tested range.", 422);
+    }
+    if (character.base_model_id !== plan.selected_model_id || character.lora_id !== REFERENCE_REMAKE_LORA_ID) {
+      throw new GatewayError("CHARACTER_LORA_INCOMPATIBLE", "The selected character LoRA is not compatible with this workflow.", 422);
+    }
+    plan.selected_lora_ids = [character.lora_id];
+    plan.lora_bindings = [{
+      lora_id: character.lora_id,
+      version: character.lora_version,
+      weight: requestedWeight,
+      trigger_words: character.trigger_words,
+    }];
   }
 
   private async selectProvider(workflowId: string, manifests: Awaited<ReturnType<RegistryStore["listWorkflows"]>>): Promise<string> {

@@ -11,6 +11,24 @@ export interface RegistryStore {
   listModels(): Promise<Record<string, unknown>[]>;
   listLoras(): Promise<Record<string, unknown>[]>;
   listProviders(): Promise<Record<string, unknown>[]>;
+  getCharacterForUser(characterId: string, userId: string): Promise<CharacterBinding | null>;
+  listCharactersForUser(userId: string): Promise<CharacterBinding[]>;
+}
+
+export interface CharacterBinding {
+  id: string;
+  owner_user_id: string;
+  display_name: string;
+  is_adult: boolean;
+  declared_age: number;
+  base_model_id: string;
+  lora_id: string;
+  lora_version: string;
+  default_lora_weight: number;
+  min_lora_weight: number;
+  max_lora_weight: number;
+  trigger_words: string[];
+  status: "draft" | "testing" | "production" | "deprecated" | "disabled";
 }
 
 export class MemoryRegistryStore implements RegistryStore {
@@ -36,6 +54,8 @@ export class MemoryRegistryStore implements RegistryStore {
   async listModels() { return [{ id: "model-placeholder-v1", status: "testing", model_type: "placeholder" }]; }
   async listLoras() { return []; }
   async listProviders() { return [{ id: "mock", provider_type: "mock", status: "production", capabilities: { image: true, video: true } }]; }
+  async getCharacterForUser(): Promise<CharacterBinding | null> { return null; }
+  async listCharactersForUser(): Promise<CharacterBinding[]> { return []; }
 }
 
 export class SupabaseRegistryStore implements RegistryStore {
@@ -82,6 +102,26 @@ export class SupabaseRegistryStore implements RegistryStore {
   async listModels() { return this.listTable("model_registry"); }
   async listLoras() { return this.listTable("lora_registry"); }
   async listProviders() { return this.listTable("provider_configs", "id,provider_type,display_name,status,capabilities,public_config"); }
+  async getCharacterForUser(characterId: string, userId: string): Promise<CharacterBinding | null> {
+    const { data, error } = await this.client
+      .from("characters")
+      .select("id,owner_user_id,display_name,is_adult,declared_age,base_model_id,lora_id,lora_version,default_lora_weight,min_lora_weight,max_lora_weight,trigger_words,status")
+      .eq("id", characterId)
+      .eq("owner_user_id", userId)
+      .maybeSingle();
+    if (error) throw databaseError("read character");
+    return data ? data as CharacterBinding : null;
+  }
+  async listCharactersForUser(userId: string): Promise<CharacterBinding[]> {
+    const { data, error } = await this.client
+      .from("characters")
+      .select("id,owner_user_id,display_name,is_adult,declared_age,base_model_id,lora_id,lora_version,default_lora_weight,min_lora_weight,max_lora_weight,trigger_words,status")
+      .eq("owner_user_id", userId)
+      .in("status", ["testing", "production"])
+      .order("updated_at", { ascending: false });
+    if (error) throw databaseError("list characters");
+    return (data ?? []) as CharacterBinding[];
+  }
   private async listTable(table: string, columns = "*"): Promise<Record<string, unknown>[]> {
     const { data, error } = await this.client.from(table).select(columns);
     if (error) throw databaseError(`list ${table}`);

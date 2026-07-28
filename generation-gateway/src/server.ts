@@ -10,6 +10,7 @@ import { RunPodProvider } from "./providers/runpod/index.js";
 import { AutoDLProvider } from "./providers/autodl/index.js";
 import { MemoryGenerationRepository, SupabaseGenerationRepository } from "./repository.js";
 import { MemoryRegistryStore, SupabaseRegistryStore } from "./registry.js";
+import { ReferenceAnalysisRequestSchema } from "./reference-analysis.js";
 
 const config = loadConfig();
 const repository = config.SUPABASE_URL && config.SUPABASE_SERVICE_ROLE_KEY
@@ -19,6 +20,7 @@ const registry = config.SUPABASE_URL && config.SUPABASE_SERVICE_ROLE_KEY
   ? new SupabaseRegistryStore(config.SUPABASE_URL, config.SUPABASE_SERVICE_ROLE_KEY)
   : new MemoryRegistryStore();
 const baseUrl = config.PUBLIC_BASE_URL ?? `http://127.0.0.1:${config.PORT}`;
+const realWorkflowAllowlist = config.REAL_PROVIDER_ALLOWLIST.split(",").map((value) => value.trim()).filter(Boolean);
 const providers = new Map<string, GenerationProvider>([
   ["mock", new MockProvider({
     latencyMs: config.MOCK_PROVIDER_LATENCY_MS,
@@ -35,7 +37,7 @@ const providers = new Map<string, GenerationProvider>([
     requestTimeoutMs: config.RUNPOD_REQUEST_TIMEOUT_MS,
     maxPollDurationMs: config.RUNPOD_MAX_POLL_DURATION_MS,
     enabled: config.REAL_PROVIDER_ENABLED,
-    workflowAllowlist: config.REAL_PROVIDER_ALLOWLIST.split(",").map((value) => value.trim()).filter(Boolean),
+    workflowAllowlist: realWorkflowAllowlist,
     publicWebhookBaseUrl: config.PUBLIC_BASE_URL,
     comfyuiWorkflowRef: config.RUNPOD_COMFYUI_WORKFLOW_REF ?? "",
     modelManifestRef: config.RUNPOD_MODEL_MANIFEST_REF ?? "",
@@ -48,7 +50,7 @@ const providers = new Map<string, GenerationProvider>([
     requestTimeoutMs: config.AUTODL_REQUEST_TIMEOUT_MS,
     maxPollDurationMs: config.AUTODL_MAX_POLL_DURATION_MS,
     enabled: config.AUTODL_PROVIDER_ENABLED,
-    workflowAllowlist: config.REAL_PROVIDER_ALLOWLIST.split(",").map((value) => value.trim()).filter(Boolean),
+    workflowAllowlist: realWorkflowAllowlist,
     publicWebhookBaseUrl: config.PUBLIC_BASE_URL,
     comfyuiWorkflowRef: "registry://workflows/single-person-text-to-image-v1/1.0.0",
     modelManifestRef: "registry://models/single-person-photorealistic-model-v1/1.0.0",
@@ -63,7 +65,8 @@ const engine = new GenerationEngine(repository, providers, {
     ? (config.AUTODL_PROVIDER_ENABLED ? config.AUTODL_MAX_POLL_DURATION_MS : config.RUNPOD_MAX_POLL_DURATION_MS)
     : Math.max(5000, config.MOCK_PROVIDER_LATENCY_MS * 10),
   testingWorkflowsEnabled: config.REAL_PROVIDER_ENABLED,
-  testingWorkflowId: config.REAL_PROVIDER_ALLOWLIST.split(",").map((value) => value.trim()).filter(Boolean)[0],
+  testingWorkflowId: realWorkflowAllowlist[0],
+  testingWorkflowIds: realWorkflowAllowlist,
 }, registry);
 const authClient = config.SUPABASE_URL && config.SUPABASE_ANON_KEY
   ? createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false } })
@@ -111,6 +114,24 @@ const server = createServer(async (request, response) => {
     }
 
     const actor = await authenticate(request);
+    if (request.method === "POST" && path === "/v1/reference-analyses") {
+      const input = ReferenceAnalysisRequestSchema.parse(parseJson(await readBody(request)));
+      const analysis = await engine.analyzeReference(actor.id, input);
+      return send(response, 200, {
+        reference_asset_id: input.reference_asset_id,
+        analysis,
+        requires_confirmation: true,
+        request_id: requestId,
+      });
+    }
+    if (request.method === "GET" && path === "/v1/characters") {
+      const characters = (await registry.listCharactersForUser(actor.id)).map((character) => ({
+        id: character.id,
+        display_name: character.display_name,
+        status: character.status,
+      }));
+      return send(response, 200, { characters, request_id: requestId });
+    }
     if (request.method === "POST" && path === "/v1/generations") {
       const input = GenerationInputSchema.parse(parseJson(await readBody(request)));
       const result = await engine.create(actor.id, input);

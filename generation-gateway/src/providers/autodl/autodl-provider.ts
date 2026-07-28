@@ -15,6 +15,11 @@ import {
   type RunPodWorkflowConfig,
 } from "../runpod/workflow.js";
 import { AutoDLJobResponseSchema, type AutoDLJobResponse } from "./types.js";
+import {
+  mapReferenceRemakePlanToWorkerInput,
+  REFERENCE_REMAKE_WORKFLOW_ID,
+  REFERENCE_REMAKE_WORKFLOW_VERSION,
+} from "../../reference-remake-workflow.js";
 
 export interface AutoDLProviderOptions extends RunPodWorkflowConfig {
   baseUrl?: string;
@@ -41,10 +46,16 @@ export class AutoDLProvider implements WebhookVerifyingProvider {
 
   async submit(plan: GenerationPlan): Promise<ProviderSubmitResult> {
     this.assertConfigured();
-    if (!this.options.workflowAllowlist.includes(REAL_IMAGE_WORKFLOW_ID)) {
+    const workflowId = plan.selected_workflow_id;
+    if (!workflowId || !this.options.workflowAllowlist.includes(workflowId)) {
       throw new GatewayError("REAL_WORKFLOW_NOT_ALLOWED", "The requested real workflow is not allowlisted.", 403);
     }
-    const input = mapPlanToWorkerInput(plan, this.options);
+    const input = workflowId === REFERENCE_REMAKE_WORKFLOW_ID
+      ? mapReferenceRemakePlanToWorkerInput(plan, {
+        workflowRegistryRef: `registry://workflows/${REFERENCE_REMAKE_WORKFLOW_ID}/${REFERENCE_REMAKE_WORKFLOW_VERSION}`,
+        storageBucket: this.options.storageBucket,
+      })
+      : mapPlanToWorkerInput(plan, this.options);
     const callbackUrl = this.options.publicWebhookBaseUrl
       ? `${this.options.publicWebhookBaseUrl.replace(/\/$/, "")}/v1/provider-webhooks/autodl`
       : undefined;
