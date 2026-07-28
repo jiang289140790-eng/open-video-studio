@@ -4,9 +4,9 @@ Date: 2026-07-28
 
 Branch: `codex/render-staging`
 
-Status: **IMPLEMENTED / STAGING ONLY**
+Status: **PASS**
 
-## Result
+## Implementation
 
 `AutoDLProvider` implements the existing `GenerationProvider` contract:
 
@@ -19,50 +19,51 @@ Status: **IMPLEMENTED / STAGING ONLY**
 - `mapError`
 
 RunPodProvider remains present and disabled. AutoDL is a temporary staging
-adapter; no frontend, parser, prompt-engine, router, or domain model contains
+adapter; no frontend, parser, prompt engine, router, or domain model contains
 an AutoDL endpoint, token, port, ComfyUI node ID, or local file path.
 
 ## Enabled workflow
 
 - Gateway workflow: `single-person-text-to-image-v1`
 - Provider workflow: `persephone_flux_2_q8_t2i_api_v1`
-- Version: `1.0.0`
-- Status: `testing`
+- Version/status: `1.0.0` / `testing`
 - Media/mode: image / text-to-image
 - Scope: one adult person, photorealistic, no reference image, no LoRA,
   no pose control, no face replacement
 - Ratios: `1:1` and `4:5`
 - Output count: 1–4
-- Worker timeout ceiling: 600 seconds in staging
-- Minimum model VRAM declaration: 24 GB
+- Worker timeout ceiling: 600 seconds
+- Minimum declared VRAM: 24 GB
 
-The Registry contains only logical references and metadata. The Worker resolves
-the fixed workflow and model artifact; the browser never receives either.
+## Runtime
 
-## Runtime verification
+- GPU: NVIDIA GeForce RTX 5090
+- Price configured: ¥2.78/hour
+- Worker health: 200, ComfyUI connected, Storage configured
+- Direct real generation: completed
+- Render-mediated real generation and retry: completed
+- Provider negative paths: invalid auth 401, owner-path mismatch 422,
+  failed, timeout, cancelled, and duplicate submit all passed
+- Gateway/Provider tests: 50/50
 
-- AutoDL contract/unit/integration coverage is part of Gateway 49/49.
-- Authenticated Worker health previously returned 200 with ComfyUI and Storage
-  connected.
-- Direct real generation completed at 1024×1024 in 25,266 ms.
-- A second direct real generation completed in 18,852 ms.
-- Render online real jobs completed and persisted private Storage assets.
-- Invalid JWT, CORS, ownership, cancel, retry, refresh recovery, duplicate
-  webhook, and real output normalization were exercised online.
+## Race-condition fixes
 
-## Safety properties
+Two real acceptance findings were fixed:
 
-- Provider errors map to stable `GenerationError` values.
-- Raw Worker responses and stacks are not returned to the frontend.
-- Render transports JSON only; the Worker uploads image bytes directly.
-- Storage paths are constrained to
-  `generation-results/{user_id}/{job_id}/...`.
-- Completion, asset creation, billing, and webhook events are idempotent.
-- A timeout/failure now interrupts and removes the active ComfyUI queue item
-  before recording the terminal Worker state.
+1. AutoDL cancel now rejects an already-terminal Provider job with stable
+   `PROVIDER_JOB_TERMINAL` instead of falsely marking the Gateway job cancelled.
+2. Gateway cancellation waits for an in-flight Provider submission to settle,
+   then cancels the concrete Provider job.
+3. Worker cancellation rechecks state after upload and deletes any newly
+   uploaded objects.
+4. Partial upload cleanup validates Storage deletion responses and retries
+   transient failures.
 
-## Remaining gate
+The final real rerun produced zero temporary users, zero Phase 2 jobs, and zero
+recent orphan Storage objects.
 
-The AutoDL instance is currently shown as **powered off** in its control panel,
-so the final negative-path run and 10-case benchmark cannot be completed until
-the already-authorized staging instance is started again.
+## Platform decoupling
+
+The shared real-workflow boundary now reports
+`REAL_WORKFLOW_INPUT_UNSUPPORTED`; it no longer exposes a RunPod-specific error
+code when AutoDL rejects an out-of-scope request.

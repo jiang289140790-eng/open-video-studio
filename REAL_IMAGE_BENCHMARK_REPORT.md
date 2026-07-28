@@ -6,67 +6,64 @@ Workflow: `single-person-text-to-image-v1`
 
 Model binding: Persephone Flux 2.0 Q8
 
-Status: **BLOCKED — 10-CASE RUN NOT COMPLETED**
+Status: **PASS WITH QUALITY LIMITATIONS**
 
-## Smoke evidence
+## Technical results
 
-Real images have been generated; this is no longer a zero-output integration:
+| Metric | Result |
+| --- | --- |
+| prompt classes | 10 |
+| outputs per class | 1 |
+| completed | 10/10 |
+| failed | 0 |
+| failure rate | 0% |
+| wall time | 165.381 s |
+| total GPU generation time | 152.330 s |
+| mean / median generation | 15.233 s / 15.333 s |
+| min / max generation | 12.615 s / 17.484 s |
+| output sizes | 5×1024×1024, 5×768×960 |
+| configured GPU price | ¥2.78/hour |
+| proportional attributed cost | ¥0.11763259 |
+| mean attributed cost/output | ¥0.01176326 |
 
-| Run | Result | Dimensions | Duration |
-| --- | --- | --- | --- |
-| direct Worker smoke 1 | completed | 1024×1024 | 25,266 ms |
-| direct Worker smoke 2 | completed | 1024×1024 | 18,852 ms |
-| Render online E2E | completed | 1024×1024 | persisted by Provider |
-| Render retry E2E | completed | 1024×1024 | persisted by Provider |
+The proportional cost is task attribution from measured GPU time. The actual
+AutoDL invoice may charge a complete billing hour; that platform charge must
+be reconciled against the AutoDL bill rather than inferred from one task.
 
-Visual inspection of the first direct image found strong photorealistic face,
-skin, lighting, and plausible visible hands. This is smoke evidence only and
-is not sufficient for a model-quality acceptance claim.
+## Manual image review
 
-## Frozen 10-case set
+Scores use 1–5, where 5 means no visible issue.
 
-1. close-up editorial portrait
-2. full-body standing portrait
-3. hands holding an open book
-4. outdoor street portrait
-5. seated cafe scene
-6. studio fashion portrait
-7. low-angle social-media composition
-8. seated living-room portrait
-9. night city portrait
-10. white-background commercial portrait
+| Case | Align | Anatomy | Face | Hands | Scene | Comp. | Main finding |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| close-up portrait | 5 | 5 | 5 | 5 | 4 | 5 | strong skin and face detail |
+| full-body standing | 5 | 5 | 4 | 4 | 5 | 5 | stable bedroom full-body result |
+| hands and book | 5 | 5 | 5 | 4 | 5 | 5 | hands plausible; book text synthetic |
+| outdoor street | 4 | 4 | 4 | 4 | 5 | 4 | lower legs/feet cropped |
+| cafe scene | 5 | 5 | 5 | 4 | 5 | 5 | cup interaction and hands stable |
+| studio fashion | 5 | 5 | 4 | 5 | 5 | 5 | clean red-gown studio composition |
+| low-angle selfie | 3 | 4 | 5 | 4 | 5 | 4 | tilted/high-angle, not true low-angle |
+| seated living room | 5 | 5 | 5 | 4 | 5 | 5 | good seated anatomy and scene |
+| night city | 5 | 5 | 5 | 5 | 5 | 5 | strong lighting and prompt match |
+| white background | 3 | 4 | 1 | 4 | 5 | 2 | face cropped; framing misses waist-up |
 
-The executable benchmark uses one output per case to control staging cost,
-alternating `1:1` and `4:5`. It records status, state transitions, dimensions,
-duration, GPU type, Storage path, and cost fields.
+Dimension averages:
 
-## Required review rubric
+- prompt alignment: 4.5
+- anatomy: 4.7
+- face: 4.3
+- hands: 4.3
+- scene fidelity: 4.9
+- composition: 4.5
+- overall: 4.53/5
 
-Each completed image will receive 1–5 scores for:
+## Decision
 
-- prompt alignment
-- anatomy
-- face
-- hands
-- scene fidelity
-- composition
+The model/workflow is suitable for the Phase 2 single-person photorealistic
+T2I staging chain. It is not accepted as a general composition-control model:
+low-angle intent and strict commercial framing need later workflow controls.
+No image-to-image, pose control, character LoRA, or style LoRA capability is
+claimed.
 
-The report will also aggregate failure rate, total/median duration, output
-dimensions, estimated cost, actual cost, and cost per output.
-
-## Why no scores are reported
-
-The AutoDL control panel currently shows the staging instance powered off.
-SSH rejects connections and the public Worker route is unavailable. Reporting
-scores without all 10 real outputs would violate the fixed benchmark rule.
-
-In addition, `AUTODL_GPU_HOURLY_COST` remains zero. The dashboard shows a
-separate daily storage charge, but no verified GPU hourly price was captured,
-so `actual_cost` cannot yet be accepted.
-
-## Resume action
-
-Start the existing staging instance, keep it online for approximately
-5–10 minutes, and provide or configure the actual GPU hourly price. The
-prepared benchmark can then run, images can be reviewed, and all benchmark
-objects can be removed from staging Storage.
+All 10 benchmark objects, 10 Worker state files, 10 remote review copies, and
+10 local review copies were deleted after scoring.

@@ -1,70 +1,83 @@
 # Phase 2 Final Acceptance Report
 
-Date: 2026-07-28  
-Branch: `codex/render-staging`  
-Final status: **BLOCKED — NOT ACCEPTED**
+Date: 2026-07-28
 
-## Completed
+Branch: `codex/render-staging`
 
-- AutoDLProvider implements the unified Provider interface.
-- RunPodProvider is retained and disabled.
-- Fixed testing workflow `single-person-text-to-image-v1` is bound to
-  `persephone_flux_2_q8_t2i_api_v1` in staging.
-- ComfyUI + FastAPI Worker deployed on AutoDL RTX 5090.
-- Worker uploads directly to private Supabase staging Storage.
-- Real direct and Render-mediated images completed.
-- Online JWT, CORS, cross-user job/asset isolation, refresh recovery, retry,
-  and duplicate webhook passed.
-- Gateway page-refresh asset signing and resumable idempotent completion were
-  corrected and deployed.
-- Staging migrations are aligned 16/16.
-- Linked staging RLS/role/idempotency suite passed 61/61.
-- Render is live and ready; latest 200 logs contain no detected secrets.
-- No production Supabase access, no real RunPod, no video, no LoRA,
-  no reference-image workflow, and no merge to `main`.
+Final status: **ACCEPTED**
 
-## Current verification matrix
+## Accepted scope
+
+Phase 2 delivered one temporary real-GPU staging chain:
+
+- image
+- text-to-image
+- one adult person
+- photorealistic
+- no reference image
+- no LoRA or control model
+- fixed versioned workflow
+- 1–4 outputs
+- `1:1` and `4:5`
+
+AutoDL is accepted only as the temporary Phase 2 staging Provider. It is not a
+final production-platform decision.
+
+## Acceptance matrix
 
 | Gate | Result |
 | --- | --- |
-| Generation Gateway | 49/49 pass |
+| Generation Gateway | 50/50 pass |
 | Open Video Studio | 75/75 pass |
-| AI Marketing Studio lint | pass |
-| AI Marketing Studio typecheck | pass |
-| AI Marketing Studio build | pass |
-| AI Marketing Studio migration check | pass |
+| AI Marketing Studio lint/typecheck/build/migrations | pass |
 | Supabase staging migrations | 16/16 aligned |
 | Supabase linked RLS/idempotency | 61/61 pass |
-| Render deploy | live |
+| Render deployment | `dep-d9k5ah3m8hqs73bmhs50` live |
 | Render health/readiness | pass |
+| AutoDL Worker health | pass |
 | invalid JWT / CORS | pass |
-| real image completed | pass |
+| real completed image | pass |
+| full real state chain | pass |
 | page refresh recovery | pass |
-| user A/B isolation | pass |
-| duplicate webhook | pass |
-| retry | pass |
-| cancel | passed in an earlier online run; deterministic rerun pending |
-| failed / timeout cleanup | script prepared; runtime pending |
-| 10-case benchmark | blocked |
-| valid actual cost | blocked by missing hourly price |
-| current test-data cleanup | pass: 0 users, 0 jobs, 0 recent orphan objects |
+| user/job/asset isolation | pass |
+| failed / timeout | pass |
+| cancelled / retry | pass |
+| duplicate submit/webhook | pass |
+| no matching real workflow | fail-closed pass |
+| cancellation race handling | pass |
+| orphan cleanup | pass, final count 0 |
+| 10-class benchmark | 10/10 completed |
+| benchmark failure rate | 0% |
+| cost recording | pass at ¥2.78/hour |
+| Render/Worker log redaction | 0 matches |
+| MockProvider regression | pass |
+| secret scan / JSON-YAML / diff check | pass |
 
-## Blocking condition
+## Real benchmark
 
-AutoDL control panel reports the authorized staging instance
-`pro-7841f4d2206a` as **已关机**. SSH port 46294 consistently refuses
-connections and the public Worker mapping is unavailable. Starting it incurs
-pay-as-you-go GPU usage, so it was not restarted from the browser without a
-fresh action-time confirmation.
+- overall manual score: 4.53/5
+- mean generation time: 15.233 seconds
+- proportional attributed cost: ¥0.11763259 for 10 outputs
+- known limitations: low-angle composition and strict white-background
+  commercial framing
 
-## Required human action
+These limitations are recorded but do not block the narrow Phase 2 transport,
+state, security, storage, and rollback objective.
 
-1. Start the existing AutoDL staging instance and keep it running for
-   approximately 5–10 minutes, or explicitly authorize Codex to click
-   **开机** in the AutoDL control panel.
-2. Provide the RTX 5090 hourly price or set `AUTODL_GPU_HOURLY_COST` to the
-   verified value.
+## Safety and scope
 
-After that, run the prepared negative-path suite and 10-case benchmark, inspect
-all outputs, remove test assets/users/jobs/state, rescan logs, run final static
-checks, commit/push the reports, and only then change status to **ACCEPTED**.
+- No production Supabase project was accessed.
+- No production deployment or `main` merge occurred.
+- RunPodProvider remains disabled.
+- No real video Provider, LoRA, checkpoint expansion, reference-image flow, or
+  additional workflow type was added.
+- Test users, jobs, assets, Storage objects, review copies, and Worker states
+  were cleaned.
+
+## Decision
+
+All Phase 2 gates for the authorized temporary AutoDL staging chain are
+satisfied. Phase 2 is **ACCEPTED**.
+
+Before any production use, rotate credentials that appeared in chat and run a
+separate production-readiness review for the final GPU platform.

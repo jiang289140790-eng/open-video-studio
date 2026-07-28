@@ -1,78 +1,71 @@
 # Real Provider Security Review
 
-Date: 2026-07-28  
-Status: **PASS FOR IMPLEMENTED CONTROLS / FINAL RUNTIME GATES BLOCKED**
+Date: 2026-07-28
+
+Status: **PASS**
 
 ## Environment separation
 
-- Only Supabase staging project `wyvswkxogkmywduhrhkw` was used.
-- No production Supabase project was queried or modified.
-- Render service is `generation-gateway-staging`.
-- RunPodProvider remains present but disabled.
-- Render has no `RUNPOD_*` variables.
-- AutoDL is explicitly staging-only and is not described as production.
-- No branch was merged into `main`.
+- Supabase staging project: `wyvswkxogkmywduhrhkw`
+- Render service: `generation-gateway-staging`
+- AutoDL: temporary staging only
+- RunPodProvider: retained and disabled
+- Render `RUNPOD_*` variables: none
+- Production Supabase access: none
+- `main` merge: none
 
-## Secret handling
+## Secrets and logs
 
-- Render environment contains the required `AUTODL_*` names; values are not
-  committed or printed.
+- Secrets remain in Render/Worker environments and are not committed.
 - Frontend responses omit Provider endpoint, token, model path, workflow JSON,
   and ComfyUI node IDs.
-- Gateway logs do not record authorization headers or request bodies.
-- The latest 200 Render log records produced zero matches for JWT/Bearer,
-  Supabase secret/service-role markers, Render tokens, AutoDL tokens, webhook
-  secrets, or the credentials previously pasted in chat.
-- Credentials pasted in chat should still be rotated after acceptance.
+- Latest 500 Render log records: zero secret-pattern matches.
+- AutoDL Worker log scan: zero token/service-role/Bearer matches.
+- Render `/health` and `/ready`: pass.
+- Credentials previously pasted in chat should still be rotated after this
+  acceptance.
 
-## Storage and ownership
-
-- Bucket `generation-results` is private.
-- Worker input enforces
-  `generation-results/{user_id}/{job_id}`.
-- Provider normalization rechecks user, job, prefix, output count, unique
-  output index, signed-URL expiry, and absence of local/data/blob URLs.
-- Render does not proxy image bytes.
-- Refresh recovery signs the bucket-relative object path.
-- Deterministic asset IDs and unique constraints prevent duplicate callback
-  assets.
-- Online user B read of user A job returned 404.
-- Online user B saw zero assets from user A's job.
-- Five early smoke/E2E orphan objects were removed through the staging Storage
-  API; the post-cleanup audit reports zero recent orphan objects.
-
-## JWT, RLS, and roles
+## JWT, RLS, and ownership
 
 - Staging migrations: 16/16 aligned.
 - Linked transactional RLS suite: 61/61.
-- Coverage includes anon, authenticated users A/B, admin, operator,
-  service-role behavior, protected internal fields, management registries,
-  webhook idempotency, billing idempotency, and private Storage configuration.
-- The transaction rolled back its test data.
+- Coverage includes anon, users A/B, admin, operator, service role, protected
+  fields, management registries, webhook idempotency, billing idempotency, and
+  private Storage.
+- User B received 404 for user A's job and saw zero user A assets.
+- Storage prefix validation rejected a mismatched owner with 422.
 
-## Webhook and errors
+## Webhook, billing, and errors
 
 - HMAC-SHA256 verification uses timing-safe comparison.
-- Replayed online callback returned `duplicate=false` then `duplicate=true`.
-- Duplicate callbacks resume nonterminal work but do not duplicate events,
-  assets, completion cost, or billing.
-- Provider errors are normalized; raw stack traces are not returned.
-- Cancel, timeout, and failure interrupt/delete the active ComfyUI prompt.
+- Duplicate callback returned false then true without duplicate assets/events.
+- Duplicate submit reused the same Provider job.
+- Provider errors map to stable public errors; raw stacks are not returned.
+- Billing/cost records include Provider, GPU type, duration, output count,
+  cost/output, and Provider-attempt ID.
+- Out-of-scope real requests fail closed and never silently use MockProvider.
 
-## Render status
+## Orphan prevention
 
-- Latest live deploy: `dep-d9k4m95aeets73a5vm50`
-- Commit: `ddbcf4b`
-- `/health`: 200 / `ok`
-- `/ready`: 200 / `ready`
-- Render service is not suspended.
+Real acceptance discovered and fixed two cancellation/upload races. The final
+implementation:
 
-## Residual blockers
+- waits for Provider submission before cancellation;
+- rejects cancellation of already-terminal Provider work;
+- rechecks cancel state after uploads;
+- deletes post-cancel uploads;
+- retries and validates partial-upload cleanup.
 
-1. AutoDL instance is currently powered off.
-2. Final deterministic failed/timeout/cancel cleanup run is pending.
-3. Ten real benchmark outputs and their subsequent cleanup are pending.
-4. A verified GPU hourly price is missing; actual cost remains zero.
-5. Final post-benchmark Worker/Render log scan is pending.
+Final audit:
 
-Phase 2 security acceptance remains blocked until those runtime gates pass.
+- temporary auth users: 0
+- Phase 2 jobs: 0
+- recent orphan Storage objects: 0
+- benchmark local/remote review files: 0
+- benchmark Worker state files: 0
+
+## Scope confirmation
+
+No video, image-to-image, reference image, face swap, outfit change,
+ControlNet, IPAdapter, character/style LoRA, real RunPod Endpoint, or production
+workflow was enabled.
