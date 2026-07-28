@@ -5,72 +5,134 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>购买积分 | Luravyn</title>
     <link rel="icon" type="image/png" href="./favicon.png">
-    <meta name="description" content="一次性购买 Luravyn 积分，用于已上线的 AI 图片和视频工具。">
+    <meta name="description" content="购买 Luravyn 积分，用于 AI 图片、视频、角色和可复用资产生成。">
+    <link rel="canonical" href="https://luravyn.com/zh/pricing/">
+    <link rel="alternate" hreflang="zh-CN" href="https://luravyn.com/zh/pricing/">
+    <link rel="alternate" hreflang="en" href="https://luravyn.com/en/pricing/">
+    <link rel="alternate" hreflang="ja" href="https://luravyn.com/ja/pricing/">
+    <link rel="alternate" hreflang="ko" href="https://luravyn.com/ko/pricing/">
+    <link rel="alternate" hreflang="x-default" href="https://luravyn.com/en/pricing/">
     <meta name="robots" content="index,follow">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Luravyn">
+    <meta property="og:title" content="购买积分 | Luravyn">
+    <meta property="og:description" content="购买 Luravyn 积分，用于 AI 图片、视频、角色和可复用资产生成。">
+    <meta property="og:url" content="https://luravyn.com/zh/pricing/">
+    <meta property="og:image" content="https://luravyn.com/brand/luravyn-logo-hero.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="购买积分 | Luravyn">
+    <meta name="twitter:description" content="购买 Luravyn 积分，用于 AI 图片、视频、角色和可复用资产生成。">
     <meta name="theme-color" content="#111111">
     <link rel="stylesheet" href="./styles.css">
   </head>
-  <body class="pricing-page">
+  <body>
     <header class="topbar">
       <a class="brand" href="./zh/app/"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
+      <nav class="topnav" aria-label="主导航">
+        <a href="./zh/app/generate/">图像工具</a>
+        <a href="./zh/app/image-to-video/">视频工具</a>
+        <a href="./zh/pricing/" aria-current="page">购买积分</a>
+        <a href="./zh/free-coins/">免费硬币</a>
+        <a href="./zh/my-creations/">我的创作</a>
+      </nav>
+      <nav class="accountnav" aria-label="账号导航">
+        <a class="daily-check" href="./zh/free-coins/">每日签到</a>
+        <a href="./zh/login/">登录</a>
+      </nav>
     </header>
 
-    <main class="app-surface pricing-page" data-pricing-page>
-      <section class="pricing-hero" aria-labelledby="pricing-title">
-        <div>
-          <p class="eyebrow">一次性积分</p>
-          <h1 id="pricing-title">按需要购买，不自动续费</h1>
-          <p>积分可用于当前已上线的图片与视频工具。每次提交前都会显示实际消耗，失败任务按现有规则退回积分。</p>
+    <main class="app-surface pricing-page">
+      <section class="credit-shop-shell">
+        <div class="credit-shop-art">
+          <span class="credit-shop-badge">限时加赠</span>
+          <div class="credit-character art-2"></div>
+          <h2>为下一次生成准备足够积分</h2>
+          <p>图片、角色、视频和资产复用都使用同一套积分余额。生成前显示预计消耗，购买后立即可用于创作。</p>
         </div>
-        <div class="pricing-capabilities" aria-label="产品能力">
-          <article><span>图</span><strong>图片生成与编辑</strong><small>编辑、换脸、服装与姿势</small></article>
-          <article><span>视</span><strong>图片转视频</strong><small>按工作流与时长计费</small></article>
-          <article><span>人</span><strong>角色一致性</strong><small>复用人物与参考素材</small></article>
-          <article><span>存</span><strong>可复用资产</strong><small>结果保存到我的作品</small></article>
-        </div>
-      </section>
 
-      <section class="pricing-shop" aria-labelledby="package-title">
-        <div class="tool-section-head">
-          <div>
-            <p class="eyebrow">积分套餐</p>
-            <h2 id="package-title">选择适合你的用量</h2>
+        <section class="credit-shop-panel" aria-labelledby="pricing-title">
+          <p class="eyebrow">购买积分</p>
+          <h1 id="pricing-title">选择你的创作套餐</h1>
+          <p class="shop-subtitle">一次性购买 · 不自动续费 · 资产默认私密</p>
+
+          <div class="credit-plan-list">
+            <button class="credit-plan-card" type="button" data-buy-credits="200" data-plan-name="入门包">
+              <span>200 积分</span>
+              <strong>$9.99</strong>
+              <small>立即购买</small>
+            </button>
+            <button class="credit-plan-card featured" type="button" data-buy-credits="1000" data-plan-name="创作者包">
+              <i>50% OFF</i>
+              <span>1000 积分</span>
+              <strong>$29.99</strong>
+              <em>原价 $59.99</em>
+              <small>立即购买</small>
+              <b>约 $0.30 / 图片 · $1.20 / 视频</b>
+            </button>
+            <button class="credit-plan-card" type="button" data-buy-credits="5000" data-plan-name="增长包">
+              <i>83% OFF</i>
+              <span>5000 积分</span>
+              <strong>$99.99</strong>
+              <em>原价 $599.99</em>
+              <small>立即购买</small>
+            </button>
+            <button class="credit-plan-card" type="button" data-buy-credits="20000" data-plan-name="工作室包">
+              <i>90% OFF</i>
+              <span>20000 积分</span>
+              <strong>$299.99</strong>
+              <em>原价 $2999.99</em>
+              <small>立即购买</small>
+            </button>
           </div>
-          <p class="pricing-balance" data-pricing-balance>登录后查看当前余额</p>
-        </div>
-        <div class="pricing-status" data-pricing-provider-status role="status">正在检查可用支付方式…</div>
-        <div class="credit-plan-list" data-pricing-plans aria-live="polite"></div>
-      </section>
 
-      <section class="pricing-usage" aria-labelledby="usage-title">
-        <div class="tool-section-head">
-          <div>
-            <p class="eyebrow">真实用途</p>
-            <h2 id="usage-title">不同工具消耗不同积分</h2>
+          <ul class="payment-notes">
+            <li>不会在银行账单中显示生成内容</li>
+            <li>一次性购买，不会自动扣款</li>
+            <li>积分可用于图片、视频、角色和资产生成</li>
+          </ul>
+
+          <div class="payment-box">
+            <span class="payment-ribbon">支付预接入</span>
+            <button class="active" type="button" data-payment-method="stripe">Stripe 卡支付</button>
+            <button type="button" data-payment-method="paypal">PayPal</button>
           </div>
-          <a href="./zh/app/">查看全部工具</a>
-        </div>
-        <div class="pricing-usage-grid" data-pricing-usage></div>
-        <p class="pricing-footnote">数量按当前已发布工具价格区间估算，最终以提交任务前显示的积分为准。</p>
+          <p class="global-payment-note">Stripe / PayPal 已接入结账入口；配置正式账号密钥后启用真实扣款。未配置前只会进入演示结账。</p>
+        </section>
+
+        <aside class="credit-social-proof">
+          <h2>创作者正在使用 Luravyn</h2>
+          <p>适合持续制作角色、短视频、广告素材和可复用内容资产。</p>
+          <article><strong>★★★★★</strong><span>“积分价格清楚，生成前能看到预计消耗，适合长期做内容。”</span></article>
+          <article><strong>★★★★★</strong><span>“角色、历史和素材库放在一起，比单次生成工具更像真正工作台。”</span></article>
+          <article><strong>★★★★★</strong><span>“买一次积分，不用订阅，适合先验证创作流程。”</span></article>
+          <div class="credit-metrics">
+            <div><b>50K+</b><small>测试创作者</small></div>
+            <div><b>4.9/5</b><small>体验评分</small></div>
+            <div><b>99%</b><small>私密资产</small></div>
+          </div>
+        </aside>
       </section>
 
-      <section class="pricing-promises" aria-labelledby="promise-title">
-        <h2 id="promise-title">购买前你需要知道</h2>
-        <div>
-          <article><strong>一次性购买</strong><span>不是订阅，不会自动续费。</span></article>
-          <article><strong>失败退积分</strong><span>生成失败按现有任务规则处理退款。</span></article>
-          <article><strong>默认私密</strong><span>作品默认只对当前账户可见。</span></article>
-          <article><strong>支付方式按配置显示</strong><span>未配置的支付入口不会展示。</span></article>
+      <section class="tool-section">
+        <div class="tool-section-head">
+          <h2>购买后可以创建什么？</h2>
+          <a href="./zh/app/generate/">开始生成</a>
+        </div>
+        <div class="card-carousel compact">
+          <a class="tool-poster art-3" href="./zh/app/generate/"><strong>产品主视觉</strong><span>8 积分</span></a>
+          <a class="tool-poster art-7" href="./zh/app/image-to-video/"><strong>图片转视频</strong><span>24 积分</span></a>
+          <a class="tool-poster art-2" href="./zh/app/characters/"><strong>一致角色</strong><span>12 积分</span></a>
+          <a class="tool-poster art-9" href="./zh/assets/"><strong>可复用资产</strong><span>保存到素材库</span></a>
         </div>
       </section>
 
       <section class="pricing-preview">
         <div>
-          <p class="eyebrow">免费积分</p>
-          <h2>想先体验再购买？</h2>
-          <p class="muted">登录后可查看每日奖励和推荐好友活动。</p>
+          <p class="eyebrow">免费硬币</p>
+          <h2>还想先试用？</h2>
+          <p class="muted">通过每日签到和推荐好友获得额外积分，再决定购买哪一个套餐。</p>
         </div>
-        <a class="btn primary" href="./zh/free-coins/">查看免费积分</a>
+        <a class="btn primary" href="./zh/free-coins/">打开免费硬币</a>
       </section>
     </main>
 

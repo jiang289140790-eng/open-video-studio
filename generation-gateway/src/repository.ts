@@ -18,6 +18,14 @@ export interface ListJobsOptions {
   offset: number;
 }
 
+export interface ProviderCostMetrics {
+  provider_attempt_id?: string;
+  gpu_type?: string;
+  generation_duration_ms?: number;
+  output_count?: number;
+  cost_per_output?: number;
+}
+
 export interface GenerationRepository {
   createJob(userId: string, input: GenerationInput, retryOfJobId?: string): Promise<GenerationJob>;
   findByIdempotencyKey(userId: string, key: string): Promise<GenerationJob | null>;
@@ -28,10 +36,10 @@ export interface GenerationRepository {
   patchJob(jobId: string, patch: Partial<GenerationJob>): Promise<GenerationJob>;
   appendEvent(event: Omit<GenerationEvent, "id" | "created_at">): Promise<boolean>;
   addAttempt(jobId: string, userId: string, provider: string, providerJobId: string, estimatedCost: number): Promise<void>;
-  completeAttempt(providerJobId: string, status: "completed" | "failed" | "cancelled", cost: number, errorCode?: string): Promise<void>;
+  completeAttempt(providerJobId: string, status: "completed" | "failed" | "cancelled", cost: number, errorCode?: string, metrics?: ProviderCostMetrics): Promise<void>;
   saveAssets(userId: string, assets: GenerationAsset[]): Promise<void>;
   saveReview(userId: string, review: GenerationReview): Promise<void>;
-  recordBilling(userId: string, jobId: string, operation: "estimate" | "reserve" | "capture" | "release" | "refund", amount: number, idempotencyKey: string): Promise<boolean>;
+  recordBilling(userId: string, jobId: string, operation: "estimate" | "reserve" | "capture" | "release" | "refund", amount: number, idempotencyKey: string, provider?: string, metrics?: ProviderCostMetrics): Promise<boolean>;
   ownedAssetIds(userId: string, ids: string[]): Promise<ReadonlySet<string>>;
   listEvents(jobId: string): Promise<GenerationEvent[]>;
   ready(): Promise<boolean>;
@@ -139,7 +147,7 @@ export class MemoryGenerationRepository implements GenerationRepository {
   async saveReview(_userId: string, review: GenerationReview): Promise<void> {
     await this.patchJob(review.job_id, { review });
   }
-  async recordBilling(_userId: string, _jobId: string, _operation: "estimate" | "reserve" | "capture" | "release" | "refund", _amount: number, idempotencyKey: string): Promise<boolean> {
+  async recordBilling(_userId: string, _jobId: string, _operation: "estimate" | "reserve" | "capture" | "release" | "refund", _amount: number, idempotencyKey: string, _provider?: string, _metrics?: ProviderCostMetrics): Promise<boolean> {
     if (this.billingKeys.has(idempotencyKey)) return false;
     this.billingKeys.add(idempotencyKey);
     return true;
@@ -220,7 +228,7 @@ export class SupabaseGenerationRepository implements GenerationRepository {
     const { data, error } = await this.client.from("generation_jobs").select("*,generation_assets(*)")
       .eq("id", jobId).maybeSingle();
     if (error) throw new GatewayError("DATABASE_READ_FAILED", "Could not read generation job.", 503, true);
-    return data ? mapSupabaseJob(data) : null;
+    return data ? this.mapJobWithFreshAssetUrls(data) : null;
   }
 
   async listJobs(userId: string, options: ListJobsOptions): Promise<GenerationJob[]> {
@@ -230,7 +238,7 @@ export class SupabaseGenerationRepository implements GenerationRepository {
     if (options.status) query = query.eq("status", options.status);
     const { data, error } = await query;
     if (error) throw new GatewayError("DATABASE_READ_FAILED", "Could not list generation jobs.", 503, true);
-    return (data ?? []).map(mapSupabaseJob);
+    return Promise.all((data ?? []).map((row) => this.mapJobWithFreshAssetUrls(row)));
   }
 
   async transition(jobId: string, to: GenerationStatus, patch: Partial<GenerationJob> = {}): Promise<GenerationJob> {
@@ -285,15 +293,21 @@ export class SupabaseGenerationRepository implements GenerationRepository {
     const attemptNumber = (job?.attempt_count ?? 0) + 1;
     const { error } = await this.client.from("generation_attempts").insert({
       id: newId("attempt"), job_id: jobId, user_id: userId, attempt_number: attemptNumber,
-      provider, provider_job_id: providerJobId, status: "submitted", estimated_cost: estimatedCost,
+      provider, provider_job_id: providerJobId, provider_attempt_id: providerJobId,
+      status: "submitted", estimated_cost: estimatedCost,
     });
     if (error) throw new GatewayError("DATABASE_WRITE_FAILED", "Could not record provider attempt.", 503, true);
     await this.patchJob(jobId, { attempt_count: attemptNumber });
   }
 
-  async completeAttempt(providerJobId: string, status: "completed" | "failed" | "cancelled", cost: number, errorCode?: string): Promise<void> {
+  async completeAttempt(providerJobId: string, status: "completed" | "failed" | "cancelled", cost: number, errorCode?: string, metrics: ProviderCostMetrics = {}): Promise<void> {
     const { error } = await this.client.from("generation_attempts").update({
       status, final_cost: cost, error_code: errorCode ?? null, completed_at: new Date().toISOString(),
+      provider_attempt_id: metrics.provider_attempt_id ?? providerJobId,
+      gpu_type: metrics.gpu_type ?? null,
+      generation_duration_ms: metrics.generation_duration_ms ?? null,
+      output_count: metrics.output_count ?? null,
+      cost_per_output: metrics.cost_per_output ?? null,
     }).eq("provider_job_id", providerJobId);
     if (error) throw new GatewayError("DATABASE_WRITE_FAILED", "Could not update provider attempt.", 503, true);
   }
@@ -303,6 +317,10 @@ export class SupabaseGenerationRepository implements GenerationRepository {
     const { error } = await this.client.from("generation_assets").upsert(
       assets.map((asset) => ({
         id: asset.id, job_id: asset.job_id, user_id: userId, media_type: asset.media_type,
+        storage_bucket: asset.metadata.storage_path ? "generation-results" : null,
+        storage_path: asset.metadata.storage_path ?? null,
+        signed_url_expires_at: asset.metadata.signed_url_expires_at ?? null,
+        checksum_sha256: asset.metadata.checksum_sha256 ?? null,
         public_url: asset.url, preview_url: asset.preview_url ?? null, mime_type: asset.mime_type,
         width: asset.width ?? null, height: asset.height ?? null, duration_seconds: asset.duration_seconds ?? null,
         metadata: asset.metadata,
@@ -320,10 +338,16 @@ export class SupabaseGenerationRepository implements GenerationRepository {
     if (error) throw new GatewayError("DATABASE_WRITE_FAILED", "Could not save generation review.", 503, true);
   }
 
-  async recordBilling(userId: string, jobId: string, operation: "estimate" | "reserve" | "capture" | "release" | "refund", amount: number, idempotencyKey: string): Promise<boolean> {
+  async recordBilling(userId: string, jobId: string, operation: "estimate" | "reserve" | "capture" | "release" | "refund", amount: number, idempotencyKey: string, provider = "mock", metrics: ProviderCostMetrics = {}): Promise<boolean> {
     const { error } = await this.client.from("generation_billing_events").insert({
-      id: newId("billing"), user_id: userId, job_id: jobId, operation, amount, provider: "mock",
+      id: newId("billing"), user_id: userId, job_id: jobId, operation, amount, provider,
       idempotency_key: idempotencyKey,
+      provider_attempt_id: metrics.provider_attempt_id ?? null,
+      gpu_type: metrics.gpu_type ?? null,
+      generation_duration_ms: metrics.generation_duration_ms ?? null,
+      output_count: metrics.output_count ?? null,
+      cost_per_output: metrics.cost_per_output ?? null,
+      metadata: metrics,
     });
     if (error?.code === "23505") return false;
     if (error) throw new GatewayError("DATABASE_WRITE_FAILED", "Could not record billing event.", 503, true);
@@ -357,6 +381,28 @@ export class SupabaseGenerationRepository implements GenerationRepository {
   async ready(): Promise<boolean> {
     const { error } = await this.client.from("workflow_registry").select("id", { head: true, count: "exact" }).limit(1);
     return !error;
+  }
+
+  private async mapJobWithFreshAssetUrls(row: Record<string, any>): Promise<GenerationJob> {
+    const job = mapSupabaseJob(row);
+    const storedAssets = (row.generation_assets ?? []) as Record<string, any>[];
+    await Promise.all(job.assets.map(async (asset) => {
+      const stored = storedAssets.find((item) => String(item.id) === asset.id);
+      if (!stored?.storage_bucket || !stored?.storage_path) return;
+      const { data, error } = await this.client.storage
+        .from(String(stored.storage_bucket))
+        .createSignedUrl(String(stored.storage_path), 900);
+      if (error || !data?.signedUrl) {
+        throw new GatewayError("ASSET_SIGNING_FAILED", "Could not create a fresh result URL.", 503, true);
+      }
+      asset.url = data.signedUrl;
+      asset.preview_url = data.signedUrl;
+      asset.metadata = {
+        ...asset.metadata,
+        signed_url_expires_at: new Date(Date.now() + 900_000).toISOString(),
+      };
+    }));
+    return job;
   }
 }
 
@@ -416,7 +462,12 @@ function mapSupabaseJob(row: Record<string, any>): GenerationJob {
       mime_type: String(asset.mime_type), ...(asset.width ? { width: Number(asset.width) } : {}),
       ...(asset.height ? { height: Number(asset.height) } : {}),
       ...(asset.duration_seconds ? { duration_seconds: Number(asset.duration_seconds) } : {}),
-      metadata: asset.metadata ?? {},
+      metadata: {
+        ...(asset.metadata ?? {}),
+        ...(asset.storage_path ? { storage_path: String(asset.storage_path) } : {}),
+        ...(asset.signed_url_expires_at ? { signed_url_expires_at: String(asset.signed_url_expires_at) } : {}),
+        ...(asset.checksum_sha256 ? { checksum_sha256: String(asset.checksum_sha256) } : {}),
+      },
     })),
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),

@@ -2,13 +2,15 @@ import type { GenerationInput, GenerationJob, GenerationReview } from "./domain.
 import { GatewayError, newId } from "./errors.js";
 import { buildPromptPackage, listWorkflowManifests, parseCreativeBrief, routeWorkflow, validatePolicy } from "./planning.js";
 import type { GenerationProvider } from "./provider.js";
-import type { GenerationRepository } from "./repository.js";
+import type { GenerationRepository, ProviderCostMetrics } from "./repository.js";
 import type { RegistryStore } from "./registry.js";
 import { isTerminal } from "./state-machine.js";
 
 export interface EngineOptions {
   pollIntervalMs: number;
   maxExecutionMs: number;
+  testingWorkflowsEnabled?: boolean;
+  testingWorkflowId?: string;
 }
 
 export class GenerationEngine {
@@ -37,7 +39,7 @@ export class GenerationEngine {
       job = await this.repository.transition(job.id, "planning");
       job = await this.repository.transition(job.id, "routing");
       const availableManifests = await this.availableManifests();
-      const plan = routeWorkflow(job.id, userId, input, brief, availableManifests);
+      const plan = this.route(job.id, userId, input, brief, availableManifests);
       plan.prompt_package = buildPromptPackage(plan);
       const providerId = await this.selectProvider(plan.selected_workflow_id!, availableManifests);
       const estimate = input.media_type === "image" ? input.output_count : input.output_count * 3;
@@ -146,7 +148,7 @@ export class GenerationEngine {
     current = await this.repository.transition(job.id, "planning");
     current = await this.repository.transition(job.id, "routing");
     const availableManifests = await this.availableManifests();
-    const plan = routeWorkflow(job.id, userId, input, brief, availableManifests);
+    const plan = this.route(job.id, userId, input, brief, availableManifests);
     plan.prompt_package = buildPromptPackage(plan);
     const providerId = await this.selectProvider(plan.selected_workflow_id!, availableManifests);
     const estimate = input.media_type === "image" ? input.output_count : input.output_count * 3;
@@ -210,14 +212,24 @@ export class GenerationEngine {
           return;
         }
         if (status.status === "completed" && status.result) {
+          provider.validateResultForPlan?.(status.result, job.generation_plan!);
           if (job.status === "submitted") job = await this.repository.transition(job.id, "running", { started_at: new Date().toISOString() });
           job = await this.repository.transition(job.id, "post_processing");
           await this.repository.saveAssets(job.user_id, status.result.assets);
           job = await this.repository.transition(job.id, "reviewing");
           const review = reviewResult(job.id, status.result.assets.length === job.output_count);
           await this.repository.saveReview(job.user_id, review);
-          await this.repository.completeAttempt(status.provider_job_id, "completed", status.result.cost);
-          await this.repository.recordBilling(job.user_id, job.id, "capture", status.result.cost, `billing:${job.id}:capture`);
+          const metrics = costMetrics(status.result.raw_redacted);
+          await this.repository.completeAttempt(status.provider_job_id, "completed", status.result.cost, undefined, metrics);
+          await this.repository.recordBilling(
+            job.user_id,
+            job.id,
+            "capture",
+            status.result.cost,
+            `billing:${job.id}:capture`,
+            provider.id,
+            metrics,
+          );
           await this.repository.transition(job.id, "completed", {
             assets: status.result.assets,
             review,
@@ -256,6 +268,23 @@ export class GenerationEngine {
     return this.registry ? this.registry.listWorkflows() : listWorkflowManifests();
   }
 
+  private route(
+    jobId: string,
+    userId: string,
+    input: GenerationInput,
+    brief: ReturnType<typeof parseCreativeBrief>,
+    manifests: Awaited<ReturnType<RegistryStore["listWorkflows"]>>,
+  ) {
+    const realTestRequested = input.structured_options.execution_mode === "real_test";
+    if (realTestRequested && (!this.options.testingWorkflowsEnabled || !this.options.testingWorkflowId)) {
+      throw new GatewayError("REAL_PROVIDER_NOT_ENABLED", "Real image testing is not enabled in this environment.", 503, false);
+    }
+    return routeWorkflow(jobId, userId, input, brief, manifests, realTestRequested ? {
+      allowedStatuses: ["testing"],
+      requiredWorkflowId: this.options.testingWorkflowId,
+    } : undefined);
+  }
+
   private async selectProvider(workflowId: string, manifests: Awaited<ReturnType<RegistryStore["listWorkflows"]>>): Promise<string> {
     const manifest = manifests.find((item) => item.id === workflowId);
     if (!manifest) throw new GatewayError("WORKFLOW_NOT_FOUND", "Selected workflow is no longer registered.", 409, true);
@@ -290,3 +319,13 @@ function reviewResult(jobId: string, outputCountMatches: boolean): GenerationRev
 }
 
 const delay = (milliseconds: number) => new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
+
+function costMetrics(value: Record<string, unknown>): ProviderCostMetrics {
+  return {
+    ...(typeof value.provider_attempt_id === "string" ? { provider_attempt_id: value.provider_attempt_id } : {}),
+    ...(typeof value.gpu_type === "string" ? { gpu_type: value.gpu_type } : {}),
+    ...(typeof value.generation_duration_ms === "number" ? { generation_duration_ms: value.generation_duration_ms } : {}),
+    ...(typeof value.output_count === "number" ? { output_count: value.output_count } : {}),
+    ...(typeof value.cost_per_output === "number" ? { cost_per_output: value.cost_per_output } : {}),
+  };
+}

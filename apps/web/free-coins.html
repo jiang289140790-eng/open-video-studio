@@ -3,21 +3,40 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>免费积分 | Luravyn</title>
+    <title>免费硬币 | Luravyn</title>
     <link rel="icon" type="image/png" href="./favicon.png">
-    <meta name="description" content="通过每日签到、有效推荐、首次成功生成和作品分享获得 Luravyn 奖励积分。">
+    <meta name="description" content="通过每日签到和推荐好友领取免费 AI 创作积分。">
+    <link rel="canonical" href="https://luravyn.com/zh/free-coins/">
+    <link rel="alternate" hreflang="zh-CN" href="https://luravyn.com/zh/free-coins/">
+    <link rel="alternate" hreflang="en" href="https://luravyn.com/en/free-coins/">
+    <link rel="alternate" hreflang="ja" href="https://luravyn.com/ja/free-coins/">
+    <link rel="alternate" hreflang="ko" href="https://luravyn.com/ko/free-coins/">
+    <link rel="alternate" hreflang="x-default" href="https://luravyn.com/en/free-coins/">
+    <meta name="robots" content="index,follow">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Luravyn">
+    <meta property="og:title" content="免费硬币 | Luravyn">
+    <meta property="og:description" content="通过每日签到和推荐好友领取免费 AI 创作积分。">
+    <meta property="og:url" content="https://luravyn.com/zh/free-coins/">
+    <meta property="og:image" content="https://luravyn.com/brand/luravyn-logo-hero.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="免费硬币 | Luravyn">
+    <meta name="twitter:description" content="通过每日签到和推荐好友领取免费 AI 创作积分。">
+    <meta name="theme-color" content="#111111">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./zh/app/"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
+      <nav class="topnav" aria-label="Primary navigation"><a href="./zh/app/generate/">图像工具</a><a href="./zh/app/image-to-video/">视频工具</a><a href="./zh/pricing/">购买积分</a><a href="./zh/free-coins/" aria-current="page">免费硬币</a><a href="./zh/my-creations/">我的创作</a></nav>
+      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./zh/free-coins/">每日签到</a><a href="./zh/login/">登录</a></nav>
     </header>
     <main class="app-surface referral-page">
       <section class="free-coin-hero">
         <div>
-          <p class="eyebrow">免费积分</p>
-          <h1>完成真实任务，获得创作积分</h1>
-          <p class="lead">奖励由服务端核验后写入同一积分账本。签到按 UTC 日期计算，同一天只能领取一次。</p>
+          <p class="eyebrow">免费硬币</p>
+          <h1>赚取免费积分</h1>
+          <p class="lead">签到、邀请创作者、完成首次生成，都可以获得更多 AI 创作额度。</p>
           <div class="free-coin-actions">
             <button class="btn primary daily-check" type="button">🎁 每日签到</button>
             <a class="btn glass" href="./zh/login/" data-auth-modal>登录开始</a>
@@ -25,39 +44,35 @@
         </div>
         <aside class="login-required-card" data-referral-state>
           <span>需要登录</span>
-          <h2>登录后查看奖励中心</h2>
-          <p>查看签到进度、推荐归因、已发奖励和当前积分余额。</p>
+          <h2>登录后查看你的推荐仪表板</h2>
+          <p>登录后可以复制专属推荐链接、查看奖励进度，并领取完成任务后的免费积分。</p>
           <a class="btn primary full" href="./zh/login/" data-auth-modal>登录开始</a>
         </aside>
       </section>
-
       <section class="reward-panel referral-dashboard">
         <div>
-          <p class="eyebrow">推荐好友</p>
-          <h2>每位有效推荐奖励 20 积分</h2>
-          <p class="muted">好友须通过链接注册并完成验证；当前规则还要求完成首次成功生成。异常同设备账户进入风控，不立即发奖。</p>
+          <p class="eyebrow">推荐计划</p>
+          <h2>每邀请 1 位有效创作者，获得 20 积分</h2>
+          <p class="muted">当对方注册并完成首次生成后，奖励会进入你的积分余额。</p>
           <label class="referral-copy">
             <span>你的推荐链接</span>
-            <input value="登录后生成专属推荐链接" readonly data-referral-link>
+            <input value="https://openvideostudio.app/?ref=creator-demo" readonly data-referral-link>
           </label>
-          <div class="referral-progress" data-referral-progress>
-            <span>点击 <b>0</b></span><span>注册 <b>0</b></span><span>有效推荐 <b>0</b></span><span>已发奖励 <b>0</b></span>
-          </div>
+          <div class="referral-progress" data-referral-progress></div>
         </div>
         <button class="btn glass" type="button" data-copy-referral>复制链接</button>
       </section>
-
       <section class="free-coin-calendar">
         <div class="tool-section-head">
           <div>
             <p class="eyebrow">每日签到</p>
             <h2>连续 7 天最多领取 65 积分</h2>
-            <p class="muted" data-checkin-status>登录后可签到</p>
+            <p class="muted">每天回来领取奖励，积分可用于图片、角色和视频生成。</p>
           </div>
           <button class="btn primary daily-check" type="button">立即签到</button>
         </div>
         <div class="checkin-days inline-calendar">
-          <article><strong>+5</strong><span>Day 1</span></article>
+          <article class="active"><strong>+5</strong><span>Day 1</span></article>
           <article><strong>+6</strong><span>Day 2</span></article>
           <article><i>2x</i><strong>+12</strong><span>Day 3</span></article>
           <article><strong>+6</strong><span>Day 4</span></article>
@@ -66,21 +81,39 @@
           <article><i>3x</i><strong>+20</strong><span>Day 7</span></article>
         </div>
       </section>
-
       <section class="free-coin-grid">
-        <article data-reward-task="checkin"><span>01</span><h3>每日签到</h3><p>可领取：每天一次。中断后连续天数重置；已领取状态由服务端返回。</p><button class="btn primary daily-check" type="button">打开签到</button></article>
-        <article data-reward-task="referral"><span>02</span><h3>推荐好友</h3><p>锁定条件：注册、验证并完成首次成功生成；不可推荐自己。</p><button class="btn glass" type="button" data-copy-referral>复制推荐链接</button></article>
-        <article data-reward-task="first-generation"><span>03</span><h3>首次成功生成</h3><p>只有真实任务状态为 completed 时自动发放一次；失败任务不计入。</p><a class="btn glass" href="./zh/app/generate/">去生成</a></article>
-        <article data-reward-task="share"><span>04</span><h3>分享作品</h3><p>每个作品最多奖励一次，每日奖励上限 10 积分；私密作品分享前需明确确认。</p><a class="btn glass" href="./zh/my-creations/">去分享</a></article>
+        <article data-reward-task="checkin">
+          <span>01</span>
+          <h3>每日签到</h3>
+          <p>连续签到 7 天最多可获得 65 积分。</p>
+          <button class="btn primary daily-check" type="button">打开签到</button>
+        </article>
+        <article data-reward-task="referral">
+          <span>02</span>
+          <h3>推荐好友</h3>
+          <p>每位有效新用户可获得 20 积分。</p>
+          <button class="btn glass" type="button" data-claim-task="referral" data-task-credits="20">领取演示奖励</button>
+        </article>
+        <article data-reward-task="first-generation">
+          <span>03</span>
+          <h3>首次生成图片</h3>
+          <p>完成第一张 AI 图片后获得新手任务奖励。</p>
+          <a class="btn glass" href="./zh/app/generate/">去生成</a>
+        </article>
+        <article data-reward-task="share">
+          <span>04</span>
+          <h3>分享作品</h3>
+          <p>公开分享一个资产链接，获得额外奖励。</p>
+          <a class="btn glass" href="./zh/my-creations/">去分享</a>
+        </article>
       </section>
-
       <section class="tool-section">
-        <div class="tool-section-head"><h2>奖励积分的使用说明</h2><a href="./zh/pricing/">购买更多积分</a></div>
+        <div class="tool-section-head"><h2>免费积分可以用来做什么</h2><a href="./zh/pricing/">购买更多积分</a></div>
         <div class="reward-task-grid">
-          <article><strong>统一余额</strong><span>购买、奖励、退款和管理员调整通过交易来源区分，不建立第二套余额。</span></article>
-          <article><strong>实时刷新</strong><span>领取成功后立即重新读取服务端余额与任务状态。</span></article>
-          <article><strong>失败保护</strong><span>生成失败按现有退款规则处理，奖励任务不会因为点击按钮提前完成。</span></article>
-          <article><strong>奖励限制</strong><span>当前未启用奖励积分有效期或模型限制，不会改变已有余额。</span></article>
+          <article><strong>生成图片</strong><span>8 积分起</span><a class="btn glass" href="./zh/app/generate/">打开工具</a></article>
+          <article><strong>生成角色</strong><span>12 积分起</span><a class="btn glass" href="./zh/app/characters/">创建角色</a></article>
+          <article><strong>图片转视频</strong><span>24 积分起</span><a class="btn glass" href="./zh/app/image-to-video/">转成视频</a></article>
+          <article><strong>保存资产</strong><span>复用提示词和参考图</span><a class="btn primary" href="./zh/assets/">查看素材库</a></article>
         </div>
       </section>
     </main>

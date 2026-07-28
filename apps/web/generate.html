@@ -5,41 +5,108 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI 图片生成器 | Luravyn</title>
     <link rel="icon" type="image/png" href="./favicon.png">
-    <meta name="description" content="Luravyn AI 图片生成器：使用 A01 文生图工作流，根据画面描述创建 AI 图片。">
-    <meta name="robots" content="index,follow">
+    <meta name="description" content="输入提示词，选择角色和风格，生成可保存到资产库的 AI 图片。">
     <link rel="canonical" href="https://luravyn.com/zh/app/generate/">
     <link rel="alternate" hreflang="zh-CN" href="https://luravyn.com/zh/app/generate/">
     <link rel="alternate" hreflang="en" href="https://luravyn.com/en/app/generate/">
     <link rel="alternate" hreflang="ja" href="https://luravyn.com/ja/app/generate/">
     <link rel="alternate" hreflang="ko" href="https://luravyn.com/ko/app/generate/">
     <link rel="alternate" hreflang="x-default" href="https://luravyn.com/en/app/generate/">
+    <meta name="robots" content="index,follow">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Luravyn">
     <meta property="og:title" content="AI 图片生成器 | Luravyn">
-    <meta property="og:description" content="使用 A01 文生图工作流，根据画面描述创建 AI 图片。">
+    <meta property="og:description" content="输入提示词，选择角色和风格，生成可保存到资产库的 AI 图片。">
     <meta property="og:url" content="https://luravyn.com/zh/app/generate/">
     <meta property="og:image" content="https://luravyn.com/brand/luravyn-logo-hero.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="AI 图片生成器 | Luravyn">
-    <meta name="twitter:description" content="使用 A01 文生图工作流，根据画面描述创建 AI 图片。">
+    <meta name="twitter:description" content="输入提示词，选择角色和风格，生成可保存到资产库的 AI 图片。">
+    <meta name="theme-color" content="#111111">
     <link rel="stylesheet" href="./styles.css">
   </head>
-  <body class="generation-workspace-page" data-tool-id="image-generate">
-    <main data-generation-tool-page data-tool-id="image-generate"></main>
-    <footer class="site-footer generate-tool-footer" aria-label="图片生成工具页脚">
-      <span>© 2026 Luravyn</span>
-      <nav aria-label="工具页帮助">
-        <a href="./zh/image-tools/">图片工具</a>
-        <a href="./zh/video-tools/">视频工具</a>
-        <a href="./zh/my-creations/">我的创作</a>
-        <a href="./zh/pricing/">购买积分</a>
-        <a href="./zh/privacy/">隐私</a>
-        <a href="./zh/terms/">条款</a>
-        <a href="mailto:support@openvideostudio.app">联系我们</a>
-      </nav>
-    </footer>
-    <script src="./api-service.js"></script>
-    <script type="module" src="./generation-workspace.js"></script>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./index.html"><img class="brand-wordmark" src="./brand/luravyn-logo.png" alt="Luravyn"></a>
+      <nav class="topnav" aria-label="Primary navigation"><a href="./zh/app/generate/" aria-current="page">图像工具</a><a href="./zh/app/image-to-video/">视频工具</a><a href="./zh/pricing/">购买积分</a><a href="./zh/free-coins/">免费硬币</a><a href="./zh/my-creations/">我的创作</a></nav>
+      <nav class="accountnav" aria-label="Account navigation"><a class="daily-check" href="./zh/free-coins/">每日签到</a><a href="./zh/login/">登录</a></nav>
+      <a class="btn primary" href="./zh/pricing/"><span data-credit-balance>40</span> 积分</a>
+    </header>
+
+    <main class="studio-shell">
+      <section class="studio-panel control-panel">
+        <p class="eyebrow">图片生成器</p>
+        <h1>生成你的下一张 AI 作品</h1>
+
+        <div class="mode-grid" aria-label="Mode cards">
+          <button class="mode-card active" data-mode="image"><span>图片</span><strong>概念图</strong><em>8 积分</em></button>
+          <button class="mode-card" data-mode="video"><span>视频</span><strong>动态场景</strong><em>24 积分</em></button>
+          <button class="mode-card" data-mode="character"><span>角色</span><strong>角色种子</strong><em>12 积分</em></button>
+        </div>
+
+        <label class="studio-field">提示词
+          <textarea class="textarea hero-textarea">电影感产品发布场景，固定角色主持人，电光蓝灯效，反光地面，镜头平滑移动，高级 AI 创作平台氛围。</textarea>
+        </label>
+        <button class="btn glass" data-enhance type="button">优化提示词</button>
+
+        <div class="selector-grid">
+          <label class="studio-field">角色选择
+            <select class="select"><option>Mira - 工作室主持人</option><option>Atlas - 产品讲解员</option><option>Nova - 创作者形象</option></select>
+          </label>
+          <label class="studio-field">风格选择
+            <select class="select"><option>电影感粉紫</option><option>干净商业</option><option>运动镜头</option><option>霓虹动漫</option></select>
+          </label>
+        </div>
+
+        <label class="upload-zone">上传参考资产
+          <input type="file" aria-label="Upload reference asset">
+          <span>支持图片、视频帧、提示词或参考板</span>
+        </label>
+
+        <fieldset class="studio-field" data-real-provider-panel>
+          <legend>Phase 2 真实图片测试</legend>
+          <label><input type="checkbox" data-real-provider-mode> 使用受限真实测试模式（仅单人物写实文生图）</label>
+          <label>比例
+            <select class="select" data-real-provider-ratio>
+              <option value="1:1">1:1</option>
+              <option value="4:5">4:5</option>
+            </select>
+          </label>
+          <label>输出数量
+            <select class="select" data-real-provider-output-count>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </label>
+          <small>未配置真实 Provider 时任务会明确失败，不会静默生成 Mock 结果。</small>
+        </fieldset>
+      </section>
+
+      <section class="studio-panel preview-panel">
+        <div class="preview-head">
+          <div><p class="eyebrow">实时预览</p><h2>生成预览</h2></div>
+          <span class="credit-pill" data-credit-cost>8 积分</span>
+        </div>
+        <div class="creative-preview art-13">
+          <span class="play-dot"></span>
+          <strong data-mode-label>图片生成</strong>
+        </div>
+        <div class="sticky-generate">
+          <div><strong>准备生成</strong><p>结果会保存到资产库和生成历史。</p></div>
+          <div class="generate-action-stack">
+            <button class="btn primary" data-generate type="button">生成</button>
+            <button class="btn glass" data-generate-video type="button">直接生成视频</button>
+          </div>
+        </div>
+        <div class="recent-results" data-queue>
+          <h2>最近结果</h2>
+          <article class="result-row"><span class="thumb art-3"></span><div><strong>发布主视觉</strong><p>已完成 - 已分享 1 次</p></div><a href="./zh/share/">分享</a></article>
+          <article class="result-row"><span class="thumb art-7"></span><div><strong>竖屏短片</strong><p>队列中 - 24 积分</p></div><a href="./zh/history/">历史</a></article>
+        </div>
+      </section>
+    </main>
     <script type="module" src="./app.js"></script>
   </body>
 </html>

@@ -3,25 +3,21 @@
 -- are never exposed to GitHub Pages.
 
 create extension if not exists pgcrypto with schema extensions;
-
 alter table public.profiles add column if not exists username text;
 alter table public.profiles add column if not exists avatar_url text;
 alter table public.profiles add column if not exists credits integer not null default 100;
 alter table public.profiles add column if not exists credit_balance integer not null default 100;
 alter table public.profiles add column if not exists updated_at timestamptz not null default now();
-
 update public.profiles
 set username = coalesce(nullif(username, ''), nullif(display_name, ''), split_part(email, '@', 1), 'creator'),
     credit_balance = coalesce(credits, credit_balance, 100),
     updated_at = coalesce(updated_at, now());
-
 create table if not exists public.credits (
   id uuid primary key default extensions.gen_random_uuid(),
   user_id uuid not null unique references auth.users(id) on delete cascade,
   credits integer not null default 100 check (credits >= 0),
   updated_at timestamptz not null default now()
 );
-
 create table if not exists public.user_creations (
   id uuid primary key default extensions.gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -29,18 +25,14 @@ create table if not exists public.user_creations (
   result_url text not null,
   created_at timestamptz not null default now()
 );
-
 create index if not exists idx_user_creations_user_created
   on public.user_creations(user_id, created_at desc);
-
 insert into public.credits (user_id, credits)
 select p.id, greatest(coalesce(p.credits, p.credit_balance, 100), 0)
 from public.profiles p
 on conflict (user_id) do nothing;
-
 create schema if not exists private;
 revoke all on schema private from public, anon, authenticated;
-
 create or replace function private.sync_auth_user_profile()
 returns trigger
 language plpgsql
@@ -90,14 +82,11 @@ begin
   return new;
 end;
 $$;
-
 revoke all on function private.sync_auth_user_profile() from public, anon, authenticated;
-
 drop trigger if exists on_auth_user_profile_sync on auth.users;
 create trigger on_auth_user_profile_sync
   after insert or update of email, raw_user_meta_data on auth.users
   for each row execute function private.sync_auth_user_profile();
-
 insert into public.profiles (id, email, display_name, username, avatar_url, credits, credit_balance, created_at, updated_at)
 select
   u.id,
@@ -123,16 +112,13 @@ select
   now()
 from auth.users u
 on conflict (id) do nothing;
-
 insert into public.credits (user_id, credits)
 select p.id, greatest(coalesce(p.credits, p.credit_balance, 100), 0)
 from public.profiles p
 on conflict (user_id) do nothing;
-
 alter table public.profiles enable row level security;
 alter table public.credits enable row level security;
 alter table public.user_creations enable row level security;
-
 drop policy if exists "Users can insert own profile" on public.profiles;
 drop policy if exists "Users can read own profile" on public.profiles;
 drop policy if exists "Users can update own profile" on public.profiles;
@@ -142,33 +128,27 @@ drop policy if exists "profiles authenticated owner select" on public.profiles;
 create policy "profiles authenticated owner select" on public.profiles
   for select to authenticated
   using ((select auth.uid()) = id);
-
 drop policy if exists "profiles authenticated owner update" on public.profiles;
 create policy "profiles authenticated owner update" on public.profiles
   for update to authenticated
   using ((select auth.uid()) = id)
   with check ((select auth.uid()) = id);
-
 drop policy if exists "credits authenticated owner select" on public.credits;
 create policy "credits authenticated owner select" on public.credits
   for select to authenticated
   using ((select auth.uid()) = user_id);
-
 drop policy if exists "user creations authenticated owner select" on public.user_creations;
 create policy "user creations authenticated owner select" on public.user_creations
   for select to authenticated
   using ((select auth.uid()) = user_id);
-
 drop policy if exists "user creations authenticated owner insert" on public.user_creations;
 create policy "user creations authenticated owner insert" on public.user_creations
   for insert to authenticated
   with check ((select auth.uid()) = user_id);
-
 drop policy if exists "user creations authenticated owner delete" on public.user_creations;
 create policy "user creations authenticated owner delete" on public.user_creations
   for delete to authenticated
   using ((select auth.uid()) = user_id);
-
 revoke all on public.profiles, public.credits, public.user_creations from anon;
 revoke update on public.profiles from public, authenticated;
 grant select on public.profiles to authenticated;
@@ -176,7 +156,6 @@ grant update (display_name, username, avatar_url, locale, timezone, onboarding_s
   on public.profiles to authenticated;
 grant select on public.credits to authenticated;
 grant select, insert, delete on public.user_creations to authenticated;
-
 create or replace function public.debit_credits(p_amount integer)
 returns integer
 language plpgsql
@@ -214,6 +193,5 @@ begin
   return remaining;
 end;
 $$;
-
 revoke all on function public.debit_credits(integer) from public, anon;
 grant execute on function public.debit_credits(integer) to authenticated;

@@ -10,6 +10,14 @@ import {
   offerCredits,
   packageMetrics
 } from "./pricing-config.js";
+import {
+  cancelGatewayGeneration,
+  createGatewayGeneration,
+  getGatewayGeneration,
+  isGenerationGatewayConfigured,
+  retryGatewayGeneration,
+  waitForGatewayGeneration
+} from "./generation-gateway-client.js";
 
 const STORE_KEY = "ovs_mvp_state_v1";
 const COOKIE_PREF_KEY = "ovs_cookie_preferences_v1";
@@ -128,17 +136,17 @@ const PAYMENT_PROVIDER_DEFINITIONS = [
     id: "stripe",
     label: "Stripe 卡支付",
     shortLabel: "Stripe",
-    configured: false,
-    mode: "unknown",
-    note: "支持银行卡和已启用的钱包。"
+    configured: Boolean(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY),
+    mode: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ? "public_client_configured" : "unknown",
+    note: "支持银行卡和已启用的钱包；浏览器只读取 Stripe Publishable Key。"
   },
   {
     id: "paypal",
     label: "PayPal",
     shortLabel: "PayPal",
-    configured: false,
-    mode: "unknown",
-    note: "支持 PayPal 钱包。"
+    configured: Boolean(import.meta.env.VITE_PAYPAL_CLIENT_ID),
+    mode: import.meta.env.VITE_PAYPAL_CLIENT_ID ? "public_client_configured" : "unknown",
+    note: "支持 PayPal 钱包；浏览器只读取 PayPal Client ID。"
   }
 ];
 let paymentProviders = structuredClone(PAYMENT_PROVIDER_DEFINITIONS);
@@ -3054,7 +3062,7 @@ function runToolDemoGeneration() {
   const id = `asset_${Date.now()}`;
   const toolName = document.querySelector(".tool-detail-copy h1")?.textContent?.trim() || "AI 工具";
   const asset = { id, type: "image", title: `${toolName} 演示结果`, prompt, character: "Mira", credits: demoGeneration ? 0 : cost, status: "completed", visibility: "private", favorite: false, demo: demoGeneration };
-  const job = { id: `job_${Date.now()}`, type: "image", title: asset.title, prompt, provider: demoGeneration ? "demo_preview" : "local_api", model: demoGeneration ? "browser-tool-preview" : "local-tool-demo-v0", status: "completed", credits: demoGeneration ? 0 : cost, duration: "9s", assetId: id, demo: demoGeneration };
+  const job = { id: `job_${Date.now()}`, type: "image", title: asset.title, prompt, provider: demoGeneration ? "demo_preview" : "local_api", model: demoGeneration ? "browser-demo-preview" : "local-tool-demo-v0", status: "completed", credits: demoGeneration ? 0 : cost, duration: "9s", assetId: id, demo: demoGeneration };
   if (!demoGeneration) {
     recordCreditLedger({
       amount: -cost,
@@ -3551,6 +3559,17 @@ function legacyOpenCheckoutModal({ credits, planName, price, promo = "" }) {
   });
 }
 
+document.querySelectorAll("[data-buy-credits]").forEach((button) => {
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    const credits = Number(button.dataset.buyCredits || "0");
+    const planName = button.dataset.planName || button.textContent.trim() || "积分套餐";
+    const price = button.querySelector("strong")?.textContent?.trim() || button.dataset.planPrice || "演示结账";
+    trackProductEvent("pricing_cta_clicked", { credits, planName, price });
+    legacyOpenCheckoutModal({ credits, planName, price });
+  });
+});
+
 async function legacyRunRemotePaymentCheckout(input) {
   if (!supabase) return null;
   const { data: sessionData } = await supabase.auth.getSession();
@@ -3995,6 +4014,9 @@ const generateButton = document.querySelector("[data-generate]");
 const generateVideoButton = document.querySelector("[data-generate-video]");
 const enhanceButton = document.querySelector("[data-enhance]");
 const promptBox = document.querySelector(".hero-textarea");
+const realProviderToggle = document.querySelector("[data-real-provider-mode]");
+const realProviderRatio = document.querySelector("[data-real-provider-ratio]");
+const realProviderOutputCount = document.querySelector("[data-real-provider-output-count]");
 
 const modeCosts = { image: 8, video: 24, character: 12 };
 var videoWorkflowPresets = {
@@ -5051,18 +5073,29 @@ if (generateButton && queueTarget) {
       return;
     }
     const activeMode = document.querySelector("[data-mode].active")?.dataset.mode || "image";
+    const realTest = Boolean(realProviderToggle?.checked);
     const activePreset = getActiveVideoPreset();
     const cost = activePreset?.cost || Number(document.querySelector("[data-mode].active")?.dataset.videoCost || modeCosts[activeMode] || 8);
     const title = activePreset?.title || (activeMode === "video" ? "生成视频场景" : activeMode === "character" ? "生成角色种子" : "生成图片作品");
     const prompt = promptBox?.value.trim() || "生成 AI 场景";
     const character = document.querySelector(".selector-grid select")?.value?.split(" - ")[0] || "Mira";
-    const ratio = document.querySelector("[data-video-ratio]")?.value || "";
+    if (realTest && activeMode !== "image") {
+      showSiteToast("真实测试模式当前仅支持图片文生图。");
+      return;
+    }
+    const ratio = realTest
+      ? (realProviderRatio?.value || "1:1")
+      : (document.querySelector("[data-video-ratio]")?.value || "");
     const durationSeconds = Number(document.querySelector("[data-video-duration]")?.value || 0) || undefined;
     const resolution = document.querySelector("[data-a01-resolution]")?.value || undefined;
     const seedInput = document.querySelector("[data-a01-seed]")?.value?.trim() || "random";
     const requestedModel = document.querySelector("[data-video-model]")?.value || "";
     const model = isAdminActor(state.user) ? requestedModel : normalizePublicGenerationProvider(requestedModel);
     const reference = selectedVideoReference;
+    if (realTest && reference) {
+      showSiteToast("真实测试模式不接受参考图，请先移除参考资产。");
+      return;
+    }
     if (document.querySelector("[data-video-generator]") && !reference) {
       updateVideoPreflight();
       trackProductEvent("generation_blocked", {
@@ -5112,6 +5145,8 @@ if (generateButton && queueTarget) {
           reference,
           resolution,
           seed: seedInput,
+          realTest,
+          outputCount: realTest ? Number(realProviderOutputCount?.value || 1) : undefined,
           onJobCreated: (job) => {
             const remoteJobId = String(job?.id || "");
             if (remoteJobId) progressRow.dataset.remoteJobId = remoteJobId;
@@ -5222,6 +5257,8 @@ async function runRemoteGeneration(input) {
     sessionData = { session: guestSession };
   }
   if (!sessionData.session?.user) throw new Error("访客生成会话创建失败，请刷新页面后重试。");
+  if (isGenerationGatewayConfigured) return runGenerationGateway(input);
+  if (input.realTest) throw new Error("真实测试模式需要配置 Generation Gateway。");
   const mediaType = input.mode === "video" ? "video" : "image";
   const workflowId = input.workflowId || workflowIdForGeneration(mediaType, input.model, input.preset, input.workflowFamily);
   const createResult = await invokeAi("create-generation-job", {
@@ -5274,6 +5311,59 @@ async function runRemoteGeneration(input) {
   mergeRemoteGenerationResult(finalResult.job, finalResult.asset, input);
   await syncRemoteProductData();
   return finalResult;
+}
+
+async function runGenerationGateway(input) {
+  const mediaType = input.mode === "video" ? "video" : "image";
+  const hasReference = Boolean(input.reference?.sourceAssetId || input.reference?.id);
+  const creationMode = input.preset && String(input.preset).includes("effect")
+    ? "effect_preset"
+    : mediaType === "video"
+      ? (hasReference ? "image_to_video" : "text_to_video")
+      : (hasReference ? "image_to_image" : "text_to_image");
+  const referenceAssets = hasReference ? [{
+    asset_id: String(input.reference.sourceAssetId || input.reference.id),
+    mime_type: ["image/jpeg", "image/png", "image/webp"].includes(input.reference.fileType)
+      ? input.reference.fileType
+      : "image/jpeg",
+    size_bytes: Math.max(1, Math.min(VIDEO_SOURCE_MAX_BYTES, Number(input.reference.fileSize || 1)))
+  }] : [];
+  const created = await createGatewayGeneration({
+    media_type: mediaType,
+    creation_mode: creationMode,
+    prompt: input.prompt,
+    structured_options: {
+      scene: input.prompt,
+      preset: input.preset || "",
+      camera_motion: input.cameraMotion || "",
+      preserve_face: Boolean(input.faceStability),
+      preserve_composition: Boolean(input.reference),
+      ...(input.realTest ? {
+        execution_mode: "real_test",
+        people_count: 1,
+        visual_style: "photorealistic"
+      } : {})
+    },
+    reference_assets: referenceAssets,
+    ...(input.preset ? { preset_id: input.preset } : {}),
+    aspect_ratio: input.ratio || "1:1",
+    ...(mediaType === "video" ? { duration_seconds: input.durationSeconds || 6 } : {}),
+    output_count: Math.max(1, Math.min(4, Number(input.outputCount || 1))),
+    subject_age_confirmed_adult: false,
+    idempotency_key: input.idempotencyKey || crypto.randomUUID(),
+    client_context: { app: "open-video-studio" }
+  });
+  input.onJobCreated?.(created.job);
+  if (input.deferCompletion) return created;
+  const completed = await waitForGatewayGeneration(created.job.id);
+  if (completed.job.status !== "completed") {
+    const error = new Error(completed.job.error_message || "生成任务未完成。");
+    error.job = completed.job;
+    throw error;
+  }
+  const asset = completed.job.assets?.[0];
+  mergeRemoteGenerationResult(completed.job, asset, input);
+  return { job: completed.job, asset };
 }
 
 async function waitForRemoteGeneration(jobId) {
@@ -5409,6 +5499,9 @@ function workflowIdForGeneration(mediaType, provider, preset, workflowFamily = "
 }
 
 async function invokeAi(action, body = {}) {
+  if (isGenerationGatewayConfigured && action === "check-generation-status") return getGatewayGeneration(body.jobId);
+  if (isGenerationGatewayConfigured && action === "cancel-generation-job") return cancelGatewayGeneration(body.jobId);
+  if (isGenerationGatewayConfigured && action === "retry-generation-job") return retryGatewayGeneration(body.jobId);
   const { data, error } = await supabase.functions.invoke("ai", { body: { action, ...body } });
   if (error) throw new Error(error.message || "AI 服务调用失败。");
   if (data?.error) throw new Error(data.error.message || data.error.code || "AI 服务调用失败。");
@@ -5486,7 +5579,9 @@ function mergeRemoteGenerationResult(job, asset, input = {}) {
     ratio,
     durationSeconds,
     duration: durationSeconds ? `${durationSeconds}s` : "",
-    remote: true
+    remote: true,
+    previewUrl: String(asset.preview_url || asset.public_url || asset.url || ""),
+    downloadUrl: String(asset.public_url || asset.url || "")
   };
   const mappedJob = {
     id: String(job.id || `job_${Date.now()}`),
@@ -9273,97 +9368,6 @@ if (selectedCharacterName) {
   }
   localStorage.removeItem("ovs_selected_character");
 }
-
-/* ── ComfyUI Gateway Integration ── */
-const COMFYUI_GATEWAY_URL = "https://uu863228-7841f4d2206a.westd.seetacloud.com:8443";
-const COMFYUI_GATEWAY_TEMPLATES = {
-  "wan22-i2v": { file: "wan22_i2v.json", nodeId: { image: "1", prompt: "5", seed: "7", steps: "7", cfg: "7", shift: "7" } },
-  "flux-klein": { file: "flux_klein_enhance.json", nodeId: { image: "1", prompt: "9", lora: "5", steps: "16", cfg: "18", seed: "15" } },
-  "seedvr2": { file: "seedvr2_upscale.json", nodeId: { image: "1", resolution: "5", seed: "5" } },
-  "gmfss": { file: "gmfss_vfi.json", nodeId: { video: "1", multiplier: "2", fps: "3" } }
-};
-
-async function submitComfyUIWorkflow(templateId, overrides = {}) {
-  const template = COMFYUI_GATEWAY_TEMPLATES[templateId];
-  if (!template) throw new Error(`Unknown template: ${templateId}`);
-
-  const workflowResp = await fetch(`${COMFYUI_GATEWAY_URL}/workflows/${template.file}`);
-  if (!workflowResp.ok) throw new Error(`Failed to load workflow template: ${template.file}`);
-  const workflowJson = await workflowResp.json();
-
-  // Apply overrides to the workflow JSON
-  for (const [param, value] of Object.entries(overrides)) {
-    const nodeId = template.nodeId[param];
-    if (nodeId && workflowJson[nodeId]) {
-      const inputName = param === "image" ? "image" : param === "video" ? "video" : param === "prompt" ? "text" : param;
-      if (workflowJson[nodeId].inputs) {
-        const input = workflowJson[nodeId].inputs[inputName];
-        if (input !== undefined) workflowJson[nodeId].inputs[inputName] = value;
-      }
-    }
-  }
-
-  const submitResp = await fetch(`${COMFYUI_GATEWAY_URL}/prompt`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt: workflowJson, client_id: "luravyn-web" })
-  });
-  if (!submitResp.ok) throw new Error("Failed to submit ComfyUI job");
-  const { prompt_id } = await submitResp.json();
-  return { promptId: prompt_id, templateId };
-}
-
-async function pollComfyUIJob(promptId, onProgress) {
-  const maxAttempts = 120;
-  for (let i = 0; i < maxAttempts; i++) {
-    const resp = await fetch(`${COMFYUI_GATEWAY_URL}/history/${promptId}`);
-    if (!resp.ok) { await sleep(2000); continue; }
-    const data = await resp.json();
-    if (data[promptId]) {
-      const result = data[promptId];
-      if (result.status?.completed) {
-        onProgress?.({ progress: 100, status: "completed" });
-        return result;
-      }
-      const progress = Math.min(Math.round((i / maxAttempts) * 100), 95);
-      onProgress?.({ progress, status: result.status?.status_str || "processing" });
-    }
-    await sleep(2000);
-  }
-  throw new Error("ComfyUI job timed out after 4 minutes");
-}
-
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-async function runComfyUIGeneration(templateId, overrides, onProgress) {
-  onProgress?.({ progress: 0, status: "submitting" });
-  const { promptId } = await submitComfyUIWorkflow(templateId, overrides);
-  onProgress?.({ progress: 5, status: "queued" });
-  const result = await pollComfyUIJob(promptId, onProgress);
-  return { promptId, result };
-}
-
-let gatewayAvailable = false;
-async function checkComfyUIGateway() {
-  // The active provider is the AutoDL/Zealman panel API. Keep the standard
-  // ComfyUI probe only as a compatibility fallback for older local workflows.
-  for (const path of ["/api/health", "/api/workflow/list", "/system_stats"]) {
-    try {
-      const resp = await fetch(`${COMFYUI_GATEWAY_URL}${path}`, { signal: AbortSignal.timeout(5000) });
-      if (resp.ok) {
-        gatewayAvailable = true;
-        return true;
-      }
-    } catch {
-      // Try the next compatible endpoint without exposing credentials.
-    }
-  }
-  gatewayAvailable = false;
-  return false;
-}
-checkComfyUIGateway();
-
-/* ── End ComfyUI Gateway Integration ── */
 
 const posePresetPrompts = {
   standing: "成年且已获授权的虚构角色正面站立，右手自然放在腰间，眼神看向镜头，时尚杂志封面构图，全身照",

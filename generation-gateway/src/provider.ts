@@ -20,6 +20,12 @@ export interface GenerationProvider {
   cancel(providerJobId: string): Promise<void>;
   normalizeResult(raw: unknown): Promise<GenerationResult>;
   healthCheck(): Promise<ProviderHealth>;
+  validateResultForPlan?(result: GenerationResult, plan: GenerationPlan): void;
+}
+
+export interface WebhookVerifyingProvider extends GenerationProvider {
+  verifyWebhook(rawBody: string, signature: string | undefined): boolean;
+  parseWebhook?(rawBody: string): { eventId: string; providerJobId: string };
 }
 
 interface MockRecord {

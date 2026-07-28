@@ -3,11 +3,13 @@
 -- operations or a future payment webhook.
 create table if not exists public.plans (
   id uuid primary key default gen_random_uuid(),
+  slug text not null unique,
   name text not null unique,
   price numeric(12,2) not null default 0 check (price >= 0),
   currency text not null default 'USD',
   stripe_price_id text,
   credits integer not null default 0 check (credits >= 0),
+  monthly_credits_limit integer not null default 0 check (monthly_credits_limit >= 0),
   features jsonb not null default '[]'::jsonb,
   tool_access jsonb not null default '[]'::jsonb,
   daily_limit integer not null default 0 check (daily_limit >= 0),
@@ -15,7 +17,6 @@ create table if not exists public.plans (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-
 create table if not exists public.subscriptions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -31,17 +32,20 @@ create table if not exists public.subscriptions (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-
 alter table public.plans add column if not exists stripe_price_id text;
+alter table public.plans add column if not exists slug text;
 alter table public.plans add column if not exists price numeric(12,2) not null default 0;
 alter table public.plans add column if not exists currency text not null default 'USD';
 alter table public.plans add column if not exists credits integer not null default 0;
+alter table public.plans add column if not exists monthly_credits_limit integer not null default 0;
 alter table public.plans add column if not exists features jsonb not null default '[]'::jsonb;
 alter table public.plans add column if not exists tool_access jsonb not null default '[]'::jsonb;
 alter table public.plans add column if not exists daily_limit integer not null default 0;
 alter table public.plans add column if not exists status text not null default 'draft';
 alter table public.plans add column if not exists created_at timestamptz not null default now();
 alter table public.plans add column if not exists updated_at timestamptz not null default now();
+update public.plans set slug = lower(regexp_replace(trim(name), '[^a-zA-Z0-9]+', '-', 'g')) where slug is null or slug = '';
+alter table public.plans alter column slug set not null;
 alter table public.subscriptions add column if not exists status text not null default 'pending';
 alter table public.subscriptions add column if not exists user_id uuid;
 alter table public.subscriptions add column if not exists plan_id uuid;
@@ -54,33 +58,27 @@ alter table public.subscriptions add column if not exists updated_at timestamptz
 alter table public.subscriptions add column if not exists stripe_customer_id text;
 alter table public.subscriptions add column if not exists stripe_subscription_id text;
 alter table public.subscriptions add column if not exists stripe_price_id text;
-
 create index if not exists idx_plans_status on public.plans(status);
 create index if not exists idx_subscriptions_user_status on public.subscriptions(user_id, status, ended_at);
 create index if not exists idx_subscriptions_plan on public.subscriptions(plan_id);
 create unique index if not exists idx_subscriptions_stripe_subscription_id on public.subscriptions(stripe_subscription_id) where stripe_subscription_id is not null;
 create index if not exists idx_subscriptions_stripe_customer_id on public.subscriptions(stripe_customer_id) where stripe_customer_id is not null;
-
 alter table public.plans enable row level security;
 alter table public.subscriptions enable row level security;
-
 grant select on public.plans to anon, authenticated;
 grant select on public.subscriptions to authenticated;
-
 drop policy if exists "published plans public read" on public.plans;
 create policy "published plans public read" on public.plans
   for select to anon, authenticated using (status = 'published');
 drop policy if exists "admin plans read" on public.plans;
 create policy "admin plans read" on public.plans
   for select to authenticated using (public.current_profile_role() in ('admin','operator','content_manager','marketing_manager'));
-
 drop policy if exists "own subscriptions read" on public.subscriptions;
 create policy "own subscriptions read" on public.subscriptions
   for select to authenticated using (user_id = auth.uid());
 drop policy if exists "admin subscriptions read" on public.subscriptions;
 create policy "admin subscriptions read" on public.subscriptions
   for select to authenticated using (public.current_profile_role() in ('admin','operator','content_manager','marketing_manager'));
-
 insert into public.plans (id, slug, name, price, currency, credits, monthly_credits_limit, features, tool_access, daily_limit, status)
 select gen_random_uuid(), lower(seed.name), seed.name, seed.price, seed.currency, seed.credits, seed.credits, seed.features, seed.tool_access, seed.daily_limit, seed.status
 from (values

@@ -38,3 +38,25 @@ services:
         generateValue: true
       - key: PUBLIC_BASE_URL
         sync: false
+      - key: RUNPOD_API_KEY
+        sync: false
+      - key: RUNPOD_ENDPOINT_ID
+        sync: false
+      - key: RUNPOD_WEBHOOK_SECRET
+        sync: false
+      - key: RUNPOD_REQUEST_TIMEOUT_MS
+        sync: false
+      - key: RUNPOD_POLL_INTERVAL_MS
+        sync: false
+      - key: RUNPOD_MAX_POLL_DURATION_MS
+        sync: false
+      - key: RUNPOD_COMFYUI_WORKFLOW_REF
+        sync: false
+      - key: RUNPOD_MODEL_MANIFEST_REF
+        sync: false
+      - key: GENERATION_STORAGE_BUCKET
+        sync: false
+      - key: REAL_PROVIDER_ENABLED
+        sync: false
+      - key: REAL_PROVIDER_ALLOWLIST
+        sync: false

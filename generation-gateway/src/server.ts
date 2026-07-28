@@ -5,7 +5,8 @@ import { GenerationInputSchema, GenerationStatusSchema, WorkflowManifestSchema, 
 import { loadConfig } from "./config.js";
 import { GenerationEngine } from "./engine.js";
 import { errorBody, GatewayError, newId, normalizeError } from "./errors.js";
-import { MockProvider, RunPodProviderPlaceholder, type GenerationProvider } from "./provider.js";
+import { MockProvider, RunPodProviderPlaceholder, type GenerationProvider, type WebhookVerifyingProvider } from "./provider.js";
+import { RunPodProvider } from "./providers/runpod/index.js";
 import { MemoryGenerationRepository, SupabaseGenerationRepository } from "./repository.js";
 import { MemoryRegistryStore, SupabaseRegistryStore } from "./registry.js";
 
@@ -26,10 +27,29 @@ const providers = new Map<string, GenerationProvider>([
     duplicateWebhook: config.MOCK_PROVIDER_DUPLICATE_WEBHOOK,
   })],
   ["runpod-placeholder", new RunPodProviderPlaceholder()],
+  ["runpod", new RunPodProvider({
+    apiKey: config.RUNPOD_API_KEY,
+    endpointId: config.RUNPOD_ENDPOINT_ID,
+    webhookSecret: config.RUNPOD_WEBHOOK_SECRET,
+    requestTimeoutMs: config.RUNPOD_REQUEST_TIMEOUT_MS,
+    maxPollDurationMs: config.RUNPOD_MAX_POLL_DURATION_MS,
+    enabled: config.REAL_PROVIDER_ENABLED,
+    workflowAllowlist: config.REAL_PROVIDER_ALLOWLIST.split(",").map((value) => value.trim()).filter(Boolean),
+    publicWebhookBaseUrl: config.PUBLIC_BASE_URL,
+    comfyuiWorkflowRef: config.RUNPOD_COMFYUI_WORKFLOW_REF ?? "",
+    modelManifestRef: config.RUNPOD_MODEL_MANIFEST_REF ?? "",
+    storageBucket: config.GENERATION_STORAGE_BUCKET,
+  })],
 ]);
 const engine = new GenerationEngine(repository, providers, {
-  pollIntervalMs: Math.max(10, Math.min(1000, Math.ceil(config.MOCK_PROVIDER_LATENCY_MS / 4))),
-  maxExecutionMs: Math.max(5000, config.MOCK_PROVIDER_LATENCY_MS * 10),
+  pollIntervalMs: config.REAL_PROVIDER_ENABLED
+    ? config.RUNPOD_POLL_INTERVAL_MS
+    : Math.max(10, Math.min(1000, Math.ceil(config.MOCK_PROVIDER_LATENCY_MS / 4))),
+  maxExecutionMs: config.REAL_PROVIDER_ENABLED
+    ? config.RUNPOD_MAX_POLL_DURATION_MS
+    : Math.max(5000, config.MOCK_PROVIDER_LATENCY_MS * 10),
+  testingWorkflowsEnabled: config.REAL_PROVIDER_ENABLED,
+  testingWorkflowId: config.REAL_PROVIDER_ALLOWLIST.split(",").map((value) => value.trim()).filter(Boolean)[0],
 }, registry);
 const authClient = config.SUPABASE_URL && config.SUPABASE_ANON_KEY
   ? createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false } })
@@ -66,10 +86,12 @@ const server = createServer(async (request, response) => {
     const webhookMatch = path.match(/^\/v1\/provider-webhooks\/([a-z0-9-]+)$/);
     if (request.method === "POST" && webhookMatch) {
       const raw = await readBody(request);
-      verifyWebhook(raw, request.headers["x-webhook-signature"]);
+      verifyProviderWebhook(webhookMatch[1]!, raw, request.headers["x-webhook-signature"]);
       const payload = parseJson(raw) as Record<string, unknown>;
-      const eventId = requiredString(payload.event_id, "event_id");
-      const providerJobId = requiredString(payload.provider_job_id, "provider_job_id");
+      const provider = providers.get(webhookMatch[1]!) as WebhookVerifyingProvider | undefined;
+      const parsedWebhook = provider?.parseWebhook?.(raw.toString("utf8"));
+      const eventId = parsedWebhook?.eventId ?? requiredString(payload.event_id, "event_id");
+      const providerJobId = parsedWebhook?.providerJobId ?? requiredString(payload.provider_job_id, "provider_job_id");
       const result = await engine.handleProviderWebhook(webhookMatch[1]!, eventId, providerJobId);
       return send(response, 202, { ...result, request_id: requestId });
     }
@@ -296,6 +318,17 @@ function verifyWebhook(raw: Buffer, signatureHeader: string | string[] | undefin
   if (left.length !== right.length || !timingSafeEqual(left, right)) {
     throw new GatewayError("WEBHOOK_SIGNATURE_INVALID", "Webhook signature is invalid.", 401);
   }
+}
+
+function verifyProviderWebhook(providerId: string, raw: Buffer, signatureHeader: string | string[] | undefined): void {
+  const provider = providers.get(providerId) as WebhookVerifyingProvider | undefined;
+  if (provider && typeof provider.verifyWebhook === "function") {
+    if (!provider.verifyWebhook(raw.toString("utf8"), Array.isArray(signatureHeader) ? signatureHeader[0] : signatureHeader)) {
+      throw new GatewayError("WEBHOOK_SIGNATURE_INVALID", "Webhook signature is invalid.", 401);
+    }
+    return;
+  }
+  verifyWebhook(raw, signatureHeader);
 }
 
 function send(response: ServerResponse, status: number, value: unknown): void {

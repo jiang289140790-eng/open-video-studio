@@ -221,6 +221,49 @@ test("unavailable provider falls back to the next healthy provider", async () =>
   assert.equal((await terminal(engine, userA, created.job.id)).status, "completed");
 });
 
+test("real-test routing fails closed instead of falling back to mock", async () => {
+  const repository = new MemoryGenerationRepository();
+  const mock = new MockProvider({ latencyMs: 5, failureRate: 0, timeoutRate: 0, assetBaseUrl: "http://mock.local" });
+  const engine = new GenerationEngine(
+    repository,
+    new Map<string, GenerationProvider>([["mock", mock]]),
+    {
+      pollIntervalMs: 1,
+      maxExecutionMs: 1000,
+      testingWorkflowsEnabled: true,
+      testingWorkflowId: "single-person-text-to-image-v1",
+    },
+  );
+  await assert.rejects(
+    () => engine.create(userA, imageInput({
+      prompt: "Photorealistic adult woman in a studio",
+      structured_options: {
+        execution_mode: "real_test",
+        people_count: 1,
+        visual_style: "photorealistic",
+      },
+      idempotency_key: "real-provider-fail-closed-01",
+      subject_age_confirmed_adult: true,
+    })),
+    (error: unknown) => error instanceof GatewayError && error.code === "PROVIDER_UNAVAILABLE",
+  );
+});
+
+test("real-test routing is disabled by default", async () => {
+  const { engine } = setup();
+  await assert.rejects(
+    () => engine.create(userA, imageInput({
+      structured_options: {
+        execution_mode: "real_test",
+        people_count: 1,
+        visual_style: "photorealistic",
+      },
+      idempotency_key: "real-provider-disabled-01",
+    })),
+    (error: unknown) => error instanceof GatewayError && error.code === "REAL_PROVIDER_NOT_ENABLED",
+  );
+});
+
 test("adult content without explicit adult age confirmation is rejected", async () => {
   const { engine } = setup();
   await assert.rejects(

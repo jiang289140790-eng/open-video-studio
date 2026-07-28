@@ -24,7 +24,6 @@ create table if not exists public.content_metrics (
   updated_at timestamptz not null default now(),
   unique (user_id, content_ref, metric_date)
 );
-
 create table if not exists public.publish_metrics (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -46,7 +45,6 @@ create table if not exists public.publish_metrics (
   updated_at timestamptz not null default now(),
   unique (user_id, platform, external_post_id)
 );
-
 create table if not exists public.content_strategies (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -61,7 +59,6 @@ create table if not exists public.content_strategies (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-
 create index if not exists content_metrics_user_date_idx
   on public.content_metrics (user_id, metric_date desc);
 create index if not exists content_metrics_tool_idx
@@ -72,15 +69,12 @@ create index if not exists publish_metrics_content_idx
   on public.publish_metrics (content_metric_id);
 create index if not exists content_strategies_user_status_idx
   on public.content_strategies (user_id, status, updated_at desc);
-
 alter table public.content_metrics enable row level security;
 alter table public.publish_metrics enable row level security;
 alter table public.content_strategies enable row level security;
-
 grant select, insert, update, delete on public.content_metrics to authenticated;
 grant select, insert, update, delete on public.publish_metrics to authenticated;
 grant select, insert, update, delete on public.content_strategies to authenticated;
-
 create policy "content_metrics_select_own"
   on public.content_metrics for select to authenticated
   using ((select auth.uid()) = user_id);
@@ -94,7 +88,6 @@ create policy "content_metrics_update_own"
 create policy "content_metrics_delete_own"
   on public.content_metrics for delete to authenticated
   using ((select auth.uid()) = user_id);
-
 create policy "publish_metrics_select_own"
   on public.publish_metrics for select to authenticated
   using ((select auth.uid()) = user_id);
@@ -108,7 +101,6 @@ create policy "publish_metrics_update_own"
 create policy "publish_metrics_delete_own"
   on public.publish_metrics for delete to authenticated
   using ((select auth.uid()) = user_id);
-
 create policy "content_strategies_select_own"
   on public.content_strategies for select to authenticated
   using ((select auth.uid()) = user_id);

@@ -14,7 +14,6 @@ create table if not exists public.profiles (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-
 create table if not exists public.credit_transactions (
   id text primary key,
   account_id uuid not null references auth.users(id) on delete cascade,
@@ -28,7 +27,6 @@ create table if not exists public.credit_transactions (
   reason text not null,
   created_at timestamptz not null default now()
 );
-
 create table if not exists public.generation_jobs (
   id text primary key,
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -54,7 +52,6 @@ create table if not exists public.generation_jobs (
   updated_at timestamptz not null default now(),
   completed_at timestamptz
 );
-
 create table if not exists public.media_assets (
   id text primary key,
   owner_user_id uuid not null references auth.users(id) on delete cascade,
@@ -78,7 +75,6 @@ create table if not exists public.media_assets (
   archived_at timestamptz,
   deleted_at timestamptz
 );
-
 create table if not exists public.share_links (
   id text primary key,
   owner_user_id uuid not null references auth.users(id) on delete cascade,
@@ -88,7 +84,6 @@ create table if not exists public.share_links (
   created_at timestamptz not null default now(),
   revoked_at timestamptz
 );
-
 create table if not exists public.characters (
   id text primary key,
   owner_user_id uuid not null references auth.users(id) on delete cascade,
@@ -108,7 +103,6 @@ create table if not exists public.characters (
   updated_at timestamptz not null default now(),
   archived_at timestamptz
 );
-
 create table if not exists public.images (
   id text primary key,
   owner_user_id uuid not null references auth.users(id) on delete cascade,
@@ -128,7 +122,6 @@ create table if not exists public.images (
   updated_at timestamptz not null default now(),
   deleted_at timestamptz
 );
-
 create table if not exists public.videos (
   id text primary key,
   owner_user_id uuid not null references auth.users(id) on delete cascade,
@@ -149,7 +142,6 @@ create table if not exists public.videos (
   updated_at timestamptz not null default now(),
   deleted_at timestamptz
 );
-
 create table if not exists public.orders (
   id text primary key,
   account_id uuid not null references auth.users(id) on delete cascade,
@@ -165,7 +157,6 @@ create table if not exists public.orders (
   updated_at timestamptz not null default now(),
   completed_at timestamptz
 );
-
 create table if not exists public.audit_logs (
   id text primary key,
   actor_type text not null,
@@ -178,7 +169,6 @@ create table if not exists public.audit_logs (
   metadata_json jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
-
 create table if not exists public.site_settings (
   setting_key text primary key,
   value_json jsonb not null default '{}'::jsonb,
@@ -187,7 +177,6 @@ create table if not exists public.site_settings (
   updated_at timestamptz not null default now(),
   created_at timestamptz not null default now()
 );
-
 create index if not exists idx_profiles_email on public.profiles(email);
 create index if not exists idx_credit_user_time on public.credit_transactions(user_id, created_at desc);
 create index if not exists idx_generation_user_time on public.generation_jobs(user_id, created_at desc);
@@ -204,7 +193,6 @@ create index if not exists idx_orders_status on public.orders(status);
 create index if not exists idx_audit_actor on public.audit_logs(actor_type, actor_id, created_at desc);
 create index if not exists idx_audit_target on public.audit_logs(target_type, target_id);
 create index if not exists idx_site_settings_status on public.site_settings(status);
-
 create or replace function public.current_profile_role()
 returns text
 language sql
@@ -214,7 +202,6 @@ stable
 as $$
   select role from public.profiles where id = auth.uid()
 $$;
-
 alter table public.profiles enable row level security;
 alter table public.credit_transactions enable row level security;
 alter table public.generation_jobs enable row level security;
@@ -226,75 +213,57 @@ alter table public.videos enable row level security;
 alter table public.orders enable row level security;
 alter table public.audit_logs enable row level security;
 alter table public.site_settings enable row level security;
-
 drop policy if exists "profiles owner read" on public.profiles;
 create policy "profiles owner read" on public.profiles
   for select using (auth.uid() = id or public.current_profile_role() in ('admin', 'operator'));
-
 drop policy if exists "profiles owner update" on public.profiles;
 create policy "profiles owner update" on public.profiles
   for update using (auth.uid() = id) with check (auth.uid() = id);
-
 drop policy if exists "credits owner read" on public.credit_transactions;
 create policy "credits owner read" on public.credit_transactions
   for select using (auth.uid() = user_id or public.current_profile_role() in ('admin', 'operator'));
-
 drop policy if exists "generation owner read" on public.generation_jobs;
 create policy "generation owner read" on public.generation_jobs
   for select using (auth.uid() = user_id or public.current_profile_role() in ('admin', 'operator'));
-
 drop policy if exists "generation owner write" on public.generation_jobs;
 create policy "generation owner write" on public.generation_jobs
   for insert with check (auth.uid() = user_id);
-
 drop policy if exists "media owner read" on public.media_assets;
 create policy "media owner read" on public.media_assets
   for select using (auth.uid() = owner_user_id or public.current_profile_role() in ('admin', 'operator'));
-
 drop policy if exists "media owner write" on public.media_assets;
 create policy "media owner write" on public.media_assets
   for insert with check (auth.uid() = owner_user_id);
-
 drop policy if exists "media public read" on public.media_assets;
 create policy "media public read" on public.media_assets
   for select using (visibility_status = 'public' and deleted_at is null);
-
 drop policy if exists "share owner read" on public.share_links;
 create policy "share owner read" on public.share_links
   for select using (auth.uid() = owner_user_id or public.current_profile_role() in ('admin', 'operator'));
-
 drop policy if exists "share public read" on public.share_links;
 create policy "share public read" on public.share_links
   for select using (visibility_status = 'active');
-
 drop policy if exists "characters owner read" on public.characters;
 create policy "characters owner read" on public.characters
   for select using (auth.uid() = owner_user_id or public.current_profile_role() in ('admin', 'operator'));
-
 drop policy if exists "characters owner write" on public.characters;
 create policy "characters owner write" on public.characters
   for insert with check (auth.uid() = owner_user_id);
-
 drop policy if exists "images owner read" on public.images;
 create policy "images owner read" on public.images
   for select using (auth.uid() = owner_user_id or public.current_profile_role() in ('admin', 'operator'));
-
 drop policy if exists "videos owner read" on public.videos;
 create policy "videos owner read" on public.videos
   for select using (auth.uid() = owner_user_id or public.current_profile_role() in ('admin', 'operator'));
-
 drop policy if exists "orders owner read" on public.orders;
 create policy "orders owner read" on public.orders
   for select using (auth.uid() = user_id or public.current_profile_role() in ('admin', 'operator'));
-
 drop policy if exists "audit admin read" on public.audit_logs;
 create policy "audit admin read" on public.audit_logs
   for select using (public.current_profile_role() = 'admin');
-
 drop policy if exists "site settings public read" on public.site_settings;
 create policy "site settings public read" on public.site_settings
   for select using (status = 'published');
-
 drop policy if exists "site settings admin read" on public.site_settings;
 create policy "site settings admin read" on public.site_settings
   for select using (public.current_profile_role() in ('admin', 'operator'));

@@ -6,6 +6,7 @@ import type {
   WorkflowManifest,
 } from "./domain.js";
 import { GatewayError } from "./errors.js";
+import { singlePersonTextToImageManifest } from "./providers/runpod/workflow.js";
 
 const unsafePatterns = [
   /\b(child|minor|underage|schoolgirl|schoolboy)\b/i,
@@ -102,6 +103,7 @@ const manifests: WorkflowManifest[] = [
   videoManifest("mock-video-text-to-video-v1", ["text_to_video"], false, 10),
   videoManifest("mock-video-image-to-video-v1", ["image_to_video"], true, 5),
   manifest("mock-effect-preset-v1", ["effect_preset"], true, false, 5, ["image", "video"]),
+  singlePersonTextToImageManifest,
 ];
 
 function manifest(
@@ -153,9 +155,15 @@ export function routeWorkflow(
   input: GenerationInput,
   brief: ParsedCreativeBrief,
   availableManifests: readonly WorkflowManifest[] = manifests,
+  options: {
+    allowedStatuses?: readonly WorkflowManifest["status"][];
+    requiredWorkflowId?: string;
+  } = {},
 ): GenerationPlan {
+  const allowedStatuses = options.allowedStatuses ?? ["production"];
   const candidates = availableManifests
-    .filter((item) => item.status === "production")
+    .filter((item) => allowedStatuses.includes(item.status))
+    .filter((item) => !options.requiredWorkflowId || item.id === options.requiredWorkflowId)
     .map((item) => scoreManifest(item, input, brief))
     .filter((item): item is NonNullable<typeof item> => item !== null)
     .sort((a, b) => b.score - a.score || a.priority - b.priority);
@@ -187,7 +195,7 @@ export function routeWorkflow(
     })),
     routing_reasons: selected.reasons,
     fallback_workflow_ids: candidates.slice(1).map((item) => item.workflow.id),
-    router_version: "capability-router/1.0.0",
+    router_version: "capability-router/1.1.0",
     selected_model_id: selected.workflow.model_binding_ids[0],
     selected_lora_ids: [],
   };

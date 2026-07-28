@@ -12,24 +12,18 @@ create table if not exists public.agent_tasks (
   created_at timestamptz not null default now(),
   completed_at timestamptz
 );
-
 create index if not exists agent_tasks_user_created_idx on public.agent_tasks(user_id, created_at desc);
 create index if not exists agent_tasks_user_status_idx on public.agent_tasks(user_id, status);
 create index if not exists agent_tasks_agent_idx on public.agent_tasks(agent_id);
-
 alter table public.agent_tasks enable row level security;
-
 drop policy if exists "agent_tasks_select_own" on public.agent_tasks;
 create policy "agent_tasks_select_own" on public.agent_tasks for select to authenticated
   using ((select auth.uid()) = user_id);
-
 drop policy if exists "agent_tasks_insert_own" on public.agent_tasks;
 create policy "agent_tasks_insert_own" on public.agent_tasks for insert to authenticated
   with check ((select auth.uid()) = user_id);
-
 drop policy if exists "agent_tasks_update_own" on public.agent_tasks;
 create policy "agent_tasks_update_own" on public.agent_tasks for update to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
-
 grant select, insert, update on public.agent_tasks to authenticated;

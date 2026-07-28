@@ -6,7 +6,9 @@ import { listWorkflowManifests, parseCreativeBrief, routeWorkflow } from "../src
 import { GenerationInputSchema } from "../src/domain.js";
 
 test("all seven phase-1 workflow manifests are registered", () => {
-  const ids = listWorkflowManifests().map((manifest) => manifest.id);
+  const ids = listWorkflowManifests()
+    .filter((manifest) => manifest.status === "production")
+    .map((manifest) => manifest.id);
   assert.deepEqual(ids.sort(), [
     "mock-effect-preset-v1",
     "mock-image-edit-v1",
@@ -30,7 +32,13 @@ test("router retains candidates, reasons, fallbacks and version", () => {
   assert.ok(plan.candidate_workflows.length >= 2);
   assert.ok(plan.routing_reasons.length > 0);
   assert.ok(plan.fallback_workflow_ids.length > 0);
-  assert.equal(plan.router_version, "capability-router/1.0.0");
+  assert.equal(plan.router_version, "capability-router/1.1.0");
+});
+
+test("phase-2 real image workflow remains isolated in testing status", () => {
+  const manifest = listWorkflowManifests().find((item) => item.id === "single-person-text-to-image-v1");
+  assert.equal(manifest?.status, "testing");
+  assert.deepEqual(manifest?.provider_ids, ["runpod"]);
 });
 
 test("migration enables RLS and contains owner predicates", async () => {
@@ -51,4 +59,19 @@ test("frontend gateway clients do not contain secret keys or concrete GPU endpoi
   const source = (await Promise.all(files.map((file) => readFile(file, "utf8")))).join("\n");
   assert.doesNotMatch(source, /SERVICE_ROLE|RUNPOD_API_KEY|COMFYUI_API_KEY|ZEALMAN_API_TOKEN/);
   assert.doesNotMatch(source, /\/prompt|\/history|api\.runpod/);
+});
+
+test("open-video real test toggle sends only generic execution intent", async () => {
+  const source = await readFile(resolve(process.cwd(), "../apps/web/app.js"), "utf8");
+  const page = await readFile(resolve(process.cwd(), "../apps/web/generate.html"), "utf8");
+  assert.match(page, /data-real-provider-mode/);
+  assert.match(source, /execution_mode:\s*"real_test"/);
+  assert.match(source, /visual_style:\s*"photorealistic"/);
+  assert.doesNotMatch(source, /api\.runpod|RUNPOD_|COMFYUI_GATEWAY_URL|seetacloud/);
+});
+
+test("stored real assets are re-signed by the gateway after page refresh", async () => {
+  const source = await readFile(resolve(process.cwd(), "../generation-gateway/src/repository.ts"), "utf8");
+  assert.match(source, /createSignedUrl\(String\(stored\.storage_path\), 900\)/);
+  assert.match(source, /ASSET_SIGNING_FAILED/);
 });
