@@ -209,6 +209,18 @@ test("AutoDL cancel, health and webhook authentication follow the provider contr
   assert.equal(provider.verifyWebhook(raw, `sha256=${signature}`), true);
   assert.equal(provider.verifyWebhook(raw, undefined), false);
   assert.equal(provider.parseWebhook(raw).providerJobId, "ad-job-1");
+
+  const completed = new AutoDLProvider(options(async () => json({
+    id: "ad-job-terminal",
+    status: "completed",
+    output: validOutput(),
+  })));
+  await assert.rejects(
+    () => completed.cancel("ad-job-terminal"),
+    (error: unknown) => error instanceof GatewayError &&
+      error.code === "PROVIDER_JOB_TERMINAL" &&
+      error.status === 409,
+  );
 });
 
 test("AutoDL provider fails closed and never exposes raw worker errors", async () => {
@@ -228,4 +240,3 @@ test("AutoDL provider fails closed and never exposes raw worker errors", async (
       !error.message.includes("raw private detail"),
   );
 });
-

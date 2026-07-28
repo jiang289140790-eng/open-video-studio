@@ -67,7 +67,7 @@ export function mapPlanToWorkerInput(plan: GenerationPlan, config: RunPodWorkflo
       plan.input.output_count < 1 ||
       plan.input.output_count > 4) {
     throw new GatewayError(
-      "RUNPOD_WORKFLOW_INPUT_UNSUPPORTED",
+      "REAL_WORKFLOW_INPUT_UNSUPPORTED",
       "The request is outside the enabled real-image workflow contract.",
       422,
       false,

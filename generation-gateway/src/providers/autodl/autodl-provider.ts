@@ -89,7 +89,18 @@ export class AutoDLProvider implements WebhookVerifyingProvider {
 
   async cancel(providerJobId: string): Promise<void> {
     this.assertConfigured();
-    await this.request(`/v1/jobs/${encodeURIComponent(providerJobId)}/cancel`, { method: "POST" });
+    const response = await this.request(
+      `/v1/jobs/${encodeURIComponent(providerJobId)}/cancel`,
+      { method: "POST" },
+    );
+    if (["completed", "failed", "timeout"].includes(response.status)) {
+      throw new GatewayError(
+        "PROVIDER_JOB_TERMINAL",
+        "The AutoDL staging job already reached a terminal state.",
+        409,
+        false,
+      );
+    }
   }
 
   async normalizeResult(raw: unknown): Promise<GenerationResult> {
@@ -338,4 +349,3 @@ function failed(providerJobId: string, errorCode: string, errorMessage: string):
     error_message: errorMessage,
   };
 }
-

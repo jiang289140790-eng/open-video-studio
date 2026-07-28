@@ -151,7 +151,7 @@ test("worker mapping rejects reference images, multiple people and non-photoreal
       modelManifestRef: "config://model.json",
       storageBucket: "generation-results",
     }),
-    (error: unknown) => error instanceof GatewayError && error.code === "RUNPOD_WORKFLOW_INPUT_UNSUPPORTED",
+    (error: unknown) => error instanceof GatewayError && error.code === "REAL_WORKFLOW_INPUT_UNSUPPORTED",
   );
   assert.throws(
     () => mapPlanToWorkerInput(plan({ structured_options: { people_count: 1, visual_style: "anime" } }), {
@@ -159,7 +159,7 @@ test("worker mapping rejects reference images, multiple people and non-photoreal
       modelManifestRef: "config://model.json",
       storageBucket: "generation-results",
     }),
-    (error: unknown) => error instanceof GatewayError && error.code === "RUNPOD_WORKFLOW_INPUT_UNSUPPORTED",
+    (error: unknown) => error instanceof GatewayError && error.code === "REAL_WORKFLOW_INPUT_UNSUPPORTED",
   );
 });
 

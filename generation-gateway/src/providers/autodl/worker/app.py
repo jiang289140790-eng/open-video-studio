@@ -236,6 +236,10 @@ async def run_job(provider_job_id: str) -> None:
             if state.get("cancel_requested") or state["status"] == "cancelled":
                 return
             assets = await upload_assets(state["input"], images)
+            state = load_state(provider_job_id) or state
+            if state.get("cancel_requested") or state["status"] == "cancelled":
+                await delete_uploaded_assets(state["input"], assets)
+                return
             duration_ms = int((time.monotonic() - started) * 1000)
             actual_cost = round((duration_ms / 3_600_000) * GPU_HOURLY_COST, 8)
             request = state["input"]["request"]
@@ -427,6 +431,31 @@ async def upload_assets(raw_input: dict[str, Any], images: list[dict[str, Any]])
                 )
             raise
     return assets
+
+
+async def delete_uploaded_assets(
+    raw_input: dict[str, Any],
+    assets: list[dict[str, Any]],
+) -> None:
+    storage = raw_input["storage"]
+    prefixes = [
+        asset["storage_path"].removeprefix(f"{storage['bucket']}/")
+        for asset in assets
+    ]
+    if not prefixes:
+        return
+    async with httpx.AsyncClient(timeout=30) as client:
+        response = await client.request(
+            "DELETE",
+            f"{SUPABASE_URL}/storage/v1/object/{storage['bucket']}",
+            json={"prefixes": prefixes},
+            headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                "content-type": "application/json",
+            },
+        )
+        response.raise_for_status()
 
 
 def delete_local_output(image: dict[str, Any]) -> None:
