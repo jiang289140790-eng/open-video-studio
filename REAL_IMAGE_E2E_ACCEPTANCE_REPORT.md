@@ -11,10 +11,11 @@ Status: **BLOCKED**
 - Workflow: present, `testing`, provider array contains only `runpod`.
 - Storage bucket: `generation-results`, private.
 - Render service: `generation-gateway-staging`.
-- Current Render deployment: live Phase 1 commit `5f5738f`.
+- Current Render deployment: live Phase 2 code commit `474fe15`; real provider remains disabled.
 - Current `/health`: `ok`.
 - Current `/ready`: `ready`.
 - Render Phase 2 environment variables: all absent.
+- Render log scan: 100 recent deployment/runtime records checked; no JWT, Supabase secret/service-role marker, webhook secret, Render token or Authorization bearer value detected.
 
 No production Supabase project was accessed.
 

@@ -13,6 +13,7 @@ Final status: **BLOCKED — NOT ACCEPTED**
 - Provider attempt and cost metadata persistence.
 - Duplicate webhook, billing, attempt and asset protections.
 - Phase 2 migration applied only to authorized staging project `wyvswkxogkmywduhrhkw`.
+- Phase 2 code commit `474fe15` deployed live to `generation-gateway-staging` with the real provider disabled.
 - Local migration replay, rollback and reapply.
 - Local and staging RLS/role/isolation/idempotency validation.
 - No real GPU, model, LoRA, checkpoint or production workflow was contacted.
@@ -30,7 +31,8 @@ Final status: **BLOCKED — NOT ACCEPTED**
 | Local DB tests | 61/61 pass |
 | Staging DB tests | 61/61 pass |
 | Staging migration | applied and verified |
-| Render Phase 1 health/readiness | pass |
+| Render Phase 2 code deploy/health/readiness | pass; real provider disabled |
+| Render log redaction scan | pass (100 recent records) |
 | Secret scan / diff check / JSON-YAML parse | pass |
 | Supabase schema lint | pass |
 | Supabase staging Security Advisor | blocked by pre-existing non-Generation RLS errors |

@@ -43,6 +43,8 @@ Supabase documents that private Storage assets should be served through time-lim
 - Gateway tests: 42/42.
 - Open Video Studio tests: 75/75.
 - AI Marketing Studio lint/typecheck/build/migration check: pass.
+- Render deployment `474fe15`: live; `/health` and `/ready` pass with real provider disabled.
+- Render log redaction scan: 100 recent records, zero matches for JWT, Supabase secret/service-role marker, webhook secret, Render token or Authorization bearer value.
 - Supabase local and linked schema lint: pass.
 - Supabase staging Security Advisor: **failed on pre-existing, non-Generation tables with RLS disabled**. Examples include `automation_runs`, `automations`, `accounts`, `content_items` and legacy OAuth/job tables. The Phase 2 migration did not create or alter these tables, so they were not changed outside scope.
 
