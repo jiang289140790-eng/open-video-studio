@@ -72,6 +72,7 @@ test("open-video real test toggle sends only generic execution intent", async ()
 
 test("stored real assets are re-signed by the gateway after page refresh", async () => {
   const source = await readFile(resolve(process.cwd(), "../generation-gateway/src/repository.ts"), "utf8");
-  assert.match(source, /createSignedUrl\(String\(stored\.storage_path\), 900\)/);
+  assert.match(source, /storedPath\.startsWith\(`\$\{bucket\}\/`\)/);
+  assert.match(source, /createSignedUrl\(objectPath, 900\)/);
   assert.match(source, /ASSET_SIGNING_FAILED/);
 });

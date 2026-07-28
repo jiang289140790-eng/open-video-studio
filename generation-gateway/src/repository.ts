@@ -389,9 +389,14 @@ export class SupabaseGenerationRepository implements GenerationRepository {
     await Promise.all(job.assets.map(async (asset) => {
       const stored = storedAssets.find((item) => String(item.id) === asset.id);
       if (!stored?.storage_bucket || !stored?.storage_path) return;
+      const bucket = String(stored.storage_bucket);
+      const storedPath = String(stored.storage_path);
+      const objectPath = storedPath.startsWith(`${bucket}/`)
+        ? storedPath.slice(bucket.length + 1)
+        : storedPath;
       const { data, error } = await this.client.storage
-        .from(String(stored.storage_bucket))
-        .createSignedUrl(String(stored.storage_path), 900);
+        .from(bucket)
+        .createSignedUrl(objectPath, 900);
       if (error || !data?.signedUrl) {
         throw new GatewayError("ASSET_SIGNING_FAILED", "Could not create a fresh result URL.", 503, true);
       }
