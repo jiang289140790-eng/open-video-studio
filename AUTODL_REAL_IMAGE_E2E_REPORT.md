@@ -10,7 +10,7 @@ Status: **PARTIAL PASS / FINAL RUN BLOCKED BY POWERED-OFF INSTANCE**
 
 | Check | Result |
 | --- | --- |
-| Render deploy | live, commit `8f83b0a` |
+| Render deploy | live, commit `ddbcf4b` |
 | `/health` | 200 / `ok` |
 | `/ready` | 200 / `ready` |
 | invalid JWT | 401 |
