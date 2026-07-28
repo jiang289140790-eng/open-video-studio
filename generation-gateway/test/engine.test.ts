@@ -150,6 +150,21 @@ test("duplicate provider webhook is idempotent", async () => {
   await engine.cancel(userA, job.id);
 });
 
+test("completed provider work resumes idempotently from post processing", async () => {
+  const { engine, repository } = setup({ latencyMs: 80 });
+  const created = await engine.create(userA, imageInput({ idempotency_key: "resume-post-processing-01" }));
+  let job = await engine.get(userA, created.job.id);
+  while (!job.provider_job_id) {
+    await new Promise((resolve) => setTimeout(resolve, 2));
+    job = await engine.get(userA, created.job.id);
+  }
+  if (job.status === "submitted") job = await repository.transition(job.id, "running");
+  if (job.status === "running") await repository.transition(job.id, "post_processing");
+  const completed = await terminal(engine, userA, job.id);
+  assert.equal(completed.status, "completed");
+  assert.equal(completed.assets.length, 1);
+});
+
 test("another user cannot read or cancel a job", async () => {
   const { engine } = setup({ latencyMs: 500 });
   const created = await engine.create(userA, imageInput({ idempotency_key: "ownership-request-01" }));

@@ -134,7 +134,10 @@ export class GenerationEngine {
       payload: { provider: providerId, provider_job_id: providerJobId },
       idempotency_key: `webhook:${providerId}:${eventId}`,
     });
-    if (inserted && !isTerminal(job.status)) this.run(job.id);
+    // A duplicate callback can be the recovery signal after a process restart or
+    // a transient database failure. Completion writes are idempotent, so always
+    // resume a non-terminal job while preserving duplicate-event reporting.
+    if (!isTerminal(job.status)) this.run(job.id);
     return { duplicate: !inserted };
   }
 
@@ -213,10 +216,16 @@ export class GenerationEngine {
         }
         if (status.status === "completed" && status.result) {
           provider.validateResultForPlan?.(status.result, job.generation_plan!);
-          if (job.status === "submitted") job = await this.repository.transition(job.id, "running", { started_at: new Date().toISOString() });
-          job = await this.repository.transition(job.id, "post_processing");
+          if (job.status === "submitted" || job.status === "queued") {
+            job = await this.repository.transition(job.id, "running", { started_at: new Date().toISOString() });
+          }
+          if (job.status === "running") {
+            job = await this.repository.transition(job.id, "post_processing");
+          }
           await this.repository.saveAssets(job.user_id, status.result.assets);
-          job = await this.repository.transition(job.id, "reviewing");
+          if (job.status === "post_processing") {
+            job = await this.repository.transition(job.id, "reviewing");
+          }
           const review = reviewResult(job.id, status.result.assets.length === job.output_count);
           await this.repository.saveReview(job.user_id, review);
           const metrics = costMetrics(status.result.raw_redacted);

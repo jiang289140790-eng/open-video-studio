@@ -1,52 +1,66 @@
 {
-  "3": {
-    "class_type": "KSampler",
+  "1": {
+    "class_type": "UnetLoaderGGUF",
     "inputs": {
-      "seed": 1,
-      "steps": 25,
-      "cfg": 6.0,
-      "sampler_name": "dpmpp_2m",
-      "scheduler": "karras",
-      "denoise": 1.0,
-      "model": ["4", 0],
-      "positive": ["6", 0],
-      "negative": ["7", 0],
-      "latent_image": ["5", 0]
+      "unet_name": "persephone/Persephone_Flux_2.0_Q8_0.gguf"
+    }
+  },
+  "2": {
+    "class_type": "DualCLIPLoader",
+    "inputs": {
+      "clip_name1": "clip_l.safetensors",
+      "clip_name2": "t5xxl_fp16.safetensors",
+      "type": "flux"
+    }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ae.safetensors"
     }
   },
   "4": {
-    "class_type": "CheckpointLoaderSimple",
+    "class_type": "CLIPTextEncode",
     "inputs": {
-      "ckpt_name": "juggernautXL_v8Rundiffusion_V8.safetensors"
+      "text": "",
+      "clip": ["2", 0]
     }
   },
   "5": {
-    "class_type": "EmptyLatentImage",
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "cartoon, anime, cgi, plastic skin, waxy skin, bad anatomy, deformed body, deformed hands, extra fingers, missing fingers, fused fingers, distorted face, cross eyes, low quality, blurry, over-sharpened, watermark, text, logo, jpeg artifacts, unnatural skin, child, teen, underage",
+      "clip": ["2", 0]
+    }
+  },
+  "6": {
+    "class_type": "EmptySD3LatentImage",
     "inputs": {
       "width": 1024,
       "height": 1024,
       "batch_size": 1
     }
   },
-  "6": {
-    "class_type": "CLIPTextEncode",
-    "inputs": {
-      "text": "",
-      "clip": ["4", 1]
-    }
-  },
   "7": {
-    "class_type": "CLIPTextEncode",
+    "class_type": "KSampler",
     "inputs": {
-      "text": "",
-      "clip": ["4", 1]
+      "model": ["1", 0],
+      "seed": 1,
+      "steps": 24,
+      "cfg": 1.0,
+      "sampler_name": "dpmpp_2m",
+      "scheduler": "beta",
+      "positive": ["4", 0],
+      "negative": ["5", 0],
+      "latent_image": ["6", 0],
+      "denoise": 1.0
     }
   },
   "8": {
     "class_type": "VAEDecode",
     "inputs": {
-      "samples": ["3", 0],
-      "vae": ["4", 2]
+      "samples": ["7", 0],
+      "vae": ["3", 0]
     }
   },
   "9": {
@@ -57,4 +71,3 @@
     }
   }
 }
-

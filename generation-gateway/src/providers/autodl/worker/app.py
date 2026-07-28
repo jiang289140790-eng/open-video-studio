@@ -296,7 +296,7 @@ def build_workflow(raw_input: dict[str, Any]) -> dict[str, Any]:
     workflow = json.loads((ROOT / config["workflow_file"]).read_text(encoding="utf-8"))
     mapping = config["node_mapping"]
     width, height = config["limits"]["aspect_ratios"][request["aspect_ratio"]]
-    workflow[mapping["checkpoint_loader"]]["inputs"]["ckpt_name"] = model["checkpoint"]
+    workflow[mapping["model_loader"]]["inputs"][model["loader_input"]] = model["artifact"]
     workflow[mapping["latent_image"]]["inputs"].update({
         "width": width,
         "height": height,

@@ -6,26 +6,27 @@
       "version": "1.0.0",
       "workflow_file": "single-person-text-to-image-v1.json",
       "model_manifest_ref": "registry://models/single-person-photorealistic-model-v1/1.0.0",
+      "provider_workflow_id": "persephone_flux_2_q8_t2i_api_v1",
       "node_mapping": {
-        "checkpoint_loader": "4",
-        "latent_image": "5",
-        "positive_prompt": "6",
-        "negative_prompt": "7",
-        "sampler": "3",
+        "model_loader": "1",
+        "latent_image": "6",
+        "positive_prompt": "4",
+        "negative_prompt": "5",
+        "sampler": "7",
         "save_image": "9"
       },
       "defaults": {
-        "negative_prompt": "minor, age ambiguous, child, low quality, blurry, deformed anatomy, extra fingers, missing fingers, watermark, text",
-        "steps": 25,
-        "cfg": 6.0,
+        "negative_prompt": "cartoon, anime, cgi, plastic skin, waxy skin, bad anatomy, deformed body, deformed hands, extra fingers, missing fingers, fused fingers, distorted face, cross eyes, low quality, blurry, over-sharpened, watermark, text, logo, jpeg artifacts, unnatural skin, child, teen, underage",
+        "steps": 24,
+        "cfg": 1.0,
         "sampler_name": "dpmpp_2m",
-        "scheduler": "karras"
+        "scheduler": "beta"
       },
       "limits": {
         "max_outputs": 4,
         "aspect_ratios": {
           "1:1": [1024, 1024],
-          "4:5": [1024, 1280]
+          "4:5": [768, 960]
         }
       }
     }
@@ -34,11 +35,17 @@
     "registry://models/single-person-photorealistic-model-v1/1.0.0": {
       "id": "single-person-photorealistic-model-v1",
       "version": "1.0.0",
-      "checkpoint": "juggernautXL_v8Rundiffusion_V8.safetensors",
-      "architecture": "SDXL",
-      "minimum_vram_gb": 16,
+      "loader_class": "UnetLoaderGGUF",
+      "loader_input": "unet_name",
+      "artifact": "persephone/Persephone_Flux_2.0_Q8_0.gguf",
+      "architecture": "FLUX",
+      "dependencies": {
+        "clip_l": "clip_l.safetensors",
+        "t5": "t5xxl_fp16.safetensors",
+        "vae": "ae.safetensors"
+      },
+      "minimum_vram_gb": 24,
       "staging_only": true
     }
   }
 }
-
