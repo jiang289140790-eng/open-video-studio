@@ -8,7 +8,28 @@ export const getGatewayGeneration = (jobId) => gatewayRequest(`/v1/generations/$
 export const cancelGatewayGeneration = (jobId) => gatewayRequest(`/v1/generations/${encodeURIComponent(jobId)}/cancel`, { method: "POST" });
 export const retryGatewayGeneration = (jobId) => gatewayRequest(`/v1/generations/${encodeURIComponent(jobId)}/retry`, { method: "POST" });
 export const analyzeGatewayReference = (input) => gatewayRequest("/v1/reference-analyses", { method: "POST", body: input });
+export const confirmGatewayReferenceAnalysis = (analysisId, input) => gatewayRequest(
+  `/v1/reference-analyses/${encodeURIComponent(analysisId)}/confirm`,
+  { method: "PATCH", body: input }
+);
 export const listGatewayCharacters = () => gatewayRequest("/v1/characters");
+export const ensureGatewayMockCharacter = () => gatewayRequest("/v1/characters/mock", { method: "POST" });
+export const listGatewayWorkflows = () => gatewayRequest("/v1/admin/workflows");
+export const patchGatewayWorkflow = (workflowId, patch) => gatewayRequest(
+  `/v1/admin/workflows/${encodeURIComponent(workflowId)}`,
+  { method: "PATCH", body: patch }
+);
+export const listGatewayWorkflowVersions = (workflowId) => gatewayRequest(
+  `/v1/admin/workflows/${encodeURIComponent(workflowId)}/versions`
+);
+export const listGatewayLoras = () => gatewayRequest("/v1/admin/loras");
+export const patchGatewayLora = (loraId, patch) => gatewayRequest(
+  `/v1/admin/loras/${encodeURIComponent(loraId)}`,
+  { method: "PATCH", body: patch }
+);
+export const listGatewayLoraVersions = (loraId) => gatewayRequest(
+  `/v1/admin/loras/${encodeURIComponent(loraId)}/versions`
+);
 
 export async function waitForGatewayGeneration(jobId, options = {}) {
   const deadline = Date.now() + Number(options.timeoutMs || 180_000);

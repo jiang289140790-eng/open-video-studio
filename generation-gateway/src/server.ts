@@ -9,8 +9,16 @@ import { MockProvider, RunPodProviderPlaceholder, type GenerationProvider, type 
 import { RunPodProvider } from "./providers/runpod/index.js";
 import { AutoDLProvider } from "./providers/autodl/index.js";
 import { MemoryGenerationRepository, SupabaseGenerationRepository } from "./repository.js";
-import { MemoryRegistryStore, SupabaseRegistryStore } from "./registry.js";
-import { ReferenceAnalysisRequestSchema } from "./reference-analysis.js";
+import {
+  LoraRegistryPatchSchema,
+  MemoryRegistryStore,
+  SupabaseRegistryStore,
+  type RegistryStore,
+} from "./registry.js";
+import {
+  ReferenceAnalysisConfirmationSchema,
+  ReferenceAnalysisRequestSchema,
+} from "./reference-analysis.js";
 
 const config = loadConfig();
 const repository = config.SUPABASE_URL && config.SUPABASE_SERVICE_ROLE_KEY
@@ -100,6 +108,10 @@ const server = createServer(async (request, response) => {
     }
     const mockAsset = path.match(/^\/v1\/mock-assets\/([^/]+)\/(\d+)\.svg$/);
     if (request.method === "GET" && mockAsset) return sendMockAsset(response, mockAsset[1]!, Number(mockAsset[2]));
+    const mockCharacterPreview = path.match(/^\/v1\/mock-character-previews\/([^/]+)\/(\d+)\.svg$/);
+    if (request.method === "GET" && mockCharacterPreview) {
+      return sendMockCharacterPreview(response, mockCharacterPreview[1]!, Number(mockCharacterPreview[2]));
+    }
     const webhookMatch = path.match(/^\/v1\/provider-webhooks\/([a-z0-9-]+)$/);
     if (request.method === "POST" && webhookMatch) {
       const raw = await readBody(request);
@@ -116,20 +128,43 @@ const server = createServer(async (request, response) => {
     const actor = await authenticate(request);
     if (request.method === "POST" && path === "/v1/reference-analyses") {
       const input = ReferenceAnalysisRequestSchema.parse(parseJson(await readBody(request)));
-      const analysis = await engine.analyzeReference(actor.id, input);
+      const record = await engine.analyzeReference(actor.id, input);
       return send(response, 200, {
+        analysis_id: record.id,
         reference_asset_id: input.reference_asset_id,
-        analysis,
+        analysis: record.analysis,
+        analyzer_mode: input.analyzer_mode,
         requires_confirmation: true,
         request_id: requestId,
       });
     }
+    const analysisConfirmation = path.match(/^\/v1\/reference-analyses\/([^/]+)\/confirm$/);
+    if (request.method === "PATCH" && analysisConfirmation) {
+      const body = ReferenceAnalysisConfirmationSchema.parse(parseJson(await readBody(request)));
+      const record = await engine.confirmReferenceAnalysis(
+        actor.id,
+        decodeURIComponent(analysisConfirmation[1]!),
+        body.reference_asset_id,
+        body.analysis,
+      );
+      return send(response, 200, {
+        analysis_id: record.id,
+        reference_asset_id: record.reference_asset_id,
+        analysis: record.confirmed_analysis,
+        confirmed_at: record.confirmed_at,
+        request_id: requestId,
+      });
+    }
+    if (request.method === "POST" && path === "/v1/characters/mock") {
+      if (!config.MOCK_PROVIDER_ENABLED) {
+        throw new GatewayError("MOCK_PROVIDER_DISABLED", "The Phase 3A mock character is unavailable.", 503);
+      }
+      const character = await registry.ensureMockCharacter(actor.id);
+      return send(response, 200, { character: publicCharacter(character, baseUrl), request_id: requestId });
+    }
     if (request.method === "GET" && path === "/v1/characters") {
-      const characters = (await registry.listCharactersForUser(actor.id)).map((character) => ({
-        id: character.id,
-        display_name: character.display_name,
-        status: character.status,
-      }));
+      const characters = (await registry.listCharactersForUser(actor.id))
+        .map((character) => publicCharacter(character, baseUrl));
       return send(response, 200, { characters, request_id: requestId });
     }
     if (request.method === "POST" && path === "/v1/generations") {
@@ -184,14 +219,34 @@ const server = createServer(async (request, response) => {
     const workflowPatch = path.match(/^\/v1\/admin\/workflows\/([^/]+)$/);
     if (request.method === "PATCH" && workflowPatch) {
       const patch = WorkflowManifestSchema.partial().parse(parseJson(await readBody(request)));
-      const workflow = await registry.patchWorkflow(decodeURIComponent(workflowPatch[1]!), patch);
+      const workflow = await registry.patchWorkflow(decodeURIComponent(workflowPatch[1]!), patch, actor.id);
       return send(response, 200, { workflow, request_id: requestId });
+    }
+    const workflowVersions = path.match(/^\/v1\/admin\/workflows\/([^/]+)\/versions$/);
+    if (request.method === "GET" && workflowVersions) {
+      const versions = await registry.listWorkflowVersions(decodeURIComponent(workflowVersions[1]!));
+      return send(response, 200, { versions, request_id: requestId });
     }
     if (request.method === "GET" && path === "/v1/admin/models") {
       return send(response, 200, { models: await registry.listModels(), request_id: requestId });
     }
     if (request.method === "GET" && path === "/v1/admin/loras") {
-      return send(response, 200, { loras: await registry.listLoras(), request_id: requestId });
+      const [loras, compatibility] = await Promise.all([
+        registry.listLoras(),
+        registry.listWorkflowLoraCompatibility(),
+      ]);
+      return send(response, 200, { loras, compatibility, request_id: requestId });
+    }
+    const loraPatch = path.match(/^\/v1\/admin\/loras\/([^/]+)$/);
+    if (request.method === "PATCH" && loraPatch) {
+      const patch = LoraRegistryPatchSchema.parse(parseJson(await readBody(request)));
+      const lora = await registry.patchLora(decodeURIComponent(loraPatch[1]!), patch, actor.id);
+      return send(response, 200, { lora, request_id: requestId });
+    }
+    const loraVersions = path.match(/^\/v1\/admin\/loras\/([^/]+)\/versions$/);
+    if (request.method === "GET" && loraVersions) {
+      const versions = await registry.listLoraVersions(decodeURIComponent(loraVersions[1]!));
+      return send(response, 200, { versions, request_id: requestId });
     }
     if (request.method === "GET" && path === "/v1/admin/providers") {
       const [configs, health] = await Promise.all([
@@ -286,6 +341,18 @@ function publicJob(job: GenerationJob) {
       routing_reasons: plan.routing_reasons,
       fallback_count: plan.fallback_workflow_ids.length,
       router_version: plan.router_version,
+    } : undefined,
+    reference_plan: plan?.reference_asset_id ? {
+      reference_asset_id: plan.reference_asset_id,
+      character_id: plan.character_id,
+      workflow_id: plan.workflow_id,
+      preserve_pose: plan.preserve_pose,
+      preserve_composition: plan.preserve_composition,
+      replace_scene: plan.replace_scene,
+      outfit_override: plan.outfit_override,
+      expression_override: plan.expression_override,
+      aspect_ratio: plan.aspect_ratio,
+      output_count: plan.output_count,
     } : undefined,
     created_at: job.created_at,
     updated_at: job.updated_at,
@@ -383,6 +450,44 @@ function sendMockAsset(response: ServerResponse, jobId: string, output: number):
   response.setHeader("content-type", "image/svg+xml; charset=utf-8");
   response.setHeader("cache-control", "public, max-age=3600");
   response.end(svg);
+}
+
+function sendMockCharacterPreview(response: ServerResponse, characterId: string, output: number): void {
+  const safeId = characterId.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 80);
+  const palettes = [
+    ["#20142e", "#9c6cff"],
+    ["#142b2b", "#45c8b1"],
+    ["#2d1b18", "#e78f63"],
+  ];
+  const [start, end] = palettes[Math.abs(output) % palettes.length]!;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="720" height="960" viewBox="0 0 720 960"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${start}"/><stop offset="1" stop-color="${end}"/></linearGradient></defs><rect width="720" height="960" fill="url(#g)"/><circle cx="360" cy="330" r="118" fill="rgba(255,255,255,.24)"/><path d="M160 820c20-210 125-315 200-315s180 105 200 315" fill="rgba(255,255,255,.2)"/><text x="40" y="895" fill="white" font-family="sans-serif" font-size="27">Mock character preview ${output}</text><text x="40" y="930" fill="rgba(255,255,255,.72)" font-family="monospace" font-size="17">${safeId}</text></svg>`;
+  response.statusCode = 200;
+  response.setHeader("content-type", "image/svg+xml; charset=utf-8");
+  response.setHeader("cache-control", "public, max-age=3600");
+  response.end(svg);
+}
+
+function publicCharacter(character: Awaited<ReturnType<RegistryStore["ensureMockCharacter"]>>, origin: string) {
+  return {
+    id: character.id,
+    display_name: character.display_name,
+    description: character.description,
+    status: character.status,
+    declared_age: character.declared_age,
+    base_model_id: character.base_model_id,
+    lora: {
+      id: character.lora_id,
+      version: character.lora_version,
+      default_weight: character.default_lora_weight,
+      min_weight: character.min_lora_weight,
+      max_weight: character.max_lora_weight,
+    },
+    preview_assets: [1, 2, 3].map((index) => ({
+      id: `preview-${index}`,
+      url: `${origin}/v1/mock-character-previews/${encodeURIComponent(character.id)}/${index}.svg`,
+      mock: true,
+    })),
+  };
 }
 
 function boundedInt(value: string | null, fallback: number, min: number, max: number): number {

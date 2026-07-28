@@ -18,6 +18,7 @@ export default defineConfig({
         explore: resolve(webRoot, "gallery.html"),
         generate: resolve(webRoot, "generate.html"),
         characters: resolve(webRoot, "characters.html"),
+        referenceStudio: resolve(webRoot, "reference-studio.html"),
         assets: resolve(webRoot, "assets.html"),
         campaigns: resolve(webRoot, "campaigns.html"),
         aiStudio: resolve(webRoot, "ai-studio.html"),

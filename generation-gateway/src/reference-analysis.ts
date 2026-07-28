@@ -29,6 +29,7 @@ export const ReferenceAnalysisSchema = z.object({
 
 export const ReferenceAnalysisRequestSchema = z.object({
   reference_asset_id: z.string().trim().min(1).max(500),
+  analyzer_mode: z.enum(["rules", "mock"]).default("rules"),
   observations: z.object({
     people_count: z.number().int().min(0).max(20).optional(),
     shot_type: ShortLabel.optional(),
@@ -49,7 +50,7 @@ export const ReferenceAnalysisConfirmationSchema = z.object({
 });
 
 export type ReferenceAnalysis = z.infer<typeof ReferenceAnalysisSchema>;
-export type ReferenceAnalysisRequest = z.infer<typeof ReferenceAnalysisRequestSchema>;
+export type ReferenceAnalysisRequest = z.input<typeof ReferenceAnalysisRequestSchema>;
 
 /**
  * Phase 3 rules analyzer. It deliberately does not inspect provider configuration
@@ -57,7 +58,8 @@ export type ReferenceAnalysisRequest = z.infer<typeof ReferenceAnalysisRequestSc
  * before they can be copied into a generation request.
  */
 export function analyzeReference(input: ReferenceAnalysisRequest): ReferenceAnalysis {
-  const value = input.observations;
+  const parsedInput = ReferenceAnalysisRequestSchema.parse(input);
+  const value = parsedInput.observations;
   const peopleCount = value.people_count ?? 1;
   const result: ReferenceAnalysis = {
     people_count: peopleCount,
@@ -72,7 +74,9 @@ export function analyzeReference(input: ReferenceAnalysisRequest): ReferenceAnal
     visible_body_region: value.visible_body_region ?? "unknown",
     preserve_candidates: ["pose", "composition", "camera_angle", "shot_type"],
     confidence: Object.keys(value).length >= 6 ? 0.8 : 0.35,
-    analyzer_version: "rules-reference-analyzer/1.0.0",
+    analyzer_version: parsedInput.analyzer_mode === "mock"
+      ? "mock-reference-analyzer/1.0.0"
+      : "rules-reference-analyzer/1.0.0",
   };
   return ReferenceAnalysisSchema.parse(result);
 }

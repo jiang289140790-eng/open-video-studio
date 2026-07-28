@@ -5,11 +5,12 @@ import test from "node:test";
 import { listWorkflowManifests, parseCreativeBrief, routeWorkflow } from "../src/planning.js";
 import { GenerationInputSchema } from "../src/domain.js";
 
-test("all seven phase-1 workflow manifests are registered", () => {
+test("all production mock workflow manifests are registered", () => {
   const ids = listWorkflowManifests()
     .filter((manifest) => manifest.status === "production")
     .map((manifest) => manifest.id);
   assert.deepEqual(ids.sort(), [
+    "mock-character-reference-remake-v1",
     "mock-effect-preset-v1",
     "mock-image-edit-v1",
     "mock-image-reference-pose-v1",

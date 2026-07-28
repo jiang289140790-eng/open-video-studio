@@ -12,6 +12,10 @@ import {
   REFERENCE_REMAKE_WORKFLOW_ID,
   singleCharacterReferenceRemakeManifest,
 } from "./reference-remake-workflow.js";
+import {
+  MOCK_REFERENCE_WORKFLOW_ID,
+  mockCharacterReferenceRemakeManifest,
+} from "./mock-reference-workflow.js";
 
 const unsafePatterns = [
   /\b(child|minor|underage|schoolgirl|schoolboy)\b/i,
@@ -135,6 +139,7 @@ const manifests: WorkflowManifest[] = [
   manifest("mock-effect-preset-v1", ["effect_preset"], true, false, 5, ["image", "video"]),
   singlePersonTextToImageManifest,
   singleCharacterReferenceRemakeManifest,
+  mockCharacterReferenceRemakeManifest,
 ];
 
 function manifest(
@@ -202,7 +207,10 @@ export function routeWorkflow(
   if (!selected) {
     throw new GatewayError("NO_MATCHING_WORKFLOW", "No active workflow satisfies the requested capabilities.", 422, true);
   }
-  const isReferenceRemake = selected.workflow.id === REFERENCE_REMAKE_WORKFLOW_ID;
+  const isReferenceRemake = [
+    REFERENCE_REMAKE_WORKFLOW_ID,
+    MOCK_REFERENCE_WORKFLOW_ID,
+  ].includes(selected.workflow.id);
   return {
     job_id: jobId,
     user_id: userId,

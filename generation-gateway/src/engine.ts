@@ -6,7 +6,17 @@ import type { GenerationRepository, ProviderCostMetrics } from "./repository.js"
 import type { CharacterBinding, RegistryStore } from "./registry.js";
 import { isTerminal } from "./state-machine.js";
 import { REFERENCE_REMAKE_LORA_ID, REFERENCE_REMAKE_WORKFLOW_ID } from "./reference-remake-workflow.js";
-import { analyzeReference, type ReferenceAnalysisRequest } from "./reference-analysis.js";
+import {
+  analyzeReference,
+  ReferenceAnalysisSchema,
+  type ReferenceAnalysis,
+  type ReferenceAnalysisRequest,
+} from "./reference-analysis.js";
+import {
+  MOCK_REFERENCE_LORA_ID,
+  MOCK_REFERENCE_MODEL_ID,
+  MOCK_REFERENCE_WORKFLOW_ID,
+} from "./mock-reference-workflow.js";
 
 export interface EngineOptions {
   pollIntervalMs: number;
@@ -39,6 +49,7 @@ export class GenerationEngine {
       job = await this.repository.transition(job.id, "validating", { parsed_brief: brief });
       const requestedIds = input.reference_assets.map((asset) => asset.asset_id);
       const ownedAssetIds = await this.repository.ownedAssetIds(userId, requestedIds);
+      await this.validateMockReferenceConfirmation(userId, input);
       validatePolicy({ input, brief, userId, ownedAssetIds });
       const character = input.character_id
         ? await this.validateCharacter(userId, input.character_id, input, brief.people_count)
@@ -93,7 +104,18 @@ export class GenerationEngine {
     if (!owned.has(request.reference_asset_id)) {
       throw new GatewayError("INPUT_ASSET_NOT_OWNED", "The reference asset is not owned by the authenticated user.", 403);
     }
-    return analyzeReference(request);
+    const analysis = analyzeReference(request);
+    if (!this.registry) throw new GatewayError("REFERENCE_ANALYSIS_REGISTRY_UNAVAILABLE", "Reference analysis persistence is unavailable.", 503, true);
+    return this.registry.createReferenceAnalysis(userId, request.reference_asset_id, analysis);
+  }
+
+  async confirmReferenceAnalysis(userId: string, analysisId: string, referenceAssetId: string, analysis: ReferenceAnalysis) {
+    if (!this.registry) throw new GatewayError("REFERENCE_ANALYSIS_REGISTRY_UNAVAILABLE", "Reference analysis persistence is unavailable.", 503, true);
+    const current = await this.registry.getReferenceAnalysis(analysisId, userId);
+    if (!current || current.reference_asset_id !== referenceAssetId) {
+      throw new GatewayError("REFERENCE_ANALYSIS_ASSET_MISMATCH", "The confirmation references a different asset.", 422);
+    }
+    return this.registry.confirmReferenceAnalysis(analysisId, userId, ReferenceAnalysisSchema.parse(analysis));
   }
 
   async cancel(userId: string, jobId: string): Promise<GenerationJob> {
@@ -173,6 +195,7 @@ export class GenerationEngine {
     const brief = parseCreativeBrief(input);
     current = await this.repository.transition(job.id, "validating", { parsed_brief: brief });
     const owned = await this.repository.ownedAssetIds(userId, input.reference_assets.map((item) => item.asset_id));
+    await this.validateMockReferenceConfirmation(userId, input);
     validatePolicy({ input, brief, userId, ownedAssetIds: owned });
     const character = input.character_id
       ? await this.validateCharacter(userId, input.character_id, input, brief.people_count)
@@ -348,6 +371,7 @@ export class GenerationEngine {
     manifests: Awaited<ReturnType<RegistryStore["listWorkflows"]>>,
   ) {
     const realTestRequested = input.structured_options.execution_mode === "real_test";
+    const mockReferenceRequested = input.structured_options.execution_mode === "mock_reference";
     const enabledIds = this.options.testingWorkflowIds?.length
       ? [...this.options.testingWorkflowIds]
       : this.options.testingWorkflowId
@@ -358,6 +382,12 @@ export class GenerationEngine {
       : enabledIds[0];
     if (realTestRequested && (!this.options.testingWorkflowsEnabled || !requestedWorkflowId || !enabledIds.includes(requestedWorkflowId))) {
       throw new GatewayError("REAL_PROVIDER_NOT_ENABLED", "Real image testing is not enabled in this environment.", 503, false);
+    }
+    if (mockReferenceRequested) {
+      return routeWorkflow(jobId, userId, input, brief, manifests, {
+        allowedStatuses: ["production"],
+        requiredWorkflowId: MOCK_REFERENCE_WORKFLOW_ID,
+      });
     }
     return routeWorkflow(jobId, userId, input, brief, manifests, realTestRequested ? {
       allowedStatuses: ["testing"],
@@ -395,7 +425,7 @@ export class GenerationEngine {
     character: CharacterBinding | null,
     input: GenerationInput,
   ): void {
-    if (plan.selected_workflow_id !== REFERENCE_REMAKE_WORKFLOW_ID) return;
+    if (![REFERENCE_REMAKE_WORKFLOW_ID, MOCK_REFERENCE_WORKFLOW_ID].includes(plan.selected_workflow_id ?? "")) return;
     if (!character) {
       throw new GatewayError("CHARACTER_REQUIRED", "The reference-remake workflow requires a verified character.", 422);
     }
@@ -405,7 +435,10 @@ export class GenerationEngine {
         requestedWeight > character.max_lora_weight) {
       throw new GatewayError("CHARACTER_LORA_WEIGHT_INVALID", "The requested character LoRA weight is outside its tested range.", 422);
     }
-    if (character.base_model_id !== plan.selected_model_id || character.lora_id !== REFERENCE_REMAKE_LORA_ID) {
+    const isMockReference = plan.selected_workflow_id === MOCK_REFERENCE_WORKFLOW_ID;
+    const expectedModelId = isMockReference ? MOCK_REFERENCE_MODEL_ID : plan.selected_model_id;
+    const expectedLoraId = isMockReference ? MOCK_REFERENCE_LORA_ID : REFERENCE_REMAKE_LORA_ID;
+    if (character.base_model_id !== expectedModelId || character.lora_id !== expectedLoraId) {
       throw new GatewayError("CHARACTER_LORA_INCOMPATIBLE", "The selected character LoRA is not compatible with this workflow.", 422);
     }
     plan.selected_lora_ids = [character.lora_id];
@@ -427,6 +460,28 @@ export class GenerationEngine {
       if (health.healthy) return providerId;
     }
     throw new GatewayError("PROVIDER_UNAVAILABLE", "No healthy provider is available for the selected workflow.", 503, true);
+  }
+
+  private async validateMockReferenceConfirmation(userId: string, input: GenerationInput): Promise<void> {
+    if (input.structured_options.execution_mode !== "mock_reference") return;
+    if (!this.registry) throw new GatewayError("REFERENCE_ANALYSIS_REGISTRY_UNAVAILABLE", "Reference analysis persistence is unavailable.", 503, true);
+    const analysisId = typeof input.structured_options.reference_analysis_id === "string"
+      ? input.structured_options.reference_analysis_id
+      : "";
+    const referenceAssetId = input.reference_assets[0]?.asset_id;
+    const suppliedAnalysis = ReferenceAnalysisSchema.safeParse(input.structured_options.reference_analysis);
+    if (!analysisId || !referenceAssetId || !suppliedAnalysis.success) {
+      throw new GatewayError("REFERENCE_ANALYSIS_CONFIRMATION_REQUIRED", "A persisted and confirmed reference analysis is required.", 422);
+    }
+    const record = await this.registry.getReferenceAnalysis(analysisId, userId);
+    if (
+      !record?.confirmed_at ||
+      !record.confirmed_analysis ||
+      record.reference_asset_id !== referenceAssetId ||
+      JSON.stringify(record.confirmed_analysis) !== JSON.stringify(suppliedAnalysis.data)
+    ) {
+      throw new GatewayError("REFERENCE_ANALYSIS_CONFIRMATION_MISMATCH", "The confirmed reference analysis does not match this request.", 422);
+    }
   }
 
   private assertOwner(job: GenerationJob, userId: string): void {

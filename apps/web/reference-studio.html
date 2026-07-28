@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>参考图工作台 · Phase 3A Mock</title>
+    <meta name="robots" content="noindex,nofollow">
+    <link rel="icon" type="image/png" href="./favicon.png">
+    <link rel="stylesheet" href="./reference-studio.css">
+  </head>
+  <body>
+    <header class="studio-nav">
+      <a class="studio-brand" href="./index.html"><img src="./brand/luravyn-logo.png" alt="Luravyn"></a>
+      <nav><a href="./characters.html">角色管理</a><a href="./my-creations.html">生成记录</a><a href="./admin.html">管理后台</a></nav>
+      <span class="environment-badge">STAGING · MOCK ONLY</span>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Phase 3A Reference Pipeline</p>
+          <h1>从参考图到可确认的生成计划</h1>
+          <p>上传参考图、确认 Mock Analyzer 结果、选择角色并生成 Mock 任务。此页面不会连接 GPU，也不会使用真实 LoRA。</p>
+        </div>
+        <div class="hero-status" data-session-status><span class="pulse"></span><strong>正在检查登录状态</strong><small>请稍候</small></div>
+      </section>
+
+      <section class="pipeline-steps" aria-label="参考图生成步骤">
+        <article class="active" data-step-indicator="upload"><span>1</span><div><strong>上传参考图</strong><small>私有 Storage</small></div></article>
+        <article data-step-indicator="analysis"><span>2</span><div><strong>分析并确认</strong><small>Mock Analyzer</small></div></article>
+        <article data-step-indicator="character"><span>3</span><div><strong>选择角色</strong><small>角色 Registry</small></div></article>
+        <article data-step-indicator="plan"><span>4</span><div><strong>生成计划</strong><small>Mock Workflow</small></div></article>
+        <article data-step-indicator="result"><span>5</span><div><strong>查看结果</strong><small>Mock Job</small></div></article>
+      </section>
+
+      <section class="workspace-grid">
+        <article class="panel upload-panel">
+          <div class="panel-heading"><div><p class="eyebrow">Reference</p><h2>参考图</h2></div><span class="status-chip" data-upload-state>等待上传</span></div>
+          <label class="dropzone" data-reference-dropzone>
+            <input type="file" accept="image/jpeg,image/png,image/webp" data-reference-file>
+            <span class="upload-icon">＋</span><strong>选择一张单人物参考图</strong><small>JPG、PNG 或 WebP，最大 10 MB</small>
+          </label>
+          <div class="reference-preview" data-reference-preview hidden>
+            <img alt="已上传参考图预览" data-reference-image>
+            <div><strong data-reference-name></strong><small data-reference-meta></small></div>
+          </div>
+          <p class="privacy-note">文件直接上传到 Supabase staging 私有桶，路径按当前用户隔离；Render 只接收资产 ID。</p>
+        </article>
+
+        <article class="panel analysis-panel">
+          <div class="panel-heading"><div><p class="eyebrow">Mock Analyzer</p><h2>分析结果确认</h2></div><span class="status-chip neutral" data-analysis-state>尚未分析</span></div>
+          <div class="empty-state" data-analysis-empty><strong>上传后自动生成结构化分析</strong><p>Mock Analyzer 只生成低风险测试数据；你可以在提交前逐项修正。</p></div>
+          <form class="analysis-form" data-analysis-form hidden>
+            <div class="form-grid">
+              <label>人物数量<input name="people_count" type="number" min="0" max="20" required></label>
+              <label>景别<input name="shot_type" required></label>
+              <label>姿态<input name="pose" required></label>
+              <label>机位<input name="camera_angle" required></label>
+              <label>构图<input name="composition" required></label>
+              <label>可见身体区域<input name="visible_body_region" required></label>
+              <label>场景<input name="scene" required></label>
+              <label>光线<input name="lighting" required></label>
+              <label>表情<input name="expression" required></label>
+              <label>服装<input name="outfit" required></label>
+            </div>
+            <div class="confidence-row"><span>分析置信度</span><progress max="1" value="0" data-analysis-confidence></progress><strong data-analysis-confidence-label>0%</strong></div>
+            <label class="confirm-line"><input type="checkbox" data-analysis-reviewed required> 我已检查并确认人物数量及分析内容</label>
+            <button class="primary-button" type="submit">确认分析结果</button>
+          </form>
+        </article>
+      </section>
+
+      <section class="panel character-section">
+        <div class="panel-heading"><div><p class="eyebrow">Character Registry</p><h2>选择角色</h2></div><span class="status-chip neutral" data-character-count>0 个角色</span></div>
+        <div class="character-layout">
+          <div class="character-selector" data-character-list><div class="empty-state"><strong>正在加载角色</strong></div></div>
+          <aside class="character-detail" data-character-detail><div class="empty-state"><strong>请选择角色</strong><p>角色详情、状态和预览资产会显示在这里。</p></div></aside>
+        </div>
+      </section>
+
+      <section class="workspace-grid plan-grid">
+        <article class="panel">
+          <div class="panel-heading"><div><p class="eyebrow">Generation Plan</p><h2>计划设置</h2></div><span class="status-chip neutral">Mock workflow</span></div>
+          <form class="plan-form" data-plan-form>
+            <label>创作说明<textarea name="prompt" rows="3" required>保留参考图姿态与构图，生成 Mock 参考图复刻任务。</textarea></label>
+            <div class="form-grid">
+              <label>替换场景<input name="replace_scene" value="editorial studio"></label>
+              <label>服装调整<input name="outfit_override" placeholder="可留空"></label>
+              <label>表情调整<input name="expression_override" placeholder="可留空"></label>
+              <label>画面比例<select name="aspect_ratio"><option value="3:4">3:4</option><option value="1:1">1:1</option></select></label>
+              <label>输出数量<select name="output_count"><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
+              <label>LoRA 权重<input name="lora_weight" type="number" min="0.6" max="1.2" step="0.05" value="1"></label>
+            </div>
+            <label class="confirm-line"><input type="checkbox" name="adult_confirmed" required> 我确认参考图仅包含一名成年人</label>
+            <button class="primary-button" type="submit" data-plan-submit disabled>生成 Mock 任务</button>
+          </form>
+        </article>
+        <article class="panel plan-preview-panel">
+          <div class="panel-heading"><div><p class="eyebrow">Plan Preview</p><h2>GenerationPlan 摘要</h2></div><span class="status-chip neutral" data-plan-state>等待确认</span></div>
+          <dl class="plan-summary" data-plan-summary></dl>
+        </article>
+      </section>
+
+      <section class="panel result-panel">
+        <div class="panel-heading"><div><p class="eyebrow">Mock Generation Job</p><h2>任务状态与结果</h2></div><button class="text-button" type="button" data-refresh-job hidden>刷新任务</button></div>
+        <div class="job-empty" data-job-empty><strong>尚未创建任务</strong><p>完成上方步骤后，这里会展示状态流转和 Mock 图片。</p></div>
+        <div data-job-view hidden>
+          <div class="job-header"><strong data-job-id></strong><span class="status-chip" data-job-status></span></div>
+          <ol class="status-timeline" data-job-timeline></ol>
+          <div class="result-gallery" data-result-gallery></div>
+        </div>
+      </section>
+
+      <section class="registry-console" data-registry-console>
+        <div class="registry-heading"><div><p class="eyebrow">Admin Registry</p><h2>Workflow 与 LoRA Registry</h2></div><span class="status-chip neutral" data-registry-access>检查权限中</span></div>
+        <p class="registry-intro">普通用户只能看到创作流程；admin/operator 才能查看能力标签、状态、兼容关系和版本历史。</p>
+        <div class="registry-tabs"><button class="active" type="button" data-registry-tab="workflows">Workflow Registry</button><button type="button" data-registry-tab="loras">LoRA Registry</button></div>
+        <div class="registry-list" data-workflow-registry></div>
+        <div class="registry-list" data-lora-registry hidden></div>
+      </section>
+    </main>
+    <div class="toast" data-toast hidden></div>
+    <script type="module" src="./reference-studio.js"></script>
+  </body>
+</html>
