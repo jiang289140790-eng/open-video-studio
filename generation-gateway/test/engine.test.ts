@@ -108,6 +108,43 @@ test("user can cancel a queued or submitted job", async () => {
   assert.equal(job.status, "cancelled");
 });
 
+test("cancellation waits for an in-flight provider submission before cancelling", async () => {
+  const repository = new MemoryGenerationRepository();
+  const base = new MockProvider({
+    latencyMs: 500,
+    failureRate: 0,
+    timeoutRate: 0,
+    assetBaseUrl: "http://mock.local",
+  });
+  let cancelledProviderJobId: string | undefined;
+  const delayed: GenerationProvider = {
+    id: "mock",
+    async submit(plan) {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      return base.submit(plan);
+    },
+    getStatus: (providerJobId) => base.getStatus(providerJobId),
+    async cancel(providerJobId) {
+      cancelledProviderJobId = providerJobId;
+      await base.cancel(providerJobId);
+    },
+    normalizeResult: (raw) => base.normalizeResult(raw),
+    healthCheck: () => base.healthCheck(),
+  };
+  const engine = new GenerationEngine(
+    repository,
+    new Map([["mock", delayed]]),
+    { pollIntervalMs: 1, maxExecutionMs: 1000 },
+  );
+  const created = await engine.create(
+    userA,
+    imageInput({ idempotency_key: "cancel-during-submit-request-01" }),
+  );
+  const cancelled = await engine.cancel(userA, created.job.id);
+  assert.equal(cancelled.status, "cancelled");
+  assert.ok(cancelledProviderJobId);
+});
+
 test("failed job can be retried without reusing the same job", async () => {
   const { engine } = setup({ failureRate: 1 });
   const created = await engine.create(userA, imageInput({ idempotency_key: "retry-request-01" }));

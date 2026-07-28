@@ -15,6 +15,7 @@ export interface EngineOptions {
 
 export class GenerationEngine {
   private readonly running = new Set<string>();
+  private readonly submissionBarriers = new Map<string, Promise<void>>();
 
   constructor(
     private readonly repository: GenerationRepository,
@@ -80,11 +81,20 @@ export class GenerationEngine {
   }
 
   async cancel(userId: string, jobId: string): Promise<GenerationJob> {
-    const job = await this.required(jobId);
+    let job = await this.required(jobId);
     this.assertOwner(job, userId);
     if (job.status === "cancelled") return job;
     if (job.status === "completed" || job.status === "failed") {
       throw new GatewayError("JOB_NOT_CANCELLABLE", "A terminal generation job cannot be cancelled.", 409);
+    }
+    const submissionBarrier = this.submissionBarriers.get(job.id);
+    if (job.provider && !job.provider_job_id && submissionBarrier) {
+      await submissionBarrier;
+      job = await this.required(jobId);
+      if (job.status === "cancelled") return job;
+      if (job.status === "completed" || job.status === "failed") {
+        throw new GatewayError("JOB_NOT_CANCELLABLE", "A terminal generation job cannot be cancelled.", 409);
+      }
     }
     if (job.provider && job.provider_job_id) await this.providers.get(job.provider)?.cancel(job.provider_job_id);
     const cancelled = await this.repository.transition(job.id, "cancelled", {
@@ -170,14 +180,33 @@ export class GenerationEngine {
   private run(jobId: string): void {
     if (this.running.has(jobId)) return;
     this.running.add(jobId);
-    void this.execute(jobId).finally(() => this.running.delete(jobId));
+    let resolveSubmission!: () => void;
+    let submissionSettled = false;
+    const barrier = new Promise<void>((resolve) => {
+      resolveSubmission = resolve;
+    });
+    const markSubmissionSettled = () => {
+      if (submissionSettled) return;
+      submissionSettled = true;
+      resolveSubmission();
+    };
+    this.submissionBarriers.set(jobId, barrier);
+    void this.execute(jobId, markSubmissionSettled).finally(() => {
+      markSubmissionSettled();
+      this.submissionBarriers.delete(jobId);
+      this.running.delete(jobId);
+    });
   }
 
-  private async execute(jobId: string): Promise<void> {
+  private async execute(jobId: string, markSubmissionSettled: () => void): Promise<void> {
     let job = await this.required(jobId);
-    if (isTerminal(job.status)) return;
+    if (isTerminal(job.status)) {
+      markSubmissionSettled();
+      return;
+    }
     const provider = this.providers.get(job.provider ?? "mock");
     if (!provider || !job.generation_plan) {
+      markSubmissionSettled();
       await this.fail(job, "PROVIDER_UNAVAILABLE", "No configured provider can execute this plan.");
       return;
     }
@@ -191,6 +220,7 @@ export class GenerationEngine {
           estimated_cost: submitted.estimated_cost,
         });
       }
+      markSubmissionSettled();
       const deadline = Date.now() + this.options.maxExecutionMs;
       while (Date.now() < deadline) {
         job = await this.required(jobId);

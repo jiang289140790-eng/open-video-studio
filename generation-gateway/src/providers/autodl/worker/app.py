@@ -419,15 +419,9 @@ async def upload_assets(raw_input: dict[str, Any], images: list[dict[str, Any]])
                 delete_local_output(image)
         except Exception:
             if uploaded_paths:
-                await client.request(
-                    "DELETE",
-                    f"{SUPABASE_URL}/storage/v1/object/{storage['bucket']}",
-                    json={"prefixes": uploaded_paths},
-                    headers={
-                        "apikey": SUPABASE_SERVICE_ROLE_KEY,
-                        "authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
-                        "content-type": "application/json",
-                    },
+                await delete_storage_prefixes(
+                    storage["bucket"],
+                    uploaded_paths,
                 )
             raise
     return assets
@@ -444,18 +438,37 @@ async def delete_uploaded_assets(
     ]
     if not prefixes:
         return
-    async with httpx.AsyncClient(timeout=30) as client:
-        response = await client.request(
-            "DELETE",
-            f"{SUPABASE_URL}/storage/v1/object/{storage['bucket']}",
-            json={"prefixes": prefixes},
-            headers={
-                "apikey": SUPABASE_SERVICE_ROLE_KEY,
-                "authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
-                "content-type": "application/json",
-            },
-        )
-        response.raise_for_status()
+    await delete_storage_prefixes(storage["bucket"], prefixes)
+
+
+async def delete_storage_prefixes(
+    bucket: str,
+    prefixes: list[str],
+) -> None:
+    last_error: httpx.HTTPError | None = None
+    for attempt in range(3):
+        try:
+            async with httpx.AsyncClient(timeout=30) as client:
+                response = await client.request(
+                    "DELETE",
+                    f"{SUPABASE_URL}/storage/v1/object/{bucket}",
+                    json={"prefixes": prefixes},
+                    headers={
+                        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                        "authorization": (
+                            f"Bearer {SUPABASE_SERVICE_ROLE_KEY}"
+                        ),
+                        "content-type": "application/json",
+                    },
+                )
+                response.raise_for_status()
+                return
+        except httpx.HTTPError as exc:
+            last_error = exc
+            if attempt < 2:
+                await asyncio.sleep(attempt + 1)
+    if last_error:
+        raise last_error
 
 
 def delete_local_output(image: dict[str, Any]) -> None:
