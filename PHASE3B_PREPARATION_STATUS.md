@@ -6,7 +6,7 @@ This phase is not marked `ACCEPTED`, because the required real resources and rea
 
 ## Completed
 
-- Render staging deployed commit `87f375e`; health, readiness and online Phase 3A Mock Reference regression passed.
+- Render staging first deployed `87f375e` for the Phase 3A regression, then deployed Phase 3B preparation commit `c87dfe5`; health, readiness, online Mock Reference regression and the online resource gate passed.
 - Strict LoRA manifest/observation validator implemented.
 - Gateway and database LoRA promotion gates implemented.
 - ComfyUI Workflow JSON and node-mapping validator implemented.

@@ -6,8 +6,10 @@ Status: `PASS`
 
 - Service: `generation-gateway-staging`
 - Branch: `codex/render-staging`
-- Deployment: `dep-d9ka6eugekts73cln95g`
-- Commit: `87f375e4baa4358ea2d95c478ebaac8caedd81ad`
+- Phase 3A regression deployment: `dep-d9ka6eugekts73cln95g`
+- Phase 3A commit: `87f375e4baa4358ea2d95c478ebaac8caedd81ad`
+- Phase 3B preparation deployment: `dep-d9kabcu417fc73eg50c0`
+- Current deployed commit: `c87dfe51a5d4b3687435d155fe040d2c2de40169`
 - Render state: `live`
 - Supabase project reference confirmed from the service configuration: `wyvswkxogkmywduhrhkw`
 
@@ -42,3 +44,17 @@ Result:
 - cleanup: verified
 
 The request explicitly selected `mock_reference`. No real provider workflow, GPU, model, LoRA or checkpoint was invoked.
+
+## Phase 3B online gate
+
+After the preparation code was deployed, an authenticated admin check returned:
+
+- overall: `READY_FOR_RESOURCES`
+- base model, character LoRA, Workflow JSON and node mapping: `missing`
+- AutoDL Worker: `unhealthy`
+- Storage upload: `unverified`
+- target workflow present in real allowlist: `false`
+- resource attestation: `false`
+- allowlist eligible: `false`
+
+The temporary admin test user was deleted after verification.
