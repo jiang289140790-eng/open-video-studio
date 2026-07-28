@@ -439,6 +439,17 @@ async def fail_job(provider_job_id: str, status: str, code: str) -> None:
     state = load_state(provider_job_id)
     if not state:
         return
+    prompt_id = state.get("comfy_prompt_id")
+    if prompt_id:
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                await client.post(
+                    f"{COMFYUI_BASE_URL}/queue",
+                    json={"delete": [prompt_id]},
+                )
+                await client.post(f"{COMFYUI_BASE_URL}/interrupt")
+        except httpx.HTTPError:
+            pass
     state["status"] = status
     state["error"] = {"code": code}
     state["updated_at"] = utc_now()

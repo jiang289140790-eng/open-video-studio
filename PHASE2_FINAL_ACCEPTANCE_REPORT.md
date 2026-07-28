@@ -6,61 +6,65 @@ Final status: **BLOCKED — NOT ACCEPTED**
 
 ## Completed
 
-- RunPodProvider implementation and fail-closed configuration.
-- Testing-only single-person photorealistic text-to-image manifest.
-- Generic real-test frontend toggle with 1–4 outputs and `1:1`/`4:5` ratios.
-- Private Storage contract, owner/job path validation and signed URL refresh.
-- Provider attempt and cost metadata persistence.
-- Duplicate webhook, billing, attempt and asset protections.
-- Phase 2 migration applied only to authorized staging project `wyvswkxogkmywduhrhkw`.
-- Phase 2 code commit `474fe15` deployed live to `generation-gateway-staging` with the real provider disabled.
-- Local migration replay, rollback and reapply.
-- Local and staging RLS/role/isolation/idempotency validation.
-- No real GPU, model, LoRA, checkpoint or production workflow was contacted.
-- No production Supabase project and no `main` merge/modification.
+- AutoDLProvider implements the unified Provider interface.
+- RunPodProvider is retained and disabled.
+- Fixed testing workflow `single-person-text-to-image-v1` is bound to
+  `persephone_flux_2_q8_t2i_api_v1` in staging.
+- ComfyUI + FastAPI Worker deployed on AutoDL RTX 5090.
+- Worker uploads directly to private Supabase staging Storage.
+- Real direct and Render-mediated images completed.
+- Online JWT, CORS, cross-user job/asset isolation, refresh recovery, retry,
+  and duplicate webhook passed.
+- Gateway page-refresh asset signing and resumable idempotent completion were
+  corrected and deployed.
+- Staging migrations are aligned 16/16.
+- Linked staging RLS/role/idempotency suite passed 61/61.
+- Render is live and ready; latest 200 logs contain no detected secrets.
+- No production Supabase access, no real RunPod, no video, no LoRA,
+  no reference-image workflow, and no merge to `main`.
 
-## Verification summary
+## Current verification matrix
 
 | Gate | Result |
 | --- | --- |
-| Generation Gateway | 42/42 pass |
+| Generation Gateway | 49/49 pass |
 | Open Video Studio | 75/75 pass |
-| AI Marketing Studio lint/typecheck/build/migrations | pass |
-| Local migrations | 15/15 pass |
-| Phase 2 rollback/reapply | pass |
-| Local DB tests | 61/61 pass |
-| Staging DB tests | 61/61 pass |
-| Staging migration | applied and verified |
-| Render Phase 2 code deploy/health/readiness | pass; real provider disabled |
-| Render log redaction scan | pass (100 recent records) |
-| Secret scan / diff check / JSON-YAML parse | pass |
-| Supabase schema lint | pass |
-| Supabase staging Security Advisor | blocked by pre-existing non-Generation RLS errors |
-| Real RunPod endpoint health | blocked |
-| Real image E2E | blocked |
-| Ten-class real benchmark | blocked |
-| Real Worker log review | blocked |
+| AI Marketing Studio lint | pass |
+| AI Marketing Studio typecheck | pass |
+| AI Marketing Studio build | pass |
+| AI Marketing Studio migration check | pass |
+| Supabase staging migrations | 16/16 aligned |
+| Supabase linked RLS/idempotency | 61/61 pass |
+| Render deploy | live |
+| Render health/readiness | pass |
+| invalid JWT / CORS | pass |
+| real image completed | pass |
+| page refresh recovery | pass |
+| user A/B isolation | pass |
+| duplicate webhook | pass |
+| retry | pass |
+| cancel | passed in an earlier online run; deterministic rerun pending |
+| failed / timeout cleanup | script prepared; runtime pending |
+| 10-case benchmark | blocked |
+| valid actual cost | blocked by missing hourly price |
+| current test-data cleanup | pass: 0 users, 0 jobs, 0 recent orphan objects |
 
-## Blocking configuration
+## Blocking condition
 
-Render currently has none of the required Phase 2 variables:
+AutoDL control panel reports the authorized staging instance
+`pro-7841f4d2206a` as **已关机**. SSH port 46294 consistently refuses
+connections and the public Worker mapping is unavailable. Starting it incurs
+pay-as-you-go GPU usage, so it was not restarted from the browser without a
+fresh action-time confirmation.
 
-- `RUNPOD_API_KEY`
-- `RUNPOD_ENDPOINT_ID`
-- `RUNPOD_WEBHOOK_SECRET`
-- `RUNPOD_REQUEST_TIMEOUT_MS`
-- `RUNPOD_POLL_INTERVAL_MS`
-- `RUNPOD_MAX_POLL_DURATION_MS`
-- `RUNPOD_COMFYUI_WORKFLOW_REF`
-- `RUNPOD_MODEL_MANIFEST_REF`
-- `GENERATION_STORAGE_BUCKET`
-- `REAL_PROVIDER_ENABLED`
-- `REAL_PROVIDER_ALLOWLIST`
+## Required human action
 
-The concrete Worker, workflow JSON/node mapping, model files/checksum/license and Worker Storage configuration are also missing.
+1. Start the existing AutoDL staging instance and keep it running for
+   approximately 5–10 minutes, or explicitly authorize Codex to click
+   **开机** in the AutoDL control panel.
+2. Provide the RTX 5090 hourly price or set `AUTODL_GPU_HOURLY_COST` to the
+   verified value.
 
-Supabase Security Advisor also reports pre-existing exposed tables outside the Generation Engine scope with RLS disabled. They were not modified during this phase and require a separate authorized remediation.
-
-## Acceptance decision
-
-Phase 2 is **not accepted**. Code, database and Mock regression gates are ready, but the user-defined acceptance standard requires a real Endpoint health check, real images, real cancel/retry/timeout behavior, real log review and a ten-class benchmark. Those results cannot be produced honestly until the blocking infrastructure is supplied.
+After that, run the prepared negative-path suite and 10-case benchmark, inspect
+all outputs, remove test assets/users/jobs/state, rescan logs, run final static
+checks, commit/push the reports, and only then change status to **ACCEPTED**.

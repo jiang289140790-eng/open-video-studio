@@ -1,28 +1,48 @@
 # Real Image Benchmark Report
 
-Date: 2026-07-28  
-Status: **BLOCKED — 0 REAL IMAGES GENERATED**
+Date: 2026-07-28
 
-The benchmark framework is fixed before model selection to avoid cherry-picking. No score is reported because the Endpoint, Worker, workflow and model files do not exist.
+Workflow: `single-person-text-to-image-v1`
 
-## Fixed prompt classes
+Model binding: Persephone Flux 2.0 Q8
 
-| # | Prompt class | Primary review dimensions |
-| --- | --- | --- |
-| 1 | neutral studio headshot | face, skin, alignment |
-| 2 | full-body daylight portrait | anatomy, hands, composition |
-| 3 | seated indoor portrait | limbs, furniture interaction |
-| 4 | walking street portrait | motion anatomy, scene |
-| 5 | product-holding portrait | hands, object interaction |
-| 6 | low-light cinematic portrait | lighting, face consistency |
-| 7 | backlit outdoor portrait | exposure, hair edges |
-| 8 | patterned clothing portrait | texture, anatomy, prompt detail |
-| 9 | environmental workplace portrait | scene, composition, identity |
-| 10 | close-up expressive portrait | expression, eyes, teeth, skin |
+Status: **BLOCKED — 10-CASE RUN NOT COMPLETED**
 
-Each class must run the same frozen prompt at `1:1`; selected classes must also run at `4:5`. Target output is four images per class, with a minimum of one only when an explicit cost cap is recorded.
+## Smoke evidence
 
-## Required measurements
+Real images have been generated; this is no longer a zero-output integration:
+
+| Run | Result | Dimensions | Duration |
+| --- | --- | --- | --- |
+| direct Worker smoke 1 | completed | 1024×1024 | 25,266 ms |
+| direct Worker smoke 2 | completed | 1024×1024 | 18,852 ms |
+| Render online E2E | completed | 1024×1024 | persisted by Provider |
+| Render retry E2E | completed | 1024×1024 | persisted by Provider |
+
+Visual inspection of the first direct image found strong photorealistic face,
+skin, lighting, and plausible visible hands. This is smoke evidence only and
+is not sufficient for a model-quality acceptance claim.
+
+## Frozen 10-case set
+
+1. close-up editorial portrait
+2. full-body standing portrait
+3. hands holding an open book
+4. outdoor street portrait
+5. seated cafe scene
+6. studio fashion portrait
+7. low-angle social-media composition
+8. seated living-room portrait
+9. night city portrait
+10. white-background commercial portrait
+
+The executable benchmark uses one output per case to control staging cost,
+alternating `1:1` and `4:5`. It records status, state transitions, dimensions,
+duration, GPU type, Storage path, and cost fields.
+
+## Required review rubric
+
+Each completed image will receive 1–5 scores for:
 
 - prompt alignment
 - anatomy
@@ -30,24 +50,23 @@ Each class must run the same frozen prompt at `1:1`; selected classes must also 
 - hands
 - scene fidelity
 - composition
-- generation duration
-- provider failure rate
-- actual and estimated cost
-- cost per output
-- output dimensions
-- GPU type
 
-## Current results
+The report will also aggregate failure rate, total/median duration, output
+dimensions, estimated cost, actual cost, and cost per output.
 
-| Metric | Value |
-| --- | --- |
-| prompts executed | 0 / 10 |
-| real outputs | 0 |
-| success rate | not measured |
-| failure rate | not measured |
-| duration | not measured |
-| cost | 0 (no provider request sent) |
-| quality scores | not measured |
+## Why no scores are reported
 
-No model usability claim is made.
+The AutoDL control panel currently shows the staging instance powered off.
+SSH rejects connections and the public Worker route is unavailable. Reporting
+scores without all 10 real outputs would violate the fixed benchmark rule.
 
+In addition, `AUTODL_GPU_HOURLY_COST` remains zero. The dashboard shows a
+separate daily storage charge, but no verified GPU hourly price was captured,
+so `actual_cost` cannot yet be accepted.
+
+## Resume action
+
+Start the existing staging instance, keep it online for approximately
+5–10 minutes, and provide or configure the actual GPU hourly price. The
+prepared benchmark can then run, images can be reviewed, and all benchmark
+objects can be removed from staging Storage.

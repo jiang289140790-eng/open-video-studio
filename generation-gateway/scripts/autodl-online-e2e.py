@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
 import os
 import time
@@ -69,7 +71,13 @@ def wait_for_job(
     raise TimeoutError(f"gateway job did not finish; last status={last.get('status')}")
 
 
-def generation_body(*, seed: int, idempotency_key: str, people_count: int = 1) -> dict[str, Any]:
+def generation_body(
+    *,
+    seed: int,
+    idempotency_key: str,
+    people_count: int = 1,
+    output_count: int = 1,
+) -> dict[str, Any]:
     return {
         "media_type": "image",
         "creation_mode": "text_to_image",
@@ -86,7 +94,7 @@ def generation_body(*, seed: int, idempotency_key: str, people_count: int = 1) -
         },
         "reference_assets": [],
         "aspect_ratio": "1:1",
-        "output_count": 1,
+        "output_count": output_count,
         "subject_age_confirmed_adult": True,
         "idempotency_key": idempotency_key,
         "client_context": {
@@ -116,7 +124,8 @@ def main() -> None:
     job_ids: list[str] = []
     storage_paths: list[str] = []
 
-    with httpx.Client(timeout=60, follow_redirects=True, trust_env=False) as client:
+    timeout = httpx.Timeout(20, connect=10)
+    with httpx.Client(timeout=timeout, follow_redirects=True, trust_env=False) as client:
         try:
             for label in ("a", "b"):
                 email = f"phase2-{label}-{uuid.uuid4().hex[:12]}@example.invalid"
@@ -202,12 +211,75 @@ def main() -> None:
                 "observed": observed,
             }
 
-            refreshed = httpx.get(
-                f"{GATEWAY}/v1/generations/{first_job}",
-                headers={"authorization": f"Bearer {user_a['token']}"},
-                timeout=60,
-                trust_env=False,
+            provider_row = client.get(
+                f"{supabase_url}/rest/v1/generation_jobs",
+                headers=admin_headers,
+                params={
+                    "select": "provider_job_id",
+                    "id": f"eq.{first_job}",
+                },
             )
+            provider_row.raise_for_status()
+            provider_job_id = provider_row.json()[0]["provider_job_id"]
+            worker_state = client.get(
+                f"http://127.0.0.1:6006/v1/jobs/{provider_job_id}",
+                headers={"authorization": f"Bearer {env['AUTODL_API_TOKEN']}"},
+            )
+            worker_state.raise_for_status()
+            replay_body = (
+                json.dumps(
+                    worker_state.json(),
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                )
+                + "\n"
+            ).encode()
+            replay_signature = hmac.new(
+                env["AUTODL_API_TOKEN"].encode(),
+                replay_body,
+                hashlib.sha256,
+            ).hexdigest()
+            replay_headers = {
+                "content-type": "application/json",
+                "x-webhook-signature": f"sha256={replay_signature}",
+            }
+            replay_first = client.post(
+                f"{GATEWAY}/v1/provider-webhooks/autodl",
+                headers=replay_headers,
+                content=replay_body,
+            )
+            replay_second = client.post(
+                f"{GATEWAY}/v1/provider-webhooks/autodl",
+                headers=replay_headers,
+                content=replay_body,
+            )
+            replay_first.raise_for_status()
+            replay_second.raise_for_status()
+            result["duplicate_webhook"] = {
+                "first_http": replay_first.status_code,
+                "first_duplicate": replay_first.json().get("duplicate"),
+                "second_http": replay_second.status_code,
+                "second_duplicate": replay_second.json().get("duplicate"),
+            }
+
+            refreshed = None
+            for _ in range(5):
+                try:
+                    with httpx.Client(
+                        timeout=timeout, follow_redirects=True, trust_env=False
+                    ) as refresh_client:
+                        candidate = refresh_client.get(
+                            f"{GATEWAY}/v1/generations/{first_job}",
+                            headers={"authorization": f"Bearer {user_a['token']}"},
+                        )
+                    if candidate.status_code == 200:
+                        refreshed = candidate
+                        break
+                except httpx.HTTPError:
+                    pass
+                time.sleep(2)
+            if refreshed is None:
+                raise RuntimeError("page refresh recovery request did not succeed")
             result["refresh_recovery"] = {
                 "http": refreshed.status_code,
                 "status": refreshed.json().get("job", {}).get("status"),
@@ -253,24 +325,41 @@ def main() -> None:
                 for asset in owned_assets
             )
 
-            cancel_submit = client.post(
-                f"{GATEWAY}/v1/generations",
-                headers=headers_a,
-                json=generation_body(
-                    seed=2026072805,
-                    idempotency_key=f"phase2-cancel-{uuid.uuid4().hex}",
-                ),
-            )
-            cancel_submit.raise_for_status()
-            cancel_job = cancel_submit.json()["job_id"]
-            job_ids.append(cancel_job)
-            cancelled = client.post(
-                f"{GATEWAY}/v1/generations/{cancel_job}/cancel", headers=headers_a
-            )
-            cancelled.raise_for_status()
+            cancel_races: list[str] = []
+            cancelled = None
+            cancel_job = ""
+            for attempt in range(3):
+                cancel_submit = client.post(
+                    f"{GATEWAY}/v1/generations",
+                    headers=headers_a,
+                    json=generation_body(
+                        seed=2026072805 + attempt,
+                        idempotency_key=f"phase2-cancel-{uuid.uuid4().hex}",
+                        output_count=4,
+                    ),
+                )
+                cancel_submit.raise_for_status()
+                candidate_job = cancel_submit.json()["job_id"]
+                job_ids.append(candidate_job)
+                candidate_cancel = client.post(
+                    f"{GATEWAY}/v1/generations/{candidate_job}/cancel",
+                    headers=headers_a,
+                )
+                if candidate_cancel.status_code == 202:
+                    cancelled = candidate_cancel
+                    cancel_job = candidate_job
+                    break
+                cancel_races.append(
+                    f"{candidate_job}:http_{candidate_cancel.status_code}"
+                )
+            if cancelled is None:
+                raise RuntimeError(
+                    "gateway cancellation lost every provider completion race"
+                )
             result["cancel"] = {
                 "http": cancelled.status_code,
                 "status": cancelled.json()["job"]["status"],
+                "completion_races": cancel_races,
             }
 
             retried = client.post(
@@ -312,27 +401,52 @@ def main() -> None:
                     people_count=2,
                 ),
             )
-            result["no_matching_workflow"] = {
-                "http": no_match.status_code,
-                "code": no_match.json().get("error", {}).get("code"),
-            }
+            no_match_payload = no_match.json()
+            if no_match.status_code == 202:
+                no_match_job_id = no_match_payload["job_id"]
+                job_ids.append(no_match_job_id)
+                no_match_terminal, no_match_observed = wait_for_job(
+                    client,
+                    user_a["token"],
+                    no_match_job_id,
+                    timeout_seconds=60,
+                    diagnostics=result,
+                )
+                result["no_matching_workflow"] = {
+                    "http": no_match.status_code,
+                    "status": no_match_terminal["status"],
+                    "code": no_match_terminal.get("error_code"),
+                    "observed": no_match_observed,
+                }
+            else:
+                result["no_matching_workflow"] = {
+                    "http": no_match.status_code,
+                    "status": "rejected",
+                    "code": no_match_payload.get("error", {}).get("code"),
+                }
         except Exception as exc:
             result["exception"] = type(exc).__name__
             result["exception_message"] = str(exc)[:300]
         finally:
-            try:
-                if storage_paths:
-                    response = client.request(
-                        "DELETE",
-                        f"{supabase_url}/storage/v1/object/generation-results",
-                        headers=admin_headers,
-                        json={"prefixes": sorted(set(storage_paths))},
-                    )
-                    response.raise_for_status()
-            except Exception as exc:
-                result["cleanup_errors"].append(f"storage:{type(exc).__name__}")
-
             for job_id in job_ids:
+                try:
+                    cleanup_assets = client.get(
+                        f"{supabase_url}/rest/v1/generation_assets",
+                        headers=admin_headers,
+                        params={
+                            "select": "storage_path",
+                            "job_id": f"eq.{job_id}",
+                        },
+                    )
+                    cleanup_assets.raise_for_status()
+                    storage_paths.extend(
+                        asset["storage_path"].removeprefix("generation-results/")
+                        for asset in cleanup_assets.json()
+                    )
+                except Exception as exc:
+                    result["cleanup_errors"].append(
+                        f"asset_lookup:{type(exc).__name__}"
+                    )
                 for table in ("generation_assets", "generation_jobs"):
                     try:
                         key = "job_id" if table == "generation_assets" else "id"
@@ -350,6 +464,17 @@ def main() -> None:
                         result["cleanup_errors"].append(
                             f"{table}:{type(exc).__name__}"
                         )
+            try:
+                if storage_paths:
+                    response = client.request(
+                        "DELETE",
+                        f"{supabase_url}/storage/v1/object/generation-results",
+                        headers=admin_headers,
+                        json={"prefixes": sorted(set(storage_paths))},
+                    )
+                    response.raise_for_status()
+            except Exception as exc:
+                result["cleanup_errors"].append(f"storage:{type(exc).__name__}")
             for user in users:
                 try:
                     response = client.delete(
