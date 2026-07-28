@@ -24,7 +24,11 @@ Final status: **BLOCKED — NOT ACCEPTED**
 4. Provide/export the executable ComfyUI API workflow JSON.
 5. Provide verified node mappings for reference input, pose/composition control, LoRA, prompt, seed, dimensions and output count.
 6. Provide ten licensed/authorized adult reference images and the fixed adult character record for benchmark use.
+7. After the real registry data is available, enable the browser character picker
+   and analysis confirmation/correction panel and verify refresh recovery.
 
-After those items exist, the remaining work is Worker deployment, Render allowlist update, real negative-path E2E, ten-category benchmark, log review, asset cleanup and final promotion decision.
+After those items exist, the remaining work is Worker deployment, browser
+confirmation UI activation, Render allowlist update, real negative-path E2E,
+ten-category benchmark, log review, asset cleanup and final promotion decision.
 
 Phase 3 must not be marked ACCEPTED before all of those real checks pass.

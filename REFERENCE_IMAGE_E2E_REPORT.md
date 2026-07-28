@@ -18,6 +18,8 @@ Status: **BLOCKED — no real generation claimed**
 
 ## Not run
 
+- browser analysis-summary confirmation/correction flow (API client methods exist,
+  but the disabled real workflow is not exposed as a dead UI control)
 - real reference-image submit/running/completed
 - failed/timeout/cancelled/retry on the new workflow
 - duplicate callback and cancellation/upload race on the new workflow
